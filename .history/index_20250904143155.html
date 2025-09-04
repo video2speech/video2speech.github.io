@@ -734,49 +734,46 @@ el('downloadAll').onclick = async () => {
     el('downloadAll').textContent = 'Downloading...';
     el('downloadAll').disabled = true;
     
-    // Detect if we're on iPad/iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    // Download all videos sequentially
+    let downloadedCount = 0;
     
-    if (isIOS) {
-      // On iOS/iPad, use Web Share API to avoid download prompts that freeze video
-      if (navigator.share) {
-        try {
-          // Prepare all files for sharing
-          const files = videos.map(video => new File([video.blob], video.fileName, { type: video.blob.type }));
-          
-          await navigator.share({
-            files: files,
-            title: 'Video Recordings',
-            text: `Sharing ${videos.length} recorded videos`
-          });
-          
-          // After successful share, delete all videos
-          for (const video of videos) {
+    for (let i = 0; i < videos.length; i++) {
+      await new Promise((resolve) => {
+        setTimeout(async () => {
+          try {
+            const video = videos[i];
+            const a = document.createElement('a');
+            a.download = video.fileName;
+            a.href = URL.createObjectURL(video.blob);
+            a.click();
+            URL.revokeObjectURL(a.href);
+            
+            // Delete video after download
             await deleteStoredVideo(video.id);
+            downloadedCount++;
+            console.log(`Downloaded and deleted: ${video.fileName} (${downloadedCount}/${videos.length})`);
+            
+          } catch (error) {
+            console.error(`Failed to process video: ${video.fileName}`, error);
           }
-          
-          console.log(`All ${videos.length} videos shared and cleared`);
-        } catch (shareError) {
-          // If share fails or is cancelled, fall back to individual downloads with longer delays
-          console.log('Share cancelled or failed, falling back to downloads');
-          await downloadVideosSequentially(videos, 1000); // 1 second delay for iPad
-        }
-      } else {
-        // Fallback for older iOS versions
-        await downloadVideosSequentially(videos, 1000);
-      }
-    } else {
-      // On desktop, use normal download method
-      await downloadVideosSequentially(videos, 300);
+          resolve();
+        }, i * 300);
+      });
     }
     
-    // Update UI after all operations complete
+    // Update UI after all downloads complete
     setTimeout(async () => {
       try {
         await updateStorageInfo();
         el('downloadAll').textContent = '💾 SAVE ALL';
         el('downloadAll').disabled = false;
-        console.log('Download operation completed');
+        console.log(`All ${downloadedCount} videos downloaded and cleared`);
+        
+        // Ensure video preview is still working
+        const videoElement = el('preview');
+        if (videoElement && !videoElement.srcObject) {
+          console.log('Video stream lost after download, may need to reinitialize camera');
+        }
       } catch (error) {
         console.error('Error updating UI after download:', error);
         el('downloadAll').textContent = '💾 SAVE ALL';
@@ -790,45 +787,6 @@ el('downloadAll').onclick = async () => {
     el('downloadAll').disabled = false;
   }
 };
-
-// Helper function to download videos sequentially
-async function downloadVideosSequentially(videos, delay) {
-  let downloadedCount = 0;
-  
-  for (let i = 0; i < videos.length; i++) {
-    await new Promise((resolve) => {
-      setTimeout(async () => {
-        try {
-          const video = videos[i];
-          const a = document.createElement('a');
-          a.download = video.fileName;
-          a.href = URL.createObjectURL(video.blob);
-          
-          // On iPad, add a small delay before and after click to minimize interference
-          if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-            await new Promise(r => setTimeout(r, 100));
-          }
-          
-          a.click();
-          URL.revokeObjectURL(a.href);
-          
-          if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-            await new Promise(r => setTimeout(r, 100));
-          }
-          
-          // Delete video after download
-          await deleteStoredVideo(video.id);
-          downloadedCount++;
-          console.log(`Downloaded and deleted: ${video.fileName} (${downloadedCount}/${videos.length})`);
-          
-        } catch (error) {
-          console.error(`Failed to process video: ${video.fileName}`, error);
-        }
-        resolve();
-      }, i * delay);
-    });
-  }
-}
 
 // Clear all stored videos
 el('clearAll').onclick = async () => {
