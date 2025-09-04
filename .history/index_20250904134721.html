@@ -92,12 +92,12 @@
       <button id="init" style="font-size: 1.2rem; padding: 12px 24px; background: #5a6b5a; color: white; border: none; border-radius: 8px; cursor: pointer;">📷 Initialize Camera</button>
     </div>
           <div class="row" style="margin-top:8px; justify-content: center;">
-        <button id="start" style="font-size: 1.1rem; padding: 10px 20px; background: #5a6b5a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px;">▶ Start</button>
-        <button id="stop" style="font-size: 1.1rem; padding: 10px 20px; background: #7a5a5a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px;">⏭ Stop & Next</button>
-        <button id="redo" style="font-size: 1.1rem; padding: 10px 20px; background: #7a6b5a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px;">🔄 Redo last</button>
+        <button id="start" style="font-size: 1rem; padding: 8px 16px; background: #5a6b5a; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">▶ Start</button>
+        <button id="stop" style="font-size: 1rem; padding: 8px 16px; background: #7a5a5a; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">⏭ Stop & Next</button>
+        <button id="redo" style="font-size: 1rem; padding: 8px 16px; background: #7a6b5a; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">🔄 Redo last</button>
       </div>
       <div class="row" style="margin-top:8px; justify-content: center;">
-        <button id="downloadAll" style="font-size: 1.1rem; padding: 10px 20px; background: #5a6b7a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px; display:none">💾 SAVE ALL</button>
+        <button id="downloadAll" style="font-size: 1rem; padding: 8px 16px; background: #5a6b7a; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px; display:none">💾 SAVE ALL</button>
       </div>
     <div class="row">
       <button id="clearAll" style="display:none">Clear Storage</button>
@@ -492,7 +492,7 @@ function playRecordingStartSound() {
     
     // Set volume envelope for a quick "beep"
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.75, audioContext.currentTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
     
     // Start and stop the sound

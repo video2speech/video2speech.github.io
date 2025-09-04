@@ -68,6 +68,7 @@
     <div class="row">
       <label>Select Sentence Set</label>
       <select id="sentenceSet" onchange="loadSentenceSet()">
+        <option value="" selected>Select Sentence Set...</option>
         <option value="50_sentences">50 Sentences</option>
         <option value="150_sentences">150 Sentences</option>
       </select>
@@ -331,6 +332,12 @@ async function loadSentenceFile(filename) {
 // Load sentence set
 async function loadSentenceSet() {
   const selected = el('sentenceSet').value;
+  
+  // If no valid selection, return early
+  if (!selected || (selected !== '50_sentences' && selected !== '150_sentences')) {
+    return;
+  }
+  
   currentSentenceSet = selected;
   
   let filename;
@@ -368,6 +375,11 @@ async function loadSentenceSet() {
     idx = 0;
     await updateSentenceView();
   }
+  
+  // Reset select box to default after loading
+  setTimeout(() => {
+    el('sentenceSet').value = '';
+  }, 100);
 }
 
 // Reset progress
