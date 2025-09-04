@@ -381,7 +381,6 @@ el('init').onclick = async () => {
 el('next').onclick = async () => { 
   if (sentences.length){ 
     idx = Math.min(idx+1, sentences.length-1); 
-    isRedo = false; // 重置重录标记
     updateSentenceView(); 
     // 保存进度
     try {
@@ -395,7 +394,6 @@ el('next').onclick = async () => {
 el('prev').onclick = async () => { 
   if (sentences.length){ 
     idx = Math.max(idx-1, 0); 
-    isRedo = false; // 重置重录标记
     updateSentenceView(); 
     // 保存进度
     try {
@@ -410,7 +408,6 @@ el('prev').onclick = async () => {
 el('skip').onclick = async () => {
   if (sentences.length && idx < sentences.length - 1) {
     idx++;
-    isRedo = false; // 重置重录标记
     updateSentenceView();
     // 保存进度
     try {
@@ -656,9 +653,6 @@ async function saveBlob(){
     // 普通模式：直接下载
     directDownload(blob, fileName);
   }
-  
-  // 录制完成后重置重录标记
-  isRedo = false;
   
   // 录制完成后自动跳到下一句（如果不是最后一句）
   if (idx < sentences.length - 1) {

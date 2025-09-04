@@ -410,7 +410,6 @@ el('prev').onclick = async () => {
 el('skip').onclick = async () => {
   if (sentences.length && idx < sentences.length - 1) {
     idx++;
-    isRedo = false; // 重置重录标记
     updateSentenceView();
     // 保存进度
     try {

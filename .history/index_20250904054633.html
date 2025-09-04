@@ -381,7 +381,6 @@ el('init').onclick = async () => {
 el('next').onclick = async () => { 
   if (sentences.length){ 
     idx = Math.min(idx+1, sentences.length-1); 
-    isRedo = false; // 重置重录标记
     updateSentenceView(); 
     // 保存进度
     try {
@@ -395,7 +394,6 @@ el('next').onclick = async () => {
 el('prev').onclick = async () => { 
   if (sentences.length){ 
     idx = Math.max(idx-1, 0); 
-    isRedo = false; // 重置重录标记
     updateSentenceView(); 
     // 保存进度
     try {
@@ -410,7 +408,6 @@ el('prev').onclick = async () => {
 el('skip').onclick = async () => {
   if (sentences.length && idx < sentences.length - 1) {
     idx++;
-    isRedo = false; // 重置重录标记
     updateSentenceView();
     // 保存进度
     try {
@@ -427,7 +424,6 @@ el('skip').onclick = async () => {
 // Redo current sentence (just stay on current sentence)
 el('redo').onclick = () => {
   console.log(`Redo sentence ${idx + 1}: ${sentences[idx]}`);
-  isRedo = true; // 设置重录标记
   // Just refresh the current sentence display
   updateSentenceView();
 };
@@ -636,8 +632,7 @@ async function saveBlob(){
   const blob = new Blob(chunks, { type: blobType });
   const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
   const timestamp = ts();
-  const redoSuffix = isRedo ? '_redo' : '';
-  const fileName = `${sentence}_${timestamp}${redoSuffix}.mp4`; // 始终使用mp4扩展名
+  const fileName = `${sentence}_${timestamp}.mp4`; // 始终使用mp4扩展名
   
   if (storageMode) {
     // iPad模式：存储到IndexedDB
@@ -656,9 +651,6 @@ async function saveBlob(){
     // 普通模式：直接下载
     directDownload(blob, fileName);
   }
-  
-  // 录制完成后重置重录标记
-  isRedo = false;
   
   // 录制完成后自动跳到下一句（如果不是最后一句）
   if (idx < sentences.length - 1) {
