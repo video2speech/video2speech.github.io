@@ -500,7 +500,7 @@ function playRecordingStartSound() {
     
     // Set volume envelope for a quick "beep"
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(0.75, audioContext.currentTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
     
     // Start and stop the sound
@@ -530,7 +530,7 @@ function playRecordingStopSound() {
     
     // Set volume envelope for a slightly longer "stop" sound
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(0.75, audioContext.currentTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
     
     // Start and stop the sound
@@ -763,22 +763,10 @@ el('downloadAll').onclick = async () => {
     
     // Update UI after all downloads complete
     setTimeout(async () => {
-      try {
-        await updateStorageInfo();
-        el('downloadAll').textContent = '💾 SAVE ALL';
-        el('downloadAll').disabled = false;
-        console.log(`All ${downloadedCount} videos downloaded and cleared`);
-        
-        // Ensure video preview is still working
-        const videoElement = el('preview');
-        if (videoElement && !videoElement.srcObject) {
-          console.log('Video stream lost after download, may need to reinitialize camera');
-        }
-      } catch (error) {
-        console.error('Error updating UI after download:', error);
-        el('downloadAll').textContent = '💾 SAVE ALL';
-        el('downloadAll').disabled = false;
-      }
+      await updateStorageInfo();
+      el('downloadAll').textContent = '💾 SAVE ALL';
+      el('downloadAll').disabled = false;
+      console.log(`All ${downloadedCount} videos downloaded and cleared`);
     }, 500);
     
   } catch (error) {

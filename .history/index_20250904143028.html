@@ -500,7 +500,7 @@ function playRecordingStartSound() {
     
     // Set volume envelope for a quick "beep"
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(0.75, audioContext.currentTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
     
     // Start and stop the sound
@@ -530,7 +530,7 @@ function playRecordingStopSound() {
     
     // Set volume envelope for a slightly longer "stop" sound
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(0.75, audioContext.currentTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
     
     // Start and stop the sound
