@@ -830,9 +830,6 @@ el('stop').onclick = () => {
     el('start').classList.remove('button-pressed');
     el('stop').classList.add('button-pressed');
     
-    // Play recording stop sound
-    playRecordingStopSound();
-    
     mediaRecorder.stop();
     recording = false;
     

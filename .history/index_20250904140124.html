@@ -504,36 +504,6 @@ function playRecordingStartSound() {
   }
 }
 
-function playRecordingStopSound() {
-  try {
-    // Create audio context
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // Create oscillator for the "stop" sound (lower pitch)
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    // Connect oscillator to gain to destination
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Set frequency for a lower "stop" sound (around 500Hz)
-    oscillator.frequency.setValueAtTime(500, audioContext.currentTime);
-    
-    // Set volume envelope for a slightly longer "stop" sound
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.75, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
-    
-    // Start and stop the sound
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.3);
-  } catch (error) {
-    // Silently fail if audio context is not available
-    console.log('Audio not available:', error);
-  }
-}
-
 el('init').onclick = async () => {
   try {
     // Get user selected resolution
@@ -829,9 +799,6 @@ el('stop').onclick = () => {
     // Update button states - only STOP is pressed when stopping
     el('start').classList.remove('button-pressed');
     el('stop').classList.add('button-pressed');
-    
-    // Play recording stop sound
-    playRecordingStopSound();
     
     mediaRecorder.stop();
     recording = false;
