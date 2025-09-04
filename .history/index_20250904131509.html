@@ -4,8 +4,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Video Recording Tool</title>
 <style>
-  html{width:100%;height:100%;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0}
+  @media (min-width: 1024px) {
+    body{max-width:800px;margin:24px auto;padding:0 16px}
+  }
   .card{border:1px solid #444;border-radius:12px;padding:16px;margin:16px 0;background-color:#2a2a2a}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   video{width:300px;height:200px;background:#000;border-radius:8px;margin:0 auto;display:block;object-fit:contain}
@@ -18,31 +20,6 @@
   
   .sentence-preparing {
     color: #888;
-  }
-  
-  /* Responsive font sizes for sentences */
-  @media (max-width: 768px) {
-    #currentText {
-      font-size: 3.5rem !important;
-      padding: 30px !important;
-      min-height: 35vh !important;
-    }
-  }
-  
-  @media (min-width: 769px) and (max-width: 1024px) {
-    #currentText {
-      font-size: 4.5rem !important;
-      padding: 45px !important;
-      min-height: 40vh !important;
-    }
-  }
-  
-  @media (min-width: 1025px) {
-    #currentText {
-      font-size: 5rem !important;
-      padding: 50px !important;
-      min-height: 45vh !important;
-    }
   }
   
   .sentence-recording {
@@ -79,7 +56,7 @@
       <button id="next">Next</button>
       <button id="skip">Skip</button>
     </div>
-    <div class="big sentence-preparing" id="currentText" style="font-size: 4rem; font-weight: bold; text-align: center; padding: 40px; border: 2px solid #555; border-radius: 16px; margin: 24px 0; min-height: 45vh; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.3; background-color: #333;">
+    <div class="big sentence-preparing" id="currentText" style="font-size: 3rem; font-weight: bold; text-align: center; padding: 40px; border: 2px solid #555; border-radius: 16px; margin: 24px 0; min-height: 40vh; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.4; background-color: #333;">
       <span class="muted" id="idxInfo" style="position: absolute; top: 15px; right: 20px; font-size: 1rem; color: #888; font-weight: normal; text-align: right; white-space: pre-line;"></span>
       Waiting for initialization...
     </div>
@@ -785,7 +762,11 @@ el('stop').onclick = () => {
     el('recordingStatus').style.color = '#888';
     el('currentText').className = 'big sentence-preparing';
     
-    // Keep Stop button pressed until Start is pressed again
+    // Reset button states after a brief moment
+    setTimeout(() => {
+      el('start').classList.remove('button-pressed');
+      el('stop').classList.remove('button-pressed');
+    }, 200);
   }
 };
 
