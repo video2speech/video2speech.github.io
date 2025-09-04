@@ -59,10 +59,8 @@
     <div class="row">
       <button id="downloadAll" style="display:none">Download All</button>
       <button id="clearAll" style="display:none">Clear Storage</button>
-    </div>
-    <div class="row" style="flex-direction: column; align-items: center; margin-top: 10px;">
-      <span class="muted" id="storageInfo" style="font-size: 1rem; margin-bottom: 5px;"></span>
-      <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
+      <span class="muted" id="resolutionInfo"></span>
+      <span class="muted" id="storageInfo"></span>
     </div>
     <div class="row">
       <!-- <span class="muted" id="downloadTip">iPad Mode: Videos are stored locally, use "Download All" to save them</span> -->
@@ -463,7 +461,7 @@ async function updateStorageInfo() {
     const totalSize = videos.reduce((sum, video) => sum + video.size, 0);
     const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
     
-    el('storageInfo').textContent = count > 0 ? `Cached ${count} videos, ~${sizeInMB} MB` : '';
+    el('storageInfo').textContent = count > 0 ? `Stored ${count} videos, ~${sizeInMB} MB` : '';
     
     console.log(`Storage info updated: ${count} videos, ${sizeInMB} MB`);
   } catch (error) {

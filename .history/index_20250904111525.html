@@ -463,7 +463,7 @@ async function updateStorageInfo() {
     const totalSize = videos.reduce((sum, video) => sum + video.size, 0);
     const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
     
-    el('storageInfo').textContent = count > 0 ? `Cached ${count} videos, ~${sizeInMB} MB` : '';
+    el('storageInfo').textContent = count > 0 ? `Stored ${count} videos, ~${sizeInMB} MB` : '';
     
     console.log(`Storage info updated: ${count} videos, ${sizeInMB} MB`);
   } catch (error) {

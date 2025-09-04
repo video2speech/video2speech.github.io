@@ -50,7 +50,7 @@
   <div class="card">
     <video id="preview" playsinline autoplay muted></video>
     <div class="row" style="margin-top:8px; justify-content: center;">
-      <button id="start" style="font-size: 1.5rem; padding: 15px 30px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px;">▶ START</button>
+      <button id="start" style="font-size: 1.5rem; padding: 15px 30px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px;">▶ START RECORDING</button>
       <button id="stop" style="font-size: 1.5rem; padding: 15px 30px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px;">⏹ STOP & SAVE</button>
     </div>
     <div class="row" style="justify-content: center; margin-top: 10px;">
@@ -59,10 +59,8 @@
     <div class="row">
       <button id="downloadAll" style="display:none">Download All</button>
       <button id="clearAll" style="display:none">Clear Storage</button>
-    </div>
-    <div class="row" style="flex-direction: column; align-items: center; margin-top: 10px;">
-      <span class="muted" id="storageInfo" style="font-size: 1rem; margin-bottom: 5px;"></span>
-      <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
+      <span class="muted" id="resolutionInfo"></span>
+      <span class="muted" id="storageInfo"></span>
     </div>
     <div class="row">
       <!-- <span class="muted" id="downloadTip">iPad Mode: Videos are stored locally, use "Download All" to save them</span> -->
@@ -463,16 +461,38 @@ async function updateStorageInfo() {
     const totalSize = videos.reduce((sum, video) => sum + video.size, 0);
     const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
     
-    el('storageInfo').textContent = count > 0 ? `Cached ${count} videos, ~${sizeInMB} MB` : '';
+    el('storageInfo').textContent = count > 0 ? `Stored ${count} videos, ~${sizeInMB} MB` : '';
     
     console.log(`Storage info updated: ${count} videos, ${sizeInMB} MB`);
   } catch (error) {
     console.error('Failed to update storage info:', error);
     // Update UI even if error occurs to avoid freezing
+    el('viewStored').textContent = `View Stored Videos (0)`;
     el('storageInfo').textContent = '';
   }
 }
 
+// View stored videos
+el('viewStored').onclick = async () => {
+  try {
+    const videos = await getAllStoredVideos();
+    if (videos.length === 0) {
+      alert('No stored videos found');
+      return;
+    }
+    
+    let list = 'Stored Videos List:\n\n';
+    videos.forEach((video, index) => {
+      const date = new Date(video.timestamp).toLocaleString();
+      const sizeMB = (video.size / (1024 * 1024)).toFixed(1);
+      list += `${index + 1}. ${video.fileName}\n   Sentence: ${video.sentence}\n   Time: ${date}\n   Size: ${sizeMB} MB\n\n`;
+    });
+    
+    alert(list);
+  } catch (error) {
+    alert('Failed to get stored videos: ' + error.message);
+  }
+};
 
 // Download all stored videos
 el('downloadAll').onclick = async () => {
@@ -533,6 +553,7 @@ el('clearAll').onclick = async () => {
     await clearAllStoredVideos();
     
     // Force reset UI state
+    el('viewStored').textContent = `View Stored Videos (0)`;
     el('storageInfo').textContent = '';
     
     // Call updateStorageInfo again to ensure correct state
