@@ -728,7 +728,7 @@ el('downloadAll').onclick = async () => {
       return;
     }
     
-    if (!confirm(`Are you sure you want to download all ${videos.length} videos? Videos will be automatically cleared from cache and transferred to your download path after download.\n\nAfter SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
+    if (!confirm(`Are you sure you want to download all ${videos.length} videos? Videos will be automatically cleared from storage after download.`)) return;
     
     // Download one by one, 300ms interval
     for (let i = 0; i < videos.length; i++) {
@@ -775,9 +775,14 @@ el('downloadAll').onclick = async () => {
                 el('preview').srcObject = stream;
                 
                 console.log('Video stream restarted after SAVE ALL');
+                
+                // Show user prompt about refreshing page if needed
+                alert('After SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.');
               }
             } catch (error) {
               console.error('Error restarting video stream:', error);
+              // Show prompt even if restart failed
+              alert('After SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.');
             }
           }, 500);
         }
