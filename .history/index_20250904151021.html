@@ -730,97 +730,64 @@ el('downloadAll').onclick = async () => {
       return;
     }
     
-    if (!confirm(`Are you sure you want to download all ${videos.length} videos as a ZIP file? Videos will be automatically cleared from cache after download.\n\nAfter SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
+    if (!confirm(`Are you sure you want to download all ${videos.length} videos? Videos will be automatically cleared from cache and transferred to your download path after download.\n\nAfter SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
     
-    // Show progress indicator
-    el('downloadAll').textContent = 'Creating ZIP...';
-    el('downloadAll').disabled = true;
-    
-    // Create ZIP file
-    const zip = new JSZip();
-    
-    // Add all videos to ZIP
+    // Download one by one, 300ms interval
     for (let i = 0; i < videos.length; i++) {
-      const video = videos[i];
-      console.log(`Adding to ZIP: ${video.fileName}`);
-      
-      // Convert blob to array buffer for ZIP
-      const arrayBuffer = await video.blob.arrayBuffer();
-      zip.file(video.fileName, arrayBuffer);
-      
-      // Update progress
-      el('downloadAll').textContent = `Adding ${i + 1}/${videos.length}...`;
-    }
-    
-    // Generate ZIP file
-    el('downloadAll').textContent = 'Generating ZIP...';
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
-    
-    // Create download link for ZIP
-    const currentDate = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const zipFileName = `video-recordings-${currentDate}.zip`;
-    
-    const a = document.createElement('a');
-    a.download = zipFileName;
-    a.href = URL.createObjectURL(zipBlob);
-    a.click();
-    URL.revokeObjectURL(a.href);
-    
-    console.log(`Downloaded ZIP file: ${zipFileName}`);
-    
-    // Delete all videos from storage
-    for (const video of videos) {
-      try {
-        await deleteStoredVideo(video.id);
-        console.log(`Deleted stored video: ${video.fileName}`);
-      } catch (error) {
-        console.error(`Failed to delete video: ${video.fileName}`, error);
-      }
-    }
-    
-    // Update storage info and restart video stream
-    setTimeout(async () => {
-      try {
-        updateStorageInfo();
+      setTimeout(async () => {
+        const video = videos[i];
+        const a = document.createElement('a');
+        a.download = video.fileName;
+        a.href = URL.createObjectURL(video.blob);
+        a.click();
+        URL.revokeObjectURL(a.href);
         
-        // Restart video stream to refresh camera feed
-        if (stream) {
-          // Stop current stream
-          stream.getTracks().forEach(track => track.stop());
-          
-          // Restart camera with current resolution
-          const resolution = el('resolution').value;
-          let videoConstraints = { facingMode: 'user' };
-          
-          if (resolution === '4k') videoConstraints = { ...videoConstraints, width: 3840, height: 2160 };
-          else if (resolution === '1080p') videoConstraints = { ...videoConstraints, width: 1920, height: 1080 };
-          else if (resolution === '720p') videoConstraints = { ...videoConstraints, width: 1280, height: 720 };
-          else if (resolution === '480p') videoConstraints = { ...videoConstraints, width: 640, height: 480 };
-          
-          stream = await navigator.mediaDevices.getUserMedia({ 
-            video: videoConstraints, 
-            audio: true 
-          });
-          el('preview').srcObject = stream;
-          
-          console.log('Video stream restarted after ZIP download');
+        // Delete video after download
+        try {
+          await deleteStoredVideo(video.id);
+          console.log(`Deleted stored video: ${video.fileName}`);
+        } catch (error) {
+          console.error(`Failed to delete video: ${video.fileName}`, error);
         }
         
-        // Reset button
-        el('downloadAll').textContent = '💾 SAVE ALL';
-        el('downloadAll').disabled = false;
-        
-      } catch (error) {
-        console.error('Error restarting video stream:', error);
-        el('downloadAll').textContent = '💾 SAVE ALL';
-        el('downloadAll').disabled = false;
-      }
-    }, 500);
+        // Update storage info after last video download and restart video stream
+        if (i === videos.length - 1) {
+          setTimeout(async () => {
+            try {
+              updateStorageInfo();
+              
+              // Restart video stream to refresh camera feed
+              if (stream) {
+                // Stop current stream
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Restart camera with current resolution
+                const resolution = el('resolution').value;
+                let videoConstraints = { facingMode: 'user' };
+                
+                if (resolution === '4k') videoConstraints = { ...videoConstraints, width: 3840, height: 2160 };
+                else if (resolution === '1080p') videoConstraints = { ...videoConstraints, width: 1920, height: 1080 };
+                else if (resolution === '720p') videoConstraints = { ...videoConstraints, width: 1280, height: 720 };
+                else if (resolution === '480p') videoConstraints = { ...videoConstraints, width: 640, height: 480 };
+                
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                  video: videoConstraints, 
+                  audio: true 
+                });
+                el('preview').srcObject = stream;
+                
+                console.log('Video stream restarted after SAVE ALL');
+              }
+            } catch (error) {
+              console.error('Error restarting video stream:', error);
+            }
+          }, 500);
+        }
+      }, i * 300);
+    }
     
   } catch (error) {
-    alert('ZIP download failed: ' + error.message);
-    el('downloadAll').textContent = '💾 SAVE ALL';
-    el('downloadAll').disabled = false;
+    alert('Download failed: ' + error.message);
   }
 };
 
