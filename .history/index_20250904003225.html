@@ -129,13 +129,6 @@ el('init').onclick = async () => {
 el('next').onclick = () => { if (sentences.length){ idx = Math.min(idx+1, sentences.length-1); updateSentenceView(); }};
 el('prev').onclick = () => { if (sentences.length){ idx = Math.max(idx-1, 0); updateSentenceView(); }};
 
-// 监听分辨率变化
-el('resolution').onchange = () => {
-  if (stream) {
-    el('resolutionInfo').textContent = '分辨率已更改，请重新初始化摄像头';
-  }
-};
-
 el('start').onclick = () => {
   if (!stream) return alert('请先点"初始化摄像头"');
   if (recording) return;

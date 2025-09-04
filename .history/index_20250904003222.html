@@ -119,8 +119,7 @@ el('init').onclick = async () => {
     const videoTrack = stream.getVideoTracks()[0];
     const settings = videoTrack.getSettings();
     const actualRes = `${settings.width}×${settings.height}`;
-    el('resolutionInfo').textContent = `实际分辨率: ${actualRes}`;
-    alert('摄像头就绪！可以开始录制了。');
+    alert(`摄像头就绪！\n选择分辨率: ${resolution}\n实际分辨率: ${actualRes}\n可以开始录制了。`);
   } catch (e) {
     alert('无法获取摄像头/麦克风权限：' + e);
   }
@@ -128,13 +127,6 @@ el('init').onclick = async () => {
 
 el('next').onclick = () => { if (sentences.length){ idx = Math.min(idx+1, sentences.length-1); updateSentenceView(); }};
 el('prev').onclick = () => { if (sentences.length){ idx = Math.max(idx-1, 0); updateSentenceView(); }};
-
-// 监听分辨率变化
-el('resolution').onchange = () => {
-  if (stream) {
-    el('resolutionInfo').textContent = '分辨率已更改，请重新初始化摄像头';
-  }
-};
 
 el('start').onclick = () => {
   if (!stream) return alert('请先点"初始化摄像头"');

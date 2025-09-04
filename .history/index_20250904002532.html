@@ -35,16 +35,6 @@
       </select>
     </div>
     <div class="row">
-      <label>录制分辨率</label>
-      <select id="resolution">
-        <option value="720p">720p (1280×720) - 推荐</option>
-        <option value="1080p">1080p (1920×1080) - 高清</option>
-        <option value="480p">480p (854×480) - 标清</option>
-        <option value="360p">360p (640×360) - 低清</option>
-        <option value="auto">自动 - 使用摄像头默认</option>
-      </select>
-    </div>
-    <div class="row">
       <button id="init">初始化摄像头</button>
       <button id="prev">上一句</button>
       <button id="next">下一句</button>
@@ -58,10 +48,7 @@
     <div class="row" style="margin-top:8px">
       <button id="start">开始录制</button>
       <button id="stop">停止并保存</button>
-      <span class="muted" id="resolutionInfo"></span>
-    </div>
-    <div class="row">
-      <span class="muted">提示：先在"设置 → Safari → 下载"选好固定保存文件夹</span>
+      <span class="muted">提示：先在“设置 → Safari → 下载”选好固定保存文件夹</span>
     </div>
   </div>
 
@@ -81,46 +68,17 @@ function updateSentenceView(){
 
 el('init').onclick = async () => {
   try {
-    // 获取用户选择的分辨率
-    const resolution = el('resolution').value;
-    let videoConstraints = { facingMode: 'user' };
-    
-    // 根据选择设置分辨率
-    if (resolution !== 'auto') {
-      const resolutions = {
-        '360p': { width: 640, height: 360 },
-        '480p': { width: 854, height: 480 },
-        '720p': { width: 1280, height: 720 },
-        '1080p': { width: 1920, height: 1080 }
-      };
-      
-      if (resolutions[resolution]) {
-        videoConstraints = {
-          ...videoConstraints,
-          width: { ideal: resolutions[resolution].width },
-          height: { ideal: resolutions[resolution].height }
-        };
-      }
-    }
-    
     // 前置摄像头；如需后置，把 'user' 改为 'environment'
     stream = await navigator.mediaDevices.getUserMedia({
-      video: videoConstraints,
+      video: { facingMode: 'user', width: {ideal:1280}, height:{ideal:720}},
       audio: true
     });
-    
     el('preview').srcObject = stream;
     sentences = el('sentences').value
       .split('\n').map(s=>s.trim()).filter(Boolean);
     idx = 0;
     updateSentenceView();
-    
-    // 显示实际获取到的分辨率
-    const videoTrack = stream.getVideoTracks()[0];
-    const settings = videoTrack.getSettings();
-    const actualRes = `${settings.width}×${settings.height}`;
-    el('resolutionInfo').textContent = `实际分辨率: ${actualRes}`;
-    alert('摄像头就绪！可以开始录制了。');
+    alert('摄像头就绪；可以开始了。');
   } catch (e) {
     alert('无法获取摄像头/麦克风权限：' + e);
   }
@@ -128,13 +86,6 @@ el('init').onclick = async () => {
 
 el('next').onclick = () => { if (sentences.length){ idx = Math.min(idx+1, sentences.length-1); updateSentenceView(); }};
 el('prev').onclick = () => { if (sentences.length){ idx = Math.max(idx-1, 0); updateSentenceView(); }};
-
-// 监听分辨率变化
-el('resolution').onchange = () => {
-  if (stream) {
-    el('resolutionInfo').textContent = '分辨率已更改，请重新初始化摄像头';
-  }
-};
 
 el('start').onclick = () => {
   if (!stream) return alert('请先点"初始化摄像头"');
