@@ -372,7 +372,7 @@ el('init').onclick = async () => {
     el('downloadAll').style.display = 'inline-block';
     el('clearAll').style.display = 'inline-block';
     
-    alert('Camera ready! Videos will be stored locally.');
+    alert('Camera ready! iPad mode enabled - videos will be stored locally.');
   } catch (e) {
     alert('Unable to access camera/microphone: ' + e);
   }
@@ -424,22 +424,12 @@ el('skip').onclick = async () => {
   }
 };
 
-// Redo last sentence (go back to previous sentence)
-el('redo').onclick = async () => {
-  if (sentences.length && idx > 0) {
-    idx--; // Go back to previous sentence
-    isRedo = true; // Set redo flag for video naming
-    console.log(`Redo last sentence ${idx + 1}: ${sentences[idx]}`);
-    updateSentenceView();
-    // Save progress
-    try {
-      await saveProgress(currentSentenceSet, idx);
-    } catch (error) {
-      console.error('Failed to save progress:', error);
-    }
-  } else {
-    console.log('Cannot redo: already at first sentence or no sentences available');
-  }
+// Redo current sentence (just stay on current sentence)
+el('redo').onclick = () => {
+  console.log(`Redo sentence ${idx + 1}: ${sentences[idx]}`);
+  isRedo = true; // Set redo flag
+  // Just refresh the current sentence display
+  updateSentenceView();
 };
 
 // Listen for resolution changes
