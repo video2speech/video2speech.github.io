@@ -305,10 +305,10 @@ async function clearAllProgress() {
     // 重置当前进度
     idx = 0;
     updateSentenceView();
-    alert('All progress has been cleared');
+    alert('所有进度已清除');
   } catch (error) {
     console.error('清除进度失败:', error);
-    alert('Failed to clear progress: ' + error.message);
+    alert('清除进度失败: ' + error.message);
   }
 }
 
@@ -665,7 +665,7 @@ async function saveBlob(){
     }
   } else {
     // 已完成所有句子
-    alert(`Congratulations! You have completed recording all ${sentences.length} sentences!`);
+    alert(`恭喜！您已完成所有${sentences.length}句的录制！`);
   }
   
   // 显示格式信息

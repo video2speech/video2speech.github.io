@@ -285,13 +285,13 @@ async function resetProgress() {
     alert('Progress has been reset');
   } catch (error) {
     console.error('重置进度失败:', error);
-    alert('Failed to reset progress: ' + error.message);
+    alert('重置进度失败: ' + error.message);
   }
 }
 
 // 清除所有进度
 async function clearAllProgress() {
-  if (!confirm('Are you sure you want to clear all recording progress? This action cannot be undone!')) return;
+  if (!confirm('确定要清除所有句子集的录制进度吗？此操作不可恢复！')) return;
   
   try {
     const transaction = db.transaction(['progress'], 'readwrite');
@@ -305,10 +305,10 @@ async function clearAllProgress() {
     // 重置当前进度
     idx = 0;
     updateSentenceView();
-    alert('All progress has been cleared');
+    alert('所有进度已清除');
   } catch (error) {
     console.error('清除进度失败:', error);
-    alert('Failed to clear progress: ' + error.message);
+    alert('清除进度失败: ' + error.message);
   }
 }
 
@@ -665,7 +665,7 @@ async function saveBlob(){
     }
   } else {
     // 已完成所有句子
-    alert(`Congratulations! You have completed recording all ${sentences.length} sentences!`);
+    alert(`恭喜！您已完成所有${sentences.length}句的录制！`);
   }
   
   // 显示格式信息

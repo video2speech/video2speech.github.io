@@ -27,47 +27,40 @@
       <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">Clear All Progress</button>
     </div>
     <div class="row">
-      <label>Recording Resolution</label>
+      <label>录制分辨率</label>
       <select id="resolution">
-        <option value="720p">720p (1280×720) - Recommended</option>
-        <option value="1080p">1080p (1920×1080) - High Quality</option>
-        <option value="480p">480p (854×480) - Standard</option>
-        <option value="360p">360p (640×360) - Low Quality</option>
-        <option value="auto">Auto - Camera Default</option>
+        <option value="720p">720p (1280×720) - 推荐</option>
+        <option value="1080p">1080p (1920×1080) - 高清</option>
+        <option value="480p">480p (854×480) - 标清</option>
+        <option value="360p">360p (640×360) - 低清</option>
+        <option value="auto">自动 - 使用摄像头默认</option>
       </select>
     </div>
     <div class="row">
-      <button id="init">Initialize Camera</button>
-      <button id="prev">Previous</button>
-      <button id="next">Next</button>
-      <button id="skip">Skip</button>
-      <button id="redo">Redo This</button>
+      <button id="init">初始化摄像头</button>
+      <button id="prev">上一句</button>
+      <button id="next">下一句</button>
       <span class="muted" id="idxInfo"></span>
     </div>
-    <div class="big" id="currentText" style="font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #ddd; border-radius: 12px; margin: 16px 0; min-height: 80px; display: flex; align-items: center; justify-content: center;">Waiting for initialization...</div>
+    <div class="big" id="currentText" style="font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #ddd; border-radius: 12px; margin: 16px 0; min-height: 80px; display: flex; align-items: center; justify-content: center;">（待初始化）</div>
   </div>
 
   <div class="card">
     <video id="preview" playsinline autoplay muted></video>
-    <div class="row" style="margin-top:8px; justify-content: center;">
-      <button id="start" style="font-size: 1.5rem; padding: 15px 30px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px;">▶ START RECORDING</button>
-      <button id="stop" style="font-size: 1.5rem; padding: 15px 30px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px;">⏹ STOP & SAVE</button>
-    </div>
-    <div class="row" style="justify-content: center; margin-top: 10px;">
-      <div id="recordingStatus" style="font-size: 1.2rem; font-weight: bold; color: #f44336; display: none;">🔴 RECORDING IN PROGRESS</div>
-    </div>
     <div class="row" style="margin-top:8px">
-      <button id="downloadMode" onclick="toggleDownloadMode()">iPad Mode: Store Locally</button>
+      <button id="start">开始录制</button>
+      <button id="stop">停止并保存</button>
+      <button id="downloadMode" onclick="toggleDownloadMode()">iPad模式: 存储到本地</button>
     </div>
     <div class="row">
-      <button id="viewStored" style="display:none">View Stored Videos (0)</button>
-      <button id="downloadAll" style="display:none">Download All</button>
-      <button id="clearAll" style="display:none">Clear Storage</button>
+      <button id="viewStored" style="display:none">查看已存储视频 (0)</button>
+      <button id="downloadAll" style="display:none">下载所有</button>
+      <button id="clearAll" style="display:none">清空存储</button>
       <span class="muted" id="resolutionInfo"></span>
       <span class="muted" id="storageInfo"></span>
     </div>
     <div class="row">
-      <span class="muted" id="downloadTip">Tip: Set a fixed download folder in Settings → Safari → Downloads</span>
+      <span class="muted" id="downloadTip">提示：先在"设置 → Safari → 下载"选好固定保存文件夹</span>
     </div>
   </div>
 
@@ -276,22 +269,22 @@ async function loadSentenceSet() {
 
 // 重置进度
 async function resetProgress() {
-  if (!confirm('Are you sure you want to reset the recording progress for the current sentence set?')) return;
+  if (!confirm('确定要重置当前句子集的录制进度吗？')) return;
   
   try {
     await deleteProgress(currentSentenceSet);
     idx = 0;
     updateSentenceView();
-    alert('Progress has been reset');
+    alert('进度已重置');
   } catch (error) {
     console.error('重置进度失败:', error);
-    alert('Failed to reset progress: ' + error.message);
+    alert('重置进度失败: ' + error.message);
   }
 }
 
 // 清除所有进度
 async function clearAllProgress() {
-  if (!confirm('Are you sure you want to clear all recording progress? This action cannot be undone!')) return;
+  if (!confirm('确定要清除所有句子集的录制进度吗？此操作不可恢复！')) return;
   
   try {
     const transaction = db.transaction(['progress'], 'readwrite');
@@ -305,10 +298,10 @@ async function clearAllProgress() {
     // 重置当前进度
     idx = 0;
     updateSentenceView();
-    alert('All progress has been cleared');
+    alert('所有进度已清除');
   } catch (error) {
     console.error('清除进度失败:', error);
-    alert('Failed to clear progress: ' + error.message);
+    alert('清除进度失败: ' + error.message);
   }
 }
 
@@ -325,8 +318,8 @@ initDB().then(() => {
 function updateSentenceView(){
   const total = sentences.length;
   const text = total ? sentences[idx] : '';
-  el('currentText').textContent = text || 'No sentences available';
-  el('idxInfo').textContent = total ? `${idx+1} / ${total}` : '';
+  el('currentText').textContent = text || '（没有句子）';
+  el('idxInfo').textContent = total ? `第 ${idx+1}/${total} 句` : '';
 }
 
 el('init').onclick = async () => {
@@ -369,11 +362,11 @@ el('init').onclick = async () => {
     const videoTrack = stream.getVideoTracks()[0];
     const settings = videoTrack.getSettings();
     const actualRes = `${settings.width}×${settings.height}`;
-    el('resolutionInfo').textContent = `Actual Resolution: ${actualRes}`;
+    el('resolutionInfo').textContent = `实际分辨率: ${actualRes}`;
     
-    alert('Camera ready! You can start recording now.');
+    alert('摄像头就绪！可以开始录制了。');
   } catch (e) {
-    alert('Unable to access camera/microphone: ' + e);
+    alert('无法获取摄像头/麦克风权限：' + e);
   }
 };
 
@@ -403,34 +396,10 @@ el('prev').onclick = async () => {
   }
 };
 
-// Skip current sentence
-el('skip').onclick = async () => {
-  if (sentences.length && idx < sentences.length - 1) {
-    idx++;
-    updateSentenceView();
-    // 保存进度
-    try {
-      await saveProgress(currentSentenceSet, idx);
-      console.log(`Skipped to sentence ${idx + 1}`);
-    } catch (error) {
-      console.error('保存进度失败:', error);
-    }
-  } else if (idx >= sentences.length - 1) {
-    alert('This is the last sentence!');
-  }
-};
-
-// Redo current sentence (just stay on current sentence)
-el('redo').onclick = () => {
-  console.log(`Redo sentence ${idx + 1}: ${sentences[idx]}`);
-  // Just refresh the current sentence display
-  updateSentenceView();
-};
-
 // 监听分辨率变化
 el('resolution').onchange = () => {
   if (stream) {
-    el('resolutionInfo').textContent = 'Resolution changed, please reinitialize camera';
+    el('resolutionInfo').textContent = '分辨率已更改，请重新初始化摄像头';
   }
 };
 
@@ -439,21 +408,21 @@ function toggleDownloadMode() {
   storageMode = !storageMode;
   const button = el('downloadMode');
   if (storageMode) {
-    button.textContent = 'iPad Mode: Store Locally ✓';
+    button.textContent = 'iPad模式: 存储到本地 ✓';
     button.style.backgroundColor = '#4CAF50';
     button.style.color = 'white';
     el('viewStored').style.display = 'inline-block';
     el('downloadAll').style.display = 'inline-block';
     el('clearAll').style.display = 'inline-block';
-    el('downloadTip').textContent = 'iPad Mode: Videos will be stored locally, download later in batch';
+    el('downloadTip').textContent = 'iPad模式：视频将存储到浏览器本地，可稍后批量下载';
   } else {
-    button.textContent = 'iPad Mode: Store Locally';
+    button.textContent = 'iPad模式: 存储到本地';
     button.style.backgroundColor = '';
     button.style.color = '';
     el('viewStored').style.display = 'none';
     el('downloadAll').style.display = 'none';
     el('clearAll').style.display = 'none';
-    el('downloadTip').textContent = 'Tip: Set a fixed download folder in Settings → Safari → Downloads';
+    el('downloadTip').textContent = '提示：先在"设置 → Safari → 下载"选好固定保存文件夹';
   }
   updateStorageInfo();
 }
@@ -468,8 +437,8 @@ async function updateStorageInfo() {
     const totalSize = videos.reduce((sum, video) => sum + video.size, 0);
     const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
     
-    el('viewStored').textContent = `View Stored Videos (${count})`;
-    el('storageInfo').textContent = count > 0 ? `Stored ${count} videos, ~${sizeInMB} MB` : '';
+    el('viewStored').textContent = `查看已存储视频 (${count})`;
+    el('storageInfo').textContent = count > 0 ? `已存储 ${count} 个视频，约 ${sizeInMB} MB` : '';
   } catch (error) {
     console.error('更新存储信息失败:', error);
   }
@@ -562,7 +531,7 @@ el('clearAll').onclick = async () => {
 };
 
 el('start').onclick = () => {
-  if (!stream) return alert('Please initialize camera first!');
+  if (!stream) return alert('请先点"初始化摄像头"');
   if (recording) return;
   chunks = [];
   
@@ -579,40 +548,14 @@ el('start').onclick = () => {
   mediaRecorder.onstop = saveBlob;
   mediaRecorder.start();
   recording = true;
-  
-  // 显示录制状态
-  el('recordingStatus').style.display = 'block';
-  el('start').style.opacity = '0.5';
-  el('stop').style.opacity = '1';
 };
 
 el('stop').onclick = () => {
   if (mediaRecorder && recording) {
     mediaRecorder.stop();
     recording = false;
-    
-    // 隐藏录制状态
-    el('recordingStatus').style.display = 'none';
-    el('start').style.opacity = '1';
-    el('stop').style.opacity = '0.5';
   }
 };
-
-// 添加空格键快捷键支持
-document.addEventListener('keydown', (event) => {
-  // 只在空格键按下且没有聚焦在输入元素时触发
-  if (event.code === 'Space' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
-    event.preventDefault(); // 防止页面滚动
-    
-    if (!recording) {
-      // 开始录制
-      el('start').click();
-    } else {
-      // 停止录制
-      el('stop').click();
-    }
-  }
-});
 
 function sanitize(s){
   return s.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim();
@@ -665,7 +608,7 @@ async function saveBlob(){
     }
   } else {
     // 已完成所有句子
-    alert(`Congratulations! You have completed recording all ${sentences.length} sentences!`);
+    alert(`恭喜！您已完成所有${sentences.length}句的录制！`);
   }
   
   // 显示格式信息
