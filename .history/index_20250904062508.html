@@ -12,6 +12,8 @@
   input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
   .big{font-size:1.4rem;font-weight:600;margin:8px 0}
   .muted{color:#666}
+  @keyframes blink { 0%, 50% { opacity: 0.3; } 51%, 100% { opacity: 1; } }
+  .recording-ready { background-color: #4CAF50 !important; color: white !important; }
 </style>
 <body>
   <h1>Video Recording Tool</h1>
@@ -57,14 +59,14 @@
       <div id="recordingStatus" style="font-size: 1.2rem; font-weight: bold; color: #f44336; display: none;">🔴 RECORDING IN PROGRESS</div>
     </div>
     <div class="row">
-      <button id="viewStored" style="display:none">View Stored Videos (0)</button>
-      <button id="downloadAll" style="display:none">Download All</button>
-      <button id="clearAll" style="display:none">Clear Storage</button>
+      <button id="viewStored">View Stored Videos (0)</button>
+      <button id="downloadAll">Download All</button>
+      <button id="clearAll">Clear Storage</button>
       <span class="muted" id="resolutionInfo"></span>
       <span class="muted" id="storageInfo"></span>
     </div>
     <div class="row">
-      <!-- <span class="muted" id="downloadTip">iPad Mode: Videos are stored locally, use "Download All" to save them</span> -->
+      <span class="muted" id="downloadTip">iPad Mode: Videos will be stored locally, download later in batch</span>
     </div>
   </div>
 
@@ -76,6 +78,7 @@ let idx = 0;
 let recording = false;
 let storageMode = true; // Default to iPad mode (store locally)
 let isRedo = false; // flag for redo mode
+let preparing = false; // flag for preparation state
 let db;
 
 // Initialize IndexedDB
@@ -367,12 +370,7 @@ el('init').onclick = async () => {
     const actualRes = `${settings.width}×${settings.height}`;
     el('resolutionInfo').textContent = `Actual Resolution: ${actualRes}`;
     
-    // Show storage buttons since we're in iPad mode by default
-    el('viewStored').style.display = 'inline-block';
-    el('downloadAll').style.display = 'inline-block';
-    el('clearAll').style.display = 'inline-block';
-    
-    alert('Camera ready! iPad mode enabled - videos will be stored locally.');
+    alert('Camera ready! You can start recording now.');
   } catch (e) {
     alert('Unable to access camera/microphone: ' + e);
   }
@@ -439,6 +437,29 @@ el('resolution').onchange = () => {
   }
 };
 
+// Toggle download mode
+function toggleDownloadMode() {
+  storageMode = !storageMode;
+  const button = el('downloadMode');
+  if (storageMode) {
+    button.textContent = 'iPad Mode: Store Locally ✓';
+    button.style.backgroundColor = '#4CAF50';
+    button.style.color = 'white';
+    el('viewStored').style.display = 'inline-block';
+    el('downloadAll').style.display = 'inline-block';
+    el('clearAll').style.display = 'inline-block';
+    el('downloadTip').textContent = 'iPad Mode: Videos will be stored locally, download later in batch';
+  } else {
+    button.textContent = 'iPad Mode: Store Locally';
+    button.style.backgroundColor = '';
+    button.style.color = '';
+    el('viewStored').style.display = 'none';
+    el('downloadAll').style.display = 'none';
+    el('clearAll').style.display = 'none';
+    el('downloadTip').textContent = 'Tip: Set a fixed download folder in Settings → Safari → Downloads';
+  }
+  updateStorageInfo();
+}
 
 // Update storage info
 async function updateStorageInfo() {

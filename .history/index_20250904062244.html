@@ -12,6 +12,8 @@
   input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
   .big{font-size:1.4rem;font-weight:600;margin:8px 0}
   .muted{color:#666}
+  @keyframes blink { 0%, 50% { opacity: 0.3; } 51%, 100% { opacity: 1; } }
+  .recording-ready { background-color: #4CAF50 !important; color: white !important; }
 </style>
 <body>
   <h1>Video Recording Tool</h1>
@@ -44,7 +46,12 @@
       <button id="redo">Redo This</button>
       <span class="muted" id="idxInfo"></span>
     </div>
-    <div class="big" id="currentText" style="font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #ddd; border-radius: 12px; margin: 16px 0; min-height: 80px; display: flex; align-items: center; justify-content: center;">Waiting for initialization...</div>
+    <div class="big" id="currentText" style="font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #ddd; border-radius: 12px; margin: 16px 0; min-height: 80px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">Waiting for initialization...</div>
+    <div id="preparationDots" style="text-align: center; font-size: 2rem; margin: 10px 0; display: none;">
+      <span class="dot" style="animation: blink 1s infinite;">●</span>
+      <span class="dot" style="animation: blink 1s infinite 0.2s;">●</span>
+      <span class="dot" style="animation: blink 1s infinite 0.4s;">●</span>
+    </div>
   </div>
 
   <div class="card">
@@ -57,14 +64,14 @@
       <div id="recordingStatus" style="font-size: 1.2rem; font-weight: bold; color: #f44336; display: none;">🔴 RECORDING IN PROGRESS</div>
     </div>
     <div class="row">
-      <button id="viewStored" style="display:none">View Stored Videos (0)</button>
-      <button id="downloadAll" style="display:none">Download All</button>
-      <button id="clearAll" style="display:none">Clear Storage</button>
+      <button id="viewStored">View Stored Videos (0)</button>
+      <button id="downloadAll">Download All</button>
+      <button id="clearAll">Clear Storage</button>
       <span class="muted" id="resolutionInfo"></span>
       <span class="muted" id="storageInfo"></span>
     </div>
     <div class="row">
-      <!-- <span class="muted" id="downloadTip">iPad Mode: Videos are stored locally, use "Download All" to save them</span> -->
+      <span class="muted" id="downloadTip">Press Enter to prepare recording, Enter again to stop and move to next sentence</span>
     </div>
   </div>
 
@@ -74,6 +81,7 @@ let stream, mediaRecorder, chunks = [];
 let sentences = [];
 let idx = 0;
 let recording = false;
+let preparing = false; // flag for preparation state
 let storageMode = true; // Default to iPad mode (store locally)
 let isRedo = false; // flag for redo mode
 let db;
@@ -367,12 +375,7 @@ el('init').onclick = async () => {
     const actualRes = `${settings.width}×${settings.height}`;
     el('resolutionInfo').textContent = `Actual Resolution: ${actualRes}`;
     
-    // Show storage buttons since we're in iPad mode by default
-    el('viewStored').style.display = 'inline-block';
-    el('downloadAll').style.display = 'inline-block';
-    el('clearAll').style.display = 'inline-block';
-    
-    alert('Camera ready! iPad mode enabled - videos will be stored locally.');
+    alert('Camera ready! You can start recording now.');
   } catch (e) {
     alert('Unable to access camera/microphone: ' + e);
   }
@@ -591,28 +594,83 @@ el('stop').onclick = () => {
     mediaRecorder.stop();
     recording = false;
     
-    // Hide recording status
+    // Hide recording status and reset styles
     el('recordingStatus').style.display = 'none';
     el('start').style.opacity = '1';
     el('stop').style.opacity = '0.5';
+    
+    // Reset sentence display style
+    el('currentText').classList.remove('recording-ready');
   }
 };
 
-// Add spacebar shortcut support
+// Add keyboard shortcut support
 document.addEventListener('keydown', (event) => {
-  // Only trigger when spacebar is pressed and not focused on input elements
-  if (event.code === 'Space' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
-    event.preventDefault(); // Prevent page scrolling
+  // Only trigger when not focused on input elements
+  if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
     
-    if (!recording) {
-      // Start recording
-      el('start').click();
-    } else {
-      // Stop recording
-      el('stop').click();
+    // Spacebar for start/stop recording (old behavior)
+    if (event.code === 'Space') {
+      event.preventDefault(); // Prevent page scrolling
+      
+      if (!recording) {
+        // Start recording
+        el('start').click();
+      } else {
+        // Stop recording
+        el('stop').click();
+      }
+    }
+    
+    // Enter key for preparation and auto recording
+    if (event.code === 'Enter') {
+      event.preventDefault();
+      
+      if (!stream) {
+        alert('Please initialize camera first!');
+        return;
+      }
+      
+      if (recording) {
+        // If recording, stop and move to next sentence
+        el('stop').click();
+        return;
+      }
+      
+      if (preparing) {
+        // If already preparing, do nothing
+        return;
+      }
+      
+      // Start preparation phase
+      startPreparation();
     }
   }
 });
+
+// Start preparation phase with dots animation
+function startPreparation() {
+  console.log('Starting preparation phase...');
+  preparing = true;
+  
+  // Show preparation dots
+  el('preparationDots').style.display = 'block';
+  el('currentText').style.opacity = '0.5';
+  console.log('Preparation dots shown, sentence dimmed');
+  
+  // After 1 second, start recording automatically
+  setTimeout(() => {
+    console.log('1 second passed, starting recording...');
+    // Hide dots and show green sentence
+    el('preparationDots').style.display = 'none';
+    el('currentText').style.opacity = '1';
+    el('currentText').classList.add('recording-ready');
+    
+    // Start recording
+    el('start').click();
+    preparing = false;
+  }, 1000);
+}
 
 function sanitize(s){
   return s.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim();

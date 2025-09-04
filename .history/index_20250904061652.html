@@ -44,7 +44,12 @@
       <button id="redo">Redo This</button>
       <span class="muted" id="idxInfo"></span>
     </div>
-    <div class="big" id="currentText" style="font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #ddd; border-radius: 12px; margin: 16px 0; min-height: 80px; display: flex; align-items: center; justify-content: center;">Waiting for initialization...</div>
+    <div class="big" id="currentText" style="font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #ddd; border-radius: 12px; margin: 16px 0; min-height: 80px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">Waiting for initialization...</div>
+    <div id="preparationDots" style="text-align: center; font-size: 2rem; margin: 10px 0; display: none;">
+      <span class="dot" style="animation: blink 1s infinite;">●</span>
+      <span class="dot" style="animation: blink 1s infinite 0.2s;">●</span>
+      <span class="dot" style="animation: blink 1s infinite 0.4s;">●</span>
+    </div>
   </div>
 
   <div class="card">
@@ -57,14 +62,14 @@
       <div id="recordingStatus" style="font-size: 1.2rem; font-weight: bold; color: #f44336; display: none;">🔴 RECORDING IN PROGRESS</div>
     </div>
     <div class="row">
-      <button id="viewStored" style="display:none">View Stored Videos (0)</button>
-      <button id="downloadAll" style="display:none">Download All</button>
-      <button id="clearAll" style="display:none">Clear Storage</button>
+      <button id="viewStored">View Stored Videos (0)</button>
+      <button id="downloadAll">Download All</button>
+      <button id="clearAll">Clear Storage</button>
       <span class="muted" id="resolutionInfo"></span>
       <span class="muted" id="storageInfo"></span>
     </div>
     <div class="row">
-      <!-- <span class="muted" id="downloadTip">iPad Mode: Videos are stored locally, use "Download All" to save them</span> -->
+      <span class="muted" id="downloadTip">Tip: Set a fixed download folder in Settings → Safari → Downloads</span>
     </div>
   </div>
 
@@ -74,6 +79,7 @@ let stream, mediaRecorder, chunks = [];
 let sentences = [];
 let idx = 0;
 let recording = false;
+let preparing = false; // flag for preparation state
 let storageMode = true; // Default to iPad mode (store locally)
 let isRedo = false; // flag for redo mode
 let db;
@@ -367,12 +373,7 @@ el('init').onclick = async () => {
     const actualRes = `${settings.width}×${settings.height}`;
     el('resolutionInfo').textContent = `Actual Resolution: ${actualRes}`;
     
-    // Show storage buttons since we're in iPad mode by default
-    el('viewStored').style.display = 'inline-block';
-    el('downloadAll').style.display = 'inline-block';
-    el('clearAll').style.display = 'inline-block';
-    
-    alert('Camera ready! iPad mode enabled - videos will be stored locally.');
+    alert('Camera ready! You can start recording now.');
   } catch (e) {
     alert('Unable to access camera/microphone: ' + e);
   }
@@ -439,6 +440,29 @@ el('resolution').onchange = () => {
   }
 };
 
+// Toggle download mode
+function toggleDownloadMode() {
+  storageMode = !storageMode;
+  const button = el('downloadMode');
+  if (storageMode) {
+    button.textContent = 'iPad Mode: Store Locally ✓';
+    button.style.backgroundColor = '#4CAF50';
+    button.style.color = 'white';
+    el('viewStored').style.display = 'inline-block';
+    el('downloadAll').style.display = 'inline-block';
+    el('clearAll').style.display = 'inline-block';
+    el('downloadTip').textContent = 'iPad Mode: Videos will be stored locally, download later in batch';
+  } else {
+    button.textContent = 'iPad Mode: Store Locally';
+    button.style.backgroundColor = '';
+    button.style.color = '';
+    el('viewStored').style.display = 'none';
+    el('downloadAll').style.display = 'none';
+    el('clearAll').style.display = 'none';
+    el('downloadTip').textContent = 'Tip: Set a fixed download folder in Settings → Safari → Downloads';
+  }
+  updateStorageInfo();
+}
 
 // Update storage info
 async function updateStorageInfo() {

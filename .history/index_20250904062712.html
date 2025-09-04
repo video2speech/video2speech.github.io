@@ -64,7 +64,7 @@
       <span class="muted" id="storageInfo"></span>
     </div>
     <div class="row">
-      <!-- <span class="muted" id="downloadTip">iPad Mode: Videos are stored locally, use "Download All" to save them</span> -->
+      <span class="muted" id="downloadTip">Tip: Set a fixed download folder in Settings → Safari → Downloads</span>
     </div>
   </div>
 
@@ -367,12 +367,7 @@ el('init').onclick = async () => {
     const actualRes = `${settings.width}×${settings.height}`;
     el('resolutionInfo').textContent = `Actual Resolution: ${actualRes}`;
     
-    // Show storage buttons since we're in iPad mode by default
-    el('viewStored').style.display = 'inline-block';
-    el('downloadAll').style.display = 'inline-block';
-    el('clearAll').style.display = 'inline-block';
-    
-    alert('Camera ready! iPad mode enabled - videos will be stored locally.');
+    alert('Camera ready! You can start recording now.');
   } catch (e) {
     alert('Unable to access camera/microphone: ' + e);
   }
@@ -439,6 +434,29 @@ el('resolution').onchange = () => {
   }
 };
 
+// Toggle download mode
+function toggleDownloadMode() {
+  storageMode = !storageMode;
+  const button = el('downloadMode');
+  if (storageMode) {
+    button.textContent = 'iPad Mode: Store Locally ✓';
+    button.style.backgroundColor = '#4CAF50';
+    button.style.color = 'white';
+    el('viewStored').style.display = 'inline-block';
+    el('downloadAll').style.display = 'inline-block';
+    el('clearAll').style.display = 'inline-block';
+    el('downloadTip').textContent = 'iPad Mode: Videos will be stored locally, download later in batch';
+  } else {
+    button.textContent = 'iPad Mode: Store Locally';
+    button.style.backgroundColor = '';
+    button.style.color = '';
+    el('viewStored').style.display = 'none';
+    el('downloadAll').style.display = 'none';
+    el('clearAll').style.display = 'none';
+    el('downloadTip').textContent = 'Tip: Set a fixed download folder in Settings → Safari → Downloads';
+  }
+  updateStorageInfo();
+}
 
 // Update storage info
 async function updateStorageInfo() {
