@@ -275,7 +275,7 @@ async function loadSentenceSet() {
   }
 }
 
-// Reset progress
+// 重置进度
 async function resetProgress() {
   if (!confirm('Are you sure you want to reset the recording progress for the current sentence set?')) return;
   
@@ -689,12 +689,12 @@ async function saveBlob(){
       console.error('Failed to save progress:', error);
     }
   } else {
-    // All sentences completed
+    // 已完成所有句子
     alert(`Congratulations! You have completed recording all ${sentences.length} sentences!`);
   }
   
-  // Display format information
-  console.log(`Recording completed, format: ${fileExt.toUpperCase()}, MIME type: ${mediaRecorder.mimeType}`);
+  // 显示格式信息
+  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
 }
 
 function directDownload(blob, fileName) {

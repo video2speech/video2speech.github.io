@@ -275,7 +275,7 @@ async function loadSentenceSet() {
   }
 }
 
-// Reset progress
+// 重置进度
 async function resetProgress() {
   if (!confirm('Are you sure you want to reset the recording progress for the current sentence set?')) return;
   
@@ -537,23 +537,23 @@ el('downloadAll').onclick = async () => {
           console.error(`Failed to delete video: ${video.fileName}`, error);
         }
         
-        // Update storage info after last video download
+        // 最后一个视频下载完成后更新存储信息
         if (i === videos.length - 1) {
           setTimeout(() => {
             updateStorageInfo();
-            el('storageInfo').textContent = `Downloaded ${videos.length} videos and cleared storage`;
+            el('storageInfo').textContent = `已下载 ${videos.length} 个视频并清除存储`;
           }, 500);
         }
       }, i * 300);
     }
     
-    el('storageInfo').textContent = `Downloading ${videos.length} videos...`;
+    el('storageInfo').textContent = `正在下载 ${videos.length} 个视频...`;
   } catch (error) {
-    alert('Download failed: ' + error.message);
+    alert('下载失败: ' + error.message);
   }
 };
 
-// Clear all stored videos
+// 清空所有存储的视频
 el('clearAll').onclick = async () => {
   try {
     const videos = await getAllStoredVideos();
@@ -566,11 +566,11 @@ el('clearAll').onclick = async () => {
     
     await clearAllStoredVideos();
     
-    // Force reset UI state
+    // 强制重置界面状态
     el('viewStored').textContent = `View Stored Videos (0)`;
     el('storageInfo').textContent = '';
     
-    // Call updateStorageInfo again to ensure correct state
+    // 再次调用updateStorageInfo确保状态正确
     setTimeout(() => {
       updateStorageInfo();
     }, 100);
@@ -587,7 +587,7 @@ el('start').onclick = () => {
   if (recording) return;
   chunks = [];
   
-  // Use MP4 format by default
+  // 默认使用MP4格式
   const mp4Options = [
     'video/mp4;codecs=h264,aac',
     'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
@@ -601,7 +601,7 @@ el('start').onclick = () => {
   mediaRecorder.start();
   recording = true;
   
-  // Show recording status
+  // 显示录制状态
   el('recordingStatus').style.display = 'block';
   el('start').style.opacity = '0.5';
   el('stop').style.opacity = '1';
@@ -612,24 +612,24 @@ el('stop').onclick = () => {
     mediaRecorder.stop();
     recording = false;
     
-    // Hide recording status
+    // 隐藏录制状态
     el('recordingStatus').style.display = 'none';
     el('start').style.opacity = '1';
     el('stop').style.opacity = '0.5';
   }
 };
 
-// Add spacebar shortcut support
+// 添加空格键快捷键支持
 document.addEventListener('keydown', (event) => {
-  // Only trigger when spacebar is pressed and not focused on input elements
+  // 只在空格键按下且没有聚焦在输入元素时触发
   if (event.code === 'Space' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
-    event.preventDefault(); // Prevent page scrolling
+    event.preventDefault(); // 防止页面滚动
     
     if (!recording) {
-      // Start recording
+      // 开始录制
       el('start').click();
     } else {
-      // Stop recording
+      // 停止录制
       el('stop').click();
     }
   }
@@ -644,7 +644,7 @@ function ts(){
   return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 async function saveBlob(){
-  // Determine file extension based on actual mimeType used
+  // 根据实际使用的mimeType确定文件扩展名
   const isMP4 = mediaRecorder.mimeType.includes('mp4');
   const fileExt = isMP4 ? 'mp4' : 'webm';
   const blobType = isMP4 ? 'video/mp4' : 'video/webm';
@@ -653,30 +653,30 @@ async function saveBlob(){
   const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
   const timestamp = ts();
   const redoSuffix = isRedo ? '_redo' : '';
-  const fileName = `${sentence}_${timestamp}${redoSuffix}.mp4`; // Always use mp4 extension
+  const fileName = `${sentence}_${timestamp}${redoSuffix}.mp4`; // 始终使用mp4扩展名
   
   if (storageMode) {
-    // iPad mode: Store to IndexedDB
+    // iPad模式：存储到IndexedDB
     try {
-      await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
+      await storeVideo(blob, fileName, sentences[idx] || '未知句子', currentSentenceSet, idx);
       updateStorageInfo();
-      el('storageInfo').textContent = `Video stored: ${fileName}`;
-      console.log(`Video stored locally: ${fileName}`);
+      el('storageInfo').textContent = `视频已存储: ${fileName}`;
+      console.log(`视频已存储到本地: ${fileName}`);
     } catch (error) {
-      console.error('Failed to store video:', error);
-      alert('Failed to store video: ' + error.message);
-      // Fallback to direct download on failure
+      console.error('存储视频失败:', error);
+      alert('存储视频失败: ' + error.message);
+      // 失败时回退到直接下载
       directDownload(blob, fileName);
     }
   } else {
-    // Normal mode: Direct download
+    // 普通模式：直接下载
     directDownload(blob, fileName);
   }
   
-  // Reset redo flag after recording completion
+  // 录制完成后重置重录标记
   isRedo = false;
   
-  // Auto jump to next sentence after recording completion (if not the last sentence)
+  // 录制完成后自动跳到下一句（如果不是最后一句）
   if (idx < sentences.length - 1) {
     idx++;
     updateSentenceView();
@@ -684,17 +684,17 @@ async function saveBlob(){
     // Save progress
     try {
       await saveProgress(currentSentenceSet, idx);
-      console.log(`Auto moved to next sentence: sentence ${idx + 1}`);
+      console.log(`自动进入下一句: 第${idx + 1}句`);
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
   } else {
-    // All sentences completed
+    // 已完成所有句子
     alert(`Congratulations! You have completed recording all ${sentences.length} sentences!`);
   }
   
-  // Display format information
-  console.log(`Recording completed, format: ${fileExt.toUpperCase()}, MIME type: ${mediaRecorder.mimeType}`);
+  // 显示格式信息
+  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
 }
 
 function directDownload(blob, fileName) {

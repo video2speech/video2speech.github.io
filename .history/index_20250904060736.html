@@ -275,7 +275,7 @@ async function loadSentenceSet() {
   }
 }
 
-// Reset progress
+// 重置进度
 async function resetProgress() {
   if (!confirm('Are you sure you want to reset the recording progress for the current sentence set?')) return;
   
@@ -656,27 +656,27 @@ async function saveBlob(){
   const fileName = `${sentence}_${timestamp}${redoSuffix}.mp4`; // Always use mp4 extension
   
   if (storageMode) {
-    // iPad mode: Store to IndexedDB
+    // iPad模式：存储到IndexedDB
     try {
-      await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
+      await storeVideo(blob, fileName, sentences[idx] || '未知句子', currentSentenceSet, idx);
       updateStorageInfo();
-      el('storageInfo').textContent = `Video stored: ${fileName}`;
-      console.log(`Video stored locally: ${fileName}`);
+      el('storageInfo').textContent = `视频已存储: ${fileName}`;
+      console.log(`视频已存储到本地: ${fileName}`);
     } catch (error) {
-      console.error('Failed to store video:', error);
-      alert('Failed to store video: ' + error.message);
-      // Fallback to direct download on failure
+      console.error('存储视频失败:', error);
+      alert('存储视频失败: ' + error.message);
+      // 失败时回退到直接下载
       directDownload(blob, fileName);
     }
   } else {
-    // Normal mode: Direct download
+    // 普通模式：直接下载
     directDownload(blob, fileName);
   }
   
-  // Reset redo flag after recording completion
+  // 录制完成后重置重录标记
   isRedo = false;
   
-  // Auto jump to next sentence after recording completion (if not the last sentence)
+  // 录制完成后自动跳到下一句（如果不是最后一句）
   if (idx < sentences.length - 1) {
     idx++;
     updateSentenceView();
@@ -684,17 +684,17 @@ async function saveBlob(){
     // Save progress
     try {
       await saveProgress(currentSentenceSet, idx);
-      console.log(`Auto moved to next sentence: sentence ${idx + 1}`);
+      console.log(`自动进入下一句: 第${idx + 1}句`);
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
   } else {
-    // All sentences completed
+    // 已完成所有句子
     alert(`Congratulations! You have completed recording all ${sentences.length} sentences!`);
   }
   
-  // Display format information
-  console.log(`Recording completed, format: ${fileExt.toUpperCase()}, MIME type: ${mediaRecorder.mimeType}`);
+  // 显示格式信息
+  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
 }
 
 function directDownload(blob, fileName) {
