@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+<meta charset="utf-8" />
+<title>句子录制小工具</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;line-height:1.5}
+  .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:16px 0}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  video{width:100%;max-height:50vh;background:#000;border-radius:12px}
+  button{padding:10px 14px;border-radius:10px;border:1px solid #ccc;background:#fff}
+  button:active{opacity:.8}
+  input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
+  .big{font-size:1.4rem;font-weight:600;margin:8px 0}
+  .muted{color:#666}
+</style>
+<body>
+  <h1>句子录制小工具</h1>
+
+  <div class="card">
+    <div class="row">
+      <label>输入句子（每行一条）</label>
+      <textarea id="sentences" rows="6" placeholder="第一句
+第二句
+第三句"></textarea>
+    </div>
+    <div class="row">
+      <label>文件名前缀（可选）</label>
+      <input id="prefix" placeholder="如: S01"/>
+    </div>
+    <div class="row">
+      <label>输出格式</label>
+      <select id="format">
+        <option value="mp4">MP4 (推荐)</option>
+        <option value="webm">WebM</option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="init">初始化摄像头</button>
+      <button id="prev">上一句</button>
+      <button id="next">下一句</button>
+      <span class="muted" id="idxInfo"></span>
+    </div>
+    <div class="big" id="currentText">（待初始化）</div>
+  </div>
+
+  <div class="card">
+    <video id="preview" playsinline autoplay muted></video>
+    <div class="row" style="margin-top:8px">
+      <button id="start">开始录制</button>
+      <button id="stop">停止并保存</button>
+      <button id="downloadMode" onclick="toggleDownloadMode()">iPad模式: 存储到本地</button>
+    </div>
+    <div class="row">
+      <button id="viewStored" style="display:none">查看已存储视频 (0)</button>
+      <button id="downloadAll" style="display:none">下载所有</button>
+      <button id="clearAll" style="display:none">清空存储</button>
+      <span class="muted" id="storageInfo"></span>
+    </div>
+    <div class="row">
+      <span class="muted" id="downloadTip">提示：先在"设置 → Safari → 下载"选好固定保存文件夹</span>
+    </div>
+  </div>
+
+<script>
+const el = id => document.getElementById(id);
+let stream, mediaRecorder, chunks = [];
+let sentences = [];
+let idx = 0;
+let recording = false;
+
+function updateSentenceView(){
+  const total = sentences.length;
+  const text = total ? sentences[idx] : '';
+  el('currentText').textContent = text || '（没有句子）';
+  el('idxInfo').textContent = total ? `第 ${idx+1}/${total} 句` : '';
+}
+
+el('init').onclick = async () => {
+  try {
+    // 前置摄像头；如需后置，把 'user' 改为 'environment'
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: {ideal:1280}, height:{ideal:720}},
+      audio: true
+    });
+    el('preview').srcObject = stream;
+    sentences = el('sentences').value
+      .split('\n').map(s=>s.trim()).filter(Boolean);
+    idx = 0;
+    updateSentenceView();
+    alert('摄像头就绪；可以开始了。');
+  } catch (e) {
+    alert('无法获取摄像头/麦克风权限：' + e);
+  }
+};
+
+el('next').onclick = () => { if (sentences.length){ idx = Math.min(idx+1, sentences.length-1); updateSentenceView(); }};
+el('prev').onclick = () => { if (sentences.length){ idx = Math.max(idx-1, 0); updateSentenceView(); }};
+
+el('start').onclick = () => {
+  if (!stream) return alert('请先点"初始化摄像头"');
+  if (recording) return;
+  chunks = [];
+  
+  // 根据用户选择的格式确定mimeType
+  const selectedFormat = el('format').value;
+  let mimeType;
+  
+  if (selectedFormat === 'mp4') {
+    // 尝试不同的MP4编码组合
+    const mp4Options = [
+      'video/mp4;codecs=h264,aac',
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/mp4'
+    ];
+    mimeType = mp4Options.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm;codecs=vp9,opus';
+  } else {
+    mimeType = 'video/webm;codecs=vp9,opus';
+  }
+  
+  mediaRecorder = new MediaRecorder(stream, { mimeType });
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  mediaRecorder.onstop = saveBlob;
+  mediaRecorder.start();
+  recording = true;
+};
+
+el('stop').onclick = () => {
+  if (mediaRecorder && recording) {
+    mediaRecorder.stop();
+    recording = false;
+  }
+};
+
+function sanitize(s){
+  return s.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim();
+}
+function ts(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+function saveBlob(){
+  // 根据实际使用的mimeType确定文件扩展名
+  const isMP4 = mediaRecorder.mimeType.includes('mp4');
+  const fileExt = isMP4 ? 'mp4' : 'webm';
+  const blobType = isMP4 ? 'video/mp4' : 'video/webm';
+  
+  const blob = new Blob(chunks, { type: blobType });
+  const a = document.createElement('a');
+  const prefix = sanitize(el('prefix').value || '');
+  const short = sentences[idx] ? sanitize(sentences[idx]).slice(0,12) : 'clip';
+  const nameCore = [prefix, `S${String(idx+1).padStart(3,'0')}`, ts(), short].filter(Boolean).join('_');
+  a.download = `${nameCore}.${fileExt}`;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  URL.revokeObjectURL(a.href);
+  
+  // 显示格式信息
+  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
+}
+</script>
+</body>
+</html>

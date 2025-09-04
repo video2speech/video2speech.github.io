@@ -338,46 +338,24 @@ function ts(){
   const pad = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
-async function saveBlob(){
+function saveBlob(){
   // 根据实际使用的mimeType确定文件扩展名
   const isMP4 = mediaRecorder.mimeType.includes('mp4');
   const fileExt = isMP4 ? 'mp4' : 'webm';
   const blobType = isMP4 ? 'video/mp4' : 'video/webm';
   
   const blob = new Blob(chunks, { type: blobType });
+  const a = document.createElement('a');
   const prefix = sanitize(el('prefix').value || '');
   const short = sentences[idx] ? sanitize(sentences[idx]).slice(0,12) : 'clip';
   const nameCore = [prefix, `S${String(idx+1).padStart(3,'0')}`, ts(), short].filter(Boolean).join('_');
-  const fileName = `${nameCore}.${fileExt}`;
-  
-  if (storageMode) {
-    // iPad模式：存储到IndexedDB
-    try {
-      await storeVideo(blob, fileName, sentences[idx] || '未知句子');
-      updateStorageInfo();
-      el('storageInfo').textContent = `视频已存储: ${fileName}`;
-      console.log(`视频已存储到本地: ${fileName}`);
-    } catch (error) {
-      console.error('存储视频失败:', error);
-      alert('存储视频失败: ' + error.message);
-      // 失败时回退到直接下载
-      directDownload(blob, fileName);
-    }
-  } else {
-    // 普通模式：直接下载
-    directDownload(blob, fileName);
-  }
-  
-  // 显示格式信息
-  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
-}
-
-function directDownload(blob, fileName) {
-  const a = document.createElement('a');
-  a.download = fileName;
+  a.download = `${nameCore}.${fileExt}`;
   a.href = URL.createObjectURL(blob);
   a.click();
   URL.revokeObjectURL(a.href);
+  
+  // 显示格式信息
+  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
 }
 </script>
 </body>

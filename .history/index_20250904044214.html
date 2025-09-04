@@ -1,0 +1,340 @@
+<!doctype html>
+<html>
+<meta charset="utf-8" />
+<title>句子录制小工具</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;line-height:1.5}
+  .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:16px 0}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  video{width:100%;max-height:50vh;background:#000;border-radius:12px}
+  button{padding:10px 14px;border-radius:10px;border:1px solid #ccc;background:#fff}
+  button:active{opacity:.8}
+  input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
+  .big{font-size:1.4rem;font-weight:600;margin:8px 0}
+  .muted{color:#666}
+</style>
+<body>
+  <h1>句子录制小工具</h1>
+
+  <div class="card">
+    <div class="row">
+      <label>输入句子（每行一条）</label>
+      <textarea id="sentences" rows="6" placeholder="第一句
+第二句
+第三句"></textarea>
+    </div>
+    <div class="row">
+      <label>文件名前缀（可选）</label>
+      <input id="prefix" placeholder="如: S01"/>
+    </div>
+    <div class="row">
+      <label>输出格式</label>
+      <select id="format">
+        <option value="mp4">MP4 (推荐)</option>
+        <option value="webm">WebM</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>录制分辨率</label>
+      <select id="resolution">
+        <option value="720p">720p (1280×720) - 推荐</option>
+        <option value="1080p">1080p (1920×1080) - 高清</option>
+        <option value="480p">480p (854×480) - 标清</option>
+        <option value="360p">360p (640×360) - 低清</option>
+        <option value="auto">自动 - 使用摄像头默认</option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="init">初始化摄像头</button>
+      <button id="prev">上一句</button>
+      <button id="next">下一句</button>
+      <span class="muted" id="idxInfo"></span>
+    </div>
+    <div class="big" id="currentText">（待初始化）</div>
+  </div>
+
+  <div class="card">
+    <video id="preview" playsinline autoplay muted></video>
+    <div class="row" style="margin-top:8px">
+      <button id="start">开始录制</button>
+      <button id="stop">停止并保存</button>
+      <button id="batchDownload" style="display:none">批量下载</button>
+      <span class="muted" id="resolutionInfo"></span>
+    </div>
+    <div class="row">
+      <span class="muted" id="downloadTip">提示：先在"设置 → Safari → 下载"选好固定保存文件夹</span>
+    </div>
+  </div>
+
+<script>
+const el = id => document.getElementById(id);
+let stream, mediaRecorder, chunks = [];
+let sentences = [];
+let idx = 0;
+let recording = false;
+let recordedVideos = []; // 存储录制的视频数据
+
+// 检测是否为iPad/iPhone
+function isIOSDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+let isIOS = isIOSDevice();
+
+// 更新提示信息
+if (isIOS) {
+  el('downloadTip').textContent = 'iPad/iPhone用户：录制完成后可使用"批量下载"功能，减少重复确认';
+}
+
+function updateSentenceView(){
+  const total = sentences.length;
+  const text = total ? sentences[idx] : '';
+  el('currentText').textContent = text || '（没有句子）';
+  el('idxInfo').textContent = total ? `第 ${idx+1}/${total} 句` : '';
+}
+
+el('init').onclick = async () => {
+  try {
+    // 获取用户选择的分辨率
+    const resolution = el('resolution').value;
+    let videoConstraints = { facingMode: 'user' };
+    
+    // 根据选择设置分辨率
+    if (resolution !== 'auto') {
+      const resolutions = {
+        '360p': { width: 640, height: 360 },
+        '480p': { width: 854, height: 480 },
+        '720p': { width: 1280, height: 720 },
+        '1080p': { width: 1920, height: 1080 }
+      };
+      
+      if (resolutions[resolution]) {
+        videoConstraints = {
+          ...videoConstraints,
+          width: { ideal: resolutions[resolution].width },
+          height: { ideal: resolutions[resolution].height }
+        };
+      }
+    }
+    
+    // 前置摄像头；如需后置，把 'user' 改为 'environment'
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: videoConstraints,
+      audio: true
+    });
+    
+    el('preview').srcObject = stream;
+    sentences = el('sentences').value
+      .split('\n').map(s=>s.trim()).filter(Boolean);
+    idx = 0;
+    updateSentenceView();
+    
+    // 显示实际获取到的分辨率
+    const videoTrack = stream.getVideoTracks()[0];
+    const settings = videoTrack.getSettings();
+    const actualRes = `${settings.width}×${settings.height}`;
+    el('resolutionInfo').textContent = `实际分辨率: ${actualRes}`;
+    alert('摄像头就绪！可以开始录制了。');
+  } catch (e) {
+    alert('无法获取摄像头/麦克风权限：' + e);
+  }
+};
+
+el('next').onclick = () => { if (sentences.length){ idx = Math.min(idx+1, sentences.length-1); updateSentenceView(); }};
+el('prev').onclick = () => { if (sentences.length){ idx = Math.max(idx-1, 0); updateSentenceView(); }};
+
+// 监听分辨率变化
+el('resolution').onchange = () => {
+  if (stream) {
+    el('resolutionInfo').textContent = '分辨率已更改，请重新初始化摄像头';
+  }
+};
+
+// 批量下载功能
+el('batchDownload').onclick = () => {
+  if (recordedVideos.length === 0) return;
+  
+  if (isIOS) {
+    // iOS设备：使用Web Share API批量分享
+    if (navigator.share && recordedVideos.length > 0) {
+      const files = recordedVideos.map(video => 
+        new File([video.blob], video.fileName, { type: video.blob.type })
+      );
+      
+      if (navigator.canShare && navigator.canShare({ files })) {
+        navigator.share({
+          files: files,
+          title: '录制的视频集合',
+          text: `共${recordedVideos.length}个视频文件`
+        }).then(() => {
+          el('resolutionInfo').textContent = '批量下载完成！';
+          recordedVideos = [];
+          el('batchDownload').style.display = 'none';
+        }).catch(e => {
+          console.log('批量分享失败:', e);
+          downloadAllIndividually();
+        });
+      } else {
+        downloadAllIndividually();
+      }
+    } else {
+      downloadAllIndividually();
+    }
+  } else {
+    downloadAllIndividually();
+  }
+};
+
+function downloadAllIndividually() {
+  // 逐个下载所有视频
+  recordedVideos.forEach((video, index) => {
+    setTimeout(() => {
+      if (isIOS) {
+        fallbackDownload(video.blob, video.fileName);
+      } else {
+        directDownload(video.blob, video.fileName);
+      }
+    }, index * 500); // 每个文件间隔500ms下载
+  });
+  
+  el('resolutionInfo').textContent = `正在下载 ${recordedVideos.length} 个视频...`;
+  recordedVideos = [];
+  el('batchDownload').style.display = 'none';
+}
+
+el('start').onclick = () => {
+  if (!stream) return alert('请先点"初始化摄像头"');
+  if (recording) return;
+  chunks = [];
+  
+  // 根据用户选择的格式确定mimeType
+  const selectedFormat = el('format').value;
+  let mimeType;
+  
+  if (selectedFormat === 'mp4') {
+    // 尝试不同的MP4编码组合
+    const mp4Options = [
+      'video/mp4;codecs=h264,aac',
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/mp4'
+    ];
+    mimeType = mp4Options.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm;codecs=vp9,opus';
+  } else {
+    mimeType = 'video/webm;codecs=vp9,opus';
+  }
+  
+  mediaRecorder = new MediaRecorder(stream, { mimeType });
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  mediaRecorder.onstop = saveBlob;
+  mediaRecorder.start();
+  recording = true;
+};
+
+el('stop').onclick = () => {
+  if (mediaRecorder && recording) {
+    mediaRecorder.stop();
+    recording = false;
+  }
+};
+
+function sanitize(s){
+  return s.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim();
+}
+function ts(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+// 检测是否为iPad/iPhone
+function isIOSDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function saveBlob(){
+  // 根据实际使用的mimeType确定文件扩展名
+  const isMP4 = mediaRecorder.mimeType.includes('mp4');
+  const fileExt = isMP4 ? 'mp4' : 'webm';
+  const blobType = isMP4 ? 'video/mp4' : 'video/webm';
+  
+  const blob = new Blob(chunks, { type: blobType });
+  const prefix = sanitize(el('prefix').value || '');
+  const short = sentences[idx] ? sanitize(sentences[idx]).slice(0,12) : 'clip';
+  const nameCore = [prefix, `S${String(idx+1).padStart(3,'0')}`, ts(), short].filter(Boolean).join('_');
+  const fileName = `${nameCore}.${fileExt}`;
+  
+  if (isIOS) {
+    // iOS设备：存储视频数据，稍后批量下载
+    recordedVideos.push({
+      blob: blob,
+      fileName: fileName,
+      sentence: sentences[idx] || '未知',
+      index: idx + 1
+    });
+    
+    // 显示批量下载按钮
+    el('batchDownload').style.display = 'inline-block';
+    el('batchDownload').textContent = `批量下载 (${recordedVideos.length}个视频)`;
+    
+    el('resolutionInfo').textContent = `已录制 ${recordedVideos.length} 个视频，可批量下载`;
+    
+    // 尝试自动下载（减少用户交互）
+    setTimeout(() => {
+      tryAutoDownload(blob, fileName, blobType);
+    }, 100);
+    
+  } else {
+    // 桌面设备：直接下载
+    directDownload(blob, fileName);
+  }
+  
+  // 显示格式信息
+  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
+}
+
+function tryAutoDownload(blob, fileName, blobType) {
+  // 尝试多种下载方法
+  try {
+    // 方法1：Web Share API
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: blobType })] })) {
+      navigator.share({
+        files: [new File([blob], fileName, { type: blobType })],
+        title: '录制的视频',
+        text: `句子 ${idx + 1}: ${sentences[idx] || '未知'}`
+      }).catch(e => {
+        console.log('Web Share API失败:', e);
+        fallbackDownload(blob, fileName);
+      });
+      return;
+    }
+  } catch (e) {
+    console.log('Web Share API不可用:', e);
+  }
+  
+  // 方法2：备用下载
+  fallbackDownload(blob, fileName);
+}
+
+function fallbackDownload(blob, fileName) {
+  // 备用下载方法：创建临时链接
+  const a = document.createElement('a');
+  a.download = fileName;
+  a.href = URL.createObjectURL(blob);
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function directDownload(blob, fileName) {
+  const a = document.createElement('a');
+  a.download = fileName;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
