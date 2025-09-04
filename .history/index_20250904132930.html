@@ -5,8 +5,11 @@
 <title>Video Recording Tool</title>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
-  .card{border:1px solid #444;border-radius:12px;padding:16px;margin:16px 0;background-color:#2a2a2a}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .card{border:1px solid #444;border-radius:12px;padding:12px;margin:8px 0;background-color:#2a2a2a;flex-shrink:0}
+  .main-content{flex:1;display:flex;flex-direction:column;min-height:0}
+  .sentence-container{flex:1;display:flex;align-items:center;min-height:0}
+  .button-container{flex-shrink:0;margin-top:8px}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   video{width:300px;height:200px;background:#000;border-radius:8px;margin:0 auto;display:block;object-fit:contain}
   button{padding:10px 14px;border-radius:10px;border:1px solid #555;background:#444;color:#e0e0e0;transition:all 0.1s ease}
@@ -20,28 +23,31 @@
     color: #888;
   }
   
-  /* Responsive font sizes for sentences */
+  /* Responsive font sizes for sentences - optimized for single page view */
   @media (max-width: 768px) {
     #currentText {
       font-size: 3.5rem !important;
-      padding: 30px !important;
-      min-height: 35vh !important;
+      padding: 20px !important;
+      min-height: 25vh !important;
+      max-height: 30vh !important;
     }
   }
   
   @media (min-width: 769px) and (max-width: 1024px) {
     #currentText {
-      font-size: 4.5rem !important;
-      padding: 45px !important;
-      min-height: 40vh !important;
+      font-size: 4rem !important;
+      padding: 25px !important;
+      min-height: 30vh !important;
+      max-height: 35vh !important;
     }
   }
   
   @media (min-width: 1025px) {
     #currentText {
-      font-size: 5rem !important;
-      padding: 50px !important;
-      min-height: 45vh !important;
+      font-size: 4.5rem !important;
+      padding: 30px !important;
+      min-height: 25vh !important;
+      max-height: 30vh !important;
     }
   }
   
@@ -64,6 +70,7 @@
   }
 </style>
 <body>
+  <!-- Top controls -->
   <div class="card">
     <div class="row">
       <label>Select Sentence Set</label>
@@ -79,10 +86,15 @@
       <button id="next">Next</button>
       <button id="skip">Skip</button>
     </div>
-    <div class="big sentence-preparing" id="currentText" style="font-size: 4rem; font-weight: bold; text-align: center; padding: 40px; border: 2px solid #555; border-radius: 16px; margin: 24px 0; min-height: 45vh; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.3; background-color: #333;">
-      <div id="recordingStatus" style="position: absolute; top: 15px; left: 20px; z-index: 15; font-size: 1.5rem; font-weight: bold; color: #888; background: rgba(0, 0, 0, 0.7); padding: 8px 16px; border-radius: 18px; display: none;">Preparing</div>
-      <span class="muted" id="idxInfo" style="position: absolute; top: 15px; right: 20px; font-size: 1rem; color: #888; font-weight: normal; text-align: right; white-space: pre-line;"></span>
-      Waiting for initialization...
+  </div>
+
+  <!-- Main content area -->
+  <div class="main-content">
+    <div class="sentence-container">
+      <div class="big sentence-preparing" id="currentText" style="font-size: 4rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #555; border-radius: 16px; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.2; background-color: #333; overflow-y: auto; flex: 1;">
+        <span class="muted" id="idxInfo" style="position: absolute; top: 15px; right: 20px; font-size: 1rem; color: #888; font-weight: normal; text-align: right; white-space: pre-line;"></span>
+        Waiting for initialization...
+      </div>
     </div>
   </div>
 
@@ -91,6 +103,7 @@
     <div id="initCameraOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
       <button id="init" style="font-size: 1.2rem; padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">📷 Initialize Camera</button>
     </div>
+    <div id="recordingStatus" style="position: absolute; top: 15px; right: 15px; z-index: 15; font-size: 1rem; font-weight: bold; color: #888; background: rgba(255, 255, 255, 0.9); padding: 6px 12px; border-radius: 15px; display: none;">Preparing</div>
           <div class="row" style="margin-top:8px; justify-content: center;">
         <button id="start" style="font-size: 1rem; padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">▶ Start</button>
         <button id="stop" style="font-size: 1rem; padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">⏭ Stop & Next</button>
@@ -474,36 +487,6 @@ function updateRecordingTimer() {
   el('recordingStatus').textContent = `🔴 REC ${timeStr}`;
 }
 
-function playRecordingStartSound() {
-  try {
-    // Create audio context
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // Create oscillator for the "beep" sound
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    // Connect oscillator to gain to destination
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Set frequency for a pleasant "beep" sound (around 800Hz)
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    
-    // Set volume envelope for a quick "beep"
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
-    
-    // Start and stop the sound
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.2);
-  } catch (error) {
-    // Silently fail if audio context is not available
-    console.log('Audio not available:', error);
-  }
-}
-
 el('init').onclick = async () => {
   try {
     // Get user selected resolution
@@ -765,7 +748,6 @@ el('start').onclick = () => {
   mediaRecorder = new MediaRecorder(stream, { mimeType });
   mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
   mediaRecorder.onstop = saveBlob;
-  
   // Play recording start sound
   playRecordingStartSound();
   
