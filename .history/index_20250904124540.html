@@ -3,14 +3,13 @@
 <meta charset="utf-8" />
 <title>Video Recording Tool</title>
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0}
-  .card{border:1px solid #444;border-radius:12px;padding:16px;margin:16px 0;background-color:#2a2a2a}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;line-height:1.5}
+  .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:16px 0}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  video{width:300px;height:200px;background:#000;border-radius:8px;margin:0 auto;display:block;object-fit:contain}
-  button{padding:10px 14px;border-radius:10px;border:1px solid #555;background:#444;color:#e0e0e0;transition:all 0.1s ease}
+  video{width:60%;max-height:30vh;background:#000;border-radius:8px;margin:0 auto;display:block}
+  button{padding:10px 14px;border-radius:10px;border:1px solid #ccc;background:#fff;transition:all 0.1s ease}
   button:active{opacity:.8;transform:scale(0.95)}
-  input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #555;background-color:#333;color:#e0e0e0}
-  select{width:auto}
+  input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
   .big{font-size:1.4rem;font-weight:600;margin:8px 0}
   .muted{color:#666}
   
@@ -30,9 +29,9 @@
   }
   
   .button-pressed {
-    background: #222 !important;
-    border-color: #666 !important;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    background: #e0e0e0 !important;
+    border-color: #999 !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
     transform: scale(0.95);
   }
 </style>
@@ -52,8 +51,8 @@
       <button id="next">Next</button>
       <button id="skip">Skip</button>
     </div>
-    <div class="big sentence-preparing" id="currentText" style="font-size: 3rem; font-weight: bold; text-align: center; padding: 40px; border: 2px solid #555; border-radius: 16px; margin: 24px 0; min-height: 40vh; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.4; background-color: #333;">
-      <span class="muted" id="idxInfo" style="position: absolute; top: 15px; right: 20px; font-size: 1rem; color: #888; font-weight: normal; text-align: right; white-space: pre-line;"></span>
+    <div class="big sentence-preparing" id="currentText" style="font-size: 3rem; font-weight: bold; text-align: center; padding: 40px; border: 2px solid #ddd; border-radius: 16px; margin: 24px 0; min-height: 60vh; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.4;">
+      <span class="muted" id="idxInfo" style="position: absolute; top: 15px; right: 20px; font-size: 1rem; color: #888; font-weight: normal;"></span>
       Waiting for initialization...
     </div>
   </div>
@@ -391,13 +390,6 @@ initDB().then(() => {
   console.error('IndexedDB initialization failed:', err);
 });
 
-// Ordinal function to convert numbers to ordinal form (1st, 2nd, 3rd, etc.)
-const ordinal = (n) => {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-};
-
 async function updateSentenceView(){
   const total = sentences.length;
   const text = total ? sentences[idx] : '';
@@ -420,11 +412,11 @@ async function updateSentenceView(){
   // Update progress indicator with repetition count
   let progressText = total ? `${idx+1} / ${total}` : '';
   
-  // Add repetition count if > 1, displayed on the right side
+  // Add repetition count if > 1
   try {
     const progress = await getProgress(currentSentenceSet);
     if (progress && progress.repetitionCount > 1) {
-      progressText += `    ${ordinal(progress.repetitionCount)} repeat`;
+      progressText += ` (Round ${progress.repetitionCount})`;
     }
   } catch (error) {
     console.error('Failed to get progress for repetition count:', error);
@@ -773,25 +765,7 @@ async function saveBlob(){
   const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
   const timestamp = ts();
   const redoSuffix = isRedo ? '_redo' : '';
-  
-  // Get progress info for filename
-  let progressInfo = '';
-  try {
-    const progress = await getProgress(currentSentenceSet);
-    const total = sentences.length;
-    const currentPos = idx + 1;
-    
-    if (progress && progress.repetitionCount > 1) {
-      progressInfo = `_${currentPos}-${total}_${ordinal(progress.repetitionCount)}repeat`;
-    } else {
-      progressInfo = `_${currentPos}-${total}`;
-    }
-  } catch (error) {
-    console.error('Failed to get progress for filename:', error);
-    progressInfo = `_${idx + 1}-${sentences.length}`;
-  }
-  
-  const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.mp4`;
+  const fileName = `${sentence}_${timestamp}${redoSuffix}.mp4`; // Always use mp4 extension
   
   if (storageMode) {
     // iPad mode: Store to IndexedDB
@@ -816,7 +790,7 @@ async function saveBlob(){
   // Auto jump to next sentence after recording completion (if not the last sentence)
   if (idx < sentences.length - 1) {
     idx++;
-    await updateSentenceView();
+    updateSentenceView();
     
     // Save progress
     try {
@@ -828,7 +802,7 @@ async function saveBlob(){
   } else {
     // All sentences completed, reset to first sentence for repetition
     idx = 0;
-    await updateSentenceView();
+    updateSentenceView();
     
     // Save progress and increment repetition counter
     try {

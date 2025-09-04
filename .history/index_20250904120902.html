@@ -3,37 +3,28 @@
 <meta charset="utf-8" />
 <title>Video Recording Tool</title>
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0}
-  .card{border:1px solid #444;border-radius:12px;padding:16px;margin:16px 0;background-color:#2a2a2a}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;line-height:1.5}
+  .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:16px 0}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  video{width:300px;height:200px;background:#000;border-radius:8px;margin:0 auto;display:block;object-fit:contain}
-  button{padding:10px 14px;border-radius:10px;border:1px solid #555;background:#444;color:#e0e0e0;transition:all 0.1s ease}
-  button:active{opacity:.8;transform:scale(0.95)}
-  input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #555;background-color:#333;color:#e0e0e0}
-  select{width:auto}
+  video{width:100%;max-height:50vh;background:#000;border-radius:12px}
+  button{padding:10px 14px;border-radius:10px;border:1px solid #ccc;background:#fff}
+  button:active{opacity:.8}
+  input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
   .big{font-size:1.4rem;font-weight:600;margin:8px 0}
   .muted{color:#666}
   
+  @keyframes blinkGray {
+    0%, 50% { color: #888; }
+    51%, 100% { color: #ccc; }
+  }
+  
   .sentence-preparing {
-    color: #888;
+    animation: blinkGray 1.5s ease-in-out infinite;
   }
   
   .sentence-recording {
     color: #4CAF50 !important;
     animation: none;
-  }
-  
-  .button-active {
-    transform: scale(0.95);
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-    transition: all 0.1s ease;
-  }
-  
-  .button-pressed {
-    background: #222 !important;
-    border-color: #666 !important;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-    transform: scale(0.95);
   }
 </style>
 <body>
@@ -52,26 +43,26 @@
       <button id="next">Next</button>
       <button id="skip">Skip</button>
     </div>
-    <div class="big sentence-preparing" id="currentText" style="font-size: 3rem; font-weight: bold; text-align: center; padding: 40px; border: 2px solid #555; border-radius: 16px; margin: 24px 0; min-height: 40vh; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.4; background-color: #333;">
-      <span class="muted" id="idxInfo" style="position: absolute; top: 15px; right: 20px; font-size: 1rem; color: #888; font-weight: normal; text-align: right; white-space: pre-line;"></span>
+    <div class="big" id="currentText" style="font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #ddd; border-radius: 12px; margin: 16px 0; min-height: 80px; display: flex; align-items: center; justify-content: center; position: relative;">
+      <span class="muted" id="idxInfo" style="position: absolute; top: 10px; right: 15px; font-size: 0.8rem; color: #888; font-weight: normal;"></span>
       Waiting for initialization...
     </div>
   </div>
 
-  <div class="card" style="position: relative; padding: 12px; margin: 12px 0;">
+  <div class="card" style="position: relative;">
     <video id="preview" playsinline autoplay muted></video>
     <div id="initCameraOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
       <button id="init" style="font-size: 1.2rem; padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">📷 Initialize Camera</button>
     </div>
-    <div id="recordingStatus" style="position: absolute; top: 15px; right: 15px; z-index: 15; font-size: 1rem; font-weight: bold; color: #888; background: rgba(255, 255, 255, 0.9); padding: 6px 12px; border-radius: 15px; display: none;">Preparing</div>
-          <div class="row" style="margin-top:8px; justify-content: center;">
-        <button id="start" style="font-size: 1rem; padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">▶ Start</button>
-        <button id="stop" style="font-size: 1rem; padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">⏭ Stop & Next</button>
-        <button id="redo" style="font-size: 1rem; padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">🔄 Redo last</button>
-      </div>
-      <div class="row" style="margin-top:8px; justify-content: center;">
-        <button id="downloadAll" style="font-size: 1rem; padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px; display:none">💾 SAVE ALL</button>
-      </div>
+    <div id="recordingStatus" style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 15; font-size: 1.2rem; font-weight: bold; color: #888; background: rgba(255, 255, 255, 0.9); padding: 8px 16px; border-radius: 20px;">📖 Preparing to read</div>
+    <div class="row" style="margin-top:8px; justify-content: center;">
+      <button id="start" style="font-size: 1.5rem; padding: 15px 30px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px;">▶ START</button>
+      <button id="stop" style="font-size: 1.5rem; padding: 15px 30px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px;">⏭ NEXT</button>
+      <button id="redo" style="font-size: 1.5rem; padding: 15px 30px; background: #FF9800; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px;">🔄 REDO LAST</button>
+    </div>
+    <div class="row" style="margin-top:8px; justify-content: center;">
+      <button id="downloadAll" style="font-size: 1.5rem; padding: 15px 30px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 10px; display:none">💾 SAVE ALL</button>
+    </div>
     <div class="row">
       <button id="clearAll" style="display:none">Clear Storage</button>
     </div>
@@ -100,9 +91,6 @@ let stream, mediaRecorder, chunks = [];
 let sentences = [];
 let idx = 0;
 let recording = false;
-let recordingTimer = null; // Timer for auto-stop after 1 minute
-let recordingStartTime = null; // Track recording start time
-let timerInterval = null; // Timer display update interval
 let storageMode = true; // Default to iPad mode (store locally)
 let isRedo = false; // flag for redo mode
 let db;
@@ -181,34 +169,20 @@ async function storeVideo(blob, fileName, sentence, sentenceSet, sentenceIndex) 
 }
 
 // Save progress
-async function saveProgress(sentenceSet, currentIndex, isCompletion = false) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Get existing progress to check repetition count
-      const existingProgress = await getProgress(sentenceSet);
-      let repetitionCount = existingProgress ? (existingProgress.repetitionCount || 0) : 0;
-      
-      // If this is a completion, increment repetition count
-      if (isCompletion) {
-        repetitionCount++;
-      }
-      
-      const transaction = db.transaction(['progress'], 'readwrite');
-      const store = transaction.objectStore('progress');
-      
-      const progressData = {
-        sentenceSet: sentenceSet,
-        currentIndex: currentIndex,
-        repetitionCount: repetitionCount,
-        timestamp: new Date().toISOString()
-      };
-      
-      const request = store.put(progressData);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    } catch (error) {
-      reject(error);
-    }
+async function saveProgress(sentenceSet, currentIndex) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['progress'], 'readwrite');
+    const store = transaction.objectStore('progress');
+    
+    const progressData = {
+      sentenceSet: sentenceSet,
+      currentIndex: currentIndex,
+      timestamp: new Date().toISOString()
+    };
+    
+    const request = store.put(progressData);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
   });
 }
 
@@ -335,11 +309,11 @@ async function loadSentenceSet() {
       idx = 0;
     }
     
-    await updateSentenceView();
+    updateSentenceView();
   } else {
     sentences = [];
     idx = 0;
-    await updateSentenceView();
+    updateSentenceView();
   }
 }
 
@@ -350,7 +324,7 @@ async function resetProgress() {
   try {
     await deleteProgress(currentSentenceSet);
     idx = 0;
-    await updateSentenceView();
+    updateSentenceView();
     alert('Progress has been reset');
   } catch (error) {
     console.error('Failed to reset progress:', error);
@@ -373,7 +347,7 @@ async function clearAllProgress() {
     
     // Reset current progress
     idx = 0;
-    await updateSentenceView();
+    updateSentenceView();
     alert('All progress has been cleared');
   } catch (error) {
     console.error('Failed to clear progress:', error);
@@ -391,14 +365,7 @@ initDB().then(() => {
   console.error('IndexedDB initialization failed:', err);
 });
 
-// Ordinal function to convert numbers to ordinal form (1st, 2nd, 3rd, etc.)
-const ordinal = (n) => {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-};
-
-async function updateSentenceView(){
+function updateSentenceView(){
   const total = sentences.length;
   const text = total ? sentences[idx] : '';
   
@@ -417,34 +384,11 @@ async function updateSentenceView(){
   const textNode = document.createTextNode(text || 'No sentences available');
   currentTextEl.insertBefore(textNode, progressEl);
   
-  // Update progress indicator with repetition count
-  let progressText = total ? `${idx+1} / ${total}` : '';
-  
-  // Add repetition count if > 1, displayed on the right side
-  try {
-    const progress = await getProgress(currentSentenceSet);
-    if (progress && progress.repetitionCount > 1) {
-      progressText += `    ${ordinal(progress.repetitionCount)} repeat`;
-    }
-  } catch (error) {
-    console.error('Failed to get progress for repetition count:', error);
-  }
-  
-  progressEl.textContent = progressText;
+  // Update progress indicator
+  progressEl.textContent = total ? `${idx+1} / ${total}` : '';
   
   // Add default preparing state (blinking gray)
   currentTextEl.className = 'big sentence-preparing';
-}
-
-function updateRecordingTimer() {
-  if (!recording || !recordingStartTime) return;
-  
-  const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-  const minutes = Math.floor(elapsed / 60);
-  const seconds = elapsed % 60;
-  const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  
-  el('recordingStatus').textContent = `🔴 REC ${timeStr}`;
 }
 
 el('init').onclick = async () => {
@@ -479,7 +423,7 @@ el('init').onclick = async () => {
     
     el('preview').srcObject = stream;
     // Sentences already loaded through loadSentenceSet(), no need to read from textbox
-    await updateSentenceView();
+    updateSentenceView();
     
     // Display actual resolution obtained
     const videoTrack = stream.getVideoTracks()[0];
@@ -491,9 +435,8 @@ el('init').onclick = async () => {
     el('downloadAll').style.display = 'inline-block';
     el('clearAll').style.display = 'inline-block';
     
-    // Hide the Initialize Camera button overlay and show preparing status
+    // Hide the Initialize Camera button overlay
     el('initCameraOverlay').style.display = 'none';
-    el('recordingStatus').style.display = 'block';
     
     alert('Camera ready! Videos will be stored locally.');
   } catch (e) {
@@ -505,28 +448,28 @@ el('next').onclick = async () => {
   if (sentences.length){ 
     idx = Math.min(idx+1, sentences.length-1); 
     isRedo = false; // Reset redo flag
-    await updateSentenceView(); 
+    updateSentenceView(); 
     // Save progress
     try {
       await saveProgress(currentSentenceSet, idx);
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
-  } 
+  }
 };
 
 el('prev').onclick = async () => { 
   if (sentences.length){ 
     idx = Math.max(idx-1, 0); 
     isRedo = false; // Reset redo flag
-    await updateSentenceView(); 
+    updateSentenceView(); 
     // Save progress
     try {
       await saveProgress(currentSentenceSet, idx);
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
-  } 
+  }
 };
 
 // Skip current sentence
@@ -534,7 +477,7 @@ el('skip').onclick = async () => {
   if (sentences.length && idx < sentences.length - 1) {
     idx++;
     isRedo = false; // Reset redo flag
-    await updateSentenceView();
+    updateSentenceView();
     // Save progress
     try {
       await saveProgress(currentSentenceSet, idx);
@@ -553,7 +496,7 @@ el('redo').onclick = async () => {
     idx--; // Go back to previous sentence
     isRedo = true; // Set redo flag for video naming
     console.log(`Redo last sentence ${idx + 1}: ${sentences[idx]}`);
-    await updateSentenceView();
+    updateSentenceView();
     // Save progress
     try {
       await saveProgress(currentSentenceSet, idx);
@@ -628,13 +571,15 @@ el('downloadAll').onclick = async () => {
         
         // Update storage info after last video download
         if (i === videos.length - 1) {
-                      setTimeout(() => {
-              updateStorageInfo();
-            }, 500);
+          setTimeout(() => {
+            updateStorageInfo();
+            el('storageInfo').textContent = `Downloaded ${videos.length} videos and cleared storage`;
+          }, 500);
         }
       }, i * 300);
     }
     
+    el('storageInfo').textContent = `Downloading ${videos.length} videos...`;
   } catch (error) {
     alert('Download failed: ' + error.message);
   }
@@ -652,6 +597,9 @@ el('clearAll').onclick = async () => {
     if (!confirm(`Are you sure you want to clear all ${videos.length} stored videos? This action cannot be undone!`)) return;
     
     await clearAllStoredVideos();
+    
+    // Force reset UI state
+    el('storageInfo').textContent = '';
     
     // Call updateStorageInfo again to ensure correct state
     setTimeout(() => {
@@ -683,59 +631,28 @@ el('start').onclick = () => {
   mediaRecorder.onstop = saveBlob;
   mediaRecorder.start();
   recording = true;
-  recordingStartTime = Date.now();
-  
-  // Set 1-minute auto-stop timer
-  recordingTimer = setTimeout(() => {
-    if (recording && mediaRecorder) {
-      console.log('Auto-stopping recording after 1 minute');
-      el('stop').click(); // Trigger stop button to handle all cleanup
-    }
-  }, 60000); // 60 seconds
-  
-  // Start timer display updates
-  timerInterval = setInterval(updateRecordingTimer, 1000);
   
   // Update recording status and sentence appearance
-  el('recordingStatus').textContent = '🔴 REC 0:00';
+  el('recordingStatus').textContent = '🔴 RECORDING IN PROGRESS';
   el('recordingStatus').style.color = '#f44336';
   el('currentText').className = 'big sentence-recording';
   
-  // Update button states - only START is pressed during recording
-  el('start').classList.add('button-pressed');
-  el('stop').classList.remove('button-pressed');
+  el('start').style.opacity = '0.5';
+  el('stop').style.opacity = '1';
 };
 
 el('stop').onclick = () => {
   if (mediaRecorder && recording) {
-    // Update button states - only STOP is pressed when stopping
-    el('start').classList.remove('button-pressed');
-    el('stop').classList.add('button-pressed');
-    
     mediaRecorder.stop();
     recording = false;
     
-    // Clear the recording timer and timer display
-    if (recordingTimer) {
-      clearTimeout(recordingTimer);
-      recordingTimer = null;
-    }
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-    recordingStartTime = null;
-    
     // Reset to preparing status
-    el('recordingStatus').textContent = 'Preparing';
+    el('recordingStatus').textContent = '📖 Preparing to read';
     el('recordingStatus').style.color = '#888';
     el('currentText').className = 'big sentence-preparing';
     
-    // Reset button states after a brief moment
-    setTimeout(() => {
-      el('start').classList.remove('button-pressed');
-      el('stop').classList.remove('button-pressed');
-    }, 200);
+    el('start').style.opacity = '1';
+    el('stop').style.opacity = '0.5';
   }
 };
 
@@ -773,33 +690,16 @@ async function saveBlob(){
   const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
   const timestamp = ts();
   const redoSuffix = isRedo ? '_redo' : '';
-  
-  // Get progress info for filename
-  let progressInfo = '';
-  try {
-    const progress = await getProgress(currentSentenceSet);
-    const total = sentences.length;
-    const currentPos = idx + 1;
-    
-    if (progress && progress.repetitionCount > 1) {
-      progressInfo = `_${currentPos}-${total}_${ordinal(progress.repetitionCount)}repeat`;
-    } else {
-      progressInfo = `_${currentPos}-${total}`;
-    }
-  } catch (error) {
-    console.error('Failed to get progress for filename:', error);
-    progressInfo = `_${idx + 1}-${sentences.length}`;
-  }
-  
-  const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.mp4`;
+  const fileName = `${sentence}_${timestamp}${redoSuffix}.mp4`; // Always use mp4 extension
   
   if (storageMode) {
     // iPad mode: Store to IndexedDB
-          try {
-        await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
-        updateStorageInfo();
-        console.log(`Video stored locally: ${fileName}`);
-      } catch (error) {
+    try {
+      await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
+      updateStorageInfo();
+      el('storageInfo').textContent = `Video stored: ${fileName}`;
+      console.log(`Video stored locally: ${fileName}`);
+    } catch (error) {
       console.error('Failed to store video:', error);
       alert('Failed to store video: ' + error.message);
       // Fallback to direct download on failure
@@ -816,7 +716,7 @@ async function saveBlob(){
   // Auto jump to next sentence after recording completion (if not the last sentence)
   if (idx < sentences.length - 1) {
     idx++;
-    await updateSentenceView();
+    updateSentenceView();
     
     // Save progress
     try {
@@ -826,17 +726,8 @@ async function saveBlob(){
       console.error('Failed to save progress:', error);
     }
   } else {
-    // All sentences completed, reset to first sentence for repetition
-    idx = 0;
-    await updateSentenceView();
-    
-    // Save progress and increment repetition counter
-    try {
-      await saveProgress(currentSentenceSet, idx, true); // true indicates completion
-      console.log(`Completed recording all ${sentences.length} sentences, starting next repetition`);
-    } catch (error) {
-      console.error('Failed to save progress:', error);
-    }
+    // All sentences completed
+    alert(`Congratulations! You have completed recording all ${sentences.length} sentences!`);
   }
   
   // Display format information
