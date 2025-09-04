@@ -28,13 +28,6 @@
       <input id="prefix" placeholder="如: S01"/>
     </div>
     <div class="row">
-      <label>输出格式</label>
-      <select id="format">
-        <option value="mp4">MP4 (推荐)</option>
-        <option value="webm">WebM</option>
-      </select>
-    </div>
-    <div class="row">
       <button id="init">初始化摄像头</button>
       <button id="prev">上一句</button>
       <button id="next">下一句</button>
@@ -88,26 +81,14 @@ el('next').onclick = () => { if (sentences.length){ idx = Math.min(idx+1, senten
 el('prev').onclick = () => { if (sentences.length){ idx = Math.max(idx-1, 0); updateSentenceView(); }};
 
 el('start').onclick = () => {
-  if (!stream) return alert('请先点"初始化摄像头"');
+  if (!stream) return alert('请先点“初始化摄像头”');
   if (recording) return;
   chunks = [];
-  
-  // 根据用户选择的格式确定mimeType
-  const selectedFormat = el('format').value;
-  let mimeType;
-  
-  if (selectedFormat === 'mp4') {
-    // 尝试不同的MP4编码组合
-    const mp4Options = [
-      'video/mp4;codecs=h264,aac',
-      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-      'video/mp4'
-    ];
-    mimeType = mp4Options.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm;codecs=vp9,opus';
-  } else {
+  // 尝试使用MP4格式，如果不支持则回退到webm
+  let mimeType = 'video/mp4;codecs=h264,aac';
+  if (!MediaRecorder.isTypeSupported(mimeType)) {
     mimeType = 'video/webm;codecs=vp9,opus';
   }
-  
   mediaRecorder = new MediaRecorder(stream, { mimeType });
   mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
   mediaRecorder.onstop = saveBlob;
@@ -145,9 +126,6 @@ function saveBlob(){
   a.href = URL.createObjectURL(blob);
   a.click();
   URL.revokeObjectURL(a.href);
-  
-  // 显示格式信息
-  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
 }
 </script>
 </body>

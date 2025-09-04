@@ -145,9 +145,6 @@ function saveBlob(){
   a.href = URL.createObjectURL(blob);
   a.click();
   URL.revokeObjectURL(a.href);
-  
-  // 显示格式信息
-  console.log(`录制完成，格式: ${fileExt.toUpperCase()}, MIME类型: ${mediaRecorder.mimeType}`);
 }
 </script>
 </body>
