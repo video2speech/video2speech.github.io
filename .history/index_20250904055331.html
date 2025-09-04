@@ -361,7 +361,9 @@ el('init').onclick = async () => {
     });
     
     el('preview').srcObject = stream;
-    // 句子已经通过loadSentenceSet()加载，不需要从文本框读取
+    sentences = el('sentences').value
+      .split('\n').map(s=>s.trim()).filter(Boolean);
+    idx = 0;
     updateSentenceView();
     
     // 显示实际获取到的分辨率
