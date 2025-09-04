@@ -210,7 +210,7 @@ const sentenceSets = {
   '150_sentences': null
 };
 
-let currentSentenceSet = '50_sentences';
+let currentSentenceSet = 'custom';
 
 // 加载句子集文件
 async function loadSentenceFile(filename) {
@@ -229,6 +229,22 @@ async function loadSentenceFile(filename) {
 async function loadSentenceSet() {
   const selected = el('sentenceSet').value;
   currentSentenceSet = selected;
+  
+  if (selected === 'custom') {
+    // 自定义模式
+    el('customSentencesRow').style.display = 'block';
+    el('sentences').readOnly = false;
+    el('sentences').placeholder = '第一句\n第二句\n第三句';
+    el('resetProgress').style.display = 'none';
+    sentences = [];
+    idx = 0;
+    updateSentenceView();
+    return;
+  }
+  
+  // 预设句子集模式 - 隐藏文本框
+  el('customSentencesRow').style.display = 'none';
+  el('resetProgress').style.display = 'inline-block';
   
   let filename;
   if (selected === '50_sentences') {
@@ -269,6 +285,8 @@ async function loadSentenceSet() {
 
 // 重置进度
 async function resetProgress() {
+  if (currentSentenceSet === 'custom') return;
+  
   if (!confirm('确定要重置当前句子集的录制进度吗？')) return;
   
   try {
@@ -375,10 +393,12 @@ el('next').onclick = async () => {
     idx = Math.min(idx+1, sentences.length-1); 
     updateSentenceView(); 
     // 保存进度
-    try {
-      await saveProgress(currentSentenceSet, idx);
-    } catch (error) {
-      console.error('保存进度失败:', error);
+    if (currentSentenceSet !== 'custom') {
+      try {
+        await saveProgress(currentSentenceSet, idx);
+      } catch (error) {
+        console.error('保存进度失败:', error);
+      }
     }
   }
 };
@@ -388,10 +408,12 @@ el('prev').onclick = async () => {
     idx = Math.max(idx-1, 0); 
     updateSentenceView(); 
     // 保存进度
-    try {
-      await saveProgress(currentSentenceSet, idx);
-    } catch (error) {
-      console.error('保存进度失败:', error);
+    if (currentSentenceSet !== 'custom') {
+      try {
+        await saveProgress(currentSentenceSet, idx);
+      } catch (error) {
+        console.error('保存进度失败:', error);
+      }
     }
   }
 };
@@ -600,15 +622,19 @@ async function saveBlob(){
     updateSentenceView();
     
     // 保存进度
-    try {
-      await saveProgress(currentSentenceSet, idx);
-      console.log(`自动进入下一句: 第${idx + 1}句`);
-    } catch (error) {
-      console.error('保存进度失败:', error);
+    if (currentSentenceSet !== 'custom') {
+      try {
+        await saveProgress(currentSentenceSet, idx);
+        console.log(`自动进入下一句: 第${idx + 1}句`);
+      } catch (error) {
+        console.error('保存进度失败:', error);
+      }
     }
   } else {
     // 已完成所有句子
-    alert(`恭喜！您已完成所有${sentences.length}句的录制！`);
+    if (currentSentenceSet !== 'custom') {
+      alert(`恭喜！您已完成所有${sentences.length}句的录制！`);
+    }
   }
   
   // 显示格式信息

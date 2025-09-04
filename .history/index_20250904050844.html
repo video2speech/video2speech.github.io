@@ -18,13 +18,21 @@
 
   <div class="card">
     <div class="row">
-      <label>选择句子集</label>
-      <select id="sentenceSet" onchange="loadSentenceSet()">
-        <option value="50_sentences">50句练习集</option>
-        <option value="150_sentences">150句练习集</option>
+      <label>输入句子（每行一条）</label>
+      <textarea id="sentences" rows="6" placeholder="第一句
+第二句
+第三句"></textarea>
+    </div>
+    <div class="row">
+      <label>文件名前缀（可选）</label>
+      <input id="prefix" placeholder="如: S01"/>
+    </div>
+    <div class="row">
+      <label>输出格式</label>
+      <select id="format">
+        <option value="mp4">MP4 (推荐)</option>
+        <option value="webm">WebM</option>
       </select>
-      <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">重置进度</button>
-      <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">清除所有进度</button>
     </div>
     <div class="row">
       <label>录制分辨率</label>
@@ -42,7 +50,7 @@
       <button id="next">下一句</button>
       <span class="muted" id="idxInfo"></span>
     </div>
-    <div class="big" id="currentText" style="font-size: 2rem; font-weight: bold; text-align: center; padding: 20px; border: 2px solid #ddd; border-radius: 12px; margin: 16px 0; min-height: 80px; display: flex; align-items: center; justify-content: center;">（待初始化）</div>
+    <div class="big" id="currentText">（待初始化）</div>
   </div>
 
   <div class="card">
@@ -50,7 +58,20 @@
     <div class="row" style="margin-top:8px">
       <button id="start">开始录制</button>
       <button id="stop">停止并保存</button>
-      <button id="downloadMode" onclick="toggleDownloadMode()">iPad模式: 存储到本地</button>
+    </div>
+    <div class="row">
+      <label>保存模式</label>
+      <select id="saveMode" onchange="changeSaveMode()">
+        <option value="download">直接下载</option>
+        <option value="local">本地存储（iPad推荐）</option>
+        <option value="server">上传到服务器</option>
+      </select>
+      <select id="serverPreset" style="display:none; margin-left:8px;">
+        <option value="">选择预设服务器</option>
+        <option value="http://localhost:3000/upload">本地开发服务器</option>
+        <option value="custom">自定义服务器地址</option>
+      </select>
+      <input id="serverUrl" placeholder="服务器地址 (如: https://your-app.vercel.app/upload)" style="display:none; margin-left:8px; width:300px;">
     </div>
     <div class="row">
       <button id="viewStored" style="display:none">查看已存储视频 (0)</button>
@@ -70,13 +91,13 @@ let stream, mediaRecorder, chunks = [];
 let sentences = [];
 let idx = 0;
 let recording = false;
-let storageMode = false; // false=直接下载, true=存储到本地
+let saveMode = 'download'; // 'download', 'local', 'server'
 let db;
 
 // 初始化IndexedDB
 async function initDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('VideoRecorderDB', 2);
+    const request = indexedDB.open('VideoRecorderDB', 1);
     
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -86,26 +107,17 @@ async function initDB() {
     
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      
-      // 视频存储表
       if (!db.objectStoreNames.contains('videos')) {
         const store = db.createObjectStore('videos', { keyPath: 'id', autoIncrement: true });
         store.createIndex('timestamp', 'timestamp', { unique: false });
         store.createIndex('sentence', 'sentence', { unique: false });
-        store.createIndex('sentenceSet', 'sentenceSet', { unique: false });
-        store.createIndex('sentenceIndex', 'sentenceIndex', { unique: false });
-      }
-      
-      // 进度记录表
-      if (!db.objectStoreNames.contains('progress')) {
-        const progressStore = db.createObjectStore('progress', { keyPath: 'sentenceSet' });
       }
     };
   });
 }
 
 // 存储视频到IndexedDB
-async function storeVideo(blob, fileName, sentence, sentenceSet, sentenceIndex) {
+async function storeVideo(blob, fileName, sentence) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(['videos'], 'readwrite');
     const store = transaction.objectStore('videos');
@@ -114,56 +126,12 @@ async function storeVideo(blob, fileName, sentence, sentenceSet, sentenceIndex) 
       fileName: fileName,
       blob: blob,
       sentence: sentence,
-      sentenceSet: sentenceSet || 'custom',
-      sentenceIndex: sentenceIndex || idx,
       timestamp: new Date().toISOString(),
       size: blob.size
     };
     
     const request = store.add(videoData);
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-// 保存进度
-async function saveProgress(sentenceSet, currentIndex) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['progress'], 'readwrite');
-    const store = transaction.objectStore('progress');
-    
-    const progressData = {
-      sentenceSet: sentenceSet,
-      currentIndex: currentIndex,
-      timestamp: new Date().toISOString()
-    };
-    
-    const request = store.put(progressData);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
-}
-
-// 获取进度
-async function getProgress(sentenceSet) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['progress'], 'readonly');
-    const store = transaction.objectStore('progress');
-    const request = store.get(sentenceSet);
-    
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-// 重置进度
-async function deleteProgress(sentenceSet) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['progress'], 'readwrite');
-    const store = transaction.objectStore('progress');
-    const request = store.delete(sentenceSet);
-    
-    request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
 }
@@ -204,113 +172,10 @@ async function clearAllStoredVideos() {
   });
 }
 
-// 句子集数据
-const sentenceSets = {
-  '50_sentences': null,
-  '150_sentences': null
-};
-
-let currentSentenceSet = '50_sentences';
-
-// 加载句子集文件
-async function loadSentenceFile(filename) {
-  try {
-    const response = await fetch(`materials/${filename}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const text = await response.text();
-    return text.split('\n').map(s => s.trim()).filter(Boolean);
-  } catch (error) {
-    console.error(`加载句子文件失败 (${filename}):`, error);
-    return null;
-  }
-}
-
-// 加载句子集
-async function loadSentenceSet() {
-  const selected = el('sentenceSet').value;
-  currentSentenceSet = selected;
-  
-  let filename;
-  if (selected === '50_sentences') {
-    filename = '50_sentences_list.txt';
-  } else if (selected === '150_sentences') {
-    filename = '150_sentences_list.txt';
-  }
-  
-  // 从缓存或文件加载句子
-  if (!sentenceSets[selected]) {
-    sentenceSets[selected] = await loadSentenceFile(filename);
-  }
-  
-  if (sentenceSets[selected]) {
-    sentences = sentenceSets[selected];
-    
-    // 恢复进度
-    try {
-      const progress = await getProgress(selected);
-      if (progress && progress.currentIndex < sentences.length) {
-        idx = progress.currentIndex;
-        console.log(`恢复进度: 第${idx + 1}句`);
-      } else {
-        idx = 0;
-      }
-    } catch (error) {
-      console.error('恢复进度失败:', error);
-      idx = 0;
-    }
-    
-    updateSentenceView();
-  } else {
-    sentences = [];
-    idx = 0;
-    updateSentenceView();
-  }
-}
-
-// 重置进度
-async function resetProgress() {
-  if (!confirm('确定要重置当前句子集的录制进度吗？')) return;
-  
-  try {
-    await deleteProgress(currentSentenceSet);
-    idx = 0;
-    updateSentenceView();
-    alert('进度已重置');
-  } catch (error) {
-    console.error('重置进度失败:', error);
-    alert('重置进度失败: ' + error.message);
-  }
-}
-
-// 清除所有进度
-async function clearAllProgress() {
-  if (!confirm('确定要清除所有句子集的录制进度吗？此操作不可恢复！')) return;
-  
-  try {
-    const transaction = db.transaction(['progress'], 'readwrite');
-    const store = transaction.objectStore('progress');
-    await new Promise((resolve, reject) => {
-      const request = store.clear();
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-    
-    // 重置当前进度
-    idx = 0;
-    updateSentenceView();
-    alert('所有进度已清除');
-  } catch (error) {
-    console.error('清除进度失败:', error);
-    alert('清除进度失败: ' + error.message);
-  }
-}
-
 // 初始化数据库
 initDB().then(() => {
   console.log('IndexedDB 初始化成功');
   updateStorageInfo();
-  // 页面加载时尝试恢复句子集选择
-  loadSentenceSet();
 }).catch(err => {
   console.error('IndexedDB 初始化失败:', err);
 });
@@ -370,31 +235,8 @@ el('init').onclick = async () => {
   }
 };
 
-el('next').onclick = async () => { 
-  if (sentences.length){ 
-    idx = Math.min(idx+1, sentences.length-1); 
-    updateSentenceView(); 
-    // 保存进度
-    try {
-      await saveProgress(currentSentenceSet, idx);
-    } catch (error) {
-      console.error('保存进度失败:', error);
-    }
-  }
-};
-
-el('prev').onclick = async () => { 
-  if (sentences.length){ 
-    idx = Math.max(idx-1, 0); 
-    updateSentenceView(); 
-    // 保存进度
-    try {
-      await saveProgress(currentSentenceSet, idx);
-    } catch (error) {
-      console.error('保存进度失败:', error);
-    }
-  }
-};
+el('next').onclick = () => { if (sentences.length){ idx = Math.min(idx+1, sentences.length-1); updateSentenceView(); }};
+el('prev').onclick = () => { if (sentences.length){ idx = Math.max(idx-1, 0); updateSentenceView(); }};
 
 // 监听分辨率变化
 el('resolution').onchange = () => {
@@ -403,28 +245,36 @@ el('resolution').onchange = () => {
   }
 };
 
-// 切换下载模式
-function toggleDownloadMode() {
-  storageMode = !storageMode;
-  const button = el('downloadMode');
-  if (storageMode) {
-    button.textContent = 'iPad模式: 存储到本地 ✓';
-    button.style.backgroundColor = '#4CAF50';
-    button.style.color = 'white';
-    el('viewStored').style.display = 'inline-block';
-    el('downloadAll').style.display = 'inline-block';
-    el('clearAll').style.display = 'inline-block';
-    el('downloadTip').textContent = 'iPad模式：视频将存储到浏览器本地，可稍后批量下载';
-  } else {
-    button.textContent = 'iPad模式: 存储到本地';
-    button.style.backgroundColor = '';
-    button.style.color = '';
-    el('viewStored').style.display = 'none';
-    el('downloadAll').style.display = 'none';
-    el('clearAll').style.display = 'none';
-    el('downloadTip').textContent = '提示：先在"设置 → Safari → 下载"选好固定保存文件夹';
+// 切换保存模式
+function changeSaveMode() {
+  saveMode = el('saveMode').value;
+  
+  // 隐藏所有模式相关的元素
+  el('viewStored').style.display = 'none';
+  el('downloadAll').style.display = 'none';
+  el('clearAll').style.display = 'none';
+  el('serverPreset').style.display = 'none';
+  el('serverUrl').style.display = 'none';
+  
+  // 根据模式显示相应元素和提示
+  switch(saveMode) {
+    case 'download':
+      el('downloadTip').textContent = '提示：先在"设置 → Safari → 下载"选好固定保存文件夹';
+      break;
+      
+    case 'local':
+      el('viewStored').style.display = 'inline-block';
+      el('downloadAll').style.display = 'inline-block';
+      el('clearAll').style.display = 'inline-block';
+      el('downloadTip').textContent = '本地存储模式：视频将存储到浏览器本地，可稍后批量下载';
+      updateStorageInfo();
+      break;
+      
+    case 'server':
+      el('serverPreset').style.display = 'inline-block';
+      el('downloadTip').textContent = '服务器模式：视频将直接上传到指定的服务器地址';
+      break;
   }
-  updateStorageInfo();
 }
 
 // 更新存储信息
@@ -475,33 +325,17 @@ el('downloadAll').onclick = async () => {
       return;
     }
     
-    if (!confirm(`确定要下载所有 ${videos.length} 个视频吗？下载后将自动清除存储的视频。`)) return;
+    if (!confirm(`确定要下载所有 ${videos.length} 个视频吗？`)) return;
     
     // 逐个下载，间隔300ms
     for (let i = 0; i < videos.length; i++) {
-      setTimeout(async () => {
+      setTimeout(() => {
         const video = videos[i];
         const a = document.createElement('a');
         a.download = video.fileName;
         a.href = URL.createObjectURL(video.blob);
         a.click();
         URL.revokeObjectURL(a.href);
-        
-        // 下载后删除该视频
-        try {
-          await deleteStoredVideo(video.id);
-          console.log(`已删除存储的视频: ${video.fileName}`);
-        } catch (error) {
-          console.error(`删除视频失败: ${video.fileName}`, error);
-        }
-        
-        // 最后一个视频下载完成后更新存储信息
-        if (i === videos.length - 1) {
-          setTimeout(() => {
-            updateStorageInfo();
-            el('storageInfo').textContent = `已下载 ${videos.length} 个视频并清除存储`;
-          }, 500);
-        }
       }, i * 300);
     }
     
@@ -530,18 +364,69 @@ el('clearAll').onclick = async () => {
   }
 };
 
+// 上传视频到服务器
+async function uploadToServer(blob, fileName, sentence) {
+  const serverUrl = el('serverUrl').value.trim();
+  
+  if (!serverUrl) {
+    throw new Error('请输入服务器地址');
+  }
+  
+  // 创建FormData
+  const formData = new FormData();
+  formData.append('video', blob, fileName);
+  formData.append('sentence', sentence || '');
+  formData.append('timestamp', new Date().toISOString());
+  formData.append('index', idx + 1);
+  
+  // 显示上传进度
+  el('storageInfo').textContent = '正在上传...';
+  
+  try {
+    const response = await fetch(serverUrl, {
+      method: 'POST',
+      body: formData,
+      // 添加一些常用的请求头
+      headers: {
+        // 不设置Content-Type，让浏览器自动设置multipart/form-data
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+    }
+    
+    const result = await response.text();
+    el('storageInfo').textContent = `上传成功: ${fileName}`;
+    console.log('上传成功:', result);
+    
+    return result;
+  } catch (error) {
+    el('storageInfo').textContent = `上传失败: ${error.message}`;
+    throw error;
+  }
+}
+
 el('start').onclick = () => {
   if (!stream) return alert('请先点"初始化摄像头"');
   if (recording) return;
   chunks = [];
   
-  // 默认使用MP4格式
-  const mp4Options = [
-    'video/mp4;codecs=h264,aac',
-    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-    'video/mp4'
-  ];
-  const mimeType = mp4Options.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm;codecs=vp9,opus';
+  // 根据用户选择的格式确定mimeType
+  const selectedFormat = el('format').value;
+  let mimeType;
+  
+  if (selectedFormat === 'mp4') {
+    // 尝试不同的MP4编码组合
+    const mp4Options = [
+      'video/mp4;codecs=h264,aac',
+      'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+      'video/mp4'
+    ];
+    mimeType = mp4Options.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm;codecs=vp9,opus';
+  } else {
+    mimeType = 'video/webm;codecs=vp9,opus';
+  }
   
   mediaRecorder = new MediaRecorder(stream, { mimeType });
   mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
@@ -572,43 +457,44 @@ async function saveBlob(){
   const blobType = isMP4 ? 'video/mp4' : 'video/webm';
   
   const blob = new Blob(chunks, { type: blobType });
-  const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
-  const timestamp = ts();
-  const fileName = `${sentence}_${timestamp}.mp4`; // 始终使用mp4扩展名
+  const prefix = sanitize(el('prefix').value || '');
+  const short = sentences[idx] ? sanitize(sentences[idx]).slice(0,12) : 'clip';
+  const nameCore = [prefix, `S${String(idx+1).padStart(3,'0')}`, ts(), short].filter(Boolean).join('_');
+  const fileName = `${nameCore}.${fileExt}`;
+  const sentence = sentences[idx] || '未知句子';
   
-  if (storageMode) {
-    // iPad模式：存储到IndexedDB
-    try {
-      await storeVideo(blob, fileName, sentences[idx] || '未知句子', currentSentenceSet, idx);
-      updateStorageInfo();
-      el('storageInfo').textContent = `视频已存储: ${fileName}`;
-      console.log(`视频已存储到本地: ${fileName}`);
-    } catch (error) {
-      console.error('存储视频失败:', error);
-      alert('存储视频失败: ' + error.message);
-      // 失败时回退到直接下载
+  try {
+    switch(saveMode) {
+      case 'download':
+        // 直接下载模式
+        directDownload(blob, fileName);
+        break;
+        
+      case 'local':
+        // 本地存储模式
+        await storeVideo(blob, fileName, sentence);
+        updateStorageInfo();
+        el('storageInfo').textContent = `视频已存储: ${fileName}`;
+        console.log(`视频已存储到本地: ${fileName}`);
+        break;
+        
+      case 'server':
+        // 服务器上传模式
+        await uploadToServer(blob, fileName, sentence);
+        break;
+        
+      default:
+        directDownload(blob, fileName);
+    }
+  } catch (error) {
+    console.error(`保存视频失败 (${saveMode}模式):`, error);
+    alert(`保存视频失败: ${error.message}`);
+    
+    // 失败时回退到直接下载
+    if (saveMode !== 'download') {
+      console.log('回退到直接下载模式');
       directDownload(blob, fileName);
     }
-  } else {
-    // 普通模式：直接下载
-    directDownload(blob, fileName);
-  }
-  
-  // 录制完成后自动跳到下一句（如果不是最后一句）
-  if (idx < sentences.length - 1) {
-    idx++;
-    updateSentenceView();
-    
-    // 保存进度
-    try {
-      await saveProgress(currentSentenceSet, idx);
-      console.log(`自动进入下一句: 第${idx + 1}句`);
-    } catch (error) {
-      console.error('保存进度失败:', error);
-    }
-  } else {
-    // 已完成所有句子
-    alert(`恭喜！您已完成所有${sentences.length}句的录制！`);
   }
   
   // 显示格式信息

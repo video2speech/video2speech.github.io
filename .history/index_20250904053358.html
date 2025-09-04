@@ -600,15 +600,19 @@ async function saveBlob(){
     updateSentenceView();
     
     // 保存进度
-    try {
-      await saveProgress(currentSentenceSet, idx);
-      console.log(`自动进入下一句: 第${idx + 1}句`);
-    } catch (error) {
-      console.error('保存进度失败:', error);
+    if (currentSentenceSet !== 'custom') {
+      try {
+        await saveProgress(currentSentenceSet, idx);
+        console.log(`自动进入下一句: 第${idx + 1}句`);
+      } catch (error) {
+        console.error('保存进度失败:', error);
+      }
     }
   } else {
     // 已完成所有句子
-    alert(`恭喜！您已完成所有${sentences.length}句的录制！`);
+    if (currentSentenceSet !== 'custom') {
+      alert(`恭喜！您已完成所有${sentences.length}句的录制！`);
+    }
   }
   
   // 显示格式信息
