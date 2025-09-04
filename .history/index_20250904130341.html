@@ -1,0 +1,855 @@
+<!doctype html>
+<html>
+<meta charset="utf-8" />
+<title>Video Recording Tool</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0}
+  .card{border:1px solid #444;border-radius:12px;padding:16px;margin:16px 0;background-color:#2a2a2a}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  video{width:300px;height:200px;background:#000;border-radius:8px;margin:0 auto;display:block;object-fit:contain}
+  button{padding:10px 14px;border-radius:10px;border:1px solid #555;background:#444;color:#e0e0e0;transition:all 0.1s ease}
+  button:active{opacity:.8;transform:scale(0.95)}
+  input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #555;background-color:#333;color:#e0e0e0}
+  select{width:auto}
+  .big{font-size:1.4rem;font-weight:600;margin:8px 0}
+  .muted{color:#666}
+  
+  .sentence-preparing {
+    color: #888;
+  }
+  
+  .sentence-recording {
+    color: #4CAF50 !important;
+    animation: none;
+  }
+  
+  .button-active {
+    transform: scale(0.95);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.1s ease;
+  }
+  
+  .button-pressed {
+    background: #222 !important;
+    border-color: #666 !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    transform: scale(0.95);
+  }
+</style>
+<body>
+  <div class="card">
+    <div class="row">
+      <label>Select Sentence Set</label>
+      <select id="sentenceSet" onchange="loadSentenceSet()">
+        <option value="50_sentences">50 Sentences</option>
+        <option value="150_sentences">150 Sentences</option>
+      </select>
+      <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">Reset Progress</button>
+      <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">Clear All Progress</button>
+    </div>
+    <div class="row" style="display: none;">
+      <button id="prev">Previous</button>
+      <button id="next">Next</button>
+      <button id="skip">Skip</button>
+    </div>
+    <div class="big sentence-preparing" id="currentText" style="font-size: 3rem; font-weight: bold; text-align: center; padding: 40px; border: 2px solid #555; border-radius: 16px; margin: 24px 0; min-height: 40vh; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.4; background-color: #333;">
+      <span class="muted" id="idxInfo" style="position: absolute; top: 15px; right: 20px; font-size: 1rem; color: #888; font-weight: normal; text-align: right; white-space: pre-line;"></span>
+      Waiting for initialization...
+    </div>
+  </div>
+
+  <div class="card" style="position: relative; padding: 12px; margin: 12px 0;">
+    <video id="preview" playsinline autoplay muted></video>
+    <div id="initCameraOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+      <button id="init" style="font-size: 1.2rem; padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">📷 Initialize Camera</button>
+    </div>
+    <div id="recordingStatus" style="position: absolute; top: 15px; right: 15px; z-index: 15; font-size: 1rem; font-weight: bold; color: #888; background: rgba(255, 255, 255, 0.9); padding: 6px 12px; border-radius: 15px; display: none;">Preparing</div>
+          <div class="row" style="margin-top:8px; justify-content: center;">
+        <button id="start" style="font-size: 1rem; padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">▶ Start</button>
+        <button id="stop" style="font-size: 1rem; padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">⏭ Stop & Next</button>
+        <button id="redo" style="font-size: 1rem; padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px;">🔄 Redo last</button>
+      </div>
+      <div class="row" style="margin-top:8px; justify-content: center;">
+        <button id="downloadAll" style="font-size: 1rem; padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 6px; display:none">💾 SAVE ALL</button>
+      </div>
+    <div class="row">
+      <button id="clearAll" style="display:none">Clear Storage</button>
+    </div>
+    <div class="row" style="flex-direction: column; align-items: center; margin-top: 10px;">
+      <span class="muted" id="storageInfo" style="font-size: 1rem; margin-bottom: 5px;"></span>
+      <div class="row" style="margin-bottom: 5px; align-items: center;">
+        <label style="font-size: 0.8rem; color: #888; margin-right: 8px;">Recording Resolution</label>
+        <select id="resolution" style="font-size: 0.8rem; padding: 2px 4px;">
+          <option value="720p">720p (1280×720) - Recommended</option>
+          <option value="1080p">1080p (1920×1080) - High Quality</option>
+          <option value="480p">480p (854×480) - Standard</option>
+          <option value="360p">360p (640×360) - Low Quality</option>
+          <option value="auto">Auto - Camera Default</option>
+        </select>
+      </div>
+      <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
+    </div>
+    <div class="row">
+      <!-- <span class="muted" id="downloadTip">iPad Mode: Videos are stored locally, use "Download All" to save them</span> -->
+    </div>
+  </div>
+
+<script>
+const el = id => document.getElementById(id);
+let stream, mediaRecorder, chunks = [];
+let sentences = [];
+let idx = 0;
+let recording = false;
+let recordingTimer = null; // Timer for auto-stop after 1 minute
+let recordingStartTime = null; // Track recording start time
+let timerInterval = null; // Timer display update interval
+let storageMode = true; // Default to iPad mode (store locally)
+let isRedo = false; // flag for redo mode
+let db;
+
+// Initialize IndexedDB
+async function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('VideoRecorderDB', 2);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      db = request.result;
+      resolve(db);
+    };
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      
+      // Video storage table
+      if (!db.objectStoreNames.contains('videos')) {
+        const store = db.createObjectStore('videos', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+        store.createIndex('sentence', 'sentence', { unique: false });
+        store.createIndex('sentenceSet', 'sentenceSet', { unique: false });
+        store.createIndex('sentenceIndex', 'sentenceIndex', { unique: false });
+      }
+      
+      // Progress tracking table
+      if (!db.objectStoreNames.contains('progress')) {
+        const progressStore = db.createObjectStore('progress', { keyPath: 'sentenceSet' });
+      }
+    };
+  });
+}
+
+// Store video to IndexedDB
+async function storeVideo(blob, fileName, sentence, sentenceSet, sentenceIndex) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Convert Blob to ArrayBuffer for IndexedDB storage
+      const arrayBuffer = await blob.arrayBuffer();
+      
+      const transaction = db.transaction(['videos'], 'readwrite');
+      const store = transaction.objectStore('videos');
+      
+      const videoData = {
+        fileName: fileName,
+        arrayBuffer: arrayBuffer, // Store as ArrayBuffer instead of Blob
+        mimeType: blob.type, // Store MIME type separately
+        sentence: sentence,
+        sentenceSet: sentenceSet || 'custom',
+        sentenceIndex: sentenceIndex || idx,
+        timestamp: new Date().toISOString(),
+        size: blob.size
+      };
+      
+      const request = store.add(videoData);
+      request.onsuccess = () => {
+        console.log(`Video stored successfully: ${fileName}`);
+        resolve(request.result);
+      };
+      request.onerror = () => {
+        console.error('IndexedDB store error:', request.error);
+        reject(request.error);
+      };
+      
+      transaction.onerror = () => {
+        console.error('IndexedDB transaction error:', transaction.error);
+        reject(transaction.error);
+      };
+    } catch (error) {
+      console.error('Error converting blob to ArrayBuffer:', error);
+      reject(error);
+    }
+  });
+}
+
+// Save progress
+async function saveProgress(sentenceSet, currentIndex, isCompletion = false) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Get existing progress to check repetition count
+      const existingProgress = await getProgress(sentenceSet);
+      let repetitionCount = existingProgress ? (existingProgress.repetitionCount || 0) : 0;
+      
+      // If this is a completion, increment repetition count
+      if (isCompletion) {
+        repetitionCount++;
+      }
+      
+      const transaction = db.transaction(['progress'], 'readwrite');
+      const store = transaction.objectStore('progress');
+      
+      const progressData = {
+        sentenceSet: sentenceSet,
+        currentIndex: currentIndex,
+        repetitionCount: repetitionCount,
+        timestamp: new Date().toISOString()
+      };
+      
+      const request = store.put(progressData);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+// Get progress
+async function getProgress(sentenceSet) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['progress'], 'readonly');
+    const store = transaction.objectStore('progress');
+    const request = store.get(sentenceSet);
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Delete progress
+async function deleteProgress(sentenceSet) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['progress'], 'readwrite');
+    const store = transaction.objectStore('progress');
+    const request = store.delete(sentenceSet);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Get all stored videos
+async function getAllStoredVideos() {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['videos'], 'readonly');
+    const store = transaction.objectStore('videos');
+    const request = store.getAll();
+    
+    request.onsuccess = () => {
+      const videos = request.result;
+      // Convert ArrayBuffer back to Blob for each video
+      const videosWithBlobs = videos.map(video => ({
+        ...video,
+        blob: new Blob([video.arrayBuffer], { type: video.mimeType || 'video/mp4' })
+      }));
+      resolve(videosWithBlobs);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Delete stored video
+async function deleteStoredVideo(id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['videos'], 'readwrite');
+    const store = transaction.objectStore('videos');
+    const request = store.delete(id);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Clear all stored videos
+async function clearAllStoredVideos() {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['videos'], 'readwrite');
+    const store = transaction.objectStore('videos');
+    const request = store.clear();
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Sentence sets data
+const sentenceSets = {
+  '50_sentences': null,
+  '150_sentences': null
+};
+
+let currentSentenceSet = '50_sentences';
+
+// Load sentence set file
+async function loadSentenceFile(filename) {
+  try {
+    const response = await fetch(`materials/${filename}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    return text.split('\n').map(s => s.trim()).filter(Boolean);
+  } catch (error) {
+    console.error(`Failed to load sentence file (${filename}):`, error);
+    return null;
+  }
+}
+
+// Load sentence set
+async function loadSentenceSet() {
+  const selected = el('sentenceSet').value;
+  currentSentenceSet = selected;
+  
+  let filename;
+  if (selected === '50_sentences') {
+    filename = '50_sentences_list.txt';
+  } else if (selected === '150_sentences') {
+    filename = '150_sentences_list.txt';
+  }
+  
+  // Load sentences from cache or file
+  if (!sentenceSets[selected]) {
+    sentenceSets[selected] = await loadSentenceFile(filename);
+  }
+  
+  if (sentenceSets[selected]) {
+    sentences = sentenceSets[selected];
+    
+    // Restore progress
+    try {
+      const progress = await getProgress(selected);
+      if (progress && progress.currentIndex < sentences.length) {
+        idx = progress.currentIndex;
+        console.log(`Progress restored: sentence ${idx + 1}`);
+      } else {
+        idx = 0;
+      }
+    } catch (error) {
+      console.error('Failed to restore progress:', error);
+      idx = 0;
+    }
+    
+    await updateSentenceView();
+  } else {
+    sentences = [];
+    idx = 0;
+    await updateSentenceView();
+  }
+}
+
+// Reset progress
+async function resetProgress() {
+  if (!confirm('Are you sure you want to reset the recording progress for the current sentence set?')) return;
+  
+  try {
+    await deleteProgress(currentSentenceSet);
+    idx = 0;
+    await updateSentenceView();
+    alert('Progress has been reset');
+  } catch (error) {
+    console.error('Failed to reset progress:', error);
+    alert('Failed to reset progress: ' + error.message);
+  }
+}
+
+// Clear all progress
+async function clearAllProgress() {
+  if (!confirm('Are you sure you want to clear all recording progress? This action cannot be undone!')) return;
+  
+  try {
+    const transaction = db.transaction(['progress'], 'readwrite');
+    const store = transaction.objectStore('progress');
+    await new Promise((resolve, reject) => {
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+    
+    // Reset current progress
+    idx = 0;
+    await updateSentenceView();
+    alert('All progress has been cleared');
+  } catch (error) {
+    console.error('Failed to clear progress:', error);
+    alert('Failed to clear progress: ' + error.message);
+  }
+}
+
+// Initialize database
+initDB().then(() => {
+  console.log('IndexedDB initialized successfully');
+  updateStorageInfo();
+  // Try to restore sentence set selection on page load
+  loadSentenceSet();
+}).catch(err => {
+  console.error('IndexedDB initialization failed:', err);
+});
+
+// Ordinal function to convert numbers to ordinal form (1st, 2nd, 3rd, etc.)
+const ordinal = (n) => {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
+async function updateSentenceView(){
+  const total = sentences.length;
+  const text = total ? sentences[idx] : '';
+  
+  // Update the text content while preserving the progress indicator
+  const currentTextEl = el('currentText');
+  const progressEl = el('idxInfo');
+  
+  // Clear all text nodes but keep the progress indicator
+  currentTextEl.childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      node.remove();
+    }
+  });
+  
+  // Add the new text
+  const textNode = document.createTextNode(text || 'No sentences available');
+  currentTextEl.insertBefore(textNode, progressEl);
+  
+  // Update progress indicator with repetition count
+  let progressText = total ? `${idx+1} / ${total}` : '';
+  
+  // Add repetition count if > 1, displayed on the right side
+  try {
+    const progress = await getProgress(currentSentenceSet);
+    if (progress && progress.repetitionCount > 1) {
+      progressText += `    ${ordinal(progress.repetitionCount)} repeat`;
+    }
+  } catch (error) {
+    console.error('Failed to get progress for repetition count:', error);
+  }
+  
+  progressEl.textContent = progressText;
+  
+  // Add default preparing state (blinking gray)
+  currentTextEl.className = 'big sentence-preparing';
+}
+
+function updateRecordingTimer() {
+  if (!recording || !recordingStartTime) return;
+  
+  const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
+  const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  
+  el('recordingStatus').textContent = `🔴 REC ${timeStr}`;
+}
+
+el('init').onclick = async () => {
+  try {
+    // Get user selected resolution
+    const resolution = el('resolution').value;
+    let videoConstraints = { facingMode: 'user' };
+    
+    // Set resolution based on selection
+    if (resolution !== 'auto') {
+      const resolutions = {
+        '360p': { width: 640, height: 360 },
+        '480p': { width: 854, height: 480 },
+        '720p': { width: 1280, height: 720 },
+        '1080p': { width: 1920, height: 1080 }
+      };
+      
+      if (resolutions[resolution]) {
+        videoConstraints = {
+          ...videoConstraints,
+          width: { ideal: resolutions[resolution].width },
+          height: { ideal: resolutions[resolution].height }
+        };
+      }
+    }
+    
+    // Front camera; change 'user' to 'environment' for rear camera
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: videoConstraints,
+      audio: true
+    });
+    
+    el('preview').srcObject = stream;
+    // Sentences already loaded through loadSentenceSet(), no need to read from textbox
+    await updateSentenceView();
+    
+    // Display actual resolution obtained
+    const videoTrack = stream.getVideoTracks()[0];
+    const settings = videoTrack.getSettings();
+    const actualRes = `${settings.width}×${settings.height}`;
+    el('resolutionInfo').textContent = `Actual Resolution: ${actualRes}`;
+    
+    // Show storage buttons since we're in iPad mode by default
+    el('downloadAll').style.display = 'inline-block';
+    el('clearAll').style.display = 'inline-block';
+    
+    // Hide the Initialize Camera button overlay and show preparing status
+    el('initCameraOverlay').style.display = 'none';
+    el('recordingStatus').style.display = 'block';
+    
+    alert('Camera ready! Videos will be stored locally.');
+  } catch (e) {
+    alert('Unable to access camera/microphone: ' + e);
+  }
+};
+
+el('next').onclick = async () => { 
+  if (sentences.length){ 
+    idx = Math.min(idx+1, sentences.length-1); 
+    isRedo = false; // Reset redo flag
+    await updateSentenceView(); 
+    // Save progress
+    try {
+      await saveProgress(currentSentenceSet, idx);
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
+  } 
+};
+
+el('prev').onclick = async () => { 
+  if (sentences.length){ 
+    idx = Math.max(idx-1, 0); 
+    isRedo = false; // Reset redo flag
+    await updateSentenceView(); 
+    // Save progress
+    try {
+      await saveProgress(currentSentenceSet, idx);
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
+  } 
+};
+
+// Skip current sentence
+el('skip').onclick = async () => {
+  if (sentences.length && idx < sentences.length - 1) {
+    idx++;
+    isRedo = false; // Reset redo flag
+    await updateSentenceView();
+    // Save progress
+    try {
+      await saveProgress(currentSentenceSet, idx);
+      console.log(`Skipped to sentence ${idx + 1}`);
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
+  } else if (idx >= sentences.length - 1) {
+    alert('This is the last sentence!');
+  }
+};
+
+// Redo last sentence (go back to previous sentence)
+el('redo').onclick = async () => {
+  if (sentences.length && idx > 0) {
+    idx--; // Go back to previous sentence
+    isRedo = true; // Set redo flag for video naming
+    console.log(`Redo last sentence ${idx + 1}: ${sentences[idx]}`);
+    await updateSentenceView();
+    // Save progress
+    try {
+      await saveProgress(currentSentenceSet, idx);
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
+  } else {
+    console.log('Cannot redo: already at first sentence or no sentences available');
+  }
+};
+
+// Listen for resolution changes
+el('resolution').onchange = () => {
+  if (stream) {
+    el('resolutionInfo').textContent = 'Resolution changed, please reinitialize camera';
+  }
+};
+
+
+// Update storage info
+async function updateStorageInfo() {
+  if (!db) {
+    console.log('Database not initialized yet');
+    return;
+  }
+  
+  try {
+    const videos = await getAllStoredVideos();
+    const count = videos.length;
+    const totalSize = videos.reduce((sum, video) => sum + video.size, 0);
+    const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
+    
+    el('storageInfo').textContent = count > 0 ? `Cached ${count} videos, ~${sizeInMB} MB` : '';
+    
+    console.log(`Storage info updated: ${count} videos, ${sizeInMB} MB`);
+  } catch (error) {
+    console.error('Failed to update storage info:', error);
+    // Update UI even if error occurs to avoid freezing
+    el('storageInfo').textContent = '';
+  }
+}
+
+
+// Download all stored videos
+el('downloadAll').onclick = async () => {
+  try {
+    const videos = await getAllStoredVideos();
+    if (videos.length === 0) {
+      alert('No stored videos found');
+      return;
+    }
+    
+    if (!confirm(`Are you sure you want to download all ${videos.length} videos? Videos will be automatically cleared from storage after download.`)) return;
+    
+    // Download one by one, 300ms interval
+    for (let i = 0; i < videos.length; i++) {
+      setTimeout(async () => {
+        const video = videos[i];
+        const a = document.createElement('a');
+        a.download = video.fileName;
+        a.href = URL.createObjectURL(video.blob);
+        a.click();
+        URL.revokeObjectURL(a.href);
+        
+        // Delete video after download
+        try {
+          await deleteStoredVideo(video.id);
+          console.log(`Deleted stored video: ${video.fileName}`);
+        } catch (error) {
+          console.error(`Failed to delete video: ${video.fileName}`, error);
+        }
+        
+        // Update storage info after last video download
+        if (i === videos.length - 1) {
+                      setTimeout(() => {
+              updateStorageInfo();
+            }, 500);
+        }
+      }, i * 300);
+    }
+    
+  } catch (error) {
+    alert('Download failed: ' + error.message);
+  }
+};
+
+// Clear all stored videos
+el('clearAll').onclick = async () => {
+  try {
+    const videos = await getAllStoredVideos();
+    if (videos.length === 0) {
+      alert('No stored videos found');
+      return;
+    }
+    
+    if (!confirm(`Are you sure you want to clear all ${videos.length} stored videos? This action cannot be undone!`)) return;
+    
+    await clearAllStoredVideos();
+    
+    // Call updateStorageInfo again to ensure correct state
+    setTimeout(() => {
+      updateStorageInfo();
+    }, 100);
+    
+    alert('All stored videos have been cleared');
+  } catch (error) {
+    console.error('Clear storage error:', error);
+    alert('Failed to clear storage: ' + error.message);
+  }
+};
+
+el('start').onclick = () => {
+  if (!stream) return alert('Please initialize camera first!');
+  if (recording) return;
+  chunks = [];
+  
+  // Use MP4 format by default
+  const mp4Options = [
+    'video/mp4;codecs=h264,aac',
+    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+    'video/mp4'
+  ];
+  const mimeType = mp4Options.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm;codecs=vp9,opus';
+  
+  mediaRecorder = new MediaRecorder(stream, { mimeType });
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  mediaRecorder.onstop = saveBlob;
+  mediaRecorder.start();
+  recording = true;
+  recordingStartTime = Date.now();
+  
+  // Set 1-minute auto-stop timer
+  recordingTimer = setTimeout(() => {
+    if (recording && mediaRecorder) {
+      console.log('Auto-stopping recording after 1 minute');
+      el('stop').click(); // Trigger stop button to handle all cleanup
+    }
+  }, 60000); // 60 seconds
+  
+  // Start timer display updates
+  timerInterval = setInterval(updateRecordingTimer, 1000);
+  
+  // Update recording status and sentence appearance
+  el('recordingStatus').textContent = '🔴 REC 0:00';
+  el('recordingStatus').style.color = '#f44336';
+  el('currentText').className = 'big sentence-recording';
+  
+  // Update button states - only START is pressed during recording
+  el('start').classList.add('button-pressed');
+  el('stop').classList.remove('button-pressed');
+};
+
+el('stop').onclick = () => {
+  if (mediaRecorder && recording) {
+    // Update button states - only STOP is pressed when stopping
+    el('start').classList.remove('button-pressed');
+    el('stop').classList.add('button-pressed');
+    
+    mediaRecorder.stop();
+    recording = false;
+    
+    // Clear the recording timer and timer display
+    if (recordingTimer) {
+      clearTimeout(recordingTimer);
+      recordingTimer = null;
+    }
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    recordingStartTime = null;
+    
+    // Reset to preparing status
+    el('recordingStatus').textContent = 'Preparing';
+    el('recordingStatus').style.color = '#888';
+    el('currentText').className = 'big sentence-preparing';
+    
+    // Reset button states after a brief moment
+    setTimeout(() => {
+      el('start').classList.remove('button-pressed');
+      el('stop').classList.remove('button-pressed');
+    }, 200);
+  }
+};
+
+// Add spacebar shortcut support
+document.addEventListener('keydown', (event) => {
+  // Only trigger when spacebar is pressed and not focused on input elements
+  if (event.code === 'Space' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
+    event.preventDefault(); // Prevent page scrolling
+    
+    if (!recording) {
+      // Start recording
+      el('start').click();
+    } else {
+      // Stop recording
+      el('stop').click();
+    }
+  }
+});
+
+function sanitize(s){
+  return s.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim();
+}
+function ts(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+async function saveBlob(){
+  // Determine file extension based on actual mimeType used
+  const isMP4 = mediaRecorder.mimeType.includes('mp4');
+  const fileExt = isMP4 ? 'mp4' : 'webm';
+  const blobType = isMP4 ? 'video/mp4' : 'video/webm';
+  
+  const blob = new Blob(chunks, { type: blobType });
+  const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
+  const timestamp = ts();
+  const redoSuffix = isRedo ? '_redo' : '';
+  
+  // Get progress info for filename
+  let progressInfo = '';
+  try {
+    const progress = await getProgress(currentSentenceSet);
+    const total = sentences.length;
+    const currentPos = idx + 1;
+    
+    if (progress && progress.repetitionCount > 1) {
+      progressInfo = `_${currentPos}-${total}_${ordinal(progress.repetitionCount)}repeat`;
+    } else {
+      progressInfo = `_${currentPos}-${total}`;
+    }
+  } catch (error) {
+    console.error('Failed to get progress for filename:', error);
+    progressInfo = `_${idx + 1}-${sentences.length}`;
+  }
+  
+  const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.mp4`;
+  
+  if (storageMode) {
+    // iPad mode: Store to IndexedDB
+          try {
+        await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
+        updateStorageInfo();
+        console.log(`Video stored locally: ${fileName}`);
+      } catch (error) {
+      console.error('Failed to store video:', error);
+      alert('Failed to store video: ' + error.message);
+      // Fallback to direct download on failure
+      directDownload(blob, fileName);
+    }
+  } else {
+    // Normal mode: Direct download
+    directDownload(blob, fileName);
+  }
+  
+  // Reset redo flag after recording completion
+  isRedo = false;
+  
+  // Auto jump to next sentence after recording completion (if not the last sentence)
+  if (idx < sentences.length - 1) {
+    idx++;
+    await updateSentenceView();
+    
+    // Save progress
+    try {
+      await saveProgress(currentSentenceSet, idx);
+      console.log(`Auto moved to next sentence: sentence ${idx + 1}`);
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
+  } else {
+    // All sentences completed, reset to first sentence for repetition
+    idx = 0;
+    await updateSentenceView();
+    
+    // Save progress and increment repetition counter
+    try {
+      await saveProgress(currentSentenceSet, idx, true); // true indicates completion
+      console.log(`Completed recording all ${sentences.length} sentences, starting next repetition`);
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
+  }
+  
+  // Display format information
+  console.log(`Recording completed, format: ${fileExt.toUpperCase()}, MIME type: ${mediaRecorder.mimeType}`);
+}
+
+function directDownload(blob, fileName) {
+  const a = document.createElement('a');
+  a.download = fileName;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
