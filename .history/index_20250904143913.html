@@ -748,38 +748,11 @@ el('downloadAll').onclick = async () => {
           console.error(`Failed to delete video: ${video.fileName}`, error);
         }
         
-        // Update storage info after last video download and restart video stream
+        // Update storage info after last video download
         if (i === videos.length - 1) {
-          setTimeout(async () => {
-            try {
+                      setTimeout(() => {
               updateStorageInfo();
-              
-              // Restart video stream to refresh camera feed
-              if (stream) {
-                // Stop current stream
-                stream.getTracks().forEach(track => track.stop());
-                
-                // Restart camera with current resolution
-                const resolution = el('resolution').value;
-                let videoConstraints = { facingMode: 'user' };
-                
-                if (resolution === '4k') videoConstraints = { ...videoConstraints, width: 3840, height: 2160 };
-                else if (resolution === '1080p') videoConstraints = { ...videoConstraints, width: 1920, height: 1080 };
-                else if (resolution === '720p') videoConstraints = { ...videoConstraints, width: 1280, height: 720 };
-                else if (resolution === '480p') videoConstraints = { ...videoConstraints, width: 640, height: 480 };
-                
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                  video: videoConstraints, 
-                  audio: true 
-                });
-                el('preview').srcObject = stream;
-                
-                console.log('Video stream restarted after SAVE ALL');
-              }
-            } catch (error) {
-              console.error('Error restarting video stream:', error);
-            }
-          }, 500);
+            }, 500);
         }
       }, i * 300);
     }

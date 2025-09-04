@@ -730,64 +730,105 @@ el('downloadAll').onclick = async () => {
     
     if (!confirm(`Are you sure you want to download all ${videos.length} videos? Videos will be automatically cleared from storage after download.`)) return;
     
-    // Download one by one, 300ms interval
-    for (let i = 0; i < videos.length; i++) {
-      setTimeout(async () => {
-        const video = videos[i];
-        const a = document.createElement('a');
-        a.download = video.fileName;
-        a.href = URL.createObjectURL(video.blob);
-        a.click();
-        URL.revokeObjectURL(a.href);
-        
-        // Delete video after download
+    // Show progress indicator
+    el('downloadAll').textContent = 'Downloading...';
+    el('downloadAll').disabled = true;
+    
+    // Detect if we're on iPad/iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS) {
+      // On iOS/iPad, use Web Share API to avoid download prompts that freeze video
+      if (navigator.share) {
         try {
-          await deleteStoredVideo(video.id);
-          console.log(`Deleted stored video: ${video.fileName}`);
-        } catch (error) {
-          console.error(`Failed to delete video: ${video.fileName}`, error);
+          // Prepare all files for sharing
+          const files = videos.map(video => new File([video.blob], video.fileName, { type: video.blob.type }));
+          
+          await navigator.share({
+            files: files,
+            title: 'Video Recordings',
+            text: `Sharing ${videos.length} recorded videos`
+          });
+          
+          // After successful share, delete all videos
+          for (const video of videos) {
+            await deleteStoredVideo(video.id);
+          }
+          
+          console.log(`All ${videos.length} videos shared and cleared`);
+        } catch (shareError) {
+          // If share fails or is cancelled, fall back to individual downloads with longer delays
+          console.log('Share cancelled or failed, falling back to downloads');
+          await downloadVideosSequentially(videos, 1000); // 1 second delay for iPad
         }
-        
-        // Update storage info after last video download and restart video stream
-        if (i === videos.length - 1) {
-          setTimeout(async () => {
-            try {
-              updateStorageInfo();
-              
-              // Restart video stream to refresh camera feed
-              if (stream) {
-                // Stop current stream
-                stream.getTracks().forEach(track => track.stop());
-                
-                // Restart camera with current resolution
-                const resolution = el('resolution').value;
-                let videoConstraints = { facingMode: 'user' };
-                
-                if (resolution === '4k') videoConstraints = { ...videoConstraints, width: 3840, height: 2160 };
-                else if (resolution === '1080p') videoConstraints = { ...videoConstraints, width: 1920, height: 1080 };
-                else if (resolution === '720p') videoConstraints = { ...videoConstraints, width: 1280, height: 720 };
-                else if (resolution === '480p') videoConstraints = { ...videoConstraints, width: 640, height: 480 };
-                
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                  video: videoConstraints, 
-                  audio: true 
-                });
-                el('preview').srcObject = stream;
-                
-                console.log('Video stream restarted after SAVE ALL');
-              }
-            } catch (error) {
-              console.error('Error restarting video stream:', error);
-            }
-          }, 500);
-        }
-      }, i * 300);
+      } else {
+        // Fallback for older iOS versions
+        await downloadVideosSequentially(videos, 1000);
+      }
+    } else {
+      // On desktop, use normal download method
+      await downloadVideosSequentially(videos, 300);
     }
+    
+    // Update UI after all operations complete
+    setTimeout(async () => {
+      try {
+        await updateStorageInfo();
+        el('downloadAll').textContent = '💾 SAVE ALL';
+        el('downloadAll').disabled = false;
+        console.log('Download operation completed');
+      } catch (error) {
+        console.error('Error updating UI after download:', error);
+        el('downloadAll').textContent = '💾 SAVE ALL';
+        el('downloadAll').disabled = false;
+      }
+    }, 500);
     
   } catch (error) {
     alert('Download failed: ' + error.message);
+    el('downloadAll').textContent = '💾 SAVE ALL';
+    el('downloadAll').disabled = false;
   }
 };
+
+// Helper function to download videos sequentially
+async function downloadVideosSequentially(videos, delay) {
+  let downloadedCount = 0;
+  
+  for (let i = 0; i < videos.length; i++) {
+    await new Promise((resolve) => {
+      setTimeout(async () => {
+        try {
+          const video = videos[i];
+          const a = document.createElement('a');
+          a.download = video.fileName;
+          a.href = URL.createObjectURL(video.blob);
+          
+          // On iPad, add a small delay before and after click to minimize interference
+          if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            await new Promise(r => setTimeout(r, 100));
+          }
+          
+          a.click();
+          URL.revokeObjectURL(a.href);
+          
+          if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            await new Promise(r => setTimeout(r, 100));
+          }
+          
+          // Delete video after download
+          await deleteStoredVideo(video.id);
+          downloadedCount++;
+          console.log(`Downloaded and deleted: ${video.fileName} (${downloadedCount}/${videos.length})`);
+          
+        } catch (error) {
+          console.error(`Failed to process video: ${video.fileName}`, error);
+        }
+        resolve();
+      }, i * delay);
+    });
+  }
+}
 
 // Clear all stored videos
 el('clearAll').onclick = async () => {
