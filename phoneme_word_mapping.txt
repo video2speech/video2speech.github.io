@@ -1,0 +1,122 @@
+COMPLETE PHONEME-WORD MAPPING
+===================================
+Total phonemes: 39
+Total words: 29
+
+
+📢 PHONEME: AA
+   Words (2): got, was
+
+📢 PHONEME: AE
+   Words (2): have, that
+
+📢 PHONEME: AH
+   Words (7): and, but, just, of, the, up, usually
+
+📢 PHONEME: AO
+   Words (1): for
+
+📢 PHONEME: AW
+   Words (1): now
+
+📢 PHONEME: AY
+   Words (1): i
+
+📢 PHONEME: B
+   Words (1): but
+
+📢 PHONEME: CH
+   Words (1): which
+
+📢 PHONEME: D
+   Words (2): and, would
+
+📢 PHONEME: DH
+   Words (4): that, the, them, they
+
+📢 PHONEME: EH
+   Words (3): 's, them, well
+
+📢 PHONEME: ER
+   Words (1): er
+
+📢 PHONEME: EY
+   Words (1): they
+
+📢 PHONEME: F
+   Words (1): for
+
+📢 PHONEME: G
+   Words (1): got
+
+📢 PHONEME: HH
+   Words (1): have
+
+📢 PHONEME: IH
+   Words (4): is, it, think, which
+
+📢 PHONEME: IY
+   Words (3): she, usually, we
+
+📢 PHONEME: JH
+   Words (1): just
+
+📢 PHONEME: K
+   Words (1): think
+
+📢 PHONEME: L
+   Words (2): usually, well
+
+📢 PHONEME: M
+   Words (1): them
+
+📢 PHONEME: N
+   Words (4): and, know, now, point
+
+📢 PHONEME: NG
+   Words (1): think
+
+📢 PHONEME: OW
+   Words (1): know
+
+📢 PHONEME: OY
+   Words (1): point
+
+📢 PHONEME: P
+   Words (2): point, up
+
+📢 PHONEME: R
+   Words (1): for
+
+📢 PHONEME: S
+   Words (2): 's, just
+
+📢 PHONEME: SH
+   Words (1): she
+
+📢 PHONEME: T
+   Words (6): but, got, it, just, point, that
+
+📢 PHONEME: TH
+   Words (1): think
+
+📢 PHONEME: UH
+   Words (1): would
+
+📢 PHONEME: UW
+   Words (2): usually, you
+
+📢 PHONEME: V
+   Words (2): have, of
+
+📢 PHONEME: W
+   Words (6): usually, was, we, well, which, would
+
+📢 PHONEME: Y
+   Words (2): usually, you
+
+📢 PHONEME: Z
+   Words (2): is, was
+
+📢 PHONEME: ZH
+   Words (1): usually

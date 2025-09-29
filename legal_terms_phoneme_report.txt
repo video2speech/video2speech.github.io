@@ -1,0 +1,356 @@
+================================================================================
+LEGAL TERMS PHONEME ANALYSIS
+================================================================================
+Total legal terms analyzed: 100
+Terms with phoneme data: 95
+Phonemes found: 37
+
+PHONEME FREQUENCY SUMMARY:
+----------------------------------------
+AH :  85 occurrences ( 13.0%)
+N  :  54 occurrences (  8.3%)
+T  :  53 occurrences (  8.1%)
+IH :  40 occurrences (  6.1%)
+R  :  36 occurrences (  5.5%)
+K  :  32 occurrences (  4.9%)
+S  :  32 occurrences (  4.9%)
+L  :  29 occurrences (  4.4%)
+D  :  27 occurrences (  4.1%)
+IY :  22 occurrences (  3.4%)
+EH :  20 occurrences (  3.1%)
+P  :  19 occurrences (  2.9%)
+M  :  19 occurrences (  2.9%)
+SH :  19 occurrences (  2.9%)
+EY :  17 occurrences (  2.6%)
+ER :  14 occurrences (  2.1%)
+F  :  14 occurrences (  2.1%)
+AE :  13 occurrences (  2.0%)
+V  :  11 occurrences (  1.7%)
+JH :  11 occurrences (  1.7%)
+Z  :  10 occurrences (  1.5%)
+AY :   9 occurrences (  1.4%)
+AO :   9 occurrences (  1.4%)
+NG :   8 occurrences (  1.2%)
+B  :   8 occurrences (  1.2%)
+G  :   6 occurrences (  0.9%)
+Y  :   6 occurrences (  0.9%)
+UW :   6 occurrences (  0.9%)
+AA :   6 occurrences (  0.9%)
+OW :   5 occurrences (  0.8%)
+UH :   3 occurrences (  0.5%)
+CH :   3 occurrences (  0.5%)
+TH :   2 occurrences (  0.3%)
+HH :   1 occurrences (  0.2%)
+W  :   1 occurrences (  0.2%)
+AW :   1 occurrences (  0.2%)
+ZH :   1 occurrences (  0.2%)
+
+DETAILED PHONEME ANALYSIS (Most to Least Frequent):
+============================================================
+
+/AH/ - 85 total occurrences in 60 words (13.0%)
+--------------------------------------------------
+  admissions, affidavit, appeal, arbitration, attach, authority, billable, certification
+  circulate, client, complaint, compliance, confidential, confirm, continuance, custodian
+  damages, declaration, deposition, discovery, docket, engagement, evidence, finalize
+  indemnity, injunction, insurance, interrogatory, judge, judgment, jurisdiction, liability
+  limitations, litigation, mediation, motion, plaintiff, precedent, preemption, privilege
+  product, production, protective, record, regulatory, removal, retention, sanctions
+  service, settlement, signature, stipulation, strategy, subpoena, summons, testimony
+  trial, update, verification, witness
+
+/N/ - 54 total occurrences in 46 words (8.3%)
+--------------------------------------------------
+  admissions, answer, arbitration, certification, client, complaint, compliance, confidential
+  confirm, conflict, continuance, custodian, deadline, declaration, defense, deposition
+  engagement, evidence, finalize, indemnity, injunction, insurance, interrogatory, judgment
+  jurisdiction, limitations, litigation, mediation, motion, plaintiff, precedent, preemption
+  production, remand, retention, sanctions, settlement, signature, stipulation, subpoena
+  summons, testimony, transfer, venue, verification, witness
+
+/T/ - 53 total occurrences in 47 words (8.1%)
+--------------------------------------------------
+  Daubert, affidavit, arbitration, attach, audit, authority, bifurcate, certification
+  circulate, client, complaint, conflict, continuance, court, custodian, docket
+  draft, engagement, exhibit, expert, indemnity, interrogatory, judgment, liability
+  limitations, litigation, meeting, plaintiff, precedent, product, protective, redact
+  regulatory, report, retention, settlement, statute, stay, stipulation, strategy
+  team, testimony, tolling, transfer, trial, update, witness
+
+/IH/ - 40 total occurrences in 36 words (6.1%)
+--------------------------------------------------
+  admissions, arbitration, audit, bifurcate, billable, conflict, continuance, defense
+  deposition, discovery, exhibit, exposure, filing, hearing, indemnity, injunction
+  insurance, interrogatory, jurisdiction, liability, limitations, litigation, meeting, precedent
+  privilege, protective, redact, remand, removal, revise, risk, ruling
+  signature, stipulation, tolling, witness
+
+/R/ - 36 total occurrences in 31 words (5.5%)
+--------------------------------------------------
+  arbitration, authority, brief, court, draft, hearing, insurance, interrogatory
+  jurisdiction, order, precedent, preemption, privilege, product, production, protective
+  record, redact, regulatory, remand, removal, report, retention, review
+  revise, risk, ruling, strategy, transfer, trial, verification
+
+/K/ - 32 total occurrences in 31 words (4.9%)
+--------------------------------------------------
+  bifurcate, call, case, certification, circulate, client, complaint, compliance
+  confidential, confirm, conflict, continuance, court, custodian, declaration, discovery
+  docket, expert, exposure, injunction, jurisdiction, product, production, protective
+  record, redact, risk, sanctions, schedule, thanks, verification
+
+/S/ - 32 total occurrences in 31 words (4.9%)
+--------------------------------------------------
+  answer, case, certification, circulate, compliance, continuance, custodian, defense
+  discovery, evidence, expert, exposure, insurance, jurisdiction, precedent, risk
+  sanctions, schedule, service, settlement, signature, statute, stay, stipulation
+  strategy, subpoena, summons, testimony, thanks, transfer, witness
+
+/L/ - 29 total occurrences in 27 words (4.4%)
+--------------------------------------------------
+  appeal, billable, call, circulate, client, complaint, compliance, confidential
+  conflict, deadline, declaration, filing, finalize, liability, limitations, litigation
+  plaintiff, please, privilege, regulatory, removal, ruling, schedule, settlement
+  stipulation, tolling, trial
+
+/D/ - 27 total occurrences in 26 words (4.1%)
+--------------------------------------------------
+  Daubert, admissions, affidavit, audit, confidential, custodian, damages, deadline
+  declaration, defense, deposition, discovery, docket, draft, evidence, indemnity
+  jurisdiction, mediation, order, precedent, product, production, record, redact
+  remand, update
+
+/IY/ - 22 total occurrences in 21 words (3.4%)
+--------------------------------------------------
+  appeal, authority, brief, custodian, discovery, hearing, indemnity, interrogatory
+  liability, mediation, meeting, please, preemption, regulatory, report, retention
+  review, strategy, subpoena, team, testimony
+
+/EH/ - 20 total occurrences in 20 words (3.1%)
+--------------------------------------------------
+  confidential, deadline, declaration, defense, deposition, engagement, evidence, expert
+  indemnity, interrogatory, precedent, preemption, protective, regulatory, retention, schedule
+  settlement, testimony, venue, verification
+
+/P/ - 19 total occurrences in 18 words (2.9%)
+--------------------------------------------------
+  appeal, complaint, compliance, deposition, expert, exposure, plaintiff, please
+  precedent, preemption, privilege, product, production, protective, report, stipulation
+  subpoena, update
+
+/M/ - 19 total occurrences in 19 words (2.9%)
+--------------------------------------------------
+  admissions, complaint, compliance, confirm, damages, engagement, indemnity, judgment
+  limitations, mediation, meeting, motion, preemption, remand, removal, settlement
+  summons, team, testimony
+
+/SH/ - 19 total occurrences in 19 words (2.9%)
+--------------------------------------------------
+  admissions, arbitration, certification, confidential, declaration, deposition, injunction, insurance
+  jurisdiction, limitations, litigation, mediation, motion, preemption, production, retention
+  sanctions, stipulation, verification
+
+/EY/ - 17 total occurrences in 17 words (2.6%)
+--------------------------------------------------
+  affidavit, arbitration, bifurcate, case, certification, circulate, complaint, declaration
+  engagement, limitations, litigation, mediation, plaintiff, stay, stipulation, update
+  verification
+
+/ER/ - 14 total occurrences in 14 words (2.1%)
+--------------------------------------------------
+  Daubert, answer, bifurcate, certification, circulate, confirm, declaration, discovery
+  expert, exposure, order, service, signature, transfer
+
+/F/ - 14 total occurrences in 14 words (2.1%)
+--------------------------------------------------
+  affidavit, bifurcate, brief, certification, confidential, confirm, conflict, defense
+  draft, filing, finalize, plaintiff, transfer, verification
+
+/AE/ - 13 total occurrences in 13 words (2.0%)
+--------------------------------------------------
+  admissions, affidavit, answer, attach, damages, draft, redact, remand
+  sanctions, statute, strategy, thanks, transfer
+
+/V/ - 11 total occurrences in 11 words (1.7%)
+--------------------------------------------------
+  affidavit, discovery, evidence, privilege, protective, removal, review, revise
+  service, venue, verification
+
+/JH/ - 11 total occurrences in 9 words (1.7%)
+--------------------------------------------------
+  damages, engagement, injunction, judge, judgment, jurisdiction, privilege, schedule
+  strategy
+
+/Z/ - 10 total occurrences in 10 words (1.5%)
+--------------------------------------------------
+  admissions, damages, deposition, exhibit, finalize, limitations, please, revise
+  sanctions, summons
+
+/AY/ - 9 total occurrences in 8 words (1.4%)
+--------------------------------------------------
+  client, compliance, deadline, filing, finalize, liability, revise, trial
+
+/AO/ - 9 total occurrences in 9 words (1.4%)
+--------------------------------------------------
+  audit, authority, call, court, interrogatory, order, record, regulatory
+  report
+
+/NG/ - 8 total occurrences in 8 words (1.2%)
+--------------------------------------------------
+  filing, hearing, injunction, meeting, ruling, sanctions, thanks, tolling
+
+/B/ - 8 total occurrences in 7 words (1.2%)
+--------------------------------------------------
+  Daubert, arbitration, bifurcate, billable, brief, exhibit, liability
+
+/G/ - 6 total occurrences in 6 words (0.9%)
+--------------------------------------------------
+  engagement, exhibit, interrogatory, litigation, regulatory, signature
+
+/Y/ - 6 total occurrences in 6 words (0.9%)
+--------------------------------------------------
+  circulate, continuance, regulatory, review, stipulation, venue
+
+/UW/ - 6 total occurrences in 6 words (0.9%)
+--------------------------------------------------
+  continuance, removal, review, ruling, statute, venue
+
+/AA/ - 6 total occurrences in 6 words (0.9%)
+--------------------------------------------------
+  arbitration, confidential, conflict, docket, interrogatory, product
+
+/OW/ - 5 total occurrences in 5 words (0.8%)
+--------------------------------------------------
+  custodian, exposure, motion, testimony, tolling
+
+/UH/ - 3 total occurrences in 3 words (0.5%)
+--------------------------------------------------
+  insurance, jurisdiction, schedule
+
+/CH/ - 3 total occurrences in 3 words (0.5%)
+--------------------------------------------------
+  attach, signature, statute
+
+/TH/ - 2 total occurrences in 2 words (0.3%)
+--------------------------------------------------
+  authority, thanks
+
+/HH/ - 1 total occurrences in 1 words (0.2%)
+--------------------------------------------------
+  hearing
+
+/W/ - 1 total occurrences in 1 words (0.2%)
+--------------------------------------------------
+  witness
+
+/AW/ - 1 total occurrences in 1 words (0.2%)
+--------------------------------------------------
+  Daubert
+
+/ZH/ - 1 total occurrences in 1 words (0.2%)
+--------------------------------------------------
+  exposure
+
+MISSING PHONEMES (2):
+------------------------------
+/DH/ - Not represented in legal terms
+/OY/ - Not represented in legal terms
+
+============================================================
+WORD-TO-PHONEME MAPPING:
+============================================================
+Daubert         -> /D AW B ER T/
+admissions      -> /AE D M IH SH AH N Z/
+affidavit       -> /AE F AH D EY V AH T/
+answer          -> /AE N S ER/
+appeal          -> /AH P IY L/
+arbitration     -> /AA R B IH T R EY SH AH N/
+attach          -> /AH T AE CH/
+audit           -> /AO D IH T/
+authority       -> /AH TH AO R AH T IY/
+bifurcate       -> /B IH F ER K EY T/
+billable        -> /B IH L AH B AH L/
+brief           -> /B R IY F/
+call            -> /K AO L/
+case            -> /K EY S/
+certification   -> /S ER T AH F AH K EY SH AH N/
+circulate       -> /S ER K Y AH L EY T/
+client          -> /K L AY AH N T/
+complaint       -> /K AH M P L EY N T/
+compliance      -> /K AH M P L AY AH N S/
+confidential    -> /K AA N F AH D EH N SH AH L/
+confirm         -> /K AH N F ER M/
+conflict        -> /K AA N F L IH K T/
+continuance     -> /K AH N T IH N Y UW AH N S/
+court           -> /K AO R T/
+custodian       -> /K AH S T OW D IY AH N/
+damages         -> /D AE M AH JH AH Z/
+deadline        -> /D EH D L AY N/
+declaration     -> /D EH K L ER EY SH AH N/
+defense         -> /D IH F EH N S/
+deposition      -> /D EH P AH Z IH SH AH N/
+discovery       -> /D IH S K AH V ER IY/
+docket          -> /D AA K AH T/
+draft           -> /D R AE F T/
+engagement      -> /EH N G EY JH M AH N T/
+evidence        -> /EH V AH D AH N S/
+exhibit         -> /IH G Z IH B IH T/
+expert          -> /EH K S P ER T/
+exposure        -> /IH K S P OW ZH ER/
+filing          -> /F AY L IH NG/
+finalize        -> /F AY N AH L AY Z/
+hearing         -> /HH IY R IH NG/
+indemnity       -> /IH N D EH M N AH T IY/
+injunction      -> /IH N JH AH NG K SH AH N/
+insurance       -> /IH N SH UH R AH N S/
+interrogatory   -> /IH N T EH R AA G AH T AO R IY/
+judge           -> /JH AH JH/
+judgment        -> /JH AH JH M AH N T/
+jurisdiction    -> /JH UH R AH S D IH K SH AH N/
+liability       -> /L AY AH B IH L IH T IY/
+limitations     -> /L IH M IH T EY SH AH N Z/
+litigation      -> /L IH T AH G EY SH AH N/
+mediation       -> /M IY D IY EY SH AH N/
+meeting         -> /M IY T IH NG/
+motion          -> /M OW SH AH N/
+order           -> /AO R D ER/
+plaintiff       -> /P L EY N T AH F/
+please          -> /P L IY Z/
+precedent       -> /P R EH S IH D AH N T/
+preemption      -> /P R IY EH M P SH AH N/
+privilege       -> /P R IH V L AH JH/
+product         -> /P R AA D AH K T/
+production      -> /P R AH D AH K SH AH N/
+protective      -> /P R AH T EH K T IH V/
+record          -> /R AH K AO R D/
+redact          -> /R IH D AE K T/
+regulatory      -> /R EH G Y AH L AH T AO R IY/
+remand          -> /R IH M AE N D/
+removal         -> /R IH M UW V AH L/
+report          -> /R IY P AO R T/
+retention       -> /R IY T EH N SH AH N/
+review          -> /R IY V Y UW/
+revise          -> /R IH V AY Z/
+risk            -> /R IH S K/
+ruling          -> /R UW L IH NG/
+sanctions       -> /S AE NG K SH AH N Z/
+schedule        -> /S K EH JH UH L/
+service         -> /S ER V AH S/
+settlement      -> /S EH T AH L M AH N T/
+signature       -> /S IH G N AH CH ER/
+statute         -> /S T AE CH UW T/
+stay            -> /S T EY/
+stipulation     -> /S T IH P Y AH L EY SH AH N/
+strategy        -> /S T R AE T AH JH IY/
+subpoena        -> /S AH P IY N AH/
+summons         -> /S AH M AH N Z/
+team            -> /T IY M/
+testimony       -> /T EH S T AH M OW N IY/
+thanks          -> /TH AE NG K S/
+tolling         -> /T OW L IH NG/
+transfer        -> /T R AE N S F ER/
+trial           -> /T R AY AH L/
+update          -> /AH P D EY T/
+venue           -> /V EH N Y UW/
+verification    -> /V EH R AH F AH K EY SH AH N/
+witness         -> /W IH T N AH S/

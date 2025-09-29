@@ -1,0 +1,96 @@
+================================================================================
+COMPREHENSIVE ENGLISH PHONEME DISTRIBUTION ANALYSIS REPORT
+================================================================================
+Generated on: 2025-09-09 03:20:50
+Total phonemes analyzed: 213,452
+Unique phonemes found: 37
+Files analyzed: 4
+  1. materials/50_sentences_list.txt
+  2. materials/50_words_list.txt
+  3. materials/150_sentences_list.txt
+  4. materials/150_words_list.txt
+
+SUMMARY STATISTICS
+--------------------------------------------------
+Most frequent phoneme: T (21,961 occurrences, 10.29%)
+Least frequent phoneme: CH (262 occurrences, 0.12%)
+Average frequency per phoneme: 5768.97
+
+Phoneme distribution by type:
+  Vowel: 71,383 (33.44%)
+  Stop: 45,332 (21.24%)
+  Fricative: 25,898 (12.13%)
+  Nasal: 22,518 (10.55%)
+  Diphthong: 18,081 (8.47%)
+  Glide: 18,045 (8.45%)
+  Liquid: 11,438 (5.36%)
+  Affricate: 757 (0.35%)
+
+DETAILED PHONEME ANALYSIS
+--------------------------------------------------------------------------------
+Rank ARPAbet  IPA    Type         Count    %      Description
+--------------------------------------------------------------------------------
+1    T        t      stop         21961    10.29  voiceless alveolar stop (tea)
+2    UW       u      vowel        14373    6.73   high back tense vowel (too)
+3    IH       ɪ      vowel        13770    6.45   high front lax vowel (hit)
+4    N        n      nasal        13503    6.33   alveolar nasal (knee)
+5    D        d      stop         11182    5.24   voiced alveolar stop (dee)
+6    W        w      glide        10792    5.06   labial-velar approximant (we)
+7    AH       ʌ      vowel        10620    4.98   mid central unrounded vowel (cut)
+8    AY       aɪ     diphthong    8173     3.83   low front to high front diphthong (hide)
+9    IY       i      vowel        7788     3.65   high front tense vowel (see)
+10   AO       ɔ      vowel        7719     3.62   low back rounded vowel (caught)
+11   Y        j      glide        7253     3.40   palatal approximant (yield)
+12   AE       æ      vowel        6287     2.95   low front unrounded vowel (cat)
+13   DH       ð      fricative    5958     2.79   voiced dental fricative (thee)
+14   M        m      nasal        5905     2.77   bilabial nasal (me)
+15   EH       ɛ      vowel        5849     2.74   mid front unrounded vowel (red)
+16   L        l      liquid       5777     2.71   lateral approximant (lee)
+17   R        r      liquid       5661     2.65   retroflex approximant (read)
+18   HH       h      fricative    5571     2.61   voiceless glottal fricative (he)
+19   K        k      stop         5192     2.43   voiceless velar stop (key)
+20   OW       oʊ     diphthong    4948     2.32   mid back to high back diphthong (show)
+21   S        s      fricative    4645     2.18   voiceless alveolar fricative (sea)
+22   G        g      stop         3311     1.55   voiced velar stop (green)
+23   NG       ŋ      nasal        3110     1.46   velar nasal (ping)
+24   TH       θ      fricative    2643     1.24   voiceless dental fricative (theta)
+25   Z        z      fricative    2633     1.23   voiced alveolar fricative (zee)
+26   B        b      stop         2589     1.21   voiced bilabial stop (be)
+27   AW       aʊ     diphthong    2509     1.18   low front to high back diphthong (how)
+28   UH       ʊ      vowel        2499     1.17   high back lax vowel (put)
+29   EY       eɪ     diphthong    2451     1.15   mid front to high front diphthong (say)
+30   V        v      fricative    2295     1.08   voiced labiodental fricative (vee)
+31   F        f      fricative    1323     0.62   voiceless labiodental fricative (fee)
+32   AA       ɑ      vowel        1246     0.58   low back unrounded vowel (father)
+33   ER       ɝ      vowel        1232     0.58   mid central r-colored vowel (her)
+34   P        p      stop         1097     0.51   voiceless bilabial stop (pee)
+35   SH       ʃ      fricative    830      0.39   voiceless postalveolar fricative (she)
+36   JH       dʒ     affricate    495      0.23   voiced postalveolar affricate (gee)
+37   CH       tʃ     affricate    262      0.12   voiceless postalveolar affricate (cheese)
+
+TOP 10 MOST FREQUENT PHONEMES
+--------------------------------------------------
+Top 10 phonemes represent 56.16% of all phonemes
+
+ 1. T [t]: 21,961 occurrences (10.29%)
+ 2. UW [u]: 14,373 occurrences (6.73%)
+ 3. IH [ɪ]: 13,770 occurrences (6.45%)
+ 4. N [n]: 13,503 occurrences (6.33%)
+ 5. D [d]: 11,182 occurrences (5.24%)
+ 6. W [w]: 10,792 occurrences (5.06%)
+ 7. AH [ʌ]: 10,620 occurrences (4.98%)
+ 8. AY [aɪ]: 8,173 occurrences (3.83%)
+ 9. IY [i]: 7,788 occurrences (3.65%)
+10. AO [ɔ]: 7,719 occurrences (3.62%)
+
+ANALYSIS INSIGHTS
+--------------------------------------------------
+Most frequent consonant: T (21,961 occurrences)
+Most frequent vowel: UW (14,373 occurrences)
+
+Phoneme coverage: 37/44 standard English phonemes found
+Missing phonemes: OY, ZH
+
+================================================================================
+END OF REPORT
+================================================================================

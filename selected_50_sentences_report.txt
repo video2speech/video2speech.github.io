@@ -1,0 +1,150 @@
+选中句子分析报告
+==================================================
+
+选中的句子:
+------------------------------
+ 1. I think that the client is in litigation
+ 2. When will we get the schedule for my client
+ 3. My client will confirm the schedule with you
+ 4. So can you get the point now
+ 5. That is what we do for you
+ 6. They did not confirm the schedule with us
+ 7. I think that it is not your case
+ 8. I do not know if they will do it
+ 9. You and I are in the trial
+10. I think there is exposure in this litigation
+11. So I can get your signature
+12. But they did not confirm it
+13. What do we know about the case now
+14. Yes I will get them on the trial schedule
+15. No there is no exposure for us in this appeal
+16. Confirm with the judge if there is no trial
+17. Yes I will confirm your case with them
+18. When will the judge confirm the appeal for the client
+19. But I do not know the schedule for the trial
+20. It is about the exposure in this case
+21. I do not think the client is on trial
+22. I think there is no exposure for the client
+23. I will confirm if you can do it
+24. But the case is not on trial now
+25. Yes I will get your signature and confirm it
+26. So I think there is exposure for it
+27. The judge did not get your point in the trial
+28. I do not know if it is there
+29. Do you know when they will schedule it
+30. We have to confirm the signature for the client
+31. No we can not do it for now
+32. Do you know when we can get it
+33. I do not know if it is for us
+34. We think the case is not about exposure
+35. They did not get the signature in the trial
+36. But I did not think about that
+37. The point is to have them there
+38. We will do it if you confirm
+39. We have to think about litigation
+40. I do not know if you did it
+41. I do not know what that is
+42. We are in litigation on that point
+43. If you think it is the case you can confirm
+44. Do you know when they will get it
+45. They have exposure in this case
+46. We do not know if it is the case
+47. The client and I will get on that
+48. But we think it is not for us
+49. We can do it now if you confirm
+50. Yes I think they are in the trial schedule
+
+词频统计 (按频率排序):
+------------------------------
+the            :  24 次 ✅
+i              :  21 次 ✅
+is             :  19 次 ✅
+it             :  19 次 ✅
+not            :  18 次 ✅
+do             :  17 次 ✅
+we             :  13 次 ✅
+think          :  12 次 ✅
+will           :  12 次 ✅
+confirm        :  12 次 ✅
+you            :  12 次 ✅
+for            :  11 次 ✅
+know           :  11 次 ✅
+in             :  10 次 ✅
+get            :  10 次 ✅
+if             :  10 次 ✅
+case           :   9 次 ✅
+trial          :   9 次 ✅
+client         :   8 次 ✅
+they           :   8 次 ✅
+that           :   7 次 ✅
+schedule       :   7 次 ✅
+can            :   7 次 ✅
+there          :   7 次 ✅
+exposure       :   7 次 ✅
+did            :   6 次 ✅
+when           :   5 次 ✅
+now            :   5 次 ✅
+your           :   5 次 ✅
+but            :   5 次 ✅
+about          :   5 次 ✅
+on             :   5 次 ✅
+litigation     :   4 次 ✅
+with           :   4 次 ✅
+point          :   4 次 ✅
+us             :   4 次 ✅
+this           :   4 次 ✅
+signature      :   4 次 ✅
+yes            :   4 次 ✅
+no             :   4 次 ✅
+have           :   4 次 ✅
+so             :   3 次 ✅
+what           :   3 次 ✅
+and            :   3 次 ✅
+are            :   3 次 ✅
+them           :   3 次 ✅
+judge          :   3 次 ✅
+to             :   3 次 ✅
+my             :   2 次 ✅
+appeal         :   2 次 ✅
+
+音素频率统计 (按频率排序):
+------------------------------
+/IH /: 111 次
+/N  /: 100 次
+/T  /:  95 次
+/AH /:  90 次
+/K  /:  62 次
+/DH /:  57 次
+/L  /:  42 次
+/S  /:  42 次
+/AY /:  40 次
+/W  /:  37 次
+/EH /:  36 次
+/R  /:  35 次
+/F  /:  33 次
+/UW /:  32 次
+/D  /:  32 次
+/AA /:  26 次
+/OW /:  25 次
+/ER /:  23 次
+/EY /:  21 次
+/Y  /:  21 次
+/Z  /:  19 次
+/AE /:  18 次
+/G  /:  18 次
+/M  /:  17 次
+/AO /:  16 次
+/IY /:  15 次
+/JH /:  13 次
+/P  /:  13 次
+/TH /:  12 次
+/NG /:  12 次
+/AW /:  10 次
+/B  /:  10 次
+/UH /:   7 次
+/ZH /:   7 次
+/SH /:   4 次
+/OY /:   4 次
+/CH /:   4 次
+/HH /:   4 次
+/V  /:   4 次

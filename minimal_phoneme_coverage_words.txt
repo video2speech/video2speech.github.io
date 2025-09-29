@@ -1,0 +1,6 @@
+MINIMAL PHONEME COVERAGE WORD LIST
+==================================================
+
+Total words: 0
+Coverage: All 39 CMUdict phonemes
+

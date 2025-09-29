@@ -1,0 +1,50 @@
+PHONEME COVERAGE SUMMARY
+=========================
+
+Total words selected: 29
+Total phonemes covered: 39
+Coverage: 100%
+
+PHONEME DISTRIBUTION:
+--------------------
+  AH:  7 words
+   W:  6 words
+   T:  6 words
+   N:  4 words
+  IH:  4 words
+  DH:  4 words
+  IY:  3 words
+  EH:  3 words
+   Z:  2 words
+   Y:  2 words
+   V:  2 words
+  UW:  2 words
+   S:  2 words
+   P:  2 words
+   L:  2 words
+   D:  2 words
+  AE:  2 words
+  AA:  2 words
+  ZH:  1 words
+  UH:  1 words
+  TH:  1 words
+  SH:  1 words
+   R:  1 words
+  OY:  1 words
+  OW:  1 words
+  NG:  1 words
+   M:  1 words
+   K:  1 words
+  JH:  1 words
+  HH:  1 words
+   G:  1 words
+   F:  1 words
+  EY:  1 words
+  ER:  1 words
+  CH:  1 words
+   B:  1 words
+  AY:  1 words
+  AW:  1 words
+  AO:  1 words
+
+Average words per phoneme: 0.7

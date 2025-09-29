@@ -1,0 +1,23 @@
+IMPROVED VOCABULARY COMPARISON REPORT
+(With proper contraction splitting)
+==================================================
+
+Set1 (sentences vocabulary): 1,137 unique tokens
+Set2 (final word list): 1,135 unique words
+Words used from Set2: 1,118 words
+Words unused from Set2: 17 words
+Extra words in Set1: 19 words
+Coverage of final word list: 98.50%
+
+CONTRACTION FREQUENCIES:
+-------------------------
+'s: 14,324 times
+'ll: 4,478 times
+'re: 3,816 times
+'ve: 2,791 times
+'d: 2,026 times
+'m: 3,954 times
+
+ANALYSIS:
+--------------------
+✅ Excellent coverage! Almost all words from the final list are used.

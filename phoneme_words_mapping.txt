@@ -1,0 +1,49 @@
+PHONEME TO WORDS MAPPING
+==================================================
+
+Each phoneme and the words from our minimal set that contain it:
+
+VOWELS:
+--------------------
+AA : ❌ NOT COVERED
+AE : ❌ NOT COVERED
+AH : ❌ NOT COVERED
+AO : ❌ NOT COVERED
+AW : ❌ NOT COVERED
+AY : ❌ NOT COVERED
+EH : ❌ NOT COVERED
+ER : ❌ NOT COVERED
+EY : ❌ NOT COVERED
+IH : ❌ NOT COVERED
+IY : ❌ NOT COVERED
+OW : ❌ NOT COVERED
+OY : ❌ NOT COVERED
+UH : ❌ NOT COVERED
+UW : ❌ NOT COVERED
+
+CONSONANTS:
+--------------------
+B  : ❌ NOT COVERED
+CH : ❌ NOT COVERED
+D  : ❌ NOT COVERED
+DH : ❌ NOT COVERED
+F  : ❌ NOT COVERED
+G  : ❌ NOT COVERED
+HH : ❌ NOT COVERED
+JH : ❌ NOT COVERED
+K  : ❌ NOT COVERED
+L  : ❌ NOT COVERED
+M  : ❌ NOT COVERED
+N  : ❌ NOT COVERED
+NG : ❌ NOT COVERED
+P  : ❌ NOT COVERED
+R  : ❌ NOT COVERED
+S  : ❌ NOT COVERED
+SH : ❌ NOT COVERED
+T  : ❌ NOT COVERED
+TH : ❌ NOT COVERED
+V  : ❌ NOT COVERED
+W  : ❌ NOT COVERED
+Y  : ❌ NOT COVERED
+Z  : ❌ NOT COVERED
+ZH : ❌ NOT COVERED

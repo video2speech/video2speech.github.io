@@ -1,0 +1,1140 @@
+================================================================================
+COMPLETE WORD-TO-PHONEME MAPPING
+================================================================================
+Total mapped words: 1135
+
+'d                   -> /W UH D/
+'em                  -> /DH EH M/
+'ll                  -> /W IH L/
+'m                   -> /AE M/
+'re                  -> /AA R/
+'s                   -> /IH Z/
+'ve                  -> /HH AE V/
+a                    -> /AH/
+able                 -> /EY B AH L/
+about                -> /AH B AW T/
+absolutely           -> /AE B S AH L UW T L IY/
+accept               -> /AE K S EH P T/
+account              -> /AH K AW N T/
+across               -> /AH K R AO S/
+act                  -> /AE K T/
+action               -> /AE K SH AH N/
+actual               -> /AE K CH AH W AH L/
+actually             -> /AE K CH AH W AH L IY/
+add                  -> /AE D/
+advice               -> /AE D V AY S/
+afford               -> /AH F AO R D/
+afraid               -> /AH F R EY D/
+after                -> /AE F T ER/
+afternoon            -> /AE F T ER N UW N/
+again                -> /AH G EH N/
+against              -> /AH G EH N S T/
+age                  -> /EY JH/
+ago                  -> /AH G OW/
+agree                -> /AH G R IY/
+agreed               -> /AH G R IY D/
+ah                   -> /AA/
+aha                  -> /AA HH AA/
+air                  -> /EH R/
+all                  -> /AO L/
+allowed              -> /AH L AW D/
+almost               -> /AO L M OW S T/
+along                -> /AH L AO NG/
+already              -> /AO L R EH D IY/
+alright              -> /AO L R AY T/
+also                 -> /AO L S OW/
+although             -> /AO L DH OW/
+always               -> /AO L W EY Z/
+am                   -> /AE M/
+American             -> /AH M EH R AH K AH N/
+amount               -> /AH M AW N T/
+an                   -> /AE N/
+and                  -> /AH N D/
+another              -> /AH N AH DH ER/
+answer               -> /AE N S ER/
+any                  -> /EH N IY/
+anybody              -> /EH N IY B AH D IY/
+anyone               -> /EH N IY W AH N/
+anything             -> /EH N IY TH IH NG/
+anyway               -> /EH N IY W EY/
+anywhere             -> /EH N IY W EH R/
+apparently           -> /AH P EH R AH N T L IY/
+application          -> /AE P L AH K EY SH AH N/
+appropriate          -> /AH P R OW P R IY AH T/
+are                  -> /AA R/
+area                 -> /EH R IY AH/
+areas                -> /EH R IY AH Z/
+argument             -> /AA R G Y AH M AH N T/
+around               -> /ER AW N D/
+as                   -> /AE Z/
+ask                  -> /AE S K/
+asked                -> /AE S K T/
+asking               -> /AE S K IH NG/
+at                   -> /AE T/
+authorities          -> /AH TH AO R AH T IY Z/
+authority            -> /AH TH AO R AH T IY/
+available            -> /AH V EY L AH B AH L/
+aware                -> /AH W EH R/
+away                 -> /AH W EY/
+awful                -> /AA F AH L/
+aye                  -> /AY/
+baby                 -> /B EY B IY/
+back                 -> /B AE K/
+bad                  -> /B AE D/
+bag                  -> /B AE G/
+ball                 -> /B AO L/
+bank                 -> /B AE NG K/
+bar                  -> /B AA R/
+based                -> /B EY S T/
+basically            -> /B EY S IH K L IY/
+basis                -> /B EY S AH S/
+be                   -> /B IY/
+beautiful            -> /B Y UW T AH F AH L/
+become               -> /B IH K AH M/
+bed                  -> /B EH D/
+bedroom              -> /B EH D R UW M/
+been                 -> /B IH N/
+before               -> /B IH F AO R/
+beginning            -> /B IH G IH N IH NG/
+behind               -> /B IH HH AY N D/
+being                -> /B IY IH NG/
+believe              -> /B IH L IY V/
+benefit              -> /B EH N AH F IH T/
+best                 -> /B EH S T/
+bet                  -> /B EH T/
+better               -> /B EH T ER/
+between              -> /B IH T W IY N/
+big                  -> /B IH G/
+bigger               -> /B IH G ER/
+bill                 -> /B IH L/
+birthday             -> /B ER TH D EY/
+bits                 -> /B IH T S/
+black                -> /B L AE K/
+bloke                -> /B L OW K/
+bloody               -> /B L AH D IY/
+blue                 -> /B L UW/
+board                -> /B AO R D/
+boat                 -> /B OW T/
+body                 -> /B AA D IY/
+book                 -> /B UH K/
+books                -> /B UH K S/
+born                 -> /B AO R N/
+both                 -> /B OW TH/
+bother               -> /B AA DH ER/
+bottom               -> /B AA T AH M/
+bought               -> /B AA T/
+box                  -> /B AA K S/
+boy                  -> /B OY/
+boys                 -> /B OY Z/
+bread                -> /B R EH D/
+break                -> /B R EY K/
+brilliant            -> /B R IH L Y AH N T/
+bring                -> /B R IH NG/
+Britain              -> /B R IH T AH N/
+British              -> /B R IH T IH SH/
+brother              -> /B R AH DH ER/
+brought              -> /B R AO T/
+budget               -> /B AH JH IH T/
+build                -> /B IH L D/
+building             -> /B IH L D IH NG/
+built                -> /B IH L T/
+bus                  -> /B AH S/
+business             -> /B IH Z N AH S/
+busy                 -> /B IH Z IY/
+but                  -> /B AH T/
+buy                  -> /B AY/
+buying               -> /B AY IH NG/
+by                   -> /B AY/
+bye                  -> /B AY/
+call                 -> /K AO L/
+called               -> /K AO L D/
+came                 -> /K EY M/
+can                  -> /K AE N/
+capital              -> /K AE P AH T AH L/
+car                  -> /K AA R/
+card                 -> /K AA R D/
+care                 -> /K EH R/
+careful              -> /K EH R F AH L/
+carried              -> /K AE R IY D/
+carry                -> /K AE R IY/
+cars                 -> /K AA R Z/
+case                 -> /K EY S/
+cases                -> /K EY S AH Z/
+cat                  -> /K AE T/
+central              -> /S EH N T R AH L/
+centre               -> /S EH N T ER/
+certain              -> /S ER T AH N/
+certainly            -> /S ER T AH N L IY/
+chair                -> /CH EH R/
+chairman             -> /CH EH R M AH N/
+chance               -> /CH AE N S/
+change               -> /CH EY N JH/
+changed              -> /CH EY N JH D/
+changes              -> /CH EY N JH AH Z/
+chap                 -> /CH AE P/
+cheap                -> /CH IY P/
+check                -> /CH EH K/
+child                -> /CH AY L D/
+children             -> /CH IH L D R AH N/
+choice               -> /CH OY S/
+Chris                -> /K R IH S/
+Christ               -> /K R AY S T/
+Christmas            -> /K R IH S M AH S/
+church               -> /CH ER CH/
+city                 -> /S IH T IY/
+class                -> /K L AE S/
+clear                -> /K L IH R/
+clearly              -> /K L IH R L IY/
+client               -> /K L AY AH N T/
+close                -> /K L OW S/
+clothes              -> /K L OW DH Z/
+club                 -> /K L AH B/
+coal                 -> /K OW L/
+coffee               -> /K AA F IY/
+cold                 -> /K OW L D/
+colleagues           -> /K AA L IY G Z/
+college              -> /K AA L IH JH/
+come                 -> /K AH M/
+comes                -> /K AH M Z/
+coming               -> /K AH M IH NG/
+comments             -> /K AA M EH N T S/
+committee            -> /K AH M IH T IY/
+common               -> /K AA M AH N/
+community            -> /K AH M Y UW N AH T IY/
+companies            -> /K AH M P AH N IY Z/
+company              -> /K AH M P AH N IY/
+completely           -> /K AH M P L IY T L IY/
+computer             -> /K AH M P Y UW T ER/
+concerned            -> /K AH N S ER N D/
+conditions           -> /K AH N D IH SH AH N Z/
+conference           -> /K AA N F ER AH N S/
+congress             -> /K AA NG G R AH S/
+consider             -> /K AH N S IH D ER/
+continue             -> /K AH N T IH N Y UW/
+contract             -> /K AA N T R AE K T/
+control              -> /K AH N T R OW L/
+conversation         -> /K AA N V ER S EY SH AH N/
+corner               -> /K AO R N ER/
+correct              -> /K ER EH K T/
+cost                 -> /K AA S T/
+costs                -> /K AA S T S/
+could                -> /K UH D/
+council              -> /K AW N S AH L/
+countries            -> /K AH N T R IY Z/
+country              -> /K AH N T R IY/
+county               -> /K AW N T IY/
+couple               -> /K AH P AH L/
+course               -> /K AO R S/
+court                -> /K AO R T/
+cover                -> /K AH V ER/
+cup                  -> /K AH P/
+current              -> /K ER AH N T/
+cut                  -> /K AH T/
+da                   -> /D AA/
+dad                  -> /D AE D/
+daddy                -> /D AE D IY/
+darling              -> /D AA R L IH NG/
+date                 -> /D EY T/
+Dave                 -> /D EY V/
+David                -> /D EY V IH D/
+day                  -> /D EY/
+days                 -> /D EY Z/
+dead                 -> /D EH D/
+deal                 -> /D IY L/
+dear                 -> /D IH R/
+death                -> /D EH TH/
+debate               -> /D AH B EY T/
+decide               -> /D IH S AY D/
+decided              -> /D IH S AY D IH D/
+decision             -> /D IH S IH ZH AH N/
+definitely           -> /D EH F AH N AH T L IY/
+department           -> /D IH P AA R T M AH N T/
+depends              -> /D IH P EH N D Z/
+development          -> /D IH V EH L AH P M AH N T/
+did                  -> /D IH D/
+died                 -> /D AY D/
+difference           -> /D IH F ER AH N S/
+different            -> /D IH F ER AH N T/
+difficult            -> /D IH F AH K AH L T/
+dinner               -> /D IH N ER/
+discussion           -> /D IH S K AH SH AH N/
+district             -> /D IH S T R IH K T/
+do                   -> /D UW/
+doctor               -> /D AA K T ER/
+does                 -> /D AH Z/
+dog                  -> /D AO G/
+doing                -> /D UW IH NG/
+done                 -> /D AH N/
+door                 -> /D AO R/
+double               -> /D AH B AH L/
+down                 -> /D AW N/
+draw                 -> /D R AO/
+drink                -> /D R IH NG K/
+drive                -> /D R AY V/
+during               -> /D UH R IH NG/
+each                 -> /IY CH/
+earlier              -> /ER L IY ER/
+early                -> /ER L IY/
+earth                -> /ER TH/
+easier               -> /IY Z IY ER/
+east                 -> /IY S T/
+easy                 -> /IY Z IY/
+eat                  -> /IY T/
+education            -> /EH JH AH K EY SH AH N/
+effect               -> /IH F EH K T/
+eh                   -> /EH/
+eight                -> /EY T/
+eighteen             -> /EY T IY N/
+eighty               -> /EY T IY/
+either               -> /IY DH ER/
+eleven               -> /IH L EH V AH N/
+else                 -> /EH L S/
+employment           -> /EH M P L OY M AH N T/
+end                  -> /EH N D/
+England              -> /IH NG G L AH N D/
+enjoy                -> /EH N JH OY/
+enough               -> /IH N AH F/
+environment          -> /IH N V AY R AH N M AH N T/
+er                   -> /ER/
+especially           -> /AH S P EH SH L IY/
+Europe               -> /Y UH R AH P/
+European             -> /Y UH R AH P IY AH N/
+even                 -> /IY V IH N/
+evening              -> /IY V N IH NG/
+eventually           -> /IH V EH N CH AH W AH L IY/
+ever                 -> /EH V ER/
+every                -> /EH V ER IY/
+everybody            -> /EH V R IY B AA D IY/
+everyone             -> /EH V R IY W AH N/
+everything           -> /EH V R IY TH IH NG/
+evidence             -> /EH V AH D AH N S/
+exactly              -> /IH G Z AE K T L IY/
+example              -> /IH G Z AE M P AH L/
+excellent            -> /EH K S AH L AH N T/
+expect               -> /IH K S P EH K T/
+expensive            -> /IH K S P EH N S IH V/
+experience           -> /IH K S P IH R IY AH N S/
+explain              -> /IH K S P L EY N/
+extent               -> /IH K S T EH N T/
+extra                -> /EH K S T R AH/
+eyes                 -> /AY Z/
+face                 -> /F EY S/
+fact                 -> /F AE K T/
+fair                 -> /F EH R/
+fairly               -> /F EH R L IY/
+family               -> /F AE M AH L IY/
+far                  -> /F AA R/
+father               -> /F AA DH ER/
+feel                 -> /F IY L/
+feet                 -> /F IY T/
+felt                 -> /F EH L T/
+few                  -> /F Y UW/
+field                -> /F IY L D/
+fifteen              -> /F IH F T IY N/
+fifty                -> /F IH F T IY/
+figure               -> /F IH G Y ER/
+figures              -> /F IH G Y ER Z/
+fill                 -> /F IH L/
+film                 -> /F IH L M/
+final                -> /F AY N AH L/
+financial            -> /F AH N AE N SH AH L/
+find                 -> /F AY N D/
+fine                 -> /F AY N/
+finish               -> /F IH N IH SH/
+finished             -> /F IH N IH SH T/
+fire                 -> /F AY ER/
+first                -> /F ER S T/
+fish                 -> /F IH SH/
+fit                  -> /F IH T/
+five                 -> /F AY V/
+flats                -> /F L AE T S/
+floor                -> /F L AO R/
+follow               -> /F AA L OW/
+food                 -> /F UW D/
+foot                 -> /F UH T/
+football             -> /F UH T B AO L/
+for                  -> /F AO R/
+forget               -> /F ER G EH T/
+form                 -> /F AO R M/
+forty                -> /F AO R T IY/
+forward              -> /F AO R W ER D/
+found                -> /F AW N D/
+four                 -> /F AO R/
+fourteen             -> /F AO R T IY N/
+free                 -> /F R IY/
+Friday               -> /F R AY D IY/
+friend               -> /F R EH N D/
+friends              -> /F R EH N D Z/
+from                 -> /F R AH M/
+front                -> /F R AH N T/
+fucking              -> /F AH K IH NG/
+full                 -> /F UH L/
+funny                -> /F AH N IY/
+further              -> /F ER DH ER/
+future               -> /F Y UW CH ER/
+game                 -> /G EY M/
+garden               -> /G AA R D AH N/
+gas                  -> /G AE S/
+gave                 -> /G EY V/
+general              -> /JH EH N ER AH L/
+generally            -> /JH EH N ER AH L IY/
+George               -> /JH AO R JH/
+get                  -> /G EH T/
+gets                 -> /G EH T S/
+getting              -> /G EH T IH NG/
+girl                 -> /G ER L/
+girls                -> /G ER L Z/
+give                 -> /G IH V/
+given                -> /G IH V AH N/
+gives                -> /G IH V Z/
+giving               -> /G IH V IH NG/
+go                   -> /G OW/
+God                  -> /G AA D/
+god                  -> /G AA D/
+goes                 -> /G OW Z/
+gone                 -> /G AO N/
+good                 -> /G UH D/
+got                  -> /G AA T/
+government           -> /G AH V ER M AH N T/
+great                -> /G R EY T/
+Greater              -> /G R EY T ER/
+green                -> /G R IY N/
+ground               -> /G R AW N D/
+group                -> /G R UW P/
+groups               -> /G R UW P S/
+guy                  -> /G AY/
+ha                   -> /HH AA/
+had                  -> /HH AE D/
+hair                 -> /HH EH R/
+half                 -> /HH AE F/
+hall                 -> /HH AO L/
+hand                 -> /HH AE N D/
+hands                -> /HH AE N D Z/
+hang                 -> /HH AE NG/
+happen               -> /HH AE P AH N/
+happened             -> /HH AE P AH N D/
+happening            -> /HH AE P AH N IH NG/
+happens              -> /HH AE P AH N Z/
+happy                -> /HH AE P IY/
+hard                 -> /HH AA R D/
+has                  -> /HH AE Z/
+hate                 -> /HH EY T/
+have                 -> /HH AE V/
+having               -> /HH AE V IH NG/
+he                   -> /HH IY/
+head                 -> /HH EH D/
+health               -> /HH EH L TH/
+hear                 -> /HH IY R/
+heard                -> /HH ER D/
+heart                -> /HH AA R T/
+heavy                -> /HH EH V IY/
+held                 -> /HH EH L D/
+hell                 -> /HH EH L/
+hello                -> /HH AH L OW/
+help                 -> /HH EH L P/
+her                  -> /HH ER/
+here                 -> /HH IY R/
+hey                  -> /HH EY/
+high                 -> /HH AY/
+higher               -> /HH AY ER/
+him                  -> /HH IH M/
+himself              -> /HH IH M S EH L F/
+his                  -> /HH IH Z/
+history              -> /HH IH S T ER IY/
+hit                  -> /HH IH T/
+hold                 -> /HH OW L D/
+holiday              -> /HH AA L AH D EY/
+home                 -> /HH OW M/
+honest               -> /AA N AH S T/
+hope                 -> /HH OW P/
+hopefully            -> /HH OW P F AH L IY/
+horrible             -> /HH AO R AH B AH L/
+horse                -> /HH AO R S/
+hospital             -> /HH AA S P IH T AH L/
+hot                  -> /HH AA T/
+hour                 -> /AW ER/
+hours                -> /AW ER Z/
+house                -> /HH AW S/
+houses               -> /HH AW S AH Z/
+housing              -> /HH AW Z IH NG/
+how                  -> /HH AW/
+however              -> /HH AW EH V ER/
+hundred              -> /HH AH N D R AH D/
+husband              -> /HH AH Z B AH N D/
+I                    -> /AY/
+idea                 -> /AY D IY AH/
+ideas                -> /AY D IY AH Z/
+if                   -> /IH F/
+imagine              -> /IH M AE JH AH N/
+important            -> /IH M P AO R T AH N T/
+in                   -> /IH N/
+income               -> /IH N K AH M/
+increase             -> /IH N K R IY S/
+indeed               -> /IH N D IY D/
+individual           -> /IH N D AH V IH JH AH W AH L/
+industry             -> /IH N D AH S T R IY/
+information          -> /IH N F ER M EY SH AH N/
+insurance            -> /IH N SH UH R AH N S/
+interest             -> /IH N T R AH S T/
+interested           -> /IH N T R AH S T AH D/
+interesting          -> /IH N T R AH S T IH NG/
+into                 -> /IH N T UW/
+involved             -> /IH N V AA L V D/
+is                   -> /IH Z/
+issue                -> /IH SH UW/
+issues               -> /IH SH UW Z/
+it                   -> /IH T/
+item                 -> /AY T AH M/
+its                  -> /IH T S/
+itself               -> /IH T S EH L F/
+James                -> /JH EY M Z/
+Jane                 -> /JH EY N/
+Jesus                -> /JH IY Z AH S/
+Jim                  -> /JH IH M/
+job                  -> /JH AA B/
+jobs                 -> /JH AA B Z/
+John                 -> /JH AA N/
+join                 -> /JH OY N/
+June                 -> /JH UW N/
+just                 -> /JH AH S T/
+keep                 -> /K IY P/
+kept                 -> /K EH P T/
+kids                 -> /K IH D Z/
+kind                 -> /K AY N D/
+kitchen              -> /K IH CH AH N/
+knew                 -> /N UW/
+know                 -> /N OW/
+known                -> /N OW N/
+knows                -> /N OW Z/
+lady                 -> /L EY D IY/
+land                 -> /L AE N D/
+language             -> /L AE NG G W AH JH/
+large                -> /L AA R JH/
+last                 -> /L AE S T/
+late                 -> /L EY T/
+later                -> /L EY T ER/
+law                  -> /L AO/
+learn                -> /L ER N/
+leave                -> /L IY V/
+left                 -> /L EH F T/
+less                 -> /L EH S/
+let                  -> /L EH T/
+let's                -> /L EH T S/
+letter               -> /L EH T ER/
+letters              -> /L EH T ER Z/
+level                -> /L EH V AH L/
+life                 -> /L AY F/
+light                -> /L AY T/
+lights               -> /L AY T S/
+like                 -> /L AY K/
+likely               -> /L AY K L IY/
+line                 -> /L AY N/
+lines                -> /L AY N Z/
+list                 -> /L IH S T/
+listen               -> /L IH S AH N/
+listening            -> /L IH S AH N IH NG/
+little               -> /L IH T AH L/
+live                 -> /L AY V/
+lived                -> /L AY V D/
+living               -> /L IH V IH NG/
+loads                -> /L OW D Z/
+local                -> /L OW K AH L/
+London               -> /L AH N D AH N/
+long                 -> /L AO NG/
+look                 -> /L UH K/
+looked               -> /L UH K T/
+looking              -> /L UH K IH NG/
+looks                -> /L UH K S/
+lord                 -> /L AO R D/
+lose                 -> /L UW Z/
+lost                 -> /L AO S T/
+lot                  -> /L AA T/
+lots                 -> /L AA T S/
+love                 -> /L AH V/
+lovely               -> /L AH V L IY/
+low                  -> /L OW/
+lucky                -> /L AH K IY/
+lunch                -> /L AH N CH/
+machine              -> /M AH SH IY N/
+made                 -> /M EY D/
+main                 -> /M EY N/
+major                -> /M EY JH ER/
+make                 -> /M EY K/
+makes                -> /M EY K S/
+making               -> /M EY K IH NG/
+man                  -> /M AE N/
+management           -> /M AE N AH JH M AH N T/
+manager              -> /M AE N AH JH ER/
+many                 -> /M EH N IY/
+Mark                 -> /M AA R K/
+market               -> /M AA R K AH T/
+matter               -> /M AE T ER/
+may                  -> /M EY/
+maybe                -> /M EY B IY/
+me                   -> /M IY/
+mean                 -> /M IY N/
+means                -> /M IY N Z/
+meant                -> /M EH N T/
+meet                 -> /M IY T/
+meeting              -> /M IY T IH NG/
+member               -> /M EH M B ER/
+members              -> /M EH M B ER Z/
+men                  -> /M EH N/
+mentioned            -> /M EH N SH AH N D/
+met                  -> /M EH T/
+mhm                  -> /AH M HH AH M/
+Michael              -> /M AY K AH L/
+middle               -> /M IH D AH L/
+might                -> /M AY T/
+miles                -> /M AY L Z/
+milk                 -> /M IH L K/
+million              -> /M IH L Y AH N/
+mind                 -> /M AY N D/
+mine                 -> /M AY N/
+minister             -> /M IH N AH S T ER/
+minus                -> /M AY N AH S/
+minute               -> /M IH N AH T/
+minutes              -> /M IH N AH T S/
+miss                 -> /M IH S/
+missed               -> /M IH S T/
+moment               -> /M OW M AH N T/
+Monday               -> /M AH N D IY/
+money                -> /M AH N IY/
+month                -> /M AH N TH/
+months               -> /M AH N TH S/
+more                 -> /M AO R/
+morning              -> /M AO R N IH NG/
+most                 -> /M OW S T/
+mother               -> /M AH DH ER/
+motion               -> /M OW SH AH N/
+move                 -> /M UW V/
+moved                -> /M UW V D/
+moving               -> /M UW V IH NG/
+Mr                   -> /M IH S T ER/
+Mrs                  -> /M IH S IH Z/
+much                 -> /M AH CH/
+mum                  -> /M AH M/
+mummy                -> /M AH M IY/
+music                -> /M Y UW Z IH K/
+must                 -> /M AH S T/
+my                   -> /M AY/
+myself               -> /M AY S EH L F/
+name                 -> /N EY M/
+names                -> /N EY M Z/
+national             -> /N AE SH AH N AH L/
+nature               -> /N EY CH ER/
+near                 -> /N IH R/
+nearly               -> /N IH R L IY/
+necessarily          -> /N EH S AH S EH R AH L IY/
+necessary            -> /N EH S AH S EH R IY/
+need                 -> /N IY D/
+needed               -> /N IY D AH D/
+needs                -> /N IY D Z/
+never                -> /N EH V ER/
+new                  -> /N UW/
+news                 -> /N UW Z/
+next                 -> /N EH K S T/
+nice                 -> /N AY S/
+night                -> /N AY T/
+nine                 -> /N AY N/
+nineteen             -> /N AY N T IY N/
+ninety               -> /N AY N T IY/
+no                   -> /N OW/
+nobody               -> /N OW B AA D IY/
+none                 -> /N AH N/
+normal               -> /N AO R M AH L/
+normally             -> /N AO R M AH L IY/
+north                -> /N AO R TH/
+not                  -> /N AA T/
+nothing              -> /N AH TH IH NG/
+Nottingham           -> /N AA T IH NG HH AE M/
+now                  -> /N AW/
+number               -> /N AH M B ER/
+numbers              -> /N AH M B ER Z/
+o'clock              -> /AH K L AA K/
+obviously            -> /AA B V IY AH S L IY/
+odd                  -> /AA D/
+of                   -> /AH V/
+off                  -> /AO F/
+office               -> /AO F AH S/
+officer              -> /AO F AH S ER/
+officers             -> /AO F AH S ER Z/
+often                -> /AO F AH N/
+oh                   -> /OW/
+okay                 -> /OW K EY/
+old                  -> /OW L D/
+older                -> /OW L D ER/
+on                   -> /AA N/
+once                 -> /W AH N S/
+one                  -> /W AH N/
+ones                 -> /W AH N Z/
+only                 -> /OW N L IY/
+onto                 -> /AA N T UW/
+ooh                  -> /UW/
+open                 -> /OW P AH N/
+opportunity          -> /AA P ER T UW N AH T IY/
+or                   -> /AO R/
+order                -> /AO R D ER/
+other                -> /AH DH ER/
+others               -> /AH DH ER Z/
+otherwise            -> /AH DH ER W AY Z/
+ought                -> /AO T/
+our                  -> /AW ER/
+ours                 -> /AW ER Z/
+ourselves            -> /AW ER S EH L V Z/
+out                  -> /AW T/
+outside              -> /AW T S AY D/
+over                 -> /OW V ER/
+own                  -> /OW N/
+Oxford               -> /AA K S F ER D/
+page                 -> /P EY JH/
+paid                 -> /P EY D/
+pair                 -> /P EH R/
+paper                -> /P EY P ER/
+paragraph            -> /P AE R AH G R AE F/
+pardon               -> /P AA R D AH N/
+parents              -> /P EH R AH N T S/
+park                 -> /P AA R K/
+part                 -> /P AA R T/
+particular           -> /P ER T IH K Y AH L ER/
+particularly         -> /P AA R T IH K Y AH L ER L IY/
+parts                -> /P AA R T S/
+party                -> /P AA R T IY/
+pass                 -> /P AE S/
+past                 -> /P AE S T/
+Paul                 -> /P AO L/
+pay                  -> /P EY/
+paying               -> /P EY IH NG/
+pence                -> /P EH N S/
+pension              -> /P EH N SH AH N/
+people               -> /P IY P AH L/
+per                  -> /P ER/
+percent              -> /P ER S EH N T/
+perhaps              -> /P ER HH AE P S/
+period               -> /P IH R IY AH D/
+person               -> /P ER S AH N/
+personal             -> /P ER S IH N IH L/
+Peter                -> /P IY T ER/
+phone                -> /F OW N/
+pick                 -> /P IH K/
+picked               -> /P IH K T/
+picture              -> /P IH K CH ER/
+piece                -> /P IY S/
+pieces               -> /P IY S AH Z/
+place                -> /P L EY S/
+places               -> /P L EY S AH Z/
+plan                 -> /P L AE N/
+planning             -> /P L AE N IH NG/
+play                 -> /P L EY/
+played               -> /P L EY D/
+playing              -> /P L EY IH NG/
+please               -> /P L IY Z/
+pleased              -> /P L IY Z D/
+plenty               -> /P L EH N T IY/
+plus                 -> /P L AH S/
+point                -> /P OY N T/
+points               -> /P OY N T S/
+police               -> /P AH L IY S/
+policies             -> /P AA L AH S IY Z/
+policy               -> /P AA L AH S IY/
+political            -> /P AH L IH T AH K AH L/
+poor                 -> /P UH R/
+position             -> /P AH Z IH SH AH N/
+positive             -> /P AA Z AH T IH V/
+possible             -> /P AA S AH B AH L/
+possibly             -> /P AA S AH B L IY/
+post                 -> /P OW S T/
+pound                -> /P AW N D/
+pounds               -> /P AW N D Z/
+power                -> /P AW ER/
+practice             -> /P R AE K T AH S/
+present              -> /P R EH Z AH N T/
+president            -> /P R EH Z AH D EH N T/
+press                -> /P R EH S/
+pressure             -> /P R EH SH ER/
+pretty               -> /P R IH T IY/
+price                -> /P R AY S/
+prices               -> /P R AY S AH Z/
+private              -> /P R AY V AH T/
+probably             -> /P R AA B AH B L IY/
+problem              -> /P R AA B L AH M/
+problems             -> /P R AA B L AH M Z/
+process              -> /P R AA S EH S/
+produce              -> /P R AH D UW S/
+product              -> /P R AA D AH K T/
+programme            -> /P R OW G R AE M/
+project              -> /P R AA JH EH K T/
+proper               -> /P R AA P ER/
+properly             -> /P R AA P ER L IY/
+provide              -> /P R AH V AY D/
+provision            -> /P R AH V IH ZH AH N/
+public               -> /P AH B L IH K/
+pull                 -> /P UH L/
+put                  -> /P UH T/
+putting              -> /P AH T IH NG/
+quality              -> /K W AA L AH T IY/
+quarter              -> /K W AO R T ER/
+question             -> /K W EH S CH AH N/
+questions            -> /K W EH S CH AH N Z/
+quick                -> /K W IH K/
+quickly              -> /K W IH K L IY/
+quid                 -> /K W IH D/
+quite                -> /K W AY T/
+radio                -> /R EY D IY OW/
+range                -> /R EY N JH/
+rate                 -> /R EY T/
+rather               -> /R AE DH ER/
+read                 -> /R EH D/
+ready                -> /R EH D IY/
+real                 -> /R IY L/
+realize              -> /R IY L AY Z/
+really               -> /R IH L IY/
+reason               -> /R IY Z AH N/
+reasonable           -> /R IY Z AH N AH B AH L/
+reasons              -> /R IY Z AH N Z/
+recently             -> /R IY S AH N T L IY/
+reckon               -> /R EH K AH N/
+record               -> /R AH K AO R D/
+red                  -> /R EH D/
+region               -> /R IY JH AH N/
+remember             -> /R IH M EH M B ER/
+report               -> /R IY P AO R T/
+research             -> /R IY S ER CH/
+resources            -> /R IY S AO R S IH Z/
+responsibility       -> /R IY S P AA N S AH B IH L AH T IY/
+rest                 -> /R EH S T/
+result               -> /R IH Z AH L T/
+Richard              -> /R IH CH ER D/
+rid                  -> /R IH D/
+right                -> /R AY T/
+ring                 -> /R IH NG/
+Road                 -> /R OW D/
+role                 -> /R OW L/
+room                 -> /R UW M/
+round                -> /R AW N D/
+rubbish              -> /R AH B IH SH/
+run                  -> /R AH N/
+running              -> /R AH N IH NG/
+safety               -> /S EY F T IY/
+said                 -> /S EH D/
+sales                -> /S EY L Z/
+same                 -> /S EY M/
+sat                  -> /S AE T/
+Saturday             -> /S AE T ER D IY/
+save                 -> /S EY V/
+saw                  -> /S AO/
+say                  -> /S EY/
+saying               -> /S EY IH NG/
+says                 -> /S EH Z/
+scheme               -> /S K IY M/
+school               -> /S K UW L/
+schools              -> /S K UW L Z/
+second               -> /S EH K AH N D/
+Secretary            -> /S EH K R AH T EH R IY/
+section              -> /S EH K SH AH N/
+sector               -> /S EH K T ER/
+see                  -> /S IY/
+seeing               -> /S IY IH NG/
+seem                 -> /S IY M/
+seemed               -> /S IY M D/
+seems                -> /S IY M Z/
+seen                 -> /S IY N/
+sell                 -> /S EH L/
+send                 -> /S EH N D/
+sense                -> /S EH N S/
+sent                 -> /S EH N T/
+serious              -> /S IH R IY AH S/
+service              -> /S ER V AH S/
+services             -> /S ER V AH S AH Z/
+set                  -> /S EH T/
+settlement           -> /S EH T AH L M AH N T/
+seven                -> /S EH V AH N/
+seventeen            -> /S EH V AH N T IY N/
+seventy              -> /S EH V AH N T IY/
+several              -> /S EH V R AH L/
+shall                -> /SH AE L/
+she                  -> /SH IY/
+shit                 -> /SH IH T/
+shop                 -> /SH AA P/
+shops                -> /SH AA P S/
+short                -> /SH AO R T/
+should               -> /SH UH D/
+show                 -> /SH OW/
+shut                 -> /SH AH T/
+sick                 -> /S IH K/
+side                 -> /S AY D/
+silly                -> /S IH L IY/
+similar              -> /S IH M AH L ER/
+simple               -> /S IH M P AH L/
+simply               -> /S IH M P L IY/
+since                -> /S IH N S/
+single               -> /S IH NG G AH L/
+sir                  -> /S ER/
+sister               -> /S IH S T ER/
+sit                  -> /S IH T/
+site                 -> /S AY T/
+sites                -> /S AY T S/
+sitting              -> /S IH T IH NG/
+situation            -> /S IH CH UW EY SH AH N/
+six                  -> /S IH K S/
+sixteen              -> /S IH K S T IY N/
+sixty                -> /S IH K S T IY/
+size                 -> /S AY Z/
+slightly             -> /S L AY T L IY/
+small                -> /S M AO L/
+so                   -> /S OW/
+social               -> /S OW SH AH L/
+society              -> /S AH S AY AH T IY/
+sold                 -> /S OW L D/
+some                 -> /S AH M/
+somebody             -> /S AH M B AA D IY/
+someone              -> /S AH M W AH N/
+something            -> /S AH M TH IH NG/
+sometimes            -> /S AH M T AY M Z/
+somewhere            -> /S AH M W EH R/
+son                  -> /S AH N/
+soon                 -> /S UW N/
+sorry                -> /S AA R IY/
+sort                 -> /S AO R T/
+sorts                -> /S AO R T S/
+sounds               -> /S AW N D Z/
+south                -> /S AW TH/
+space                -> /S P EY S/
+speak                -> /S P IY K/
+speaking             -> /S P IY K IH NG/
+special              -> /S P EH SH AH L/
+specific             -> /S P AH S IH F IH K/
+spend                -> /S P EH N D/
+spent                -> /S P EH N T/
+staff                -> /S T AE F/
+stage                -> /S T EY JH/
+stand                -> /S T AE N D/
+standing             -> /S T AE N D IH NG/
+start                -> /S T AA R T/
+started              -> /S T AA R T AH D/
+starting             -> /S T AA R T IH NG/
+starts               -> /S T AA R T S/
+state                -> /S T EY T/
+statement            -> /S T EY T M AH N T/
+station              -> /S T EY SH AH N/
+stay                 -> /S T EY/
+stick                -> /S T IH K/
+still                -> /S T IH L/
+stop                 -> /S T AA P/
+stopped              -> /S T AA P T/
+story                -> /S T AO R IY/
+straight             -> /S T R EY T/
+street               -> /S T R IY T/
+strong               -> /S T R AO NG/
+structure            -> /S T R AH K CH ER/
+stuff                -> /S T AH F/
+stupid               -> /S T UW P AH D/
+subject              -> /S AH B JH EH K T/
+such                 -> /S AH CH/
+suggest              -> /S AH G JH EH S T/
+summer               -> /S AH M ER/
+sun                  -> /S AH N/
+Sunday               -> /S AH N D EY/
+support              -> /S AH P AO R T/
+suppose              -> /S AH P OW Z/
+supposed             -> /S AH P OW Z D/
+sure                 -> /SH UH R/
+surely               -> /SH UH R L IY/
+system               -> /S IH S T AH M/
+table                -> /T EY B AH L/
+take                 -> /T EY K/
+taken                -> /T EY K AH N/
+takes                -> /T EY K S/
+taking               -> /T EY K IH NG/
+talk                 -> /T AO K/
+talked               -> /T AO K T/
+talking              -> /T AO K IH NG/
+tape                 -> /T EY P/
+tax                  -> /T AE K S/
+tea                  -> /T IY/
+teacher              -> /T IY CH ER/
+teachers             -> /T IY CH ER Z/
+team                 -> /T IY M/
+telephone            -> /T EH L AH F OW N/
+television           -> /T EH L AH V IH ZH AH N/
+tell                 -> /T EH L/
+telling              -> /T EH L IH NG/
+ten                  -> /T EH N/
+tend                 -> /T EH N D/
+term                 -> /T ER M/
+terms                -> /T ER M Z/
+terrible             -> /T EH R AH B AH L/
+test                 -> /T EH S T/
+than                 -> /DH AE N/
+thank                -> /TH AE NG K/
+thanks               -> /TH AE NG K S/
+that                 -> /DH AE T/
+the                  -> /DH AH/
+their                -> /DH EH R/
+them                 -> /DH EH M/
+themselves           -> /DH EH M S EH L V Z/
+then                 -> /DH EH N/
+there                -> /DH EH R/
+therefore            -> /DH EH R F AO R/
+these                -> /DH IY Z/
+they                 -> /DH EY/
+thing                -> /TH IH NG/
+things               -> /TH IH NG Z/
+think                -> /TH IH NG K/
+thinking             -> /TH IH NG K IH NG/
+thinks               -> /TH IH NG K S/
+third                -> /TH ER D/
+thirteen             -> /TH ER T IY N/
+thirty               -> /TH ER D IY/
+this                 -> /DH IH S/
+those                -> /DH OW Z/
+though               -> /DH OW/
+thought              -> /TH AO T/
+thousand             -> /TH AW Z AH N D/
+three                -> /TH R IY/
+through              -> /TH R UW/
+throw                -> /TH R OW/
+Thursday             -> /TH ER Z D EY/
+till                 -> /T IH L/
+time                 -> /T AY M/
+times                -> /T AY M Z/
+to                   -> /T UW/
+today                -> /T AH D EY/
+together             -> /T AH G EH DH ER/
+told                 -> /T OW L D/
+tomorrow             -> /T AH M AA R OW/
+tonight              -> /T AH N AY T/
+Tony                 -> /T OW N IY/
+too                  -> /T UW/
+took                 -> /T UH K/
+top                  -> /T AA P/
+totally              -> /T OW T AH L IY/
+towards              -> /T AH W AO R D Z/
+town                 -> /T AW N/
+trade                -> /T R EY D/
+traffic              -> /T R AE F IH K/
+train                -> /T R EY N/
+training             -> /T R EY N IH NG/
+transport            -> /T R AE N S P AO R T/
+tried                -> /T R AY D/
+trouble              -> /T R AH B AH L/
+true                 -> /T R UW/
+try                  -> /T R AY/
+trying               -> /T R AY IH NG/
+Tuesday              -> /T UW Z D IY/
+turn                 -> /T ER N/
+turned               -> /T ER N D/
+twelve               -> /T W EH L V/
+twenty               -> /T W EH N T IY/
+twice                -> /T W AY S/
+two                  -> /T UW/
+type                 -> /T AY P/
+under                -> /AH N D ER/
+understand           -> /AH N D ER S T AE N D/
+union                -> /Y UW N Y AH N/
+united               -> /Y UW N AY T AH D/
+university           -> /Y UW N AH V ER S AH T IY/
+unless               -> /AH N L EH S/
+until                -> /AH N T IH L/
+up                   -> /AH P/
+upon                 -> /AH P AA N/
+upstairs             -> /AH P S T EH R Z/
+us                   -> /AH S/
+use                  -> /Y UW S/
+used                 -> /Y UW Z D/
+useful               -> /Y UW S F AH L/
+using                -> /Y UW Z IH NG/
+usually              -> /Y UW ZH AH W AH L IY/
+value                -> /V AE L Y UW/
+various              -> /V EH R IY AH S/
+very                 -> /V EH R IY/
+video                -> /V IH D IY OW/
+view                 -> /V Y UW/
+village              -> /V IH L AH JH/
+wait                 -> /W EY T/
+waiting              -> /W EY T IH NG/
+walk                 -> /W AO K/
+walked               -> /W AO K T/
+walking              -> /W AO K IH NG/
+wall                 -> /W AO L/
+want                 -> /W AA N T/
+wanted               -> /W AA N T AH D/
+wants                -> /W AA N T S/
+war                  -> /W AO R/
+was                  -> /W AA Z/
+watch                -> /W AA CH/
+watching             -> /W AA CH IH NG/
+water                -> /W AO T ER/
+way                  -> /W EY/
+ways                 -> /W EY Z/
+we                   -> /W IY/
+wear                 -> /W EH R/
+weather              -> /W EH DH ER/
+Wednesday            -> /W EH N Z D IY/
+wee                  -> /W IY/
+week                 -> /W IY K/
+weekend              -> /W IY K EH N D/
+weeks                -> /W IY K S/
+weight               -> /W EY T/
+well                 -> /W EH L/
+went                 -> /W EH N T/
+were                 -> /W ER/
+west                 -> /W EH S T/
+what                 -> /W AH T/
+whatever             -> /W AH T EH V ER/
+when                 -> /W EH N/
+where                -> /W EH R/
+whereas              -> /W EH R AE Z/
+whether              -> /W EH DH ER/
+which                -> /W IH CH/
+while                -> /W AY L/
+white                -> /W AY T/
+who                  -> /HH UW/
+whole                -> /HH OW L/
+why                  -> /W AY/
+wife                 -> /W AY F/
+will                 -> /W IH L/
+win                  -> /W IH N/
+window               -> /W IH N D OW/
+wish                 -> /W IH SH/
+with                 -> /W IH DH/
+within               -> /W IH DH IH N/
+without              -> /W IH TH AW T/
+woman                -> /W UH M AH N/
+women                -> /W IH M AH N/
+won                  -> /W AH N/
+wonder               -> /W AH N D ER/
+wonderful            -> /W AH N D ER F AH L/
+word                 -> /W ER D/
+words                -> /W ER D Z/
+work                 -> /W ER K/
+worked               -> /W ER K T/
+workers              -> /W ER K ER Z/
+working              -> /W ER K IH NG/
+works                -> /W ER K S/
+world                -> /W ER L D/
+worry                -> /W ER IY/
+worse                -> /W ER S/
+worth                -> /W ER TH/
+would                -> /W UH D/
+write                -> /R AY T/
+writing              -> /R AY T IH NG/
+written              -> /R IH T AH N/
+wrong                -> /R AO NG/
+wrote                -> /R OW T/
+ya                   -> /Y AA/
+yeah                 -> /Y AE/
+year                 -> /Y IH R/
+years                -> /Y IH R Z/
+yep                  -> /Y EH P/
+yes                  -> /Y EH S/
+yesterday            -> /Y EH S T ER D EY/
+yet                  -> /Y EH T/
+yo                   -> /Y OW/
+York                 -> /Y AO R K/
+Yorkshire            -> /Y AO R K SH ER/
+you                  -> /Y UW/
+young                -> /Y AH NG/
+your                 -> /Y AO R/
+yours                -> /Y UH R Z/
+yourself             -> /Y ER S EH L F/

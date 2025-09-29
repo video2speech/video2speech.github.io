@@ -1,0 +1,1045 @@
+GPT-2 句子困惑度分析报告
+============================================================
+
+模型: gpt2
+总句子数: 344
+有效计算: 344
+平均困惑度: 135.35
+中位数困惑度: 82.89
+最低困惑度: 7.69
+最高困惑度: 2235.07
+
+所有句子的困惑度 (按困惑度排序):
+------------------------------------------------------------
+
+困惑度:    7.69 | 词数:  7 | Token数:   7
+句子: You do what you have to do
+
+困惑度:    7.81 | 词数:  6 | Token数:   6
+句子: What can I do for you
+
+困惑度:    8.81 | 词数:  4 | Token数:   4
+句子: What do you think
+
+困惑度:   10.54 | 词数:  7 | Token数:   7
+句子: I do not know what to do
+
+困惑度:   11.13 | 词数:  6 | Token数:   6
+句子: What do you think about it
+
+困惑度:   11.80 | 词数:  9 | Token数:   9
+句子: We do not know if it is the case
+
+困惑度:   13.63 | 词数:  6 | Token数:   6
+句子: What do we have to do
+
+困惑度:   14.32 | 词数:  4 | Token数:   4
+句子: What is it about
+
+困惑度:   14.39 | 词数:  6 | Token数:   6
+句子: Do you know what that is
+
+困惑度:   14.51 | 词数:  9 | Token数:   9
+句子: I do not know if they will do it
+
+困惑度:   15.54 | 词数:  7 | Token数:   7
+句子: So I think we can do this
+
+困惑度:   15.68 | 词数:  6 | Token数:   6
+句子: This is what we will do
+
+困惑度:   16.43 | 词数:  7 | Token数:   7
+句子: I do not know what that is
+
+困惑度:   16.45 | 词数:  4 | Token数:   4
+句子: What did you do
+
+困惑度:   16.46 | 词数:  6 | Token数:   6
+句子: We have to do it now
+
+困惑度:   16.59 | 词数:  5 | Token数:   5
+句子: That is what I think
+
+困惑度:   18.14 | 词数:  7 | Token数:   7
+句子: That is what we do for you
+
+困惑度:   18.39 | 词数:  6 | Token数:   6
+句子: What did you do about that
+
+困惑度:   19.11 | 词数:  6 | Token数:   6
+句子: But I do not know that
+
+困惑度:   19.16 | 词数:  6 | Token数:   6
+句子: I have to think about it
+
+困惑度:   19.55 | 词数:  6 | Token数:   6
+句子: I do not know about this
+
+困惑度:   19.63 | 词数:  5 | Token数:   5
+句子: So what do we know
+
+困惑度:   19.91 | 词数:  8 | Token数:   8
+句子: I do not know if it is there
+
+困惑度:   19.96 | 词数:  7 | Token数:   7
+句子: Do you know what they will do
+
+困惑度:   20.03 | 词数:  7 | Token数:   7
+句子: But I did not think about that
+
+困惑度:   20.27 | 词数:  9 | Token数:   9
+句子: I do not know if it is for us
+
+困惑度:   21.05 | 词数:  8 | Token数:   8
+句子: I do not know if you did it
+
+困惑度:   21.43 | 词数:  6 | Token数:   6
+句子: What can I do for it
+
+困惑度:   21.83 | 词数:  5 | Token数:   5
+句子: Now what do we do
+
+困惑度:   22.09 | 词数:  6 | Token数:   6
+句子: We can do it for you
+
+困惑度:   22.52 | 词数:  4 | Token数:   4
+句子: They can do it
+
+困惑度:   22.82 | 词数:  7 | Token数:   7
+句子: I know what you think about this
+
+困惑度:   23.42 | 词数:  6 | Token数:   6
+句子: I will do this for you
+
+困惑度:   23.44 | 词数:  6 | Token数:   6
+句子: Do you know what they think
+
+困惑度:   23.87 | 词数:  5 | Token数:   5
+句子: when did you get that
+
+困惑度:   24.12 | 词数:  6 | Token数:   6
+句子: Yes you can do it now
+
+困惑度:   24.15 | 词数:  6 | Token数:   6
+句子: This is not what we did
+
+困惑度:   24.53 | 词数:  3 | Token数:   3
+句子: Think about it
+
+困惑度:   24.88 | 词数:  6 | Token数:   6
+句子: What is the point in this
+
+困惑度:   25.17 | 词数:  5 | Token数:   5
+句子: But what is the point
+
+困惑度:   25.89 | 词数:  6 | Token数:   6
+句子: Yes we can do it now
+
+困惑度:   26.15 | 词数:  8 | Token数:   8
+句子: I think you and I can do it
+
+困惑度:   26.68 | 词数:  5 | Token数:   5
+句子: So what is the point
+
+困惑度:   27.00 | 词数:  6 | Token数:   6
+句子: This is not what I know
+
+困惑度:   27.06 | 词数:  7 | Token数:   7
+句子: No that is not what we have
+
+困惑度:   27.13 | 词数:  5 | Token数:   5
+句子: That is what I know
+
+困惑度:   27.67 | 词数:  6 | Token数:   6
+句子: No I did not do that
+
+困惑度:   27.77 | 词数:  4 | Token数:   4
+句子: That is the point
+
+困惑度:   27.92 | 词数:  7 | Token数:   7
+句子: I know what I can do now
+
+困惑度:   28.14 | 词数:  4 | Token数:   4
+句子: You can do it
+
+困惑度:   28.34 | 词数:  6 | Token数:   6
+句子: But I will not do that
+
+困惑度:   28.67 | 词数:  5 | Token数:   5
+句子: I will think about it
+
+困惑度:   28.78 | 词数:  8 | Token数:   8
+句子: Do you know when we can get it
+
+困惑度:   29.48 | 词数:  4 | Token数:   4
+句子: We have to think
+
+困惑度:   30.42 | 词数:  8 | Token数:   8
+句子: What do we know about the case now
+
+困惑度:   30.85 | 词数:  6 | Token数:   6
+句子: But I do not know it
+
+困惑度:   30.94 | 词数:  6 | Token数:   6
+句子: I will get it to you
+
+困惑度:   31.00 | 词数:  5 | Token数:   5
+句子: Do you know about that
+
+困惑度:   31.50 | 词数:  5 | Token数:   5
+句子: We are what we are
+
+困惑度:   32.14 | 词数:  6 | Token数:   6
+句子: No I did not know it
+
+困惑度:   32.25 | 词数:  6 | Token数:   6
+句子: What is your point about this
+
+困惑度:   32.84 | 词数:  4 | Token数:   4
+句子: What is it for
+
+困惑度:   33.51 | 词数:  6 | Token数:   6
+句子: No I do not think so
+
+困惑度:   33.87 | 词数:  5 | Token数:   5
+句子: It is not for us
+
+困惑度:   34.06 | 词数:  8 | Token数:   8
+句子: Do you know when we will do it
+
+困惑度:   34.08 | 词数:  6 | Token数:   6
+句子: No we did not do it
+
+困惑度:   35.01 | 词数:  6 | Token数:   6
+句子: So we will not do that
+
+困惑度:   35.04 | 词数:  4 | Token数:   4
+句子: Yes I think so
+
+困惑度:   35.25 | 词数:  6 | Token数:   6
+句子: I know we can do this
+
+困惑度:   35.40 | 词数:  8 | Token数:   8
+句子: But we think it is not for us
+
+困惑度:   35.51 | 词数:  4 | Token数:   4
+句子: Yes I know it
+
+困惑度:   35.77 | 词数:  4 | Token数:   4
+句子: What do you get
+
+困惑度:   35.86 | 词数:  8 | Token数:   8
+句子: Do you know when they will get it
+
+困惑度:   35.95 | 词数:  5 | Token数:   5
+句子: And what do they know
+
+困惑度:   37.29 | 词数:  4 | Token数:   4
+句子: What do you have
+
+困惑度:   38.39 | 词数:  4 | Token数:   4
+句子: They will do it
+
+困惑度:   38.60 | 词数:  6 | Token数:   6
+句子: Do you know about the case
+
+困惑度:   38.76 | 词数:  7 | Token数:   7
+句子: I think it is not for us
+
+困惑度:   39.10 | 词数: 10 | Token数:  10
+句子: But I do not know the schedule for the trial
+
+困惑度:   40.18 | 词数:  7 | Token数:   7
+句子: What is your point in this case
+
+困惑度:   40.55 | 词数:  4 | Token数:   4
+句子: We are with you
+
+困惑度:   40.73 | 词数:  5 | Token数:   5
+句子: We have what we have
+
+困惑度:   41.49 | 词数:  6 | Token数:   6
+句子: We do know what they did
+
+困惑度:   41.75 | 词数:  5 | Token数:   5
+句子: When did we get that
+
+困惑度:   42.38 | 词数:  4 | Token数:   4
+句子: When did you know
+
+困惑度:   42.54 | 词数:  6 | Token数:   6
+句子: So we did not get it
+
+困惑度:   42.54 | 词数:  4 | Token数:   4
+句子: Do you think so
+
+困惑度:   42.62 | 词数:  4 | Token数:   4
+句子: Can we do that
+
+困惑度:   42.70 | 词数:  7 | Token数:   7
+句子: You and I are in the trial
+
+困惑度:   43.12 | 词数:  7 | Token数:   7
+句子: We can get it for you now
+
+困惑度:   43.38 | 词数:  4 | Token数:   4
+句子: When will you know
+
+困惑度:   43.49 | 词数: 10 | Token数:  10
+句子: If you think it is the case you can confirm
+
+困惑度:   44.27 | 词数:  7 | Token数:   7
+句子: What is the schedule for the trial
+
+困惑度:   44.47 | 词数:  5 | Token数:   5
+句子: They will think about it
+
+困惑度:   44.82 | 词数:  6 | Token数:   6
+句子: They did not know the point
+
+困惑度:   44.87 | 词数:  6 | Token数:   6
+句子: I can know what you think
+
+困惑度:   45.49 | 词数:  6 | Token数:   6
+句子: I can get it for you
+
+困惑度:   45.81 | 词数:  8 | Token数:   8
+句子: But the case is not on trial now
+
+困惑度:   46.39 | 词数:  7 | Token数:   7
+句子: I know what you will do now
+
+困惑度:   46.77 | 词数:  6 | Token数:   6
+句子: We will appeal to the judge
+
+困惑度:   47.01 | 词数:  8 | Token数:   8
+句子: I will confirm if you can do it
+
+困惑度:   47.32 | 词数:  5 | Token数:   5
+句子: I did it for you
+
+困惑度:   48.96 | 词数:  6 | Token数:   6
+句子: They will have it for you
+
+困惑度:   49.02 | 词数:  6 | Token数:   6
+句子: I will appeal to the judge
+
+困惑度:   49.93 | 词数:  6 | Token数:   6
+句子: Can you get it for us
+
+困惑度:   50.07 | 词数:  5 | Token数:   5
+句子: I think I did it
+
+困惑度:   50.07 | 词数:  6 | Token数:   6
+句子: I know you are with us
+
+困惑度:   52.00 | 词数:  6 | Token数:   6
+句子: There is no schedule on this
+
+困惑度:   52.57 | 词数:  6 | Token数:   6
+句子: But they did not confirm it
+
+困惑度:   52.93 | 词数:  6 | Token数:   6
+句子: I think it is for you
+
+困惑度:   54.03 | 词数:  6 | Token数:   6
+句子: There is no schedule for it
+
+困惑度:   54.19 | 词数:  5 | Token数:   5
+句子: When will you do that
+
+困惑度:   54.75 | 词数:  6 | Token数:   6
+句子: No we did not get it
+
+困惑度:   55.50 | 词数:  7 | Token数:   7
+句子: It is for the judge to confirm
+
+困惑度:   55.55 | 词数:  7 | Token数:   7
+句子: The point is to have them there
+
+困惑度:   55.60 | 词数:  4 | Token数:   4
+句子: What is your point
+
+困惑度:   56.38 | 词数:  5 | Token数:   5
+句子: I think I get it
+
+困惑度:   56.58 | 词数:  7 | Token数:   7
+句子: I know when you can get it
+
+困惑度:   56.67 | 词数:  4 | Token数:   4
+句子: It is for you
+
+困惑度:   56.70 | 词数:  4 | Token数:   4
+句子: This is for you
+
+困惑度:   57.01 | 词数:  6 | Token数:   6
+句子: I think that is my point
+
+困惑度:   57.46 | 词数:  7 | Token数:   7
+句子: But I do know about the case
+
+困惑度:   57.51 | 词数:  7 | Token数:   7
+句子: There is no exposure in this case
+
+困惑度:   58.37 | 词数:  6 | Token数:   6
+句子: But yes you can do it
+
+困惑度:   59.16 | 词数:  7 | Token数:   7
+句子: When will you and I get this
+
+困惑度:   60.01 | 词数:  5 | Token数:   5
+句子: But you are not there
+
+困惑度:   60.20 | 词数:  5 | Token数:   5
+句子: I think you know this
+
+困惑度:   60.27 | 词数:  8 | Token数:   8
+句子: I think that it is not your case
+
+困惑度:   60.66 | 词数:  5 | Token数:   6
+句子: Yes, we have this case
+
+困惑度:   61.56 | 词数:  6 | Token数:   6
+句子: They did not appeal the case
+
+困惑度:   61.65 | 词数:  6 | Token数:   6
+句子: Do you think they will confirm
+
+困惑度:   62.29 | 词数:  7 | Token数:   7
+句子: I will get your signature on this
+
+困惑度:   63.87 | 词数:  5 | Token数:   5
+句子: We are not there now
+
+困惑度:   64.04 | 词数:  8 | Token数:   8
+句子: No we can not do it for now
+
+困惑度:   64.43 | 词数:  7 | Token数:   8
+句子: Confirm with us if you get it
+
+困惑度:   64.46 | 词数:  6 | Token数:   6
+句子: This is my point about that
+
+困惑度:   64.58 | 词数:  7 | Token数:   7
+句子: They are not in litigation with us
+
+困惑度:   65.17 | 词数:  5 | Token数:   5
+句子: We did it with them
+
+困惑度:   66.44 | 词数:  6 | Token数:   6
+句子: I have my signature on it
+
+困惑度:   66.90 | 词数:  4 | Token数:   4
+句子: Now I can confirm
+
+困惑度:   67.27 | 词数:  6 | Token数:   6
+句子: I know what you think now
+
+困惑度:   67.30 | 词数:  7 | Token数:   7
+句子: If they do it we will now
+
+困惑度:   67.93 | 词数:  6 | Token数:   6
+句子: We can appeal to the judge
+
+困惑度:   68.02 | 词数:  6 | Token数:   6
+句子: My client did not know it
+
+困惑度:   68.44 | 词数:  5 | Token数:   5
+句子: I think you did it
+
+困惑度:   69.60 | 词数:  5 | Token数:   5
+句子: what is in the case
+
+困惑度:   69.81 | 词数:  7 | Token数:   8
+句子: Confirm with us if you think so
+
+困惑度:   69.82 | 词数:  4 | Token数:   4
+句子: Can I have them
+
+困惑度:   69.97 | 词数:  6 | Token数:   6
+句子: Yes I think they will appeal
+
+困惑度:   70.12 | 词数:  9 | Token数:   9
+句子: Yes I will get your signature and confirm it
+
+困惑度:   70.54 | 词数:  7 | Token数:   7
+句子: We have no exposure in this case
+
+困惑度:   70.55 | 词数:  6 | Token数:   6
+句子: We know when they did it
+
+困惑度:   71.41 | 词数:  7 | Token数:   7
+句子: We will get them in the case
+
+困惑度:   71.71 | 词数:  6 | Token数:   6
+句子: I think that you are there
+
+困惑度:   72.49 | 词数:  5 | Token数:   5
+句子: Yes I do think so
+
+困惑度:   72.66 | 词数:  9 | Token数:  10
+句子: Confirm with the judge if there is no trial
+
+困惑度:   73.03 | 词数:  7 | Token数:   7
+句子: We appeal the case to the judge
+
+困惑度:   73.24 | 词数:  8 | Token数:   8
+句子: So I think there is exposure for it
+
+困惑度:   73.47 | 词数:  5 | Token数:   5
+句子: I know you are there
+
+困惑度:   74.66 | 词数:  6 | Token数:   6
+句子: You and I know the judge
+
+困惑度:   76.33 | 词数:  6 | Token数:   6
+句子: We are in litigation with them
+
+困惑度:   76.93 | 词数:  6 | Token数:   6
+句子: But we will appeal the case
+
+困惑度:   77.15 | 词数:  5 | Token数:   5
+句子: They did not confirm it
+
+困惑度:   78.18 | 词数: 10 | Token数:  10
+句子: I think that the client is not in the trial
+
+困惑度:   78.22 | 词数:  8 | Token数:   8
+句子: We can do it now if you confirm
+
+困惑度:   78.48 | 词数:  7 | Token数:   7
+句子: They will confirm with us on this
+
+困惑度:   78.58 | 词数:  6 | Token数:   6
+句子: They did not get the appeal
+
+困惑度:   79.20 | 词数:  6 | Token数:   6
+句子: When will we get the schedule
+
+困惑度:   80.15 | 词数:  6 | Token数:   6
+句子: But you can now confirm it
+
+困惑度:   80.21 | 词数:  6 | Token数:   6
+句子: I did not get your point
+
+困惑度:   80.56 | 词数:  7 | Token数:   7
+句子: So yes we can do this now
+
+困惑度:   82.24 | 词数:  8 | Token数:   8
+句子: If you confirm it we will do it
+
+困惑度:   83.53 | 词数:  6 | Token数:   6
+句子: This is my point on it
+
+困惑度:   84.28 | 词数:  7 | Token数:   7
+句子: We will do it if you confirm
+
+困惑度:   84.87 | 词数:  8 | Token数:   8
+句子: The judge did not know about the litigation
+
+困惑度:   84.89 | 词数:  6 | Token数:   6
+句子: I think that is your point
+
+困惑度:   85.05 | 词数:  7 | Token数:   7
+句子: This is what they know about now
+
+困惑度:   85.74 | 词数:  4 | Token数:   4
+句子: When is the trial
+
+困惑度:   86.77 | 词数:  6 | Token数:   6
+句子: And we will get the case
+
+困惑度:   88.83 | 词数:  6 | Token数:   6
+句子: We have to appeal the case
+
+困惑度:   89.02 | 词数:  6 | Token数:   6
+句子: Do you know about the litigation
+
+困惑度:   89.50 | 词数:  7 | Token数:   7
+句子: There is no exposure in this trial
+
+困惑度:   91.37 | 词数:  5 | Token数:   5
+句子: Yes I get the point
+
+困惑度:   91.41 | 词数:  6 | Token数:   6
+句子: I know that they will appeal
+
+困惑度:   91.88 | 词数:  6 | Token数:   6
+句子: We are on schedule now
+
+困惑度:   92.77 | 词数:  6 | Token数:   6
+句子: So they will appeal the case
+
+困惑度:   93.02 | 词数:  6 | Token数:   6
+句子: They have no appeal for this
+
+困惑度:   93.72 | 词数:  6 | Token数:   6
+句子: I know this is my case
+
+困惑度:   94.26 | 词数:  4 | Token数:   4
+句子: You will get them
+
+困惑度:   97.57 | 词数:  7 | Token数:   7
+句子: The client is not on trial
+
+困惑度:   97.64 | 词数:  8 | Token数:   8
+句子: You can get the signature for the client
+
+困惑度:   97.74 | 词数:  6 | Token数:   6
+句子: We have to think about litigation
+
+困惑度:   99.39 | 词数:  8 | Token数:   8
+句子: The client and I will get on that
+
+困惑度:   99.41 | 词数:  5 | Token数:   5
+句子: They will appeal the case
+
+困惑度:   99.54 | 词数:  8 | Token数:   8
+句子: Yes I will confirm your case with them
+
+困惑度:   99.89 | 词数:  6 | Token数:   6
+句子: I will confirm with the client
+
+困惑度:  100.03 | 词数:  9 | Token数:   9
+句子: We have to confirm the signature for the client
+
+困惑度:  101.03 | 词数:  6 | Token数:   6
+句子: I confirm that we will appeal
+
+困惑度:  101.36 | 词数:  7 | Token数:   7
+句子: That is my point for this case
+
+困惑度:  101.67 | 词数:  5 | Token数:   5
+句子: I can confirm it now
+
+困惑度:  101.76 | 词数:  5 | Token数:   5
+句子: What is this point about
+
+困惑度:  102.40 | 词数:  7 | Token数:   7
+句子: I think you are not there now
+
+困惑度:  102.52 | 词数:  8 | Token数:   8
+句子: Do you know when they will schedule it
+
+困惑度:  103.95 | 词数:  9 | Token数:   9
+句子: When will we get the schedule for my client
+
+困惑度:  104.63 | 词数:  7 | Token数:   7
+句子: You have no exposure in this case
+
+困惑度:  105.13 | 词数:  5 | Token数:   5
+句子: We have the case now
+
+困惑度:  105.39 | 词数:  7 | Token数:   7
+句子: When will the judge schedule the trial
+
+困惑度:  105.66 | 词数:  6 | Token数:   6
+句子: I have the case for you
+
+困惑度:  105.94 | 词数:  8 | Token数:   8
+句子: They did not confirm the schedule with us
+
+困惑度:  106.07 | 词数:  6 | Token数:   6
+句子: So I can get your signature
+
+困惑度:  107.29 | 词数:  6 | Token数:   6
+句子: We did not get your signature
+
+困惑度:  108.38 | 词数:  4 | Token数:   4
+句子: I have it now
+
+困惑度:  111.36 | 词数:  9 | Token数:   9
+句子: They did not get the signature in the trial
+
+困惑度:  112.04 | 词数:  6 | Token数:   6
+句子: I think it is your case
+
+困惑度:  113.32 | 词数:  4 | Token数:   4
+句子: Can you confirm this
+
+困惑度:  113.43 | 词数:  7 | Token数:   7
+句子: I think you and I will confirm
+
+困惑度:  113.47 | 词数:  6 | Token数:   6
+句子: They do not know your case
+
+困惑度:  113.93 | 词数:  8 | Token数:   8
+句子: I think the judge will get the point
+
+困惑度:  114.03 | 词数:  9 | Token数:   9
+句子: Yes I think they are in the trial schedule
+
+困惑度:  114.14 | 词数:  8 | Token数:   8
+句子: It is about the exposure in this case
+
+困惑度:  114.22 | 词数:  7 | Token数:   7
+句子: So can you get the point now
+
+困惑度:  114.31 | 词数:  6 | Token数:   6
+句子: We have to schedule the trial
+
+困惑度:  115.66 | 词数:  6 | Token数:   6
+句子: I will confirm with your client
+
+困惑度:  115.77 | 词数:  5 | Token数:   5
+句子: They know it is you
+
+困惑度:  115.90 | 词数:  7 | Token数:   7
+句子: You and I can schedule the trial
+
+困惑度:  115.97 | 词数:  7 | Token数:   7
+句子: Is it on your schedule for us
+
+困惑度:  117.56 | 词数:  7 | Token数:   7
+句子: We do not have the trial schedule
+
+困惑度:  118.49 | 词数:  7 | Token数:   7
+句子: They will appeal the case and trial
+
+困惑度:  118.65 | 词数:  6 | Token数:   6
+句子: The judge will schedule the trial
+
+困惑度:  120.30 | 词数:  6 | Token数:   6
+句子: But we are not in trial
+
+困惑度:  122.25 | 词数:  7 | Token数:   7
+句子: We will not do litigation with them
+
+困惑度:  122.98 | 词数:  4 | Token数:   4
+句子: We know that now
+
+困惑度:  122.99 | 词数:  6 | Token数:   6
+句子: They did not get your signature
+
+困惑度:  123.15 | 词数:  4 | Token数:   4
+句子: Are you with them
+
+困惑度:  125.35 | 词数:  7 | Token数:   7
+句子: There is no exposure for the client
+
+困惑度:  126.58 | 词数:  7 | Token数:   7
+句子: And we can get the case there
+
+困惑度:  130.39 | 词数:  6 | Token数:   6
+句子: But my client is not there
+
+困惑度:  131.03 | 词数: 10 | Token数:  10
+句子: The judge did not get your point in the trial
+
+困惑度:  131.19 | 词数:  4 | Token数:   4
+句子: This is for them
+
+困惑度:  135.13 | 词数:  6 | Token数:   6
+句子: And we will get your signature
+
+困惑度:  136.71 | 词数:  8 | Token数:   8
+句子: We think the case is not about exposure
+
+困惑度:  137.20 | 词数:  6 | Token数:   6
+句子: The judge did not confirm it
+
+困惑度:  137.89 | 词数:  4 | Token数:   4
+句子: Yes I know them
+
+困惑度:  139.57 | 词数:  6 | Token数:   6
+句子: You can get the point now
+
+困惑度:  141.46 | 词数:  6 | Token数:   6
+句子: So we can schedule it now
+
+困惑度:  142.73 | 词数:  6 | Token数:   6
+句子: This is on your schedule now
+
+困惑度:  143.92 | 词数:  8 | Token数:   8
+句子: I think that the client is in litigation
+
+困惑度:  146.71 | 词数:  6 | Token数:   6
+句子: Did the judge confirm the appeal
+
+困惑度:  148.00 | 词数:  6 | Token数:   6
+句子: This litigation case is on appeal
+
+困惑度:  148.96 | 词数:  7 | Token数:   9
+句子: Litigation exposure is what we think about
+
+困惑度:  150.09 | 词数:  9 | Token数:   9
+句子: Yes I will get them on the trial schedule
+
+困惑度:  150.22 | 词数:  4 | Token数:   4
+句子: We are on it
+
+困惑度:  153.24 | 词数:  7 | Token数:   7
+句子: Yes we can confirm this on it
+
+困惑度:  153.28 | 词数:  8 | Token数:   8
+句子: I did confirm with them for the case
+
+困惑度:  155.07 | 词数: 10 | Token数:  10
+句子: When will the judge confirm the appeal for the client
+
+困惑度:  155.89 | 词数:  9 | Token数:   9
+句子: I think the client is not in the exposure
+
+困惑度:  156.47 | 词数:  6 | Token数:   6
+句子: We have to confirm the signature
+
+困惑度:  156.66 | 词数:  7 | Token数:   7
+句子: We are in litigation on that point
+
+困惑度:  157.11 | 词数:  7 | Token数:   7
+句子: We will confirm this case with them
+
+困惑度:  158.84 | 词数:  7 | Token数:   7
+句子: If there is exposure we will know
+
+困惑度:  159.49 | 词数:  6 | Token数:   6
+句子: They did not confirm the schedule
+
+困惑度:  159.91 | 词数:  6 | Token数:   6
+句子: Yes I will schedule it now
+
+困惑度:  160.76 | 词数:  6 | Token数:   6
+句子: This trial is on schedule now
+
+困惑度:  161.69 | 词数:  6 | Token数:   6
+句子: So the judge did confirm it
+
+困惑度:  162.10 | 词数:  6 | Token数:   6
+句子: Can we get your signature now
+
+困惑度:  162.63 | 词数:  7 | Token数:   7
+句子: We appeal the case on this point
+
+困惑度:  168.65 | 词数:  6 | Token数:   6
+句子: The judge will confirm the case
+
+困惑度:  171.06 | 词数:  8 | Token数:   8
+句子: The client is in litigation for the case
+
+困惑度:  173.98 | 词数:  4 | Token数:   4
+句子: There is no signature
+
+困惑度:  174.18 | 词数:  6 | Token数:   8
+句子: Litigation exposure is not the point
+
+困惑度:  176.20 | 词数:  6 | Token数:   6
+句子: There is exposure in this case
+
+困惑度:  177.63 | 词数:  6 | Token数:   6
+句子: My client and I will confirm
+
+困惑度:  181.91 | 词数:  6 | Token数:   6
+句子: You can get the signature now
+
+困惑度:  188.97 | 词数:  6 | Token数:   6
+句子: This judge is in the trial
+
+困惑度:  189.81 | 词数:  4 | Token数:   4
+句子: We know the point
+
+困惑度:  190.76 | 词数:  7 | Token数:   7
+句子: I confirm the schedule for the trial
+
+困惑度:  191.74 | 词数:  5 | Token数:   5
+句子: Your signature is on there
+
+困惑度:  193.66 | 词数:  6 | Token数:   6
+句子: Judge will confirm the trial schedule
+
+困惑度:  197.25 | 词数:  7 | Token数:   7
+句子: We will appeal that case for you
+
+困惑度:  197.42 | 词数:  4 | Token数:   4
+句子: You are my client
+
+困惑度:  203.70 | 词数:  6 | Token数:   6
+句子: It is not the trial now
+
+困惑度:  204.74 | 词数:  4 | Token数:   4
+句子: It is about you
+
+困惑度:  208.80 | 词数:  6 | Token数:   6
+句子: I think the client will appeal
+
+困惑度:  209.78 | 词数:  6 | Token数:   6
+句子: Can you confirm your case now
+
+困惑度:  209.87 | 词数:  6 | Token数:   6
+句子: I have the schedule for us
+
+困惑度:  210.05 | 词数:  9 | Token数:   9
+句子: The client will confirm the signature for the appeal
+
+困惑度:  213.48 | 词数:  5 | Token数:   5
+句子: What is the litigation about
+
+困惑度:  216.24 | 词数:  7 | Token数:   7
+句子: We have to confirm the trial schedule
+
+困惑度:  216.51 | 词数:  4 | Token数:   4
+句子: So I think yes
+
+困惑度:  222.66 | 词数:  7 | Token数:   7
+句子: We can confirm the schedule with them
+
+困惑度:  223.25 | 词数:  8 | Token数:   8
+句子: I think there is exposure in this litigation
+
+困惑度:  223.70 | 词数:  7 | Token数:   7
+句子: This litigation case will get to trial
+
+困惑度:  224.96 | 词数:  8 | Token数:   8
+句子: My client will confirm the schedule with you
+
+困惑度:  228.27 | 词数:  6 | Token数:   6
+句子: And they will confirm the trial
+
+困惑度:  228.40 | 词数:  6 | Token数:   6
+句子: The judge will confirm the appeal
+
+困惑度:  230.07 | 词数:  6 | Token数:   6
+句子: They do the litigation for us
+
+困惑度:  230.49 | 词数:  8 | Token数:   8
+句子: The client will confirm the signature for us
+
+困惑度:  235.08 | 词数:  6 | Token数:   6
+句子: The client did not have exposure
+
+困惑度:  242.24 | 词数:  6 | Token数:   6
+句子: Do you have the case schedule
+
+困惑度:  243.22 | 词数:  6 | Token数:   6
+句子: I will get my schedule now
+
+困惑度:  243.69 | 词数:  6 | Token数:   6
+句子: We have the trial schedule now
+
+困惑度:  248.68 | 词数:  6 | Token数:   6
+句子: My client will appeal the case
+
+困惑度:  255.00 | 词数:  6 | Token数:   6
+句子: When will you confirm the schedule
+
+困惑度:  264.35 | 词数:  4 | Token数:   4
+句子: Is this your signature
+
+困惑度:  267.42 | 词数:  6 | Token数:   6
+句子: I can confirm your signature now
+
+困惑度:  272.20 | 词数:  5 | Token数:   5
+句子: I will confirm the schedule
+
+困惑度:  277.51 | 词数:  4 | Token数:   4
+句子: When will you confirm
+
+困惑度:  277.82 | 词数: 10 | Token数:  10
+句子: No there is not exposure for us in this appeal
+
+困惑度:  288.92 | 词数:  4 | Token数:   4
+句子: We have your signature
+
+困惑度:  293.42 | 词数:  6 | Token数:   6
+句子: The client will appeal the case
+
+困惑度:  296.48 | 词数:  7 | Token数:   7
+句子: The judge and the client are there
+
+困惑度:  308.72 | 词数:  6 | Token数:   6
+句子: I know when they will confirm
+
+困惑度:  310.49 | 词数:  4 | Token数:   4
+句子: We think about you
+
+困惑度:  316.41 | 词数:  7 | Token数:   7
+句子: Yes we can confirm the trial schedule
+
+困惑度:  318.32 | 词数:  5 | Token数:   5
+句子: They will schedule the trial
+
+困惑度:  322.19 | 词数:  6 | Token数:   6
+句子: The exposure is not on us
+
+困惑度:  330.79 | 词数:  6 | Token数:   6
+句子: Can you confirm with your signature
+
+困惑度:  336.54 | 词数:  7 | Token数:   7
+句子: The client did not appeal this point
+
+困惑度:  380.44 | 词数:  6 | Token数:   6
+句子: My client will confirm the signature
+
+困惑度:  383.73 | 词数:  6 | Token数:   6
+句子: I think your client will confirm
+
+困惑度:  403.59 | 词数:  6 | Token数:   6
+句子: The judge will confirm the signature
+
+困惑度:  413.95 | 词数:  7 | Token数:   7
+句子: If there is exposure we will appeal
+
+困惑度:  423.65 | 词数:  5 | Token数:   5
+句子: The client is in litigation
+
+困惑度:  423.67 | 词数:  5 | Token数:   5
+句子: We have litigation with them
+
+困惑度:  425.53 | 词数:  4 | Token数:   4
+句子: I know the client
+
+困惑度:  430.01 | 词数:  8 | Token数:   8
+句子: But if it is not judge will know
+
+困惑度:  472.06 | 词数:  7 | Token数:   7
+句子: The client did not have signature there
+
+困惑度:  480.03 | 词数:  7 | Token数:   7
+句子: So my client will confirm the schedule
+
+困惑度:  480.46 | 词数:  4 | Token数:   4
+句子: My client is there
+
+困惑度:  482.62 | 词数:  6 | Token数:   6
+句子: I will confirm and schedule it
+
+困惑度:  493.55 | 词数:  3 | Token数:   3
+句子: What about now
+
+困惑度:  494.52 | 词数:  5 | Token数:   5
+句子: Is my client with you
+
+困惑度:  502.94 | 词数:  6 | Token数:   6
+句子: The judge will confirm your signature
+
+困惑度:  528.79 | 词数:  6 | Token数:   6
+句子: The client will confirm that signature
+
+困惑度:  558.84 | 词数:  6 | Token数:   6
+句子: We appeal the case for client
+
+困惑度:  586.69 | 词数:  7 | Token数:   7
+句子: They have exposure in the trial case
+
+困惑度:  606.08 | 词数:  8 | Token数:   8
+句子: The judge will get the point for appeal
+
+困惑度:  671.64 | 词数:  6 | Token数:   6
+句子: They will schedule trial for us
+
+困惑度:  680.87 | 词数:  6 | Token数:   6
+句子: We will confirm the client appeal
+
+困惑度:  709.54 | 词数:  7 | Token数:   7
+句子: We are on litigation case with them
+
+困惑度:  740.80 | 词数:  6 | Token数:   6
+句子: We have the client signature now
+
+困惑度:  775.61 | 词数:  7 | Token数:   7
+句子: We have litigation exposure on the case
+
+困惑度:  859.89 | 词数:  5 | Token数:   5
+句子: I have your schedule there
+
+困惑度: 2235.07 | 词数:  6 | Token数:   6
+句子: I will confirm exposure with client

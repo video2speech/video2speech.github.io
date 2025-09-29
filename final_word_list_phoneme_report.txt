@@ -1,0 +1,697 @@
+================================================================================
+FINAL WORD LIST PHONEME ANALYSIS
+================================================================================
+Total words analyzed: 1136
+Words with phoneme data: 1135
+Words failed to map: 1
+Phonemes found: 39 out of 39 standard phonemes
+Total phoneme occurrences: 5104
+
+WORDS NOT FOUND IN CMU DICTIONARY:
+----------------------------------------
+  n't
+
+PHONEME FREQUENCY SUMMARY (Most to Least Frequent):
+------------------------------------------------------------
+ 1. /AH /:  409 occurrences (  8.0%) in  347 words
+ 2. /T  /:  369 occurrences (  7.2%) in  343 words
+ 3. /N  /:  347 occurrences (  6.8%) in  321 words
+ 4. /S  /:  320 occurrences (  6.3%) in  293 words
+ 5. /L  /:  266 occurrences (  5.2%) in  254 words
+ 6. /IH /:  264 occurrences (  5.2%) in  242 words
+ 7. /R  /:  262 occurrences (  5.1%) in  253 words
+ 8. /D  /:  215 occurrences (  4.2%) in  201 words
+ 9. /IY /:  215 occurrences (  4.2%) in  207 words
+10. /K  /:  205 occurrences (  4.0%) in  199 words
+11. /EH /:  187 occurrences (  3.7%) in  181 words
+12. /M  /:  160 occurrences (  3.1%) in  150 words
+13. /P  /:  158 occurrences (  3.1%) in  152 words
+14. /ER /:  154 occurrences (  3.0%) in  150 words
+15. /Z  /:  117 occurrences (  2.3%) in  116 words
+16. /AA /:  106 occurrences (  2.1%) in  105 words
+17. /B  /:  106 occurrences (  2.1%) in  104 words
+18. /EY /:  104 occurrences (  2.0%) in  104 words
+19. /F  /:  101 occurrences (  2.0%) in   99 words
+20. /W  /:   99 occurrences (  1.9%) in   99 words
+21. /AE /:   94 occurrences (  1.8%) in   93 words
+22. /AO /:   86 occurrences (  1.7%) in   86 words
+23. /AY /:   84 occurrences (  1.6%) in   84 words
+24. /V  /:   73 occurrences (  1.4%) in   72 words
+25. /NG /:   73 occurrences (  1.4%) in   72 words
+26. /OW /:   65 occurrences (  1.3%) in   65 words
+27. /HH /:   63 occurrences (  1.2%) in   63 words
+28. /UW /:   55 occurrences (  1.1%) in   55 words
+29. /G  /:   53 occurrences (  1.0%) in   53 words
+30. /Y  /:   43 occurrences (  0.8%) in   42 words
+31. /SH /:   42 occurrences (  0.8%) in   42 words
+32. /JH /:   37 occurrences (  0.7%) in   36 words
+33. /CH /:   36 occurrences (  0.7%) in   35 words
+34. /DH /:   33 occurrences (  0.6%) in   33 words
+35. /TH /:   33 occurrences (  0.6%) in   33 words
+36. /AW /:   32 occurrences (  0.6%) in   32 words
+37. /UH /:   26 occurrences (  0.5%) in   26 words
+38. /OY /:    8 occurrences (  0.2%) in    8 words
+39. /ZH /:    4 occurrences (  0.1%) in    4 words
+
+DETAILED PHONEME ANALYSIS (Most to Least Frequent):
+================================================================================
+
+ 1. /AH/ - 409 total occurrences in 347 words (8.0%)
+----------------------------------------------------------------------
+    American, Britain, Christmas, England, Europe, European, Jesus, London, Michael, Monday
+    Secretary, Sunday, a, able, about, absolutely, account, across, action, actual
+    actually, afford, afraid, again, against, ago, agree, agreed, allowed, along
+    amount, and, another, anybody, anyone, apparently, application, appropriate, area, areas
+    argument, authorities, authority, available, aware, away, awful, basis, beautiful, become
+    benefit, bloody, bottom, brilliant, brother, budget, bus, business, but, capital
+    careful, cases, central, certain, certainly, chairman, changes, children, client, club
+    come, comes, coming, committee, common, community, companies, company, completely, computer
+    concerned, conditions, conference, congress, consider, continue, control, conversation, council, countries
+    country, couple, cover, cup, current, cut, debate, decision, definitely, department
+    development, difference, different, difficult, discussion, does, done, double, education, eleven
+    employment, enough, environment, especially, eventually, everyone, evidence, example, excellent, experience
+    extra, family, final, financial, from, front, fucking, funny, garden, general
+    generally, given, government, happen, happened, happening, happens, hello, holiday, honest
+    hopefully, horrible, hospital, houses, hundred, husband, idea, ideas, imagine, important
+    income, individual, industry, information, insurance, interest, interested, interesting, item, just
+    kitchen, language, level, listen, listening, little, local, love, lovely, lucky
+    lunch, machine, management, manager, market, mentioned, mhm, middle, million, minister
+    minus, minute, minutes, moment, money, month, months, mother, motion, much
+    mum, mummy, must, national, necessarily, necessary, needed, none, normal, normally
+    nothing, number, numbers, o'clock, obviously, of, office, officer, officers, often
+    once, one, ones, open, opportunity, other, others, otherwise, paragraph, pardon
+    parents, particular, particularly, pension, people, period, person, pieces, places, plus
+    police, policies, policy, political, position, positive, possible, possibly, practice, present
+    president, prices, private, probably, problem, problems, produce, product, provide, provision
+    public, putting, quality, question, questions, reason, reasonable, reasons, recently, reckon
+    record, region, responsibility, result, rubbish, run, running, second, section, serious
+    service, services, settlement, seven, seventeen, seventy, several, shut, similar, simple
+    single, situation, social, society, some, somebody, someone, something, sometimes, somewhere
+    son, special, specific, started, statement, station, structure, stuff, stupid, subject
+    such, suggest, summer, sun, support, suppose, supposed, system, table, taken
+    telephone, television, terrible, the, thousand, today, together, tomorrow, tonight, totally
+    towards, trouble, under, understand, union, united, university, unless, until, up
+    upon, upstairs, us, useful, usually, various, village, wanted, what, whatever
+    woman, women, won, wonder, wonderful, written, young
+
+ 2. /T/ - 369 total occurrences in 343 words (7.2%)
+----------------------------------------------------------------------
+    Britain, British, Christ, Greater, Mr, Nottingham, Peter, Saturday, Secretary, Tony
+    Tuesday, about, absolutely, accept, account, act, after, afternoon, against, almost
+    alright, amount, apparently, appropriate, argument, asked, at, authorities, authority, based
+    beautiful, benefit, best, bet, better, between, bits, boat, bottom, bought
+    brilliant, brought, budget, built, but, capital, cat, central, centre, certain
+    certainly, city, client, comments, committee, community, completely, computer, continue, contract
+    control, correct, cost, costs, countries, country, county, court, current, cut
+    date, debate, definitely, department, development, different, difficult, district, doctor, east
+    eat, effect, eight, eighteen, eighty, employment, environment, exactly, excellent, expect
+    extent, extra, fact, feet, felt, fifteen, fifty, finished, first, fit
+    flats, foot, football, forget, forty, fourteen, front, get, gets, getting
+    got, government, great, hate, heart, history, hit, honest, hospital, hot
+    important, industry, interest, interested, interesting, into, it, item, its, itself
+    just, kept, last, late, later, left, let, let's, letter, letters
+    light, lights, list, little, looked, lost, lot, lots, management, market
+    matter, meant, meet, meeting, met, might, minister, minute, minutes, missed
+    moment, most, must, next, night, nineteen, ninety, not, onto, opportunity
+    ought, out, outside, parents, part, particular, particularly, parts, party, past
+    percent, picked, plenty, point, points, political, positive, post, practice, present
+    president, pretty, private, product, project, put, putting, quality, quarter, quite
+    rate, recently, report, responsibility, rest, result, right, safety, sat, sector
+    sent, set, settlement, seventeen, seventy, shit, short, shut, sister, sit
+    site, sites, sitting, sixteen, sixty, slightly, society, sometimes, sort, sorts
+    spent, staff, stage, stand, standing, start, started, starting, starts, state
+    statement, station, stay, stick, still, stop, stopped, story, straight, street
+    strong, structure, stuff, stupid, subject, suggest, support, system, table, take
+    taken, takes, taking, talk, talked, talking, tape, tax, tea, teacher
+    teachers, team, telephone, television, tell, telling, ten, tend, term, terms
+    terrible, test, that, thirteen, thought, till, time, times, to, today
+    together, told, tomorrow, tonight, too, took, top, totally, towards, town
+    trade, traffic, train, training, transport, tried, trouble, true, try, trying
+    turn, turned, twelve, twenty, twice, two, type, understand, united, university
+    until, upstairs, wait, waiting, walked, want, wanted, wants, water, weight
+    went, west, what, whatever, white, without, worked, write, writing, written
+    wrote, yesterday, yet
+
+ 3. /N/ - 347 total occurrences in 321 words (6.8%)
+----------------------------------------------------------------------
+    American, Britain, England, European, Jane, John, June, London, Monday, Nottingham
+    Sunday, Tony, Wednesday, account, action, afternoon, again, against, amount, an
+    and, another, answer, any, anybody, anyone, anything, anyway, anywhere, apparently
+    application, argument, around, been, beginning, behind, benefit, between, born, brilliant
+    business, can, central, centre, certain, certainly, chairman, chance, change, changed
+    changes, children, client, comments, common, community, companies, company, concerned, conditions
+    conference, consider, continue, contract, control, conversation, corner, council, countries, country
+    county, current, decision, definitely, department, depends, development, difference, different, dinner
+    discussion, done, down, education, eighteen, eleven, employment, end, enjoy, enough
+    environment, even, evening, eventually, everyone, evidence, excellent, expensive, experience, explain
+    extent, fifteen, final, financial, find, fine, finish, finished, found, fourteen
+    friend, friends, front, funny, garden, general, generally, given, gone, government
+    green, ground, hand, hands, happen, happened, happening, happens, honest, hundred
+    husband, imagine, important, in, income, increase, indeed, individual, industry, information
+    insurance, interest, interested, interesting, into, involved, join, kind, kitchen, knew
+    know, known, knows, land, learn, line, lines, listen, listening, lunch
+    machine, main, man, management, manager, many, mean, means, meant, men
+    mentioned, million, mind, mine, minister, minus, minute, minutes, moment, money
+    month, months, morning, motion, name, names, national, nature, near, nearly
+    necessarily, necessary, need, needed, needs, never, new, news, next, nice
+    night, nine, nineteen, ninety, no, nobody, none, normal, normally, north
+    not, nothing, now, number, numbers, often, on, once, one, ones
+    only, onto, open, opportunity, own, pardon, parents, pence, pension, percent
+    person, personal, phone, plan, planning, plenty, point, points, position, pound
+    pounds, present, president, provision, question, questions, range, reason, reasonable, reasons
+    recently, reckon, region, responsibility, round, run, running, second, section, seen
+    send, sense, sent, settlement, seven, seventeen, seventy, since, situation, sixteen
+    someone, son, soon, sounds, spend, spent, stand, standing, statement, station
+    sun, taken, telephone, television, ten, tend, than, then, thirteen, thousand
+    tonight, town, train, training, transport, turn, turned, twenty, under, understand
+    union, united, university, unless, until, upon, want, wanted, wants, weekend
+    went, when, win, window, within, woman, women, won, wonder, wonderful
+    written
+
+ 4. /S/ - 320 total occurrences in 293 words (6.3%)
+----------------------------------------------------------------------
+    Chris, Christ, Christmas, Jesus, Mr, Mrs, Oxford, Saturday, Secretary, Sunday
+    absolutely, accept, across, advice, against, almost, also, answer, ask, asked
+    asking, based, basically, basis, best, bits, books, box, bus, business
+    case, cases, central, centre, certain, certainly, chance, choice, city, class
+    close, comments, concerned, conference, congress, consider, conversation, cost, costs, council
+    course, decide, decided, decision, difference, discussion, district, east, else, especially
+    evidence, excellent, expect, expensive, experience, explain, extent, extra, face, first
+    flats, gas, gets, groups, himself, history, honest, horse, hospital, house
+    houses, increase, industry, insurance, interest, interested, interesting, its, itself, just
+    last, less, let's, lights, list, listen, listening, looks, lost, lots
+    makes, minister, minus, minutes, miss, missed, months, most, must, myself
+    necessarily, necessary, next, nice, obviously, office, officer, officers, once, ourselves
+    outside, parents, parts, pass, past, pence, percent, perhaps, person, personal
+    piece, pieces, place, places, plus, points, police, policies, policy, possible
+    possibly, post, practice, press, price, prices, process, produce, question, questions
+    recently, research, resources, responsibility, rest, safety, said, sales, same, sat
+    save, saw, say, saying, says, scheme, school, schools, second, section
+    sector, see, seeing, seem, seemed, seems, seen, sell, send, sense
+    sent, serious, service, services, set, settlement, seven, seventeen, seventy, several
+    shops, sick, side, silly, similar, simple, simply, since, single, sir
+    sister, sit, site, sites, sitting, situation, six, sixteen, sixty, size
+    slightly, small, so, social, society, sold, some, somebody, someone, something
+    sometimes, somewhere, son, soon, sorry, sort, sorts, sounds, south, space
+    speak, speaking, special, specific, spend, spent, staff, stage, stand, standing
+    start, started, starting, starts, state, statement, station, stay, stick, still
+    stop, stopped, story, straight, street, strong, structure, stuff, stupid, subject
+    such, suggest, summer, sun, support, suppose, supposed, system, takes, tax
+    test, thanks, themselves, thinks, this, transport, twice, understand, university, unless
+    upstairs, us, use, useful, various, wants, weeks, west, works, worse
+    yes, yesterday, yourself
+
+ 5. /L/ - 266 total occurrences in 254 words (5.2%)
+----------------------------------------------------------------------
+    'll, England, London, Michael, Paul, able, absolutely, actual, actually, all
+    allowed, almost, along, already, alright, also, although, always, apparently, application
+    available, awful, ball, basically, beautiful, believe, bill, black, bloke, bloody
+    blue, brilliant, build, building, built, call, called, capital, careful, central
+    certainly, child, children, class, clear, clearly, client, close, clothes, club
+    coal, cold, colleagues, college, completely, control, council, couple, darling, deal
+    definitely, development, difficult, double, earlier, early, eleven, else, employment, especially
+    eventually, exactly, example, excellent, explain, fairly, family, feel, felt, field
+    fill, film, final, financial, flats, floor, follow, football, full, general
+    generally, girl, girls, hall, health, held, hell, hello, help, himself
+    hold, holiday, hopefully, horrible, hospital, individual, involved, itself, lady, land
+    language, large, last, late, later, law, learn, leave, left, less
+    let, let's, letter, letters, level, life, light, lights, like, likely
+    line, lines, list, listen, listening, little, live, lived, living, loads
+    local, long, look, looked, looking, looks, lord, lose, lost, lot
+    lots, love, lovely, low, lucky, lunch, middle, miles, milk, million
+    myself, national, nearly, necessarily, normal, normally, o'clock, obviously, old, older
+    only, ourselves, particular, particularly, people, personal, place, places, plan, planning
+    play, played, playing, please, pleased, plenty, plus, police, policies, policy
+    political, possible, possibly, probably, problem, problems, properly, public, pull, quality
+    quickly, real, realize, really, reasonable, recently, responsibility, result, role, sales
+    school, schools, sell, settlement, several, shall, silly, similar, simple, simply
+    single, slightly, small, social, sold, special, still, surely, table, telephone
+    television, tell, telling, terrible, themselves, till, told, totally, trouble, twelve
+    unless, until, useful, usually, value, village, wall, well, while, whole
+    will, wonderful, world, yourself
+
+ 6. /IH/ - 264 total occurrences in 242 words (5.2%)
+----------------------------------------------------------------------
+    'll, 's, Britain, British, Chris, Christmas, David, England, Jim, Mr
+    Mrs, Nottingham, Richard, anything, asking, basically, become, been, before, beginning
+    behind, being, believe, benefit, between, big, bigger, bill, bits, brilliant
+    bring, budget, build, building, built, business, busy, buying, children, city
+    clear, clearly, college, coming, committee, conditions, consider, continue, darling, dear
+    decide, decided, decision, department, depends, development, did, difference, different, difficult
+    dinner, discussion, district, doing, drink, during, effect, eleven, enough, environment
+    even, evening, eventually, everything, exactly, example, expect, expensive, experience, explain
+    extent, fifteen, fifty, figure, figures, fill, film, finish, finished, fish
+    fit, fucking, getting, give, given, gives, giving, happening, having, him
+    himself, his, history, hit, hospital, housing, if, imagine, important, in
+    income, increase, indeed, individual, industry, information, insurance, interest, interested, interesting
+    into, involved, is, issue, issues, it, its, itself, kids, kitchen
+    list, listen, listening, little, living, looking, making, meeting, middle, milk
+    million, minister, minute, minutes, miss, missed, morning, moving, music, near
+    nearly, nothing, particular, particularly, paying, period, personal, pick, picked, picture
+    planning, playing, political, position, positive, pretty, provision, public, putting, quick
+    quickly, quid, really, remember, resources, responsibility, result, rid, ring, rubbish
+    running, saying, seeing, serious, shit, sick, silly, similar, simple, simply
+    since, single, sister, sit, sitting, situation, six, sixteen, sixty, something
+    speaking, specific, standing, starting, stick, still, system, taking, talking, television
+    telling, thing, things, think, thinking, thinks, this, till, traffic, training
+    trying, until, using, video, village, waiting, walking, watching, which, will
+    win, window, wish, with, within, without, women, working, writing, written
+    year, years
+
+ 7. /R/ - 262 total occurrences in 253 words (5.1%)
+----------------------------------------------------------------------
+    're, American, Britain, British, Chris, Christ, Christmas, Europe, European, Friday
+    George, Greater, Mark, Richard, Road, Secretary, York, Yorkshire, across, afford
+    afraid, agree, agreed, air, already, alright, anywhere, apparently, appropriate, are
+    area, areas, argument, authorities, authority, aware, bar, bedroom, before, board
+    born, bread, break, brilliant, bring, brother, brought, car, card, care
+    careful, carried, carry, cars, central, chair, chairman, children, clear, clearly
+    congress, contract, control, corner, countries, country, course, court, darling, dear
+    department, district, door, draw, drink, drive, during, environment, everybody, everyone
+    everything, experience, extra, fair, fairly, far, floor, for, form, forty
+    forward, four, fourteen, free, friend, friends, from, front, garden, great
+    green, ground, group, groups, hair, hard, hear, heart, here, horrible
+    horse, hundred, important, increase, industry, insurance, interest, interested, interesting, large
+    lord, market, more, morning, near, nearly, necessarily, necessary, normal, normally
+    north, or, order, pair, paragraph, pardon, parents, park, part, particularly
+    parts, party, period, poor, practice, present, president, press, pressure, pretty
+    price, prices, private, probably, problem, problems, process, produce, product, programme
+    project, proper, properly, provide, provision, quarter, radio, range, rate, rather
+    read, ready, real, realize, really, reason, reasonable, reasons, recently, reckon
+    record, red, region, remember, report, research, resources, responsibility, rest, result
+    rid, right, ring, role, room, round, rubbish, run, running, serious
+    several, short, somewhere, sorry, sort, sorts, start, started, starting, starts
+    story, straight, street, strong, structure, support, sure, surely, terrible, their
+    there, therefore, three, through, throw, tomorrow, towards, trade, traffic, train
+    training, transport, tried, trouble, true, try, trying, upstairs, various, very
+    war, wear, where, whereas, write, writing, written, wrong, wrote, year
+    years, your, yours
+
+ 8. /D/ - 215 total occurrences in 201 words (4.2%)
+----------------------------------------------------------------------
+    'd, Dave, David, England, Friday, God, London, Monday, Oxford, Richard
+    Road, Saturday, Sunday, Thursday, Tuesday, Wednesday, add, advice, afford, afraid
+    agreed, allowed, already, and, anybody, around, bad, bed, bedroom, behind
+    birthday, bloody, board, body, bread, build, building, called, card, carried
+    changed, child, children, cold, concerned, conditions, consider, could, da, dad
+    daddy, darling, date, day, days, dead, deal, dear, death, debate
+    decide, decided, decision, definitely, department, depends, development, did, died, difference
+    different, difficult, dinner, discussion, district, do, doctor, does, dog, doing
+    done, door, double, down, draw, drink, drive, during, end, everybody
+    evidence, field, find, food, forward, found, friend, friends, garden, god
+    good, ground, had, hand, hands, happened, hard, head, heard, held
+    hold, holiday, hundred, husband, idea, ideas, indeed, individual, industry, interested
+    involved, kids, kind, lady, land, lived, loads, lord, made, mentioned
+    middle, mind, moved, need, needed, needs, nobody, odd, old, older
+    order, outside, paid, pardon, period, played, pleased, pound, pounds, president
+    produce, product, provide, quid, radio, read, ready, record, red, rid
+    round, said, second, seemed, send, should, side, sold, somebody, sounds
+    spend, stand, standing, started, stupid, supposed, tend, third, thirty, thousand
+    today, told, towards, trade, tried, turned, under, understand, united, used
+    video, wanted, weekend, window, wonder, wonderful, word, words, world, would
+    yesterday
+
+ 9. /IY/ - 215 total occurrences in 207 words (4.2%)
+----------------------------------------------------------------------
+    European, Friday, Jesus, Monday, Peter, Saturday, Secretary, Tony, Tuesday, Wednesday
+    absolutely, actually, agree, agreed, already, any, anybody, anyone, anything, anyway
+    anywhere, apparently, appropriate, area, areas, authorities, authority, baby, basically, be
+    being, believe, between, bloody, body, busy, carried, carry, certainly, cheap
+    city, clearly, coffee, colleagues, committee, community, companies, company, completely, countries
+    country, county, daddy, deal, definitely, each, earlier, early, easier, east
+    easy, eat, eighteen, eighty, either, especially, even, evening, eventually, every
+    everybody, everyone, everything, exactly, experience, fairly, family, feel, feet, field
+    fifteen, fifty, forty, fourteen, free, funny, generally, green, happy, he
+    hear, heavy, here, history, hopefully, idea, ideas, increase, indeed, industry
+    keep, lady, leave, likely, lovely, lucky, machine, many, maybe, me
+    mean, means, meet, meeting, money, mummy, nearly, necessarily, necessary, need
+    needed, needs, nineteen, ninety, nobody, normally, obviously, only, opportunity, particularly
+    party, people, period, piece, pieces, please, pleased, plenty, police, policies
+    policy, possibly, pretty, probably, properly, quality, quickly, radio, ready, real
+    realize, really, reason, reasonable, reasons, recently, region, report, research, resources
+    responsibility, safety, scheme, see, seeing, seem, seemed, seems, seen, serious
+    seventeen, seventy, she, silly, simply, sixteen, sixty, slightly, society, somebody
+    sorry, speak, speaking, story, street, surely, tea, teacher, teachers, team
+    these, thirteen, thirty, three, totally, twenty, university, usually, various, very
+    video, we, wee, week, weekend, weeks, worry
+
+10. /K/ - 205 total occurrences in 199 words (4.0%)
+----------------------------------------------------------------------
+    American, Chris, Christ, Christmas, Mark, Michael, Oxford, Secretary, York, Yorkshire
+    accept, account, across, act, action, actual, actually, application, ask, asked
+    asking, back, bank, basically, become, black, bloke, book, books, box
+    break, call, called, came, can, capital, car, card, care, careful
+    carried, carry, cars, case, cases, cat, check, class, clear, clearly
+    client, close, clothes, club, coal, coffee, cold, colleagues, college, come
+    comes, coming, comments, committee, common, community, companies, company, completely, computer
+    concerned, conditions, conference, congress, consider, continue, contract, control, conversation, corner
+    correct, cost, costs, could, council, countries, country, county, couple, course
+    court, cover, cup, current, cut, difficult, discussion, district, doctor, drink
+    education, effect, exactly, excellent, expect, expensive, experience, explain, extent, extra
+    fact, fucking, income, increase, keep, kept, kids, kind, kitchen, like
+    likely, local, look, looked, looking, looks, lucky, make, makes, making
+    market, milk, music, next, o'clock, okay, park, particular, particularly, pick
+    picked, picture, political, practice, product, project, public, quality, quarter, question
+    questions, quick, quickly, quid, quite, reckon, record, scheme, school, schools
+    second, section, sector, sick, six, sixteen, sixty, speak, speaking, specific
+    stick, structure, subject, take, taken, takes, taking, talk, talked, talking
+    tax, thank, thanks, think, thinking, thinks, took, traffic, walk, walked
+    walking, week, weekend, weeks, work, worked, workers, working, works
+
+11. /EH/ - 187 total occurrences in 181 words (3.7%)
+----------------------------------------------------------------------
+    'em, American, Secretary, Wednesday, accept, again, against, air, already, any
+    anybody, anyone, anything, anyway, anywhere, apparently, area, areas, aware, bed
+    bedroom, benefit, best, bet, better, bread, care, careful, central, centre
+    chair, chairman, check, comments, correct, dead, death, definitely, depends, development
+    education, effect, eh, eleven, else, employment, end, enjoy, especially, eventually
+    ever, every, everybody, everyone, everything, evidence, excellent, expect, expensive, extent
+    extra, fair, fairly, felt, forget, friend, friends, general, generally, get
+    gets, getting, hair, head, health, heavy, held, hell, help, himself
+    however, itself, kept, left, less, let, let's, letter, letters, level
+    many, meant, member, members, men, mentioned, met, myself, necessarily, necessary
+    never, next, ourselves, pair, parents, pence, pension, percent, plenty, present
+    president, press, pressure, process, project, question, questions, read, ready, reckon
+    red, remember, rest, said, says, second, section, sector, sell, send
+    sense, sent, set, settlement, seven, seventeen, seventy, several, somewhere, special
+    spend, spent, subject, suggest, telephone, television, tell, telling, ten, tend
+    terrible, test, their, them, themselves, then, there, therefore, together, twelve
+    twenty, unless, upstairs, various, very, wear, weather, weekend, well, went
+    west, whatever, when, where, whereas, whether, yep, yes, yesterday, yet
+    yourself
+
+12. /M/ - 160 total occurrences in 150 words (3.1%)
+----------------------------------------------------------------------
+    'em, 'm, American, Christmas, James, Jim, Mark, Michael, Monday, Mr
+    Mrs, Nottingham, almost, am, amount, argument, become, bedroom, bottom, came
+    chairman, come, comes, coming, comments, committee, common, community, companies, company
+    completely, computer, department, development, employment, environment, example, family, film, form
+    from, game, government, him, himself, home, imagine, important, income, information
+    item, machine, made, main, major, make, makes, making, man, management
+    manager, many, market, matter, may, maybe, me, mean, means, meant
+    meet, meeting, member, members, men, mentioned, met, mhm, middle, might
+    miles, milk, million, mind, mine, minister, minus, minute, minutes, miss
+    missed, moment, money, month, months, more, morning, most, mother, motion
+    move, moved, moving, much, mum, mummy, music, must, my, myself
+    name, names, normal, normally, number, numbers, problem, problems, programme, remember
+    room, same, scheme, seem, seemed, seems, settlement, similar, simple, simply
+    small, some, somebody, someone, something, sometimes, somewhere, statement, summer, system
+    team, term, terms, them, themselves, time, times, tomorrow, woman, women
+
+13. /P/ - 158 total occurrences in 152 words (3.1%)
+----------------------------------------------------------------------
+    Europe, European, Paul, Peter, accept, apparently, application, appropriate, capital, chap
+    cheap, companies, company, completely, computer, couple, cup, department, depends, development
+    employment, especially, example, expect, expensive, experience, explain, group, groups, happen
+    happened, happening, happens, happy, help, hope, hopefully, hospital, important, keep
+    kept, open, opportunity, page, paid, pair, paper, paragraph, pardon, parents
+    park, part, particular, particularly, parts, party, pass, past, pay, paying
+    pence, pension, people, per, percent, perhaps, period, person, personal, pick
+    picked, picture, piece, pieces, place, places, plan, planning, play, played
+    playing, please, pleased, plenty, plus, point, points, police, policies, policy
+    political, poor, position, positive, possible, possibly, post, pound, pounds, power
+    practice, present, president, press, pressure, pretty, price, prices, private, probably
+    problem, problems, process, produce, product, programme, project, proper, properly, provide
+    provision, public, pull, put, putting, report, responsibility, shop, shops, simple
+    simply, space, speak, speaking, special, specific, spend, spent, stop, stopped
+    stupid, support, suppose, supposed, tape, top, transport, type, up, upon
+    upstairs, yep
+
+14. /ER/ - 154 total occurrences in 150 words (3.0%)
+----------------------------------------------------------------------
+    Greater, Mr, Oxford, Peter, Richard, Saturday, Thursday, Yorkshire, after, afternoon
+    another, answer, around, better, bigger, birthday, bother, brother, centre, certain
+    certainly, church, computer, concerned, conference, consider, conversation, corner, correct, cover
+    current, difference, different, dinner, doctor, earlier, early, earth, easier, either
+    er, ever, every, father, figure, figures, fire, first, forget, forward
+    further, future, general, generally, girl, girls, government, heard, her, higher
+    history, hour, hours, however, information, later, learn, letter, letters, major
+    manager, matter, member, members, minister, mother, nature, never, number, numbers
+    officer, officers, older, opportunity, order, other, others, otherwise, our, ours
+    ourselves, over, paper, particular, particularly, per, percent, perhaps, person, personal
+    picture, power, pressure, proper, properly, quarter, rather, remember, research, sector
+    service, services, similar, sir, sister, structure, summer, teacher, teachers, term
+    terms, third, thirteen, thirty, together, turn, turned, under, understand, university
+    water, weather, were, whatever, whether, wonder, wonderful, word, words, work
+    worked, workers, working, works, world, worry, worse, worth, yesterday, yourself
+
+15. /Z/ - 117 total occurrences in 116 words (2.3%)
+----------------------------------------------------------------------
+    's, James, Jesus, Mrs, Thursday, Tuesday, Wednesday, always, areas, as
+    authorities, boys, business, busy, cars, cases, changes, clothes, colleagues, comes
+    companies, conditions, countries, days, depends, does, easier, easy, exactly, example
+    eyes, figures, friends, girls, gives, goes, hands, happens, has, his
+    hours, houses, housing, husband, ideas, is, issues, jobs, kids, knows
+    letters, lines, loads, lose, means, members, miles, music, names, needs
+    news, numbers, officers, ones, others, otherwise, ours, ourselves, pieces, places
+    please, pleased, policies, position, positive, pounds, present, president, prices, problems
+    questions, realize, reason, reasonable, reasons, resources, result, sales, says, schools
+    seems, services, size, sometimes, sounds, suppose, supposed, teachers, terms, themselves
+    these, things, those, thousand, times, towards, upstairs, used, using, was
+    ways, whereas, words, workers, years, yours
+
+16. /AA/ - 106 total occurrences in 105 words (2.1%)
+----------------------------------------------------------------------
+    're, God, John, Mark, Nottingham, Oxford, ah, aha, are, argument
+    awful, bar, body, bother, bottom, bought, box, car, card, cars
+    coffee, colleagues, college, comments, common, conference, congress, contract, conversation, cost
+    costs, da, darling, department, doctor, everybody, far, father, follow, garden
+    god, got, ha, hard, heart, holiday, honest, hospital, hot, involved
+    job, jobs, large, lot, lots, market, nobody, not, o'clock, obviously
+    odd, on, onto, opportunity, pardon, park, part, particularly, parts, party
+    policies, policy, positive, possible, possibly, probably, problem, problems, process, product
+    project, proper, properly, quality, responsibility, shop, shops, somebody, sorry, start
+    started, starting, starts, stop, stopped, tomorrow, top, upon, want, wanted
+    wants, was, watch, watching, ya
+
+17. /B/ - 106 total occurrences in 104 words (2.1%)
+----------------------------------------------------------------------
+    Britain, British, able, about, absolutely, anybody, available, baby, back, bad
+    bag, ball, bank, bar, based, basically, basis, be, beautiful, become
+    bed, bedroom, been, before, beginning, behind, being, believe, benefit, best
+    bet, better, between, big, bigger, bill, birthday, bits, black, bloke
+    bloody, blue, board, boat, body, book, books, born, both, bother
+    bottom, bought, box, boy, boys, bread, break, brilliant, bring, brother
+    brought, budget, build, building, built, bus, business, busy, but, buy
+    buying, by, bye, club, debate, double, everybody, football, horrible, husband
+    job, jobs, maybe, member, members, nobody, number, numbers, obviously, possible
+    possibly, probably, problem, problems, public, reasonable, remember, responsibility, rubbish, somebody
+    subject, table, terrible, trouble
+
+18. /EY/ - 104 total occurrences in 104 words (2.0%)
+----------------------------------------------------------------------
+    Dave, David, Greater, James, Jane, Sunday, Thursday, able, afraid, age
+    always, anyway, application, available, away, baby, based, basically, basis, birthday
+    break, came, case, cases, change, changed, changes, conversation, date, day
+    days, debate, education, eight, eighteen, eighty, explain, face, game, gave
+    great, hate, hey, holiday, information, lady, late, later, made, main
+    major, make, makes, making, may, maybe, name, names, nature, okay
+    page, paid, paper, pay, paying, place, places, play, played, playing
+    radio, range, rate, safety, sales, same, save, say, saying, situation
+    space, stage, state, statement, station, stay, straight, table, take, taken
+    takes, taking, tape, they, today, trade, train, training, wait, waiting
+    way, ways, weight, yesterday
+
+19. /F/ - 101 total occurrences in 99 words (2.0%)
+----------------------------------------------------------------------
+    Friday, Oxford, afford, afraid, after, afternoon, awful, beautiful, before, benefit
+    careful, coffee, conference, definitely, difference, different, difficult, effect, enough, face
+    fact, fair, fairly, family, far, father, feel, feet, felt, few
+    field, fifteen, fifty, figure, figures, fill, film, final, financial, find
+    fine, finish, finished, fire, first, fish, fit, five, flats, floor
+    follow, food, foot, football, for, forget, form, forty, forward, found
+    four, fourteen, free, friend, friends, from, front, fucking, full, funny
+    further, future, half, himself, hopefully, if, information, itself, left, life
+    myself, off, office, officer, officers, often, paragraph, phone, safety, specific
+    staff, stuff, telephone, therefore, traffic, useful, wife, wonderful, yourself
+
+20. /W/ - 99 total occurrences in 99 words (1.9%)
+----------------------------------------------------------------------
+    'd, 'll, Wednesday, actual, actually, always, anyone, anyway, anywhere, aware
+    away, between, eventually, everyone, forward, individual, language, once, one, ones
+    otherwise, quality, quarter, question, questions, quick, quickly, quid, quite, someone
+    somewhere, towards, twelve, twenty, twice, usually, wait, waiting, walk, walked
+    walking, wall, want, wanted, wants, war, was, watch, watching, water
+    way, ways, we, wear, weather, wee, week, weekend, weeks, weight
+    well, went, were, west, what, whatever, when, where, whereas, whether
+    which, while, white, why, wife, will, win, window, wish, with
+    within, without, woman, women, won, wonder, wonderful, word, words, work
+    worked, workers, working, works, world, worry, worse, worth, would
+
+21. /AE/ - 94 total occurrences in 93 words (1.8%)
+----------------------------------------------------------------------
+    'm, 've, Nottingham, Saturday, absolutely, accept, act, action, actual, actually
+    add, advice, after, afternoon, am, an, answer, application, as, ask
+    asked, asking, at, back, bad, bag, bank, black, can, capital
+    carried, carry, cat, chance, chap, class, contract, dad, daddy, exactly
+    example, fact, family, financial, flats, gas, had, half, hand, hands
+    hang, happen, happened, happening, happens, happy, has, have, having, imagine
+    land, language, last, man, management, manager, matter, national, paragraph, pass
+    past, perhaps, plan, planning, practice, programme, rather, sat, shall, staff
+    stand, standing, tax, than, thank, thanks, that, traffic, transport, understand
+    value, whereas, yeah
+
+22. /AO/ - 86 total occurrences in 86 words (1.7%)
+----------------------------------------------------------------------
+    George, Paul, York, Yorkshire, across, afford, all, almost, along, already
+    alright, also, although, always, authorities, authority, ball, before, board, born
+    brought, call, called, corner, course, court, dog, door, draw, floor
+    football, for, form, forty, forward, four, fourteen, gone, hall, horrible
+    horse, important, law, long, lord, lost, more, morning, normal, normally
+    north, off, office, officer, officers, often, or, order, ought, quarter
+    record, report, resources, saw, short, small, sort, sorts, story, strong
+    support, talk, talked, talking, therefore, thought, towards, transport, walk, walked
+    walking, wall, war, water, wrong, your
+
+23. /AY/ - 84 total occurrences in 84 words (1.6%)
+----------------------------------------------------------------------
+    Christ, Friday, I, Michael, advice, alright, aye, behind, buy, buying
+    by, bye, child, client, decide, decided, died, drive, environment, eyes
+    final, find, fine, fire, five, guy, high, higher, idea, ideas
+    item, kind, life, light, lights, like, likely, line, lines, live
+    lived, might, miles, mind, mine, minus, my, myself, nice, night
+    nine, nineteen, ninety, otherwise, outside, price, prices, private, provide, quite
+    realize, right, side, site, sites, size, slightly, society, sometimes, time
+    times, tonight, tried, try, trying, twice, type, united, while, white
+    why, wife, write, writing
+
+24. /V/ - 73 total occurrences in 72 words (1.4%)
+----------------------------------------------------------------------
+    've, Dave, David, advice, available, believe, conversation, cover, development, drive
+    eleven, environment, even, evening, eventually, ever, every, everybody, everyone, everything
+    evidence, expensive, five, gave, give, given, gives, giving, government, have
+    having, heavy, however, individual, involved, leave, level, live, lived, living
+    love, lovely, move, moved, moving, never, obviously, of, ourselves, over
+    positive, private, provide, provision, save, service, services, seven, seventeen, seventy
+    several, television, themselves, twelve, university, value, various, very, video, view
+    village, whatever
+
+25. /NG/ - 73 total occurrences in 72 words (1.4%)
+----------------------------------------------------------------------
+    England, Nottingham, along, anything, asking, bank, beginning, being, bring, building
+    buying, coming, congress, darling, doing, drink, during, evening, everything, fucking
+    getting, giving, hang, happening, having, housing, interesting, language, listening, living
+    long, looking, making, meeting, morning, moving, nothing, paying, planning, playing
+    putting, ring, running, saying, seeing, single, sitting, something, speaking, standing
+    starting, strong, taking, talking, telling, thank, thanks, thing, things, think
+    thinking, thinks, training, trying, using, waiting, walking, watching, working, writing
+    wrong, young
+
+26. /OW/ - 65 total occurrences in 65 words (1.3%)
+----------------------------------------------------------------------
+    Road, Tony, ago, almost, also, although, appropriate, bloke, boat, both
+    close, clothes, coal, cold, control, follow, go, goes, hello, hold
+    home, hope, hopefully, know, known, knows, loads, local, low, moment
+    most, motion, no, nobody, oh, okay, old, older, only, open
+    over, own, phone, post, programme, radio, role, show, so, social
+    sold, suppose, supposed, telephone, those, though, throw, told, tomorrow, totally
+    video, whole, window, wrote, yo
+
+27. /HH/ - 63 total occurrences in 63 words (1.2%)
+----------------------------------------------------------------------
+    've, Nottingham, aha, behind, ha, had, hair, half, hall, hand
+    hands, hang, happen, happened, happening, happens, happy, hard, has, hate
+    have, having, he, head, health, hear, heard, heart, heavy, held
+    hell, hello, help, her, here, hey, high, higher, him, himself
+    his, history, hit, hold, holiday, home, hope, hopefully, horrible, horse
+    hospital, hot, house, houses, housing, how, however, hundred, husband, mhm
+    perhaps, who, whole
+
+28. /UW/ - 55 total occurrences in 55 words (1.1%)
+----------------------------------------------------------------------
+    June, Tuesday, absolutely, afternoon, beautiful, bedroom, blue, community, computer, continue
+    do, doing, few, food, future, group, groups, into, issue, issues
+    knew, lose, move, moved, moving, music, new, news, onto, ooh
+    opportunity, produce, room, school, schools, situation, soon, stupid, through, to
+    too, true, two, union, united, university, use, used, useful, using
+    usually, value, view, who, you
+
+29. /G/ - 53 total occurrences in 53 words (1.0%)
+----------------------------------------------------------------------
+    England, God, Greater, again, against, ago, agree, agreed, argument, bag
+    beginning, big, bigger, colleagues, congress, dog, exactly, example, figure, figures
+    forget, game, garden, gas, gave, get, gets, getting, girl, girls
+    give, given, gives, giving, go, god, goes, gone, good, got
+    government, great, green, ground, group, groups, guy, language, paragraph, programme
+    single, suggest, together
+
+30. /Y/ - 43 total occurrences in 42 words (0.8%)
+----------------------------------------------------------------------
+    Europe, European, York, Yorkshire, argument, beautiful, brilliant, community, computer, continue
+    few, figure, figures, future, million, music, particular, particularly, union, united
+    university, use, used, useful, using, usually, value, view, ya, yeah
+    year, years, yep, yes, yesterday, yet, yo, you, young, your
+    yours, yourself
+
+31. /SH/ - 42 total occurrences in 42 words (0.8%)
+----------------------------------------------------------------------
+    British, Yorkshire, action, application, conditions, conversation, discussion, education, especially, financial
+    finish, finished, fish, information, insurance, issue, issues, machine, mentioned, motion
+    national, pension, position, pressure, rubbish, section, shall, she, shit, shop
+    shops, short, should, show, shut, situation, social, special, station, sure
+    surely, wish
+
+32. /JH/ - 37 total occurrences in 36 words (0.7%)
+----------------------------------------------------------------------
+    George, James, Jane, Jesus, Jim, John, June, age, budget, change
+    changed, changes, college, education, enjoy, general, generally, imagine, individual, job
+    jobs, join, just, language, large, major, management, manager, page, project
+    range, region, stage, subject, suggest, village
+
+33. /CH/ - 36 total occurrences in 35 words (0.7%)
+----------------------------------------------------------------------
+    Richard, actual, actually, chair, chairman, chance, change, changed, changes, chap
+    cheap, check, child, children, choice, church, each, eventually, future, kitchen
+    lunch, much, nature, picture, question, questions, research, situation, structure, such
+    teacher, teachers, watch, watching, which
+
+34. /DH/ - 33 total occurrences in 33 words (0.6%)
+----------------------------------------------------------------------
+    'em, although, another, bother, brother, clothes, either, father, further, mother
+    other, others, otherwise, rather, than, that, the, their, them, themselves
+    then, there, therefore, these, they, this, those, though, together, weather
+    whether, with, within
+
+35. /TH/ - 33 total occurrences in 33 words (0.6%)
+----------------------------------------------------------------------
+    Thursday, anything, authorities, authority, birthday, both, death, earth, everything, health
+    month, months, north, nothing, something, south, thank, thanks, thing, things
+    think, thinking, thinks, third, thirteen, thirty, thought, thousand, three, through
+    throw, without, worth
+
+36. /AW/ - 32 total occurrences in 32 words (0.6%)
+----------------------------------------------------------------------
+    about, account, allowed, amount, around, council, county, down, found, ground
+    hour, hours, house, houses, housing, how, however, now, our, ours
+    ourselves, out, outside, pound, pounds, power, round, sounds, south, thousand
+    town, without
+
+37. /UH/ - 26 total occurrences in 26 words (0.5%)
+----------------------------------------------------------------------
+    'd, Europe, European, book, books, could, during, foot, football, full
+    good, insurance, look, looked, looking, looks, poor, pull, put, should
+    sure, surely, took, woman, would, yours
+
+38. /OY/ - 8 total occurrences in 8 words (0.2%)
+----------------------------------------------------------------------
+    boy, boys, choice, employment, enjoy, join, point, points
+
+39. /ZH/ - 4 total occurrences in 4 words (0.1%)
+----------------------------------------------------------------------
+    decision, provision, television, usually
+
+
+ALL 39 STANDARD PHONEMES ARE REPRESENTED!
+
+
+STATISTICS SUMMARY:
+==============================
+Total words: 1136
+Successfully mapped: 1135 (99.9%)
+Failed to map: 1 (0.1%)
+Phonemes represented: 39/39 (100.0%)
+Total phoneme instances: 5104
+Average phonemes per word: 4.5
+
+Most frequent phoneme: /AH/ (409 occurrences)
+Least frequent phoneme: /ZH/ (4 occurrences)

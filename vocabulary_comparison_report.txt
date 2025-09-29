@@ -1,0 +1,13 @@
+VOCABULARY COMPARISON REPORT
+==================================================
+
+Set1 (sentences vocabulary): 1,502 unique words
+Set2 (final word list): 1,135 unique words
+Words used from Set2: 1,120 words
+Words unused from Set2: 15 words
+Extra words in Set1: 382 words
+Coverage of final word list: 98.68%
+
+ANALYSIS:
+--------------------
+✅ Excellent coverage! Most words from the final list are used.

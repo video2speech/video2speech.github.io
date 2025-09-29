@@ -71,6 +71,8 @@
       <select id="sentenceSet" onchange="loadSentenceSet()">
         <option value="50_sentences">50_Words_Sentences</option>
         <option value="150_sentences">150_Words_Sentences</option>
+        <option value="50_repeat6_sentences">50_Repeat6_Sentences</option>
+        <option value="300_nonrepeating_sentences">300_Nonrepeating_Sentences</option>
       </select>
       <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">Reset Progress</button>
       <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">Clear All Progress</button>
@@ -320,7 +322,9 @@ async function clearAllStoredVideos() {
 // Sentence sets data
 const sentenceSets = {
   '50_sentences': null,
-  '150_sentences': null
+  '150_sentences': null,
+  '50_repeat6_sentences': null,
+  '300_nonrepeating_sentences': null
 };
 
 let currentSentenceSet = '50_sentences';
@@ -348,6 +352,10 @@ async function loadSentenceSet() {
     filename = '50_sentences_list.txt';
   } else if (selected === '150_sentences') {
     filename = '150_sentences_list.txt';
+  } else if (selected === '50_repeat6_sentences') {
+    filename = '../newset/50_repeat6_sentences.txt';
+  } else if (selected === '300_nonrepeating_sentences') {
+    filename = '../newset/300_nonrepeating_sentences.txt';
   }
   
   // Load sentences from cache or file
@@ -457,14 +465,14 @@ async function updateSentenceView(){
   // Update progress indicator with repetition count
   let progressText = total ? `${idx+1} / ${total}` : '';
   
-  // Add repetition count if > 1, displayed on the right side
+  // Always display repetition count, starting from 1st repeat
   try {
     const progress = await getProgress(currentSentenceSet);
-    if (progress && progress.repetitionCount > 1) {
-      progressText += `    ${ordinal(progress.repetitionCount)} repeat`;
-    }
+    const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
+    progressText += `    ${ordinal(repeatCount)} repeat`;
   } catch (error) {
     console.error('Failed to get progress for repetition count:', error);
+    progressText += `    1st repeat`;
   }
   
   progressEl.textContent = progressText;
@@ -968,11 +976,9 @@ async function saveBlob(){
     const total = sentences.length;
     const currentPos = idx + 1;
     
-    if (progress && progress.repetitionCount > 1) {
-      progressInfo = `_${currentPos}-${total}_${ordinal(progress.repetitionCount)}repeat`;
-    } else {
-      progressInfo = `_${currentPos}-${total}`;
-    }
+    // Always include repeat count in filename, starting from repeat1
+    const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
+    progressInfo = `_${currentPos}-${total}_repeat${repeatCount}`;
   } catch (error) {
     console.error('Failed to get progress for filename:', error);
     progressInfo = `_${idx + 1}-${sentences.length}`;
@@ -1015,15 +1021,17 @@ async function saveBlob(){
   } else {
     // All sentences completed, reset to first sentence for repetition
     idx = 0;
-    await updateSentenceView();
     
-    // Save progress and increment repetition counter
+    // Save progress and increment repetition counter FIRST
     try {
       await saveProgress(currentSentenceSet, idx, true); // true indicates completion
       console.log(`Completed recording all ${sentences.length} sentences, starting next repetition`);
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
+    
+    // Then update the sentence view to show the new repetition count
+    await updateSentenceView();
   }
   
   // Display format information

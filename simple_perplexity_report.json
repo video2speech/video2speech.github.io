@@ -1,0 +1,1970 @@
+[
+  {
+    "index": 1,
+    "sentence": "What do you think",
+    "perplexity": 8.860002349525042,
+    "log_probability": -13.089282178802206,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 2,
+    "sentence": "So what's the point",
+    "perplexity": 17.26483766121466,
+    "log_probability": -17.092031568179948,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 3,
+    "sentence": "What did you do",
+    "perplexity": 12.155902539676628,
+    "log_probability": -14.986889145335144,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 4,
+    "sentence": "You can do it",
+    "perplexity": 9.16318202782061,
+    "log_probability": -13.291161007874402,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 5,
+    "sentence": "Think about it",
+    "perplexity": 13.173223399798479,
+    "log_probability": -12.890931195098691,
+    "length": 3,
+    "model_type": "trigram"
+  },
+  {
+    "index": 6,
+    "sentence": "I will do this for you",
+    "perplexity": 11.816683095971202,
+    "log_probability": -19.75609883727386,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 7,
+    "sentence": "We are with you",
+    "perplexity": 11.148405710474059,
+    "log_probability": -14.46777901245002,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 8,
+    "sentence": "That is what I think",
+    "perplexity": 15.401184916134458,
+    "log_probability": -19.141111143460506,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 9,
+    "sentence": "Can we do that",
+    "perplexity": 15.232926326353175,
+    "log_probability": -16.340755744155643,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 10,
+    "sentence": "What can I do for you",
+    "perplexity": 10.954024553334227,
+    "log_probability": -19.149655422830676,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 11,
+    "sentence": "When did you know",
+    "perplexity": 13.453609131520704,
+    "log_probability": -15.595484441807848,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 12,
+    "sentence": "This is for you",
+    "perplexity": 8.899628577161756,
+    "log_probability": -13.116057257784473,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 13,
+    "sentence": "Can I have them",
+    "perplexity": 17.489792254114793,
+    "log_probability": -17.169704465874652,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 14,
+    "sentence": "I know we can do this",
+    "perplexity": 13.298055648929102,
+    "log_probability": -20.700942661846415,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 15,
+    "sentence": "They know it is you",
+    "perplexity": 16.51061660631452,
+    "log_probability": -19.62802523275644,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 16,
+    "sentence": "What about now",
+    "perplexity": 11.038028165656552,
+    "log_probability": -12.006732083566625,
+    "length": 3,
+    "model_type": "trigram"
+  },
+  {
+    "index": 17,
+    "sentence": "Now what do we do",
+    "perplexity": 19.1142213852712,
+    "log_probability": -20.65302843197383,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 18,
+    "sentence": "Yes I get the point",
+    "perplexity": 10.724580803624463,
+    "log_probability": -16.60776864698746,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 19,
+    "sentence": "That is what we do for you",
+    "perplexity": 13.232579822824743,
+    "log_probability": -23.244137613568554,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 20,
+    "sentence": "What about this",
+    "perplexity": 10.458485969007834,
+    "log_probability": -11.737068516617523,
+    "length": 3,
+    "model_type": "trigram"
+  },
+  {
+    "index": 21,
+    "sentence": "But you can now confirm it",
+    "perplexity": 18.641590897598924,
+    "log_probability": -23.403161233592762,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 22,
+    "sentence": "What do we have to do",
+    "perplexity": 9.682807721183966,
+    "log_probability": -18.162815304578572,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 23,
+    "sentence": "There is no signature",
+    "perplexity": 11.680670101065353,
+    "log_probability": -14.747612084525663,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 24,
+    "sentence": "Yes you can do it now",
+    "perplexity": 13.384538199205945,
+    "log_probability": -20.752801400082976,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 25,
+    "sentence": "when did you get that",
+    "perplexity": 14.591484992713136,
+    "log_probability": -18.7630669722885,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 26,
+    "sentence": "Yes I know them",
+    "perplexity": 12.145599285271844,
+    "log_probability": -14.981801432602149,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 27,
+    "sentence": "I have it now",
+    "perplexity": 9.680878909996455,
+    "log_probability": -13.620916161923827,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 28,
+    "sentence": "What can I do for it",
+    "perplexity": 13.529764081944373,
+    "log_probability": -20.839136042938314,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 29,
+    "sentence": "Do you know what that is",
+    "perplexity": 9.496663747755225,
+    "log_probability": -18.00752441983982,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 30,
+    "sentence": "It is for you",
+    "perplexity": 9.561308493279935,
+    "log_probability": -13.546347536275425,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 31,
+    "sentence": "And what do they know",
+    "perplexity": 22.023398469063018,
+    "log_probability": -21.6447381846323,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 32,
+    "sentence": "That is the point",
+    "perplexity": 12.3912967985419,
+    "log_probability": -15.101966130593022,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 33,
+    "sentence": "What do you get",
+    "perplexity": 10.919344092691532,
+    "log_probability": -14.343215422445763,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 34,
+    "sentence": "I think I get it",
+    "perplexity": 9.434534852242209,
+    "log_probability": -15.71063814156142,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 35,
+    "sentence": "what is in the case",
+    "perplexity": 10.313568280457693,
+    "log_probability": -16.334222359895307,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 36,
+    "sentence": "What do you have",
+    "perplexity": 10.205822448590679,
+    "log_probability": -13.937750314337599,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 37,
+    "sentence": "When will you know",
+    "perplexity": 12.020595864834718,
+    "log_probability": -14.919729003959773,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 38,
+    "sentence": "We are what we are",
+    "perplexity": 13.001976990679443,
+    "log_probability": -17.955709954736637,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 39,
+    "sentence": "What is it for",
+    "perplexity": 10.80309468817411,
+    "log_probability": -14.27899582971147,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 40,
+    "sentence": "When did we get that",
+    "perplexity": 15.26458216606839,
+    "log_probability": -19.07874677652431,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 41,
+    "sentence": "They will do it",
+    "perplexity": 8.114515883394924,
+    "log_probability": -12.561927253085004,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 42,
+    "sentence": "Is this your signature",
+    "perplexity": 17.126428078451255,
+    "log_probability": -17.04373663268295,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 43,
+    "sentence": "We have what we have",
+    "perplexity": 12.361917514665576,
+    "log_probability": -17.602344051066357,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 44,
+    "sentence": "I think I did it",
+    "perplexity": 9.73800737025229,
+    "log_probability": -15.932255602305338,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 45,
+    "sentence": "Do you know about that",
+    "perplexity": 8.883528217655618,
+    "log_probability": -15.289391599305151,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 46,
+    "sentence": "You do what you have to do",
+    "perplexity": 16.569011416063503,
+    "log_probability": -25.26780751729453,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 47,
+    "sentence": "I can know what you think",
+    "perplexity": 11.810719535708136,
+    "log_probability": -19.752060434588525,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 48,
+    "sentence": "You are my client",
+    "perplexity": 16.061609495948257,
+    "log_probability": -16.65859152706574,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 49,
+    "sentence": "I can get it for you",
+    "perplexity": 8.605246741692529,
+    "log_probability": -17.2189768278066,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 50,
+    "sentence": "That is what I know",
+    "perplexity": 13.520358736362935,
+    "log_probability": -18.229376228122213,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 51,
+    "sentence": "We have to think",
+    "perplexity": 7.553149469267459,
+    "log_probability": -12.131787747156825,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 52,
+    "sentence": "Yes I know it",
+    "perplexity": 12.182799686804861,
+    "log_probability": -15.000150571270346,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 53,
+    "sentence": "What is it about",
+    "perplexity": 10.585844336639225,
+    "log_probability": -14.157106012102433,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 54,
+    "sentence": "Yes I think so",
+    "perplexity": 11.070727166078711,
+    "log_probability": -14.425826595335044,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 55,
+    "sentence": "They can do it",
+    "perplexity": 10.33906010527409,
+    "log_probability": -14.015573796234387,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 56,
+    "sentence": "This is for them",
+    "perplexity": 12.580009098904082,
+    "log_probability": -15.192653847332078,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 57,
+    "sentence": "We know that now",
+    "perplexity": 12.942472547390519,
+    "log_probability": -15.363086092023583,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 58,
+    "sentence": "We know the point",
+    "perplexity": 10.162316519950679,
+    "log_probability": -13.912118520561258,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 59,
+    "sentence": "They will think about it",
+    "perplexity": 9.6697728051151,
+    "log_probability": -15.883033700602102,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 60,
+    "sentence": "It is about you",
+    "perplexity": 12.595652049434522,
+    "log_probability": -15.200110073780984,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 61,
+    "sentence": "I know you are there",
+    "perplexity": 11.199505358579318,
+    "log_probability": -16.91108729039248,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 62,
+    "sentence": "I will think about it",
+    "perplexity": 9.286805932503658,
+    "log_probability": -15.600162731246732,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 63,
+    "sentence": "I can confirm it now",
+    "perplexity": 10.65877588961444,
+    "log_probability": -16.56468506017686,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 64,
+    "sentence": "I did it for you",
+    "perplexity": 9.04193980639828,
+    "log_probability": -15.413116122171642,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 65,
+    "sentence": "We did it with them",
+    "perplexity": 12.871116872664762,
+    "log_probability": -17.88490059254925,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 66,
+    "sentence": "Can you confirm this",
+    "perplexity": 14.477679243350622,
+    "log_probability": -16.035648605179045,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 67,
+    "sentence": "Do you think they will confirm",
+    "perplexity": 12.905878619942676,
+    "log_probability": -20.461463316296314,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 68,
+    "sentence": "Yes, we have this case",
+    "perplexity": 14.481000153816398,
+    "log_probability": -18.70986219177888,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 69,
+    "sentence": "No I do not think so",
+    "perplexity": 16.73692263912217,
+    "log_probability": -22.540937722988883,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 70,
+    "sentence": "I can confirm your signature now",
+    "perplexity": 11.162509124979469,
+    "log_probability": -19.30048610935719,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 71,
+    "sentence": "They will have it for you",
+    "perplexity": 10.467506655820314,
+    "log_probability": -18.786206838133864,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 72,
+    "sentence": "We will do it if you confirm",
+    "perplexity": 12.60086759087034,
+    "log_probability": -22.80389101204697,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 73,
+    "sentence": "This is what we will do",
+    "perplexity": 12.391744328589589,
+    "log_probability": -20.13624376742916,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 74,
+    "sentence": "Can you confirm your case now",
+    "perplexity": 15.76231884245411,
+    "log_probability": -22.060977666239783,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 75,
+    "sentence": "No we did not get it",
+    "perplexity": 13.03014608317927,
+    "log_probability": -20.53812481895459,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 76,
+    "sentence": "This is not what we did",
+    "perplexity": 15.102467866699225,
+    "log_probability": -21.718865322780776,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 77,
+    "sentence": "Can we get your signature now",
+    "perplexity": 14.024683603810484,
+    "log_probability": -21.126551133689514,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 78,
+    "sentence": "I think you did it",
+    "perplexity": 9.591643185610096,
+    "log_probability": -15.826245525078717,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 79,
+    "sentence": "What is your point",
+    "perplexity": 7.876931759274257,
+    "log_probability": -12.383630744369267,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 80,
+    "sentence": "We are on it",
+    "perplexity": 10.419916095702698,
+    "log_probability": -14.062313904341856,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 81,
+    "sentence": "You will get them",
+    "perplexity": 15.226355213579096,
+    "log_probability": -16.338166932124444,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 82,
+    "sentence": "Now I can confirm",
+    "perplexity": 16.670995264401704,
+    "log_probability": -16.882022393422872,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 83,
+    "sentence": "I think it is your case",
+    "perplexity": 9.990881726628324,
+    "log_probability": -18.413382797515617,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 84,
+    "sentence": "Do you think so",
+    "perplexity": 9.188666598372905,
+    "log_probability": -13.30782499903048,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 85,
+    "sentence": "We have to do it",
+    "perplexity": 6.731944651624394,
+    "log_probability": -13.348048382276454,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 86,
+    "sentence": "Are you with them",
+    "perplexity": 18.01074783223538,
+    "log_probability": -17.34581208895605,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 87,
+    "sentence": "We think about you",
+    "perplexity": 11.538327065414329,
+    "log_probability": -14.674045693416293,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 88,
+    "sentence": "When will you confirm",
+    "perplexity": 11.764496349961705,
+    "log_probability": -14.790517272479766,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 89,
+    "sentence": "I do not know what that is",
+    "perplexity": 11.624383675263175,
+    "log_probability": -22.077944395976676,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 90,
+    "sentence": "This is not what I know",
+    "perplexity": 13.778647835271927,
+    "log_probability": -20.98496108487388,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 91,
+    "sentence": "The client is in litigation",
+    "perplexity": 8.938611264910483,
+    "log_probability": -15.332661663364654,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 92,
+    "sentence": "I confirm the judge signature",
+    "perplexity": 13.894724656134782,
+    "log_probability": -18.42056472871222,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 93,
+    "sentence": "We are in litigation on that point",
+    "perplexity": 13.89996980865916,
+    "log_probability": -23.6869800128584,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 94,
+    "sentence": "I have the case for you",
+    "perplexity": 10.06356304441892,
+    "log_probability": -18.471370250644682,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 95,
+    "sentence": "You and I know the judge",
+    "perplexity": 14.40965698590952,
+    "log_probability": -21.343188846685155,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 96,
+    "sentence": "It is not the trial now",
+    "perplexity": 14.950102696418904,
+    "log_probability": -21.637745353110247,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 97,
+    "sentence": "They do the litigation for us",
+    "perplexity": 14.196146259583283,
+    "log_probability": -21.22376430083238,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 98,
+    "sentence": "We can confirm the schedule with them",
+    "perplexity": 11.676665931026713,
+    "log_probability": -22.118332369863882,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 99,
+    "sentence": "The client did not appeal this point",
+    "perplexity": 12.71896510527117,
+    "log_probability": -22.887847754582467,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 100,
+    "sentence": "There is no exposure in this trial",
+    "perplexity": 11.930644823337477,
+    "log_probability": -22.311992567000505,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 101,
+    "sentence": "If you think it is the case you can confirm",
+    "perplexity": 20.177866751367407,
+    "log_probability": -36.05503557966383,
+    "length": 10,
+    "model_type": "trigram"
+  },
+  {
+    "index": 102,
+    "sentence": "The judge will get the point for appeal",
+    "perplexity": 12.860882052892812,
+    "log_probability": -25.54190305329278,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 103,
+    "sentence": "I will confirm the schedule",
+    "perplexity": 8.97956604467328,
+    "log_probability": -15.364660895498648,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 104,
+    "sentence": "The judge is in the trial",
+    "perplexity": 9.551487602909926,
+    "log_probability": -18.053575298399792,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 105,
+    "sentence": "You can get the signature for the client",
+    "perplexity": 11.32299846544592,
+    "log_probability": -24.268359198064953,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 106,
+    "sentence": "We have the case now",
+    "perplexity": 8.786576812289407,
+    "log_probability": -15.212576362864644,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 107,
+    "sentence": "They did not appeal the case",
+    "perplexity": 8.384586302772613,
+    "log_probability": -17.011160450279448,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 108,
+    "sentence": "I think that is your point",
+    "perplexity": 9.64246619546265,
+    "log_probability": -18.12941524246825,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 109,
+    "sentence": "What is the litigation about",
+    "perplexity": 11.820598510656867,
+    "log_probability": -17.288905522807696,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 110,
+    "sentence": "Yes we can confirm the trial schedule",
+    "perplexity": 12.609103007439586,
+    "log_probability": -22.809771126144742,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 111,
+    "sentence": "You have no exposure in this case",
+    "perplexity": 12.788524562273212,
+    "log_probability": -22.936934252160345,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 112,
+    "sentence": "The client and I will get on that",
+    "perplexity": 14.4246222546301,
+    "log_probability": -26.689366251972157,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 113,
+    "sentence": "The judge will schedule the trial",
+    "perplexity": 8.578266596863022,
+    "log_probability": -17.193854918014033,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 114,
+    "sentence": "The client is in litigation for the case",
+    "perplexity": 11.576966378004279,
+    "log_probability": -24.490174670131275,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 115,
+    "sentence": "I confirm that we will appeal",
+    "perplexity": 13.993557896299915,
+    "log_probability": -21.108776587594765,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 116,
+    "sentence": "We have the trial schedule now",
+    "perplexity": 9.441478209502035,
+    "log_probability": -17.960900463104792,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 117,
+    "sentence": "The judge will confirm the signature",
+    "perplexity": 8.66623112117219,
+    "log_probability": -17.27547194272938,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 118,
+    "sentence": "Litigation exposure is what we think about",
+    "perplexity": 20.88575168428525,
+    "log_probability": -27.35160469999213,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 119,
+    "sentence": "I confirm the schedule for the trial",
+    "perplexity": 9.25971526710819,
+    "log_probability": -20.031059695436255,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 120,
+    "sentence": "We will confirm the client appeal",
+    "perplexity": 14.119800362057124,
+    "log_probability": -21.180624746405076,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 121,
+    "sentence": "They did not know the point",
+    "perplexity": 9.40975797054213,
+    "log_probability": -17.933977862512226,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 122,
+    "sentence": "I will get your signature on this",
+    "perplexity": 10.759907653678136,
+    "log_probability": -21.382442750924003,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 123,
+    "sentence": "We are in litigation with them now",
+    "perplexity": 12.854473351101836,
+    "log_probability": -22.983226843226294,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 124,
+    "sentence": "The exposure is not on us",
+    "perplexity": 16.89412433620225,
+    "log_probability": -22.61572711250315,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 125,
+    "sentence": "If you confirm it we will do it",
+    "perplexity": 15.775888915809624,
+    "log_probability": -27.584827564948213,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 126,
+    "sentence": "Yes I think they are in the trial schedule",
+    "perplexity": 12.411904543751165,
+    "log_probability": -27.70521661505987,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 127,
+    "sentence": "I know the client",
+    "perplexity": 9.032882979353884,
+    "log_probability": -13.205229499744124,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 128,
+    "sentence": "We have your signature",
+    "perplexity": 9.022985111214382,
+    "log_probability": -13.198651337510354,
+    "length": 4,
+    "model_type": "trigram"
+  },
+  {
+    "index": 129,
+    "sentence": "Can you get it for us",
+    "perplexity": 13.47430711898636,
+    "log_probability": -20.80627756585399,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 130,
+    "sentence": "I think the client will appeal",
+    "perplexity": 9.419908270377181,
+    "log_probability": -17.942602806311744,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 131,
+    "sentence": "We have to confirm the trial schedule",
+    "perplexity": 7.766696026722525,
+    "log_probability": -18.448603669449927,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 132,
+    "sentence": "You can get the signature now",
+    "perplexity": 11.768873441809399,
+    "log_probability": -19.72366561853232,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 133,
+    "sentence": "The judge did not know about the litigation",
+    "perplexity": 12.342209467249159,
+    "log_probability": -25.130250516596636,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 134,
+    "sentence": "What is your point in this case",
+    "perplexity": 9.630517038443532,
+    "log_probability": -20.384432232817442,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 135,
+    "sentence": "They are not in litigation with us",
+    "perplexity": 15.345931827041376,
+    "log_probability": -24.577653702176008,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 136,
+    "sentence": "It is for the judge to confirm",
+    "perplexity": 17.986023181879407,
+    "log_probability": -26.006354697385333,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 137,
+    "sentence": "There is no exposure for the client",
+    "perplexity": 12.121888294970727,
+    "log_probability": -22.455114915786286,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 138,
+    "sentence": "I know that they will appeal",
+    "perplexity": 11.910871212720028,
+    "log_probability": -19.819612242996186,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 139,
+    "sentence": "I think that the client is in litigation",
+    "perplexity": 9.755284759587258,
+    "log_probability": -22.77809164790719,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 140,
+    "sentence": "Do you know about the case",
+    "perplexity": 8.048361867330454,
+    "log_probability": -16.683748607848393,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 141,
+    "sentence": "We have to confirm the signature",
+    "perplexity": 8.18811139596365,
+    "log_probability": -16.821466179916428,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 142,
+    "sentence": "It is not for us",
+    "perplexity": 10.085408977583587,
+    "log_probability": -16.177628065489053,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 143,
+    "sentence": "They did not get the appeal",
+    "perplexity": 9.096167186500551,
+    "log_probability": -17.662825092011655,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 144,
+    "sentence": "When will the judge schedule the trial",
+    "perplexity": 12.13333214781782,
+    "log_probability": -22.46360749440532,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 145,
+    "sentence": "You and I can schedule the trial",
+    "perplexity": 12.272259642367871,
+    "log_probability": -22.56607261529679,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 146,
+    "sentence": "The judge did not confirm it",
+    "perplexity": 9.77546456743383,
+    "log_probability": -18.239005046578306,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 147,
+    "sentence": "They have no appeal for this",
+    "perplexity": 16.277065883490433,
+    "log_probability": -22.318056928355972,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 148,
+    "sentence": "Confirm with us if you get it",
+    "perplexity": 18.209698162753195,
+    "log_probability": -26.117588864208354,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 149,
+    "sentence": "This is what they know about now",
+    "perplexity": 15.917059124212031,
+    "log_probability": -24.906522914758863,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 150,
+    "sentence": "Do you know about the litigation",
+    "perplexity": 9.09034737650743,
+    "log_probability": -17.65770498157236,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 151,
+    "sentence": "They did not confirm the schedule with us",
+    "perplexity": 10.447108710557428,
+    "log_probability": -23.463252617127285,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 152,
+    "sentence": "I think that it is not your case",
+    "perplexity": 11.874391458719217,
+    "log_probability": -24.743841030260654,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 153,
+    "sentence": "The judge will confirm the appeal",
+    "perplexity": 8.32477526098999,
+    "log_probability": -16.953888318601916,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 154,
+    "sentence": "We have to schedule the trial",
+    "perplexity": 7.777879938970818,
+    "log_probability": -16.41027039709928,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 155,
+    "sentence": "What is the point in this",
+    "perplexity": 12.229826141848672,
+    "log_probability": -20.031021871092502,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 156,
+    "sentence": "They did not get your signature",
+    "perplexity": 7.485319157054765,
+    "log_probability": -16.103549252125013,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 157,
+    "sentence": "What is the schedule for the trial",
+    "perplexity": 9.45010837439597,
+    "log_probability": -20.214235886669478,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 158,
+    "sentence": "We did not get your signature",
+    "perplexity": 9.006344189236367,
+    "log_probability": -17.58343391135257,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 159,
+    "sentence": "They will appeal the case",
+    "perplexity": 7.7337996830270646,
+    "log_probability": -14.319202044179605,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 160,
+    "sentence": "You and I are in the trial",
+    "perplexity": 11.27507137142154,
+    "log_probability": -21.803347938854404,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 161,
+    "sentence": "I think there is exposure in this litigation",
+    "perplexity": 11.554920446754032,
+    "log_probability": -24.471113589561302,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 162,
+    "sentence": "What do we know about the case now",
+    "perplexity": 12.91817272087196,
+    "log_probability": -25.586350580791834,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 163,
+    "sentence": "Yes I will get them on the trial schedule",
+    "perplexity": 12.526086669406348,
+    "log_probability": -27.80594743563931,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 164,
+    "sentence": "No there is not exposure for us in this appeal",
+    "perplexity": 23.179386494260687,
+    "log_probability": -37.7191604463845,
+    "length": 10,
+    "model_type": "trigram"
+  },
+  {
+    "index": 165,
+    "sentence": "They did not confirm the schedule",
+    "perplexity": 9.136320097967426,
+    "log_probability": -17.69806151434244,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 166,
+    "sentence": "Yes I will schedule it now",
+    "perplexity": 12.566831526269993,
+    "log_probability": -20.248487396009043,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 167,
+    "sentence": "Confirm with the judge if there is no trial",
+    "perplexity": 20.37467370138186,
+    "log_probability": -33.15721908776844,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 168,
+    "sentence": "I will appeal to the judge",
+    "perplexity": 13.13094095253841,
+    "log_probability": -20.599770800545762,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 169,
+    "sentence": "Do you have the case schedule",
+    "perplexity": 13.318063252376378,
+    "log_probability": -20.712970024537434,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 170,
+    "sentence": "When will the judge confirm the appeal for the client",
+    "perplexity": 14.824950458905224,
+    "log_probability": -32.35573923782094,
+    "length": 10,
+    "model_type": "trigram"
+  },
+  {
+    "index": 171,
+    "sentence": "But I do not know the schedule for the trial",
+    "perplexity": 13.994959065501282,
+    "log_probability": -31.66436637630904,
+    "length": 10,
+    "model_type": "trigram"
+  },
+  {
+    "index": 172,
+    "sentence": "It is about the exposure in this case",
+    "perplexity": 13.364078446281244,
+    "log_probability": -25.92570394447444,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 173,
+    "sentence": "I think that the client is not in the trial",
+    "perplexity": 8.852771065059802,
+    "log_probability": -26.168766296468217,
+    "length": 10,
+    "model_type": "trigram"
+  },
+  {
+    "index": 174,
+    "sentence": "The judge will confirm your signature on this",
+    "perplexity": 11.80374330630715,
+    "log_probability": -24.684167105130918,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 175,
+    "sentence": "I think the client is not in the exposure",
+    "perplexity": 11.324637949578666,
+    "log_probability": -26.696787718985423,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 176,
+    "sentence": "There is no schedule for it",
+    "perplexity": 13.875024224688575,
+    "log_probability": -21.0407232444358,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 177,
+    "sentence": "But the case is not on trial now",
+    "perplexity": 19.428834432303333,
+    "log_probability": -29.667582735459042,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 178,
+    "sentence": "Yes I will get your signature and confirm it",
+    "perplexity": 13.054354600859774,
+    "log_probability": -28.260339403973443,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 179,
+    "sentence": "I think you know this",
+    "perplexity": 10.378736628056817,
+    "log_probability": -16.378314107378756,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 180,
+    "sentence": "I do not know what to do",
+    "perplexity": 12.248922614257275,
+    "log_probability": -22.548941849397345,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 181,
+    "sentence": "Is it on your schedule for us",
+    "perplexity": 18.544256579195007,
+    "log_probability": -26.281441104655887,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 182,
+    "sentence": "What do you think about it",
+    "perplexity": 9.112389894769217,
+    "log_probability": -17.677080115065827,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 183,
+    "sentence": "The judge did not get your point in the trial",
+    "perplexity": 10.071759301199675,
+    "log_probability": -27.716824783688754,
+    "length": 10,
+    "model_type": "trigram"
+  },
+  {
+    "index": 184,
+    "sentence": "We do not have the trial schedule",
+    "perplexity": 11.836855589975654,
+    "log_probability": -22.240962171121986,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 185,
+    "sentence": "I have the schedule for us",
+    "perplexity": 10.327955721567447,
+    "log_probability": -18.678834930502315,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 186,
+    "sentence": "What is this point about",
+    "perplexity": 12.92311830553446,
+    "log_probability": -17.913124769053997,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 187,
+    "sentence": "They do not know your case",
+    "perplexity": 13.387192004336333,
+    "log_probability": -20.754387434377453,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 188,
+    "sentence": "They appeal the litigation with us",
+    "perplexity": 15.03275945706316,
+    "log_probability": -21.681854268192613,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 189,
+    "sentence": "The client did not have exposure",
+    "perplexity": 12.17865098507481,
+    "log_probability": -19.9974759966863,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 190,
+    "sentence": "I think you are not there",
+    "perplexity": 9.644734211220808,
+    "log_probability": -18.131296710567955,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 191,
+    "sentence": "What is your point about this",
+    "perplexity": 10.815766931656787,
+    "log_probability": -19.04803976471967,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 192,
+    "sentence": "We can get it for you",
+    "perplexity": 8.256046675231026,
+    "log_probability": -16.88756689772285,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 193,
+    "sentence": "Do you know what they will do",
+    "perplexity": 10.569881474361344,
+    "log_probability": -21.22207727777292,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 194,
+    "sentence": "I have to think about it",
+    "perplexity": 10.75141817302929,
+    "log_probability": -19.000301351560644,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 195,
+    "sentence": "We have to confirm the signature for the client",
+    "perplexity": 9.02931225315482,
+    "log_probability": -24.205238222957675,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 196,
+    "sentence": "The client will confirm the signature for the appeal",
+    "perplexity": 11.58681590944748,
+    "log_probability": -26.948546814291724,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 197,
+    "sentence": "We are on the schedule now",
+    "perplexity": 12.446827365138406,
+    "log_probability": -20.171726082613137,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 198,
+    "sentence": "This is my point about that",
+    "perplexity": 14.723048583945173,
+    "log_probability": -21.515313573960427,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 199,
+    "sentence": "No we did not do it",
+    "perplexity": 14.845314649088113,
+    "log_probability": -21.581474428947647,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 200,
+    "sentence": "Do you know when we will get it",
+    "perplexity": 10.89498727117964,
+    "log_probability": -23.883028000782907,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 201,
+    "sentence": "The client will appeal the case",
+    "perplexity": 8.47878185542029,
+    "log_probability": -17.100534322882577,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 202,
+    "sentence": "We think the case is not about exposure",
+    "perplexity": 16.956910550798906,
+    "log_probability": -28.306754528505657,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 203,
+    "sentence": "They did not get the signature in the trial",
+    "perplexity": 9.517366796793054,
+    "log_probability": -24.78430034924531,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 204,
+    "sentence": "We will not do litigation with them",
+    "perplexity": 14.15751017018637,
+    "log_probability": -23.852207136293053,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 205,
+    "sentence": "I think it is not for you",
+    "perplexity": 8.318211976090808,
+    "log_probability": -19.06602592515754,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 206,
+    "sentence": "We do know what they did",
+    "perplexity": 14.45782040645008,
+    "log_probability": -21.36988378206938,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 207,
+    "sentence": "The point is to have them there",
+    "perplexity": 18.37874685026964,
+    "log_probability": -26.20075441077714,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 208,
+    "sentence": "We can get it for you now",
+    "perplexity": 11.595051796605684,
+    "log_probability": -22.05520594062877,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 209,
+    "sentence": "I think you are not there now",
+    "perplexity": 9.901913838200063,
+    "log_probability": -20.634552499024153,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 210,
+    "sentence": "Do you know what they think",
+    "perplexity": 10.050689773395538,
+    "log_probability": -18.461130130548625,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 211,
+    "sentence": "We have to do it now",
+    "perplexity": 7.962118813813125,
+    "log_probability": -16.597561176606543,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 212,
+    "sentence": "I did not get your point",
+    "perplexity": 10.796975494470441,
+    "log_probability": -19.034128384811613,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 213,
+    "sentence": "There is exposure in this litigation",
+    "perplexity": 12.044825393483505,
+    "log_probability": -19.909081118235253,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 214,
+    "sentence": "I think the judge will get the point",
+    "perplexity": 9.838255512369228,
+    "log_probability": -22.8627841001893,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 215,
+    "sentence": "We are not there now",
+    "perplexity": 10.336801392718668,
+    "log_probability": -16.349973347119224,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 216,
+    "sentence": "Do you know what this is",
+    "perplexity": 11.053669877438944,
+    "log_probability": -19.22209990744733,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 217,
+    "sentence": "I have your schedule there",
+    "perplexity": 13.014140521789916,
+    "log_probability": -17.962255491282317,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 218,
+    "sentence": "What did you do about that",
+    "perplexity": 13.670263380834474,
+    "log_probability": -20.921783340954732,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 219,
+    "sentence": "The client is not in the trial",
+    "perplexity": 8.00743673158233,
+    "log_probability": -18.72333631192569,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 220,
+    "sentence": "We have to appeal the case",
+    "perplexity": 7.80360638628572,
+    "log_probability": -16.436687872460013,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 221,
+    "sentence": "They will schedule the trial",
+    "perplexity": 8.776596649787274,
+    "log_probability": -15.204620950343644,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 222,
+    "sentence": "They did not confirm it",
+    "perplexity": 8.143922001747068,
+    "log_probability": -14.680903176615775,
+    "length": 5,
+    "model_type": "trigram"
+  },
+  {
+    "index": 223,
+    "sentence": "The client did not have signature there",
+    "perplexity": 13.277980748905252,
+    "log_probability": -23.274963724022435,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 224,
+    "sentence": "I know what you think now",
+    "perplexity": 10.735850171470299,
+    "log_probability": -18.988708995355328,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 225,
+    "sentence": "We can do it for you",
+    "perplexity": 9.019789916095212,
+    "log_probability": -17.59536834323808,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 226,
+    "sentence": "We have litigation exposure on the case",
+    "perplexity": 12.308632289276892,
+    "log_probability": -22.59270745523757,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 227,
+    "sentence": "We appeal the case for client",
+    "perplexity": 11.450137342427304,
+    "log_probability": -19.50401379920101,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 228,
+    "sentence": "This trial is on schedule now",
+    "perplexity": 17.205213554028642,
+    "log_probability": -22.761699611968606,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 229,
+    "sentence": "We appeal the case to the judge",
+    "perplexity": 12.040368694753958,
+    "log_probability": -22.394385557097177,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 230,
+    "sentence": "Did the judge confirm the appeal",
+    "perplexity": 17.723099652742473,
+    "log_probability": -22.998950830793493,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 231,
+    "sentence": "They will appeal the case and trial",
+    "perplexity": 12.21002183627342,
+    "log_probability": -22.520313688622362,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 232,
+    "sentence": "We have the client signature now",
+    "perplexity": 11.30446401083687,
+    "log_probability": -19.401581543322273,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 233,
+    "sentence": "Judge will confirm the trial schedule",
+    "perplexity": 12.539691136828077,
+    "log_probability": -20.2311912373156,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 234,
+    "sentence": "I know you are with us",
+    "perplexity": 11.274631375627399,
+    "log_probability": -19.380441527172994,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 235,
+    "sentence": "My client and I will confirm",
+    "perplexity": 19.012837844116934,
+    "log_probability": -23.560915416050673,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 236,
+    "sentence": "I know what you think about this",
+    "perplexity": 10.714273040653316,
+    "log_probability": -21.34419103447146,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 237,
+    "sentence": "You can get the point now",
+    "perplexity": 12.825584534396583,
+    "log_probability": -20.411535741991422,
+    "length": 6,
+    "model_type": "trigram"
+  },
+  {
+    "index": 238,
+    "sentence": "Do you know when we will do it",
+    "perplexity": 9.19235145793882,
+    "log_probability": -22.183717750133777,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 239,
+    "sentence": "We appeal the case on this point",
+    "perplexity": 12.671554093161756,
+    "log_probability": -22.85423681487889,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 240,
+    "sentence": "I know what you will do now",
+    "perplexity": 12.872790212560098,
+    "log_probability": -22.9960421805878,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 241,
+    "sentence": "I think it is not for us",
+    "perplexity": 8.428238218139978,
+    "log_probability": -19.184289845651275,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 242,
+    "sentence": "Do you know when they will get it",
+    "perplexity": 11.831754709167141,
+    "log_probability": -24.70786994054926,
+    "length": 8,
+    "model_type": "trigram"
+  },
+  {
+    "index": 243,
+    "sentence": "They have exposure in the trial case",
+    "perplexity": 15.543404744326784,
+    "log_probability": -24.692727748122973,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 244,
+    "sentence": "There is no exposure in this case",
+    "perplexity": 9.593955488264115,
+    "log_probability": -20.350199371772188,
+    "length": 7,
+    "model_type": "trigram"
+  },
+  {
+    "index": 245,
+    "sentence": "We do not know if it is the case",
+    "perplexity": 13.299994643568382,
+    "log_probability": -28.465399957372487,
+    "length": 9,
+    "model_type": "trigram"
+  },
+  {
+    "index": 246,
+    "sentence": "When will you do that",
+    "perplexity": 13.248729324253716,
+    "log_probability": -18.087311534440424,
+    "length": 5,
+    "model_type": "trigram"
+  }
+]

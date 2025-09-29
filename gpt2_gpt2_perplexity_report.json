@@ -1,0 +1,3098 @@
+[
+  {
+    "index": 1,
+    "sentence": "What do you think",
+    "perplexity": 8.80705451965332,
+    "loss": 2.1755530834198,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 2.20176362991333
+  },
+  {
+    "index": 2,
+    "sentence": "So what is the point",
+    "perplexity": 26.681982040405273,
+    "loss": 3.2839884757995605,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 5.336396408081055
+  },
+  {
+    "index": 3,
+    "sentence": "What did you do",
+    "perplexity": 16.447254180908203,
+    "loss": 2.8001585006713867,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 4.111813545227051
+  },
+  {
+    "index": 4,
+    "sentence": "You can do it",
+    "perplexity": 28.139846801757812,
+    "loss": 3.337186574935913,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 7.034961700439453
+  },
+  {
+    "index": 5,
+    "sentence": "Think about it",
+    "perplexity": 24.52661895751953,
+    "loss": 3.199759006500244,
+    "token_count": 3,
+    "word_count": 3,
+    "avg_perplexity_per_token": 8.17553965250651
+  },
+  {
+    "index": 6,
+    "sentence": "I will do this for you",
+    "perplexity": 23.424144744873047,
+    "loss": 3.1537673473358154,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 3.904024124145508
+  },
+  {
+    "index": 7,
+    "sentence": "We are with you",
+    "perplexity": 40.5463981628418,
+    "loss": 3.702446937561035,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 10.13659954071045
+  },
+  {
+    "index": 8,
+    "sentence": "That is what I think",
+    "perplexity": 16.593902587890625,
+    "loss": 2.809035301208496,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 3.318780517578125
+  },
+  {
+    "index": 9,
+    "sentence": "Can we do that",
+    "perplexity": 42.618770599365234,
+    "loss": 3.7522947788238525,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 10.654692649841309
+  },
+  {
+    "index": 10,
+    "sentence": "What can I do for you",
+    "perplexity": 7.805332660675049,
+    "loss": 2.054807186126709,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 1.3008887767791748
+  },
+  {
+    "index": 11,
+    "sentence": "When did you know",
+    "perplexity": 42.38343048095703,
+    "loss": 3.7467575073242188,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 10.595857620239258
+  },
+  {
+    "index": 12,
+    "sentence": "This is for you",
+    "perplexity": 56.69761276245117,
+    "loss": 4.037732124328613,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 14.174403190612793
+  },
+  {
+    "index": 13,
+    "sentence": "Can I have them",
+    "perplexity": 69.815185546875,
+    "loss": 4.245851516723633,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 17.45379638671875
+  },
+  {
+    "index": 14,
+    "sentence": "I know we can do this",
+    "perplexity": 35.25271987915039,
+    "loss": 3.562542676925659,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 5.8754533131917315
+  },
+  {
+    "index": 15,
+    "sentence": "They know it is you",
+    "perplexity": 115.77397918701172,
+    "loss": 4.7516398429870605,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 23.154795837402343
+  },
+  {
+    "index": 16,
+    "sentence": "What about now",
+    "perplexity": 493.5484619140625,
+    "loss": 6.201621055603027,
+    "token_count": 3,
+    "word_count": 3,
+    "avg_perplexity_per_token": 164.51615397135416
+  },
+  {
+    "index": 17,
+    "sentence": "Now what do we do",
+    "perplexity": 21.825298309326172,
+    "loss": 3.0830698013305664,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 4.365059661865234
+  },
+  {
+    "index": 18,
+    "sentence": "Yes I get the point",
+    "perplexity": 91.3663558959961,
+    "loss": 4.5148773193359375,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 18.27327117919922
+  },
+  {
+    "index": 19,
+    "sentence": "That is what we do for you",
+    "perplexity": 18.140281677246094,
+    "loss": 2.89813494682312,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 2.5914688110351562
+  },
+  {
+    "index": 20,
+    "sentence": "But you can now confirm it",
+    "perplexity": 80.15082550048828,
+    "loss": 4.383910179138184,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 13.358470916748047
+  },
+  {
+    "index": 21,
+    "sentence": "What do we have to do",
+    "perplexity": 13.631729125976562,
+    "loss": 2.6124000549316406,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 2.2719548543294272
+  },
+  {
+    "index": 22,
+    "sentence": "There is no signature",
+    "perplexity": 173.98281860351562,
+    "loss": 5.158956527709961,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 43.495704650878906
+  },
+  {
+    "index": 23,
+    "sentence": "Yes you can do it now",
+    "perplexity": 24.124547958374023,
+    "loss": 3.183229923248291,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 4.020757993062337
+  },
+  {
+    "index": 24,
+    "sentence": "when did you get that",
+    "perplexity": 23.868610382080078,
+    "loss": 3.1725642681121826,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 4.773722076416016
+  },
+  {
+    "index": 25,
+    "sentence": "Yes I know them",
+    "perplexity": 137.88804626464844,
+    "loss": 4.9264421463012695,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 34.47201156616211
+  },
+  {
+    "index": 26,
+    "sentence": "I have it now",
+    "perplexity": 108.38114929199219,
+    "loss": 4.685654163360596,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 27.095287322998047
+  },
+  {
+    "index": 27,
+    "sentence": "What can I do for it",
+    "perplexity": 21.42746353149414,
+    "loss": 3.06467342376709,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 3.57124392191569
+  },
+  {
+    "index": 28,
+    "sentence": "Do you know what that is",
+    "perplexity": 14.393364906311035,
+    "loss": 2.6667673587799072,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 2.3988941510518393
+  },
+  {
+    "index": 29,
+    "sentence": "It is for you",
+    "perplexity": 56.66926193237305,
+    "loss": 4.037231922149658,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 14.167315483093262
+  },
+  {
+    "index": 30,
+    "sentence": "And what do they know",
+    "perplexity": 35.953880310058594,
+    "loss": 3.5822370052337646,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 7.190776062011719
+  },
+  {
+    "index": 31,
+    "sentence": "That is the point",
+    "perplexity": 27.770872116088867,
+    "loss": 3.3239877223968506,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 6.942718029022217
+  },
+  {
+    "index": 32,
+    "sentence": "What do you get",
+    "perplexity": 35.77114486694336,
+    "loss": 3.577141523361206,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 8.94278621673584
+  },
+  {
+    "index": 33,
+    "sentence": "I think I get it",
+    "perplexity": 56.379356384277344,
+    "loss": 4.032103061676025,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 11.275871276855469
+  },
+  {
+    "index": 34,
+    "sentence": "what is in the case",
+    "perplexity": 69.60032653808594,
+    "loss": 4.242769241333008,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 13.920065307617188
+  },
+  {
+    "index": 35,
+    "sentence": "What do you have",
+    "perplexity": 37.29280471801758,
+    "loss": 3.618800401687622,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 9.323201179504395
+  },
+  {
+    "index": 36,
+    "sentence": "When will you know",
+    "perplexity": 43.384254455566406,
+    "loss": 3.77009654045105,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 10.846063613891602
+  },
+  {
+    "index": 37,
+    "sentence": "We are what we are",
+    "perplexity": 31.49912452697754,
+    "loss": 3.4499597549438477,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 6.299824905395508
+  },
+  {
+    "index": 38,
+    "sentence": "What is it for",
+    "perplexity": 32.835968017578125,
+    "loss": 3.4915244579315186,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 8.208992004394531
+  },
+  {
+    "index": 39,
+    "sentence": "When did we get that",
+    "perplexity": 41.75153350830078,
+    "loss": 3.731736183166504,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 8.350306701660156
+  },
+  {
+    "index": 40,
+    "sentence": "They will do it",
+    "perplexity": 38.39420700073242,
+    "loss": 3.647906541824341,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 9.598551750183105
+  },
+  {
+    "index": 41,
+    "sentence": "Is this your signature",
+    "perplexity": 264.35260009765625,
+    "loss": 5.57728385925293,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 66.08815002441406
+  },
+  {
+    "index": 42,
+    "sentence": "We have what we have",
+    "perplexity": 40.7332763671875,
+    "loss": 3.707045316696167,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 8.1466552734375
+  },
+  {
+    "index": 43,
+    "sentence": "I think I did it",
+    "perplexity": 50.066959381103516,
+    "loss": 3.9133613109588623,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 10.013391876220703
+  },
+  {
+    "index": 44,
+    "sentence": "Do you know about that",
+    "perplexity": 30.998512268066406,
+    "loss": 3.433939218521118,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 6.199702453613281
+  },
+  {
+    "index": 45,
+    "sentence": "You do what you have to do",
+    "perplexity": 7.6895952224731445,
+    "loss": 2.039868116378784,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 1.0985136032104492
+  },
+  {
+    "index": 46,
+    "sentence": "I can know what you think",
+    "perplexity": 44.87356948852539,
+    "loss": 3.8038489818573,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 7.478928248087565
+  },
+  {
+    "index": 47,
+    "sentence": "You are my client",
+    "perplexity": 197.4152374267578,
+    "loss": 5.285309314727783,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 49.35380935668945
+  },
+  {
+    "index": 48,
+    "sentence": "I can get it for you",
+    "perplexity": 45.48809814453125,
+    "loss": 3.817450761795044,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 7.581349690755208
+  },
+  {
+    "index": 49,
+    "sentence": "That is what I know",
+    "perplexity": 27.133804321289062,
+    "loss": 3.3007802963256836,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 5.426760864257813
+  },
+  {
+    "index": 50,
+    "sentence": "We have to think",
+    "perplexity": 29.484771728515625,
+    "loss": 3.38387393951416,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 7.371192932128906
+  },
+  {
+    "index": 51,
+    "sentence": "Yes I know it",
+    "perplexity": 35.50835418701172,
+    "loss": 3.569767951965332,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 8.87708854675293
+  },
+  {
+    "index": 52,
+    "sentence": "What is it about",
+    "perplexity": 14.324301719665527,
+    "loss": 2.6619575023651123,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 3.581075429916382
+  },
+  {
+    "index": 53,
+    "sentence": "Yes I think so",
+    "perplexity": 35.038917541503906,
+    "loss": 3.556459426879883,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 8.759729385375977
+  },
+  {
+    "index": 54,
+    "sentence": "They can do it",
+    "perplexity": 22.516996383666992,
+    "loss": 3.1142704486846924,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 5.629249095916748
+  },
+  {
+    "index": 55,
+    "sentence": "This is for them",
+    "perplexity": 131.18978881835938,
+    "loss": 4.876645088195801,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 32.797447204589844
+  },
+  {
+    "index": 56,
+    "sentence": "We know that now",
+    "perplexity": 122.97970581054688,
+    "loss": 4.812019348144531,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 30.74492645263672
+  },
+  {
+    "index": 57,
+    "sentence": "We know the point",
+    "perplexity": 189.81362915039062,
+    "loss": 5.246042728424072,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 47.453407287597656
+  },
+  {
+    "index": 58,
+    "sentence": "They will think about it",
+    "perplexity": 44.47172927856445,
+    "loss": 3.794853687286377,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 8.89434585571289
+  },
+  {
+    "index": 59,
+    "sentence": "It is about you",
+    "perplexity": 204.74404907226562,
+    "loss": 5.321760654449463,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 51.186012268066406
+  },
+  {
+    "index": 60,
+    "sentence": "I know you are there",
+    "perplexity": 73.46955871582031,
+    "loss": 4.296871185302734,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 14.693911743164062
+  },
+  {
+    "index": 61,
+    "sentence": "I will think about it",
+    "perplexity": 28.66996955871582,
+    "loss": 3.3558502197265625,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 5.733993911743164
+  },
+  {
+    "index": 62,
+    "sentence": "I can confirm it now",
+    "perplexity": 101.67208099365234,
+    "loss": 4.621752738952637,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 20.33441619873047
+  },
+  {
+    "index": 63,
+    "sentence": "I did it for you",
+    "perplexity": 47.32255554199219,
+    "loss": 3.8569869995117188,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 9.464511108398437
+  },
+  {
+    "index": 64,
+    "sentence": "We did it with them",
+    "perplexity": 65.17393493652344,
+    "loss": 4.177059650421143,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 13.034786987304688
+  },
+  {
+    "index": 65,
+    "sentence": "Can you confirm this",
+    "perplexity": 113.31766510009766,
+    "loss": 4.730195045471191,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 28.329416275024414
+  },
+  {
+    "index": 66,
+    "sentence": "Do you think they will confirm",
+    "perplexity": 61.65300369262695,
+    "loss": 4.121521949768066,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 10.275500615437826
+  },
+  {
+    "index": 67,
+    "sentence": "Yes, we have this case",
+    "perplexity": 60.662757873535156,
+    "loss": 4.105329990386963,
+    "token_count": 6,
+    "word_count": 5,
+    "avg_perplexity_per_token": 10.110459645589193
+  },
+  {
+    "index": 68,
+    "sentence": "No I do not think so",
+    "perplexity": 33.508785247802734,
+    "loss": 3.511807680130005,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 5.584797541300456
+  },
+  {
+    "index": 69,
+    "sentence": "I can confirm your signature now",
+    "perplexity": 267.4247131347656,
+    "loss": 5.58883810043335,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 44.57078552246094
+  },
+  {
+    "index": 70,
+    "sentence": "They will have it for you",
+    "perplexity": 48.962684631347656,
+    "loss": 3.8910584449768066,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 8.160447438557943
+  },
+  {
+    "index": 71,
+    "sentence": "We will do it if you confirm",
+    "perplexity": 84.28256225585938,
+    "loss": 4.43417501449585,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 12.040366036551339
+  },
+  {
+    "index": 72,
+    "sentence": "This is what we will do",
+    "perplexity": 15.682072639465332,
+    "loss": 2.7525181770324707,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 2.613678773244222
+  },
+  {
+    "index": 73,
+    "sentence": "Can you confirm your case now",
+    "perplexity": 209.78228759765625,
+    "loss": 5.346070289611816,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 34.963714599609375
+  },
+  {
+    "index": 74,
+    "sentence": "No we did not get it",
+    "perplexity": 54.74747848510742,
+    "loss": 4.0027313232421875,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 9.124579747517904
+  },
+  {
+    "index": 75,
+    "sentence": "This is not what we did",
+    "perplexity": 24.146766662597656,
+    "loss": 3.184150457382202,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 4.024461110432942
+  },
+  {
+    "index": 76,
+    "sentence": "Can we get your signature now",
+    "perplexity": 162.10255432128906,
+    "loss": 5.088229179382324,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 27.01709238688151
+  },
+  {
+    "index": 77,
+    "sentence": "I think you did it",
+    "perplexity": 68.44156646728516,
+    "loss": 4.225980281829834,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 13.688313293457032
+  },
+  {
+    "index": 78,
+    "sentence": "What is your point",
+    "perplexity": 55.604957580566406,
+    "loss": 4.018272399902344,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 13.901239395141602
+  },
+  {
+    "index": 79,
+    "sentence": "We are on it",
+    "perplexity": 150.22154235839844,
+    "loss": 5.012111186981201,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 37.55538558959961
+  },
+  {
+    "index": 80,
+    "sentence": "You will get them",
+    "perplexity": 94.26380157470703,
+    "loss": 4.546097278594971,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 23.565950393676758
+  },
+  {
+    "index": 81,
+    "sentence": "Now I can confirm",
+    "perplexity": 66.89798736572266,
+    "loss": 4.203168869018555,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 16.724496841430664
+  },
+  {
+    "index": 82,
+    "sentence": "I think it is your case",
+    "perplexity": 112.04362487792969,
+    "loss": 4.718888282775879,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 18.67393747965495
+  },
+  {
+    "index": 83,
+    "sentence": "Do you think so",
+    "perplexity": 42.543827056884766,
+    "loss": 3.750534772872925,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 10.635956764221191
+  },
+  {
+    "index": 84,
+    "sentence": "Are you with them",
+    "perplexity": 123.1468276977539,
+    "loss": 4.813377380371094,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 30.786706924438477
+  },
+  {
+    "index": 85,
+    "sentence": "We think about you",
+    "perplexity": 310.4859619140625,
+    "loss": 5.738138675689697,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 77.62149047851562
+  },
+  {
+    "index": 86,
+    "sentence": "When will you confirm",
+    "perplexity": 277.5123596191406,
+    "loss": 5.625865459442139,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 69.37808990478516
+  },
+  {
+    "index": 87,
+    "sentence": "I do not know what that is",
+    "perplexity": 16.42917823791504,
+    "loss": 2.7990589141845703,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 2.3470254625592912
+  },
+  {
+    "index": 88,
+    "sentence": "This is not what I know",
+    "perplexity": 27.001237869262695,
+    "loss": 3.2958827018737793,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 4.500206311543782
+  },
+  {
+    "index": 89,
+    "sentence": "The client is in litigation",
+    "perplexity": 423.64581298828125,
+    "loss": 6.048897743225098,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 84.72916259765626
+  },
+  {
+    "index": 90,
+    "sentence": "We are in litigation on that point",
+    "perplexity": 156.65533447265625,
+    "loss": 5.05404806137085,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 22.37933349609375
+  },
+  {
+    "index": 91,
+    "sentence": "I have the case for you",
+    "perplexity": 105.6645278930664,
+    "loss": 4.660269260406494,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 17.610754648844402
+  },
+  {
+    "index": 92,
+    "sentence": "You and I know the judge",
+    "perplexity": 74.65978240966797,
+    "loss": 4.312941551208496,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 12.443297068277994
+  },
+  {
+    "index": 93,
+    "sentence": "It is not the trial now",
+    "perplexity": 203.69886779785156,
+    "loss": 5.316642761230469,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 33.94981129964193
+  },
+  {
+    "index": 94,
+    "sentence": "They do the litigation for us",
+    "perplexity": 230.06967163085938,
+    "loss": 5.438382148742676,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 38.3449452718099
+  },
+  {
+    "index": 95,
+    "sentence": "We can confirm the schedule with them",
+    "perplexity": 222.66189575195312,
+    "loss": 5.405654430389404,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 31.808842250279017
+  },
+  {
+    "index": 96,
+    "sentence": "The client did not appeal this point",
+    "perplexity": 336.5356750488281,
+    "loss": 5.818704128265381,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 48.076525006975444
+  },
+  {
+    "index": 97,
+    "sentence": "There is no exposure in this trial",
+    "perplexity": 89.502197265625,
+    "loss": 4.494263172149658,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 12.786028180803571
+  },
+  {
+    "index": 98,
+    "sentence": "If you think it is the case you can confirm",
+    "perplexity": 43.48813247680664,
+    "loss": 3.7724881172180176,
+    "token_count": 10,
+    "word_count": 10,
+    "avg_perplexity_per_token": 4.348813247680664
+  },
+  {
+    "index": 99,
+    "sentence": "The judge will get the point for appeal",
+    "perplexity": 606.0753784179688,
+    "loss": 6.407004356384277,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 75.7594223022461
+  },
+  {
+    "index": 100,
+    "sentence": "I will confirm the schedule",
+    "perplexity": 272.1976013183594,
+    "loss": 5.606528282165527,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 54.439520263671874
+  },
+  {
+    "index": 101,
+    "sentence": "The judge is in the trial",
+    "perplexity": 188.96978759765625,
+    "loss": 5.241587162017822,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 31.494964599609375
+  },
+  {
+    "index": 102,
+    "sentence": "You can get the signature for the client",
+    "perplexity": 97.6414566040039,
+    "loss": 4.581302165985107,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 12.205182075500488
+  },
+  {
+    "index": 103,
+    "sentence": "We have the case now",
+    "perplexity": 105.1340560913086,
+    "loss": 4.65523624420166,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 21.02681121826172
+  },
+  {
+    "index": 104,
+    "sentence": "They did not appeal the case",
+    "perplexity": 61.55535888671875,
+    "loss": 4.119936943054199,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 10.259226481119791
+  },
+  {
+    "index": 105,
+    "sentence": "I think that is your point",
+    "perplexity": 84.8897476196289,
+    "loss": 4.4413533210754395,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 14.14829126993815
+  },
+  {
+    "index": 106,
+    "sentence": "What is the litigation about",
+    "perplexity": 213.4826202392578,
+    "loss": 5.363555431365967,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 42.69652404785156
+  },
+  {
+    "index": 107,
+    "sentence": "Yes we can confirm the trial schedule",
+    "perplexity": 316.4138488769531,
+    "loss": 5.75705099105835,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 45.201978410993306
+  },
+  {
+    "index": 108,
+    "sentence": "You have no exposure in this case",
+    "perplexity": 104.62529754638672,
+    "loss": 4.65038537979126,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 14.946471078055245
+  },
+  {
+    "index": 109,
+    "sentence": "The client and I will get on that",
+    "perplexity": 99.38558959960938,
+    "loss": 4.5990071296691895,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 12.423198699951172
+  },
+  {
+    "index": 110,
+    "sentence": "The judge will schedule the trial",
+    "perplexity": 118.64693450927734,
+    "loss": 4.77615213394165,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 19.77448908487956
+  },
+  {
+    "index": 111,
+    "sentence": "The client is in litigation for the case",
+    "perplexity": 171.05667114257812,
+    "loss": 5.141994953155518,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 21.382083892822266
+  },
+  {
+    "index": 112,
+    "sentence": "I confirm that we will appeal",
+    "perplexity": 101.02662658691406,
+    "loss": 4.615384101867676,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 16.83777109781901
+  },
+  {
+    "index": 113,
+    "sentence": "We have the trial schedule now",
+    "perplexity": 243.69137573242188,
+    "loss": 5.4959025382995605,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 40.61522928873698
+  },
+  {
+    "index": 114,
+    "sentence": "The judge will confirm the signature",
+    "perplexity": 403.5888671875,
+    "loss": 6.000396728515625,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 67.26481119791667
+  },
+  {
+    "index": 115,
+    "sentence": "Litigation exposure is what we think about",
+    "perplexity": 148.95709228515625,
+    "loss": 5.003658294677734,
+    "token_count": 9,
+    "word_count": 7,
+    "avg_perplexity_per_token": 16.55078803168403
+  },
+  {
+    "index": 116,
+    "sentence": "I confirm the schedule for the trial",
+    "perplexity": 190.75982666015625,
+    "loss": 5.2510151863098145,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 27.25140380859375
+  },
+  {
+    "index": 117,
+    "sentence": "We will confirm the client appeal",
+    "perplexity": 680.868896484375,
+    "loss": 6.523369789123535,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 113.4781494140625
+  },
+  {
+    "index": 118,
+    "sentence": "They did not know the point",
+    "perplexity": 44.818260192871094,
+    "loss": 3.8026156425476074,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 7.469710032145183
+  },
+  {
+    "index": 119,
+    "sentence": "I will get your signature on this",
+    "perplexity": 62.28739929199219,
+    "loss": 4.131759166717529,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 8.898199898856026
+  },
+  {
+    "index": 120,
+    "sentence": "The exposure is not on us",
+    "perplexity": 322.1893310546875,
+    "loss": 5.775139331817627,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 53.698221842447914
+  },
+  {
+    "index": 121,
+    "sentence": "If you confirm it we will do it",
+    "perplexity": 82.24195861816406,
+    "loss": 4.409665584564209,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 10.280244827270508
+  },
+  {
+    "index": 122,
+    "sentence": "Yes I think they are in the trial schedule",
+    "perplexity": 114.03392028808594,
+    "loss": 4.7364959716796875,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 12.670435587565104
+  },
+  {
+    "index": 123,
+    "sentence": "I know the client",
+    "perplexity": 425.533935546875,
+    "loss": 6.0533447265625,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 106.38348388671875
+  },
+  {
+    "index": 124,
+    "sentence": "We have your signature",
+    "perplexity": 288.91552734375,
+    "loss": 5.666134357452393,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 72.2288818359375
+  },
+  {
+    "index": 125,
+    "sentence": "Can you get it for us",
+    "perplexity": 49.93276596069336,
+    "loss": 3.910677433013916,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 8.32212766011556
+  },
+  {
+    "index": 126,
+    "sentence": "I think the client will appeal",
+    "perplexity": 208.80386352539062,
+    "loss": 5.341395378112793,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 34.80064392089844
+  },
+  {
+    "index": 127,
+    "sentence": "We have to confirm the trial schedule",
+    "perplexity": 216.23899841308594,
+    "loss": 5.376384258270264,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 30.891285487583705
+  },
+  {
+    "index": 128,
+    "sentence": "You can get the signature now",
+    "perplexity": 181.91314697265625,
+    "loss": 5.203529357910156,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 30.318857828776043
+  },
+  {
+    "index": 129,
+    "sentence": "The judge did not know about the litigation",
+    "perplexity": 84.86708068847656,
+    "loss": 4.441086292266846,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 10.60838508605957
+  },
+  {
+    "index": 130,
+    "sentence": "What is your point in this case",
+    "perplexity": 40.17809295654297,
+    "loss": 3.693321943283081,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 5.7397275652204245
+  },
+  {
+    "index": 131,
+    "sentence": "They are not in litigation with us",
+    "perplexity": 64.58114624023438,
+    "loss": 4.167922496795654,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 9.225878034319196
+  },
+  {
+    "index": 132,
+    "sentence": "It is for the judge to confirm",
+    "perplexity": 55.50278854370117,
+    "loss": 4.016433238983154,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 7.92896979195731
+  },
+  {
+    "index": 133,
+    "sentence": "There is no exposure for the client",
+    "perplexity": 125.34960174560547,
+    "loss": 4.831106662750244,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 17.907085963657924
+  },
+  {
+    "index": 134,
+    "sentence": "I know that they will appeal",
+    "perplexity": 91.408447265625,
+    "loss": 4.515337944030762,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 15.2347412109375
+  },
+  {
+    "index": 135,
+    "sentence": "I think that the client is in litigation",
+    "perplexity": 143.92161560058594,
+    "loss": 4.969268798828125,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 17.990201950073242
+  },
+  {
+    "index": 136,
+    "sentence": "Do you know about the case",
+    "perplexity": 38.603416442871094,
+    "loss": 3.6533408164978027,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 6.433902740478516
+  },
+  {
+    "index": 137,
+    "sentence": "We have to confirm the signature",
+    "perplexity": 156.4676513671875,
+    "loss": 5.052849292755127,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 26.07794189453125
+  },
+  {
+    "index": 138,
+    "sentence": "It is not for us",
+    "perplexity": 33.86912536621094,
+    "loss": 3.5225038528442383,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 6.773825073242188
+  },
+  {
+    "index": 139,
+    "sentence": "They did not get the appeal",
+    "perplexity": 78.58018493652344,
+    "loss": 4.364119529724121,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 13.096697489420572
+  },
+  {
+    "index": 140,
+    "sentence": "When will the judge schedule the trial",
+    "perplexity": 105.38938903808594,
+    "loss": 4.6576619148254395,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 15.055627005440849
+  },
+  {
+    "index": 141,
+    "sentence": "You and I can schedule the trial",
+    "perplexity": 115.90213012695312,
+    "loss": 4.752746105194092,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 16.557447160993302
+  },
+  {
+    "index": 142,
+    "sentence": "The judge did not confirm it",
+    "perplexity": 137.20037841796875,
+    "loss": 4.92144250869751,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 22.866729736328125
+  },
+  {
+    "index": 143,
+    "sentence": "They have no appeal for this",
+    "perplexity": 93.01622772216797,
+    "loss": 4.532773971557617,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 15.502704620361328
+  },
+  {
+    "index": 144,
+    "sentence": "Confirm with us if you get it",
+    "perplexity": 64.43067169189453,
+    "loss": 4.165589809417725,
+    "token_count": 8,
+    "word_count": 7,
+    "avg_perplexity_per_token": 8.053833961486816
+  },
+  {
+    "index": 145,
+    "sentence": "This is what they know about now",
+    "perplexity": 85.05226135253906,
+    "loss": 4.443265914916992,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 12.150323050362724
+  },
+  {
+    "index": 146,
+    "sentence": "Do you know about the litigation",
+    "perplexity": 89.0194091796875,
+    "loss": 4.48885440826416,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 14.836568196614584
+  },
+  {
+    "index": 147,
+    "sentence": "They did not confirm the schedule with us",
+    "perplexity": 105.93695831298828,
+    "loss": 4.662844181060791,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 13.242119789123535
+  },
+  {
+    "index": 148,
+    "sentence": "I think that it is not your case",
+    "perplexity": 60.2650032043457,
+    "loss": 4.098751544952393,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 7.533125400543213
+  },
+  {
+    "index": 149,
+    "sentence": "The judge will confirm the appeal",
+    "perplexity": 228.39520263671875,
+    "loss": 5.431077480316162,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 38.06586710611979
+  },
+  {
+    "index": 150,
+    "sentence": "We have to schedule the trial",
+    "perplexity": 114.3077621459961,
+    "loss": 4.738894462585449,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 19.051293690999348
+  },
+  {
+    "index": 151,
+    "sentence": "What is the point in this",
+    "perplexity": 24.87725067138672,
+    "loss": 3.213953733444214,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 4.14620844523112
+  },
+  {
+    "index": 152,
+    "sentence": "They did not get your signature",
+    "perplexity": 122.99354553222656,
+    "loss": 4.812131881713867,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 20.498924255371094
+  },
+  {
+    "index": 153,
+    "sentence": "What is the schedule for the trial",
+    "perplexity": 44.27024459838867,
+    "loss": 3.7903127670288086,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 6.3243206569126675
+  },
+  {
+    "index": 154,
+    "sentence": "We did not get your signature",
+    "perplexity": 107.29155731201172,
+    "loss": 4.6755499839782715,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 17.88192621866862
+  },
+  {
+    "index": 155,
+    "sentence": "They will appeal the case",
+    "perplexity": 99.40667724609375,
+    "loss": 4.59921932220459,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 19.88133544921875
+  },
+  {
+    "index": 156,
+    "sentence": "You and I are in the trial",
+    "perplexity": 42.70286560058594,
+    "loss": 3.7542660236358643,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 6.100409371512277
+  },
+  {
+    "index": 157,
+    "sentence": "I think there is exposure in this litigation",
+    "perplexity": 223.25161743164062,
+    "loss": 5.408299446105957,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 27.906452178955078
+  },
+  {
+    "index": 158,
+    "sentence": "What do we know about the case now",
+    "perplexity": 30.417078018188477,
+    "loss": 3.415004253387451,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 3.8021347522735596
+  },
+  {
+    "index": 159,
+    "sentence": "Yes I will get them on the trial schedule",
+    "perplexity": 150.08766174316406,
+    "loss": 5.011219501495361,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 16.676406860351562
+  },
+  {
+    "index": 160,
+    "sentence": "No there is not exposure for us in this appeal",
+    "perplexity": 277.8170166015625,
+    "loss": 5.626962661743164,
+    "token_count": 10,
+    "word_count": 10,
+    "avg_perplexity_per_token": 27.78170166015625
+  },
+  {
+    "index": 161,
+    "sentence": "They did not confirm the schedule",
+    "perplexity": 159.49276733398438,
+    "loss": 5.071998596191406,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 26.582127888997395
+  },
+  {
+    "index": 162,
+    "sentence": "Yes I will schedule it now",
+    "perplexity": 159.9138946533203,
+    "loss": 5.0746355056762695,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 26.652315775553387
+  },
+  {
+    "index": 163,
+    "sentence": "Confirm with the judge if there is no trial",
+    "perplexity": 72.65559387207031,
+    "loss": 4.285730361938477,
+    "token_count": 10,
+    "word_count": 9,
+    "avg_perplexity_per_token": 7.265559387207031
+  },
+  {
+    "index": 164,
+    "sentence": "I will appeal to the judge",
+    "perplexity": 49.01891326904297,
+    "loss": 3.8922061920166016,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 8.169818878173828
+  },
+  {
+    "index": 165,
+    "sentence": "Do you have the case schedule",
+    "perplexity": 242.23878479003906,
+    "loss": 5.48992395401001,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 40.373130798339844
+  },
+  {
+    "index": 166,
+    "sentence": "When will the judge confirm the appeal for the client",
+    "perplexity": 155.06564331054688,
+    "loss": 5.043848514556885,
+    "token_count": 10,
+    "word_count": 10,
+    "avg_perplexity_per_token": 15.506564331054687
+  },
+  {
+    "index": 167,
+    "sentence": "But I do not know the schedule for the trial",
+    "perplexity": 39.103878021240234,
+    "loss": 3.6662216186523438,
+    "token_count": 10,
+    "word_count": 10,
+    "avg_perplexity_per_token": 3.9103878021240233
+  },
+  {
+    "index": 168,
+    "sentence": "It is about the exposure in this case",
+    "perplexity": 114.13695526123047,
+    "loss": 4.737399101257324,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 14.267119407653809
+  },
+  {
+    "index": 169,
+    "sentence": "I think that the client is not in the trial",
+    "perplexity": 78.17677307128906,
+    "loss": 4.358972549438477,
+    "token_count": 10,
+    "word_count": 10,
+    "avg_perplexity_per_token": 7.817677307128906
+  },
+  {
+    "index": 170,
+    "sentence": "I think the client is not in the exposure",
+    "perplexity": 155.88633728027344,
+    "loss": 5.049127101898193,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 17.320704142252605
+  },
+  {
+    "index": 171,
+    "sentence": "There is no schedule for it",
+    "perplexity": 54.03446578979492,
+    "loss": 3.989622116088867,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 9.005744298299154
+  },
+  {
+    "index": 172,
+    "sentence": "But the case is not on trial now",
+    "perplexity": 45.80601501464844,
+    "loss": 3.824415445327759,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 5.725751876831055
+  },
+  {
+    "index": 173,
+    "sentence": "Yes I will get your signature and confirm it",
+    "perplexity": 70.12232971191406,
+    "loss": 4.250241279602051,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 7.791369967990452
+  },
+  {
+    "index": 174,
+    "sentence": "I think you know this",
+    "perplexity": 60.204830169677734,
+    "loss": 4.097752571105957,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 12.040966033935547
+  },
+  {
+    "index": 175,
+    "sentence": "I do not know what to do",
+    "perplexity": 10.5364990234375,
+    "loss": 2.3548452854156494,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 1.5052141462053572
+  },
+  {
+    "index": 176,
+    "sentence": "Is it on your schedule for us",
+    "perplexity": 115.96802520751953,
+    "loss": 4.75331449508667,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 16.56686074393136
+  },
+  {
+    "index": 177,
+    "sentence": "What do you think about it",
+    "perplexity": 11.133625030517578,
+    "loss": 2.4099698066711426,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 1.8556041717529297
+  },
+  {
+    "index": 178,
+    "sentence": "The judge did not get your point in the trial",
+    "perplexity": 131.03211975097656,
+    "loss": 4.8754425048828125,
+    "token_count": 10,
+    "word_count": 10,
+    "avg_perplexity_per_token": 13.103211975097656
+  },
+  {
+    "index": 179,
+    "sentence": "We do not have the trial schedule",
+    "perplexity": 117.56373596191406,
+    "loss": 4.7669806480407715,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 16.79481942313058
+  },
+  {
+    "index": 180,
+    "sentence": "I have the schedule for us",
+    "perplexity": 209.8693389892578,
+    "loss": 5.346485137939453,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 34.978223164876304
+  },
+  {
+    "index": 181,
+    "sentence": "What is this point about",
+    "perplexity": 101.76025390625,
+    "loss": 4.62261962890625,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 20.35205078125
+  },
+  {
+    "index": 182,
+    "sentence": "They do not know your case",
+    "perplexity": 113.4684066772461,
+    "loss": 4.731524467468262,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 18.911401112874348
+  },
+  {
+    "index": 183,
+    "sentence": "The client did not have exposure",
+    "perplexity": 235.07904052734375,
+    "loss": 5.459921836853027,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 39.179840087890625
+  },
+  {
+    "index": 184,
+    "sentence": "What is your point about this",
+    "perplexity": 32.24724197387695,
+    "loss": 3.4734325408935547,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 5.374540328979492
+  },
+  {
+    "index": 185,
+    "sentence": "Do you know what they will do",
+    "perplexity": 19.962066650390625,
+    "loss": 2.9938337802886963,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 2.8517238071986606
+  },
+  {
+    "index": 186,
+    "sentence": "I have to think about it",
+    "perplexity": 19.16144561767578,
+    "loss": 2.9529001712799072,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 3.1935742696126304
+  },
+  {
+    "index": 187,
+    "sentence": "We have to confirm the signature for the client",
+    "perplexity": 100.02842712402344,
+    "loss": 4.605454444885254,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 11.114269680447048
+  },
+  {
+    "index": 188,
+    "sentence": "The client will confirm the signature for the appeal",
+    "perplexity": 210.05014038085938,
+    "loss": 5.347346305847168,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 23.338904486762154
+  },
+  {
+    "index": 189,
+    "sentence": "We are on the schedule now",
+    "perplexity": 91.88491821289062,
+    "loss": 4.52053689956665,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 15.314153035481771
+  },
+  {
+    "index": 190,
+    "sentence": "This is my point about that",
+    "perplexity": 64.45731353759766,
+    "loss": 4.166003227233887,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 10.74288558959961
+  },
+  {
+    "index": 191,
+    "sentence": "No we did not do it",
+    "perplexity": 34.08195495605469,
+    "loss": 3.5287680625915527,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 5.680325826009114
+  },
+  {
+    "index": 192,
+    "sentence": "Do you know when we can get it",
+    "perplexity": 28.781850814819336,
+    "loss": 3.3597450256347656,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 3.597731351852417
+  },
+  {
+    "index": 193,
+    "sentence": "The client will appeal the case",
+    "perplexity": 293.4161682128906,
+    "loss": 5.681591987609863,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 48.90269470214844
+  },
+  {
+    "index": 194,
+    "sentence": "We think the case is not about exposure",
+    "perplexity": 136.710205078125,
+    "loss": 4.917863368988037,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 17.088775634765625
+  },
+  {
+    "index": 195,
+    "sentence": "They did not get the signature in the trial",
+    "perplexity": 111.36439514160156,
+    "loss": 4.712807655334473,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 12.373821682400173
+  },
+  {
+    "index": 196,
+    "sentence": "We will not do litigation with them",
+    "perplexity": 122.24659729003906,
+    "loss": 4.806040287017822,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 17.463799612862722
+  },
+  {
+    "index": 197,
+    "sentence": "I think it is for you",
+    "perplexity": 52.93025207519531,
+    "loss": 3.968975067138672,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 8.821708679199219
+  },
+  {
+    "index": 198,
+    "sentence": "We do know what they did",
+    "perplexity": 41.48528289794922,
+    "loss": 3.7253386974334717,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 6.91421381632487
+  },
+  {
+    "index": 199,
+    "sentence": "The point is to have them there",
+    "perplexity": 55.553123474121094,
+    "loss": 4.017339706420898,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 7.936160496303013
+  },
+  {
+    "index": 200,
+    "sentence": "We can get it for you now",
+    "perplexity": 43.11943817138672,
+    "loss": 3.7639739513397217,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 6.159919738769531
+  },
+  {
+    "index": 201,
+    "sentence": "I think you are not there now",
+    "perplexity": 102.40287780761719,
+    "loss": 4.628914833068848,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 14.628982543945312
+  },
+  {
+    "index": 202,
+    "sentence": "Do you know what they think",
+    "perplexity": 23.440418243408203,
+    "loss": 3.1544618606567383,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 3.906736373901367
+  },
+  {
+    "index": 203,
+    "sentence": "We have to do it now",
+    "perplexity": 16.459312438964844,
+    "loss": 2.800891399383545,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 2.743218739827474
+  },
+  {
+    "index": 204,
+    "sentence": "I did not get your point",
+    "perplexity": 80.20500183105469,
+    "loss": 4.384585857391357,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 13.367500305175781
+  },
+  {
+    "index": 205,
+    "sentence": "I think the judge will get the point",
+    "perplexity": 113.93309783935547,
+    "loss": 4.735611438751221,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 14.241637229919434
+  },
+  {
+    "index": 206,
+    "sentence": "We are not there now",
+    "perplexity": 63.86930465698242,
+    "loss": 4.156838893890381,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 12.773860931396484
+  },
+  {
+    "index": 207,
+    "sentence": "I have your schedule there",
+    "perplexity": 859.8883666992188,
+    "loss": 6.756802558898926,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 171.97767333984376
+  },
+  {
+    "index": 208,
+    "sentence": "What did you do about that",
+    "perplexity": 18.389026641845703,
+    "loss": 2.9117541313171387,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 3.0648377736409507
+  },
+  {
+    "index": 209,
+    "sentence": "The client is not in the trial",
+    "perplexity": 97.57052612304688,
+    "loss": 4.580575466156006,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 13.938646589006696
+  },
+  {
+    "index": 210,
+    "sentence": "We have to appeal the case",
+    "perplexity": 88.82698822021484,
+    "loss": 4.486690521240234,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 14.804498036702475
+  },
+  {
+    "index": 211,
+    "sentence": "They will schedule the trial",
+    "perplexity": 318.32122802734375,
+    "loss": 5.763061046600342,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 63.66424560546875
+  },
+  {
+    "index": 212,
+    "sentence": "They did not confirm it",
+    "perplexity": 77.14983367919922,
+    "loss": 4.345749378204346,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 15.429966735839844
+  },
+  {
+    "index": 213,
+    "sentence": "The client did not have signature there",
+    "perplexity": 472.0592346191406,
+    "loss": 6.1571044921875,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 67.43703351702008
+  },
+  {
+    "index": 214,
+    "sentence": "I know what you think now",
+    "perplexity": 67.26763153076172,
+    "loss": 4.20867919921875,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 11.21127192179362
+  },
+  {
+    "index": 215,
+    "sentence": "We can do it for you",
+    "perplexity": 22.08730697631836,
+    "loss": 3.095003128051758,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 3.681217829386393
+  },
+  {
+    "index": 216,
+    "sentence": "We have litigation exposure on the case",
+    "perplexity": 775.6133422851562,
+    "loss": 6.653654098510742,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 110.80190604073661
+  },
+  {
+    "index": 217,
+    "sentence": "We appeal the case for client",
+    "perplexity": 558.8350219726562,
+    "loss": 6.325854301452637,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 93.13917032877605
+  },
+  {
+    "index": 218,
+    "sentence": "This trial is on schedule now",
+    "perplexity": 160.75511169433594,
+    "loss": 5.0798821449279785,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 26.792518615722656
+  },
+  {
+    "index": 219,
+    "sentence": "We appeal the case to the judge",
+    "perplexity": 73.03089904785156,
+    "loss": 4.290882587432861,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 10.432985578264509
+  },
+  {
+    "index": 220,
+    "sentence": "Did the judge confirm the appeal",
+    "perplexity": 146.7145233154297,
+    "loss": 4.988488674163818,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 24.452420552571613
+  },
+  {
+    "index": 221,
+    "sentence": "They will appeal the case and trial",
+    "perplexity": 118.48947143554688,
+    "loss": 4.774824142456055,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 16.927067347935267
+  },
+  {
+    "index": 222,
+    "sentence": "We have the client signature now",
+    "perplexity": 740.79833984375,
+    "loss": 6.607728481292725,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 123.46638997395833
+  },
+  {
+    "index": 223,
+    "sentence": "Judge will confirm the trial schedule",
+    "perplexity": 193.6576385498047,
+    "loss": 5.266091823577881,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 32.27627309163412
+  },
+  {
+    "index": 224,
+    "sentence": "I know you are with us",
+    "perplexity": 50.06858444213867,
+    "loss": 3.91339373588562,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 8.34476407368978
+  },
+  {
+    "index": 225,
+    "sentence": "My client and I will confirm",
+    "perplexity": 177.63229370117188,
+    "loss": 5.179715633392334,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 29.605382283528645
+  },
+  {
+    "index": 226,
+    "sentence": "I know what you think about this",
+    "perplexity": 22.822797775268555,
+    "loss": 3.1277599334716797,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 3.2603996821812222
+  },
+  {
+    "index": 227,
+    "sentence": "You can get the point now",
+    "perplexity": 139.57032775878906,
+    "loss": 4.938568592071533,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 23.26172129313151
+  },
+  {
+    "index": 228,
+    "sentence": "Do you know when we will do it",
+    "perplexity": 34.055564880371094,
+    "loss": 3.5279934406280518,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 4.256945610046387
+  },
+  {
+    "index": 229,
+    "sentence": "We appeal the case on this point",
+    "perplexity": 162.63360595703125,
+    "loss": 5.0914998054504395,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 23.233372279575892
+  },
+  {
+    "index": 230,
+    "sentence": "I know what you will do now",
+    "perplexity": 46.392173767089844,
+    "loss": 3.8371307849884033,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 6.6274533952985495
+  },
+  {
+    "index": 231,
+    "sentence": "I think it is not for us",
+    "perplexity": 38.75617980957031,
+    "loss": 3.65729022026062,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 5.536597115652902
+  },
+  {
+    "index": 232,
+    "sentence": "Do you know when they will get it",
+    "perplexity": 35.85732650756836,
+    "loss": 3.579547882080078,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 4.482165813446045
+  },
+  {
+    "index": 233,
+    "sentence": "They have exposure in the trial case",
+    "perplexity": 586.6907958984375,
+    "loss": 6.374497890472412,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 83.81297084263393
+  },
+  {
+    "index": 234,
+    "sentence": "There is no exposure in this case",
+    "perplexity": 57.50943374633789,
+    "loss": 4.0519490242004395,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 8.215633392333984
+  },
+  {
+    "index": 235,
+    "sentence": "We do not know if it is the case",
+    "perplexity": 11.798379898071289,
+    "loss": 2.4679622650146484,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 1.3109310997856989
+  },
+  {
+    "index": 236,
+    "sentence": "When will you do that",
+    "perplexity": 54.193817138671875,
+    "loss": 3.9925668239593506,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 10.838763427734374
+  },
+  {
+    "index": 237,
+    "sentence": "I know what I can do now",
+    "perplexity": 27.924640655517578,
+    "loss": 3.3295094966888428,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 3.989234379359654
+  },
+  {
+    "index": 238,
+    "sentence": "But we think it is not for us",
+    "perplexity": 35.4014892578125,
+    "loss": 3.56675386428833,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 4.4251861572265625
+  },
+  {
+    "index": 239,
+    "sentence": "I do not know about this",
+    "perplexity": 19.5477294921875,
+    "loss": 2.9728591442108154,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 3.2579549153645835
+  },
+  {
+    "index": 240,
+    "sentence": "I think that is my point",
+    "perplexity": 57.01021957397461,
+    "loss": 4.0432305335998535,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 9.501703262329102
+  },
+  {
+    "index": 241,
+    "sentence": "Your signature is on there",
+    "perplexity": 191.74383544921875,
+    "loss": 5.256160259246826,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 38.34876708984375
+  },
+  {
+    "index": 242,
+    "sentence": "I think you and I can do it",
+    "perplexity": 26.152606964111328,
+    "loss": 3.263948917388916,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 3.269075870513916
+  },
+  {
+    "index": 243,
+    "sentence": "When will you and I get this",
+    "perplexity": 59.16444778442383,
+    "loss": 4.080320835113525,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 8.452063969203405
+  },
+  {
+    "index": 244,
+    "sentence": "The client will confirm that signature",
+    "perplexity": 528.7904663085938,
+    "loss": 6.270592212677002,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 88.13174438476562
+  },
+  {
+    "index": 245,
+    "sentence": "We are on litigation case with them",
+    "perplexity": 709.5442504882812,
+    "loss": 6.56462287902832,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 101.36346435546875
+  },
+  {
+    "index": 246,
+    "sentence": "We can do it now if you confirm",
+    "perplexity": 78.22125244140625,
+    "loss": 4.359541416168213,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 9.777656555175781
+  },
+  {
+    "index": 247,
+    "sentence": "The client will confirm the signature for us",
+    "perplexity": 230.4929656982422,
+    "loss": 5.440220355987549,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 28.811620712280273
+  },
+  {
+    "index": 248,
+    "sentence": "We will appeal that case for you",
+    "perplexity": 197.25216674804688,
+    "loss": 5.284482955932617,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 28.178880964006698
+  },
+  {
+    "index": 249,
+    "sentence": "I think that you are there",
+    "perplexity": 71.71068572998047,
+    "loss": 4.272639751434326,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 11.951780954996744
+  },
+  {
+    "index": 250,
+    "sentence": "Yes I do think so",
+    "perplexity": 72.49287414550781,
+    "loss": 4.2834882736206055,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 14.498574829101562
+  },
+  {
+    "index": 251,
+    "sentence": "No I did not know it",
+    "perplexity": 32.13896560668945,
+    "loss": 3.470069169998169,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 5.356494267781575
+  },
+  {
+    "index": 252,
+    "sentence": "That is my point for this case",
+    "perplexity": 101.36106872558594,
+    "loss": 4.618689060211182,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 14.480152675083705
+  },
+  {
+    "index": 253,
+    "sentence": "Can you confirm with your signature",
+    "perplexity": 330.7939147949219,
+    "loss": 5.801495552062988,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 55.13231913248698
+  },
+  {
+    "index": 254,
+    "sentence": "We have litigation with them",
+    "perplexity": 423.6696472167969,
+    "loss": 6.048954010009766,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 84.73392944335937
+  },
+  {
+    "index": 255,
+    "sentence": "The judge will confirm your signature",
+    "perplexity": 502.943115234375,
+    "loss": 6.220477104187012,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 83.8238525390625
+  },
+  {
+    "index": 256,
+    "sentence": "I think your client will confirm",
+    "perplexity": 383.734619140625,
+    "loss": 5.949951171875,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 63.955769856770836
+  },
+  {
+    "index": 257,
+    "sentence": "My client will appeal the case",
+    "perplexity": 248.68218994140625,
+    "loss": 5.516175746917725,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 41.44703165690104
+  },
+  {
+    "index": 258,
+    "sentence": "But I will not do that",
+    "perplexity": 28.33835220336914,
+    "loss": 3.3442161083221436,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 4.723058700561523
+  },
+  {
+    "index": 259,
+    "sentence": "No I did not do that",
+    "perplexity": 27.671457290649414,
+    "loss": 3.320401430130005,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 4.611909548441569
+  },
+  {
+    "index": 260,
+    "sentence": "When will you confirm the schedule",
+    "perplexity": 254.99502563476562,
+    "loss": 5.541244029998779,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 42.4991709391276
+  },
+  {
+    "index": 261,
+    "sentence": "I will confirm with your client",
+    "perplexity": 115.66334533691406,
+    "loss": 4.750683784484863,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 19.27722422281901
+  },
+  {
+    "index": 262,
+    "sentence": "The judge will confirm the case",
+    "perplexity": 168.65341186523438,
+    "loss": 5.127845764160156,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 28.108901977539062
+  },
+  {
+    "index": 263,
+    "sentence": "This is on your schedule now",
+    "perplexity": 142.72679138183594,
+    "loss": 4.96093225479126,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 23.787798563639324
+  },
+  {
+    "index": 264,
+    "sentence": "There is no schedule on this",
+    "perplexity": 52.00010681152344,
+    "loss": 3.9512457847595215,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 8.66668446858724
+  },
+  {
+    "index": 265,
+    "sentence": "This litigation case is on appeal",
+    "perplexity": 148.00404357910156,
+    "loss": 4.997239589691162,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 24.667340596516926
+  },
+  {
+    "index": 266,
+    "sentence": "We will appeal to the judge",
+    "perplexity": 46.767662048339844,
+    "loss": 3.8451919555664062,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 7.794610341389974
+  },
+  {
+    "index": 267,
+    "sentence": "I will confirm with the client",
+    "perplexity": 99.8929672241211,
+    "loss": 4.604099273681641,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 16.648827870686848
+  },
+  {
+    "index": 268,
+    "sentence": "They will confirm with us on this",
+    "perplexity": 78.4830093383789,
+    "loss": 4.362882137298584,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 11.211858476911273
+  },
+  {
+    "index": 269,
+    "sentence": "When will we get the schedule for my client",
+    "perplexity": 103.95063781738281,
+    "loss": 4.643916130065918,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 11.550070868598091
+  },
+  {
+    "index": 270,
+    "sentence": "We will confirm this case with them",
+    "perplexity": 157.11061096191406,
+    "loss": 5.056950092315674,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 22.444372994559153
+  },
+  {
+    "index": 271,
+    "sentence": "Yes we can do it now",
+    "perplexity": 25.88788604736328,
+    "loss": 3.253775119781494,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 4.314647674560547
+  },
+  {
+    "index": 272,
+    "sentence": "I think you and I will confirm",
+    "perplexity": 113.42854309082031,
+    "loss": 4.731173038482666,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 16.204077584402903
+  },
+  {
+    "index": 273,
+    "sentence": "If they do it we will now",
+    "perplexity": 67.30289459228516,
+    "loss": 4.209203243255615,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 9.614699227469307
+  },
+  {
+    "index": 274,
+    "sentence": "My client will confirm the schedule with you",
+    "perplexity": 224.95668029785156,
+    "loss": 5.415907859802246,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 28.119585037231445
+  },
+  {
+    "index": 275,
+    "sentence": "So can you get the point now",
+    "perplexity": 114.21649932861328,
+    "loss": 4.738095760345459,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 16.31664276123047
+  },
+  {
+    "index": 276,
+    "sentence": "When will we get the schedule",
+    "perplexity": 79.20223236083984,
+    "loss": 4.372004508972168,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 13.200372060139975
+  },
+  {
+    "index": 277,
+    "sentence": "I know when they will confirm",
+    "perplexity": 308.7169189453125,
+    "loss": 5.732424736022949,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 51.45281982421875
+  },
+  {
+    "index": 278,
+    "sentence": "We will get them in the case",
+    "perplexity": 71.41060638427734,
+    "loss": 4.268446445465088,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 10.201515197753906
+  },
+  {
+    "index": 279,
+    "sentence": "I did confirm with them for the case",
+    "perplexity": 153.28384399414062,
+    "loss": 5.032291412353516,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 19.160480499267578
+  },
+  {
+    "index": 280,
+    "sentence": "Yes we can confirm this on it",
+    "perplexity": 153.2440185546875,
+    "loss": 5.032031536102295,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 21.892002650669642
+  },
+  {
+    "index": 281,
+    "sentence": "Yes I think they will appeal",
+    "perplexity": 69.9709243774414,
+    "loss": 4.248079776763916,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 11.661820729573568
+  },
+  {
+    "index": 282,
+    "sentence": "And we will get the case",
+    "perplexity": 86.77345275878906,
+    "loss": 4.463300704956055,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 14.462242126464844
+  },
+  {
+    "index": 283,
+    "sentence": "I do not know if they will do it",
+    "perplexity": 14.512041091918945,
+    "loss": 2.674978733062744,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 1.612449010213216
+  },
+  {
+    "index": 284,
+    "sentence": "If there is exposure we will appeal",
+    "perplexity": 413.9542236328125,
+    "loss": 6.025755405426025,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 59.136317661830354
+  },
+  {
+    "index": 285,
+    "sentence": "My client will confirm the signature",
+    "perplexity": 380.441650390625,
+    "loss": 5.941332817077637,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 63.406941731770836
+  },
+  {
+    "index": 286,
+    "sentence": "So we will not do that",
+    "perplexity": 35.00667953491211,
+    "loss": 3.5555388927459717,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 5.8344465891520185
+  },
+  {
+    "index": 287,
+    "sentence": "So the judge did confirm it",
+    "perplexity": 161.68869018554688,
+    "loss": 5.085672855377197,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 26.94811503092448
+  },
+  {
+    "index": 288,
+    "sentence": "So I can get your signature",
+    "perplexity": 106.06559753417969,
+    "loss": 4.664057731628418,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 17.67759958902995
+  },
+  {
+    "index": 289,
+    "sentence": "But they did not confirm it",
+    "perplexity": 52.57086181640625,
+    "loss": 3.9621620178222656,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 8.761810302734375
+  },
+  {
+    "index": 290,
+    "sentence": "But we will appeal the case",
+    "perplexity": 76.93341827392578,
+    "loss": 4.342940330505371,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 12.82223637898763
+  },
+  {
+    "index": 291,
+    "sentence": "But my client is not there",
+    "perplexity": 130.3925018310547,
+    "loss": 4.870549201965332,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 21.732083638509113
+  },
+  {
+    "index": 292,
+    "sentence": "We know when they did it",
+    "perplexity": 70.55274200439453,
+    "loss": 4.2563605308532715,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 11.758790334065756
+  },
+  {
+    "index": 293,
+    "sentence": "Yes I will confirm your case with them",
+    "perplexity": 99.5400619506836,
+    "loss": 4.600560188293457,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 12.44250774383545
+  },
+  {
+    "index": 294,
+    "sentence": "And we will get your signature",
+    "perplexity": 135.12611389160156,
+    "loss": 4.906208515167236,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 22.521018981933594
+  },
+  {
+    "index": 295,
+    "sentence": "And they will confirm the trial",
+    "perplexity": 228.2661895751953,
+    "loss": 5.430512428283691,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 38.04436492919922
+  },
+  {
+    "index": 296,
+    "sentence": "I will confirm if you can do it",
+    "perplexity": 47.01188659667969,
+    "loss": 3.850400447845459,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 5.876485824584961
+  },
+  {
+    "index": 297,
+    "sentence": "I know this is my case",
+    "perplexity": 93.71983337402344,
+    "loss": 4.540309906005859,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 15.619972229003906
+  },
+  {
+    "index": 298,
+    "sentence": "I have my signature on it",
+    "perplexity": 66.4390640258789,
+    "loss": 4.196285247802734,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 11.073177337646484
+  },
+  {
+    "index": 299,
+    "sentence": "So we did not get it",
+    "perplexity": 42.539920806884766,
+    "loss": 3.7504429817199707,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 7.089986801147461
+  },
+  {
+    "index": 300,
+    "sentence": "So I think there is exposure for it",
+    "perplexity": 73.24254608154297,
+    "loss": 4.293776512145996,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 9.155318260192871
+  },
+  {
+    "index": 301,
+    "sentence": "So they will appeal the case",
+    "perplexity": 92.76640319824219,
+    "loss": 4.530084609985352,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 15.461067199707031
+  },
+  {
+    "index": 302,
+    "sentence": "But we are not in trial",
+    "perplexity": 120.29946899414062,
+    "loss": 4.789984226226807,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 20.049911499023438
+  },
+  {
+    "index": 303,
+    "sentence": "But I do know about the case",
+    "perplexity": 57.46113586425781,
+    "loss": 4.0511088371276855,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 8.208733694893974
+  },
+  {
+    "index": 304,
+    "sentence": "But I do not know it",
+    "perplexity": 30.85489273071289,
+    "loss": 3.429295301437378,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 5.1424821217854815
+  },
+  {
+    "index": 305,
+    "sentence": "But you are not there",
+    "perplexity": 60.0113639831543,
+    "loss": 4.094533920288086,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 12.002272796630859
+  },
+  {
+    "index": 306,
+    "sentence": "When is the trial",
+    "perplexity": 85.7391586303711,
+    "loss": 4.451309680938721,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 21.434789657592773
+  },
+  {
+    "index": 307,
+    "sentence": "But yes you can do it",
+    "perplexity": 58.37155532836914,
+    "loss": 4.066828727722168,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 9.72859255472819
+  },
+  {
+    "index": 308,
+    "sentence": "I do not know if it is there",
+    "perplexity": 19.906064987182617,
+    "loss": 2.9910244941711426,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 2.488258123397827
+  },
+  {
+    "index": 309,
+    "sentence": "I know when you can get it",
+    "perplexity": 56.581398010253906,
+    "loss": 4.035680294036865,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 8.083056858607701
+  },
+  {
+    "index": 310,
+    "sentence": "Do you know when they will schedule it",
+    "perplexity": 102.5205307006836,
+    "loss": 4.630063056945801,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 12.81506633758545
+  },
+  {
+    "index": 311,
+    "sentence": "We can appeal to the judge",
+    "perplexity": 67.93232727050781,
+    "loss": 4.218512058258057,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 11.322054545084635
+  },
+  {
+    "index": 312,
+    "sentence": "They will schedule trial for us",
+    "perplexity": 671.635009765625,
+    "loss": 6.5097150802612305,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 111.93916829427083
+  },
+  {
+    "index": 313,
+    "sentence": "My client is there",
+    "perplexity": 480.4642028808594,
+    "loss": 6.174752712249756,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 120.11605072021484
+  },
+  {
+    "index": 314,
+    "sentence": "So what do we know",
+    "perplexity": 19.626384735107422,
+    "loss": 2.976874828338623,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 3.9252769470214846
+  },
+  {
+    "index": 315,
+    "sentence": "So I think yes",
+    "perplexity": 216.50518798828125,
+    "loss": 5.377614498138428,
+    "token_count": 4,
+    "word_count": 4,
+    "avg_perplexity_per_token": 54.12629699707031
+  },
+  {
+    "index": 316,
+    "sentence": "But what is the point",
+    "perplexity": 25.173885345458984,
+    "loss": 3.2258071899414062,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 5.034777069091797
+  },
+  {
+    "index": 317,
+    "sentence": "But I do not know that",
+    "perplexity": 19.10936737060547,
+    "loss": 2.950178623199463,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 3.184894561767578
+  },
+  {
+    "index": 318,
+    "sentence": "The judge and the client are there",
+    "perplexity": 296.4822998046875,
+    "loss": 5.69198751449585,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 42.3546142578125
+  },
+  {
+    "index": 319,
+    "sentence": "No we can not do it for now",
+    "perplexity": 64.03874206542969,
+    "loss": 4.159488201141357,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 8.004842758178711
+  },
+  {
+    "index": 320,
+    "sentence": "No that is not what we have",
+    "perplexity": 27.058935165405273,
+    "loss": 3.2980172634124756,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 3.8655621664864674
+  },
+  {
+    "index": 321,
+    "sentence": "I will get my schedule now",
+    "perplexity": 243.21644592285156,
+    "loss": 5.493951797485352,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 40.53607432047526
+  },
+  {
+    "index": 322,
+    "sentence": "My client did not know it",
+    "perplexity": 68.02279663085938,
+    "loss": 4.219842910766602,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 11.337132771809896
+  },
+  {
+    "index": 323,
+    "sentence": "Is my client with you",
+    "perplexity": 494.51641845703125,
+    "loss": 6.203580379486084,
+    "token_count": 5,
+    "word_count": 5,
+    "avg_perplexity_per_token": 98.90328369140624
+  },
+  {
+    "index": 324,
+    "sentence": "I do not know if it is for us",
+    "perplexity": 20.272348403930664,
+    "loss": 3.0092577934265137,
+    "token_count": 9,
+    "word_count": 9,
+    "avg_perplexity_per_token": 2.252483155992296
+  },
+  {
+    "index": 325,
+    "sentence": "So we can schedule it now",
+    "perplexity": 141.4561309814453,
+    "loss": 4.951989650726318,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 23.576021830240887
+  },
+  {
+    "index": 326,
+    "sentence": "So I think we can do this",
+    "perplexity": 15.543296813964844,
+    "loss": 2.7436294555664062,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 2.220470973423549
+  },
+  {
+    "index": 327,
+    "sentence": "So my client will confirm the schedule",
+    "perplexity": 480.0311584472656,
+    "loss": 6.173851013183594,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 68.5758797781808
+  },
+  {
+    "index": 328,
+    "sentence": "But I did not think about that",
+    "perplexity": 20.031272888183594,
+    "loss": 2.9972946643829346,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 2.8616104125976562
+  },
+  {
+    "index": 329,
+    "sentence": "And we can get the case there",
+    "perplexity": 126.57530975341797,
+    "loss": 4.840837478637695,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 18.08218710763114
+  },
+  {
+    "index": 330,
+    "sentence": "Confirm with us if you think so",
+    "perplexity": 69.8103256225586,
+    "loss": 4.245781898498535,
+    "token_count": 8,
+    "word_count": 7,
+    "avg_perplexity_per_token": 8.726290702819824
+  },
+  {
+    "index": 331,
+    "sentence": "But if it is not judge will know",
+    "perplexity": 430.0079345703125,
+    "loss": 6.063803672790527,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 53.75099182128906
+  },
+  {
+    "index": 332,
+    "sentence": "There is exposure in this case",
+    "perplexity": 176.1986083984375,
+    "loss": 5.171611785888672,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 29.366434733072918
+  },
+  {
+    "index": 333,
+    "sentence": "I will confirm exposure with client",
+    "perplexity": 2235.0693359375,
+    "loss": 7.712027549743652,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 372.5115559895833
+  },
+  {
+    "index": 334,
+    "sentence": "We are in litigation with them",
+    "perplexity": 76.3270034790039,
+    "loss": 4.335026741027832,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 12.72116724650065
+  },
+  {
+    "index": 335,
+    "sentence": "This litigation case will get to trial",
+    "perplexity": 223.70098876953125,
+    "loss": 5.4103102684021,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 31.957284109933035
+  },
+  {
+    "index": 336,
+    "sentence": "Litigation exposure is not the point",
+    "perplexity": 174.1842803955078,
+    "loss": 5.16011381149292,
+    "token_count": 8,
+    "word_count": 6,
+    "avg_perplexity_per_token": 21.773035049438477
+  },
+  {
+    "index": 337,
+    "sentence": "We have to think about litigation",
+    "perplexity": 97.73709106445312,
+    "loss": 4.582281112670898,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 16.289515177408855
+  },
+  {
+    "index": 338,
+    "sentence": "We have no exposure in this case",
+    "perplexity": 70.54426574707031,
+    "loss": 4.256240367889404,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 10.077752249581474
+  },
+  {
+    "index": 339,
+    "sentence": "I will get it to you",
+    "perplexity": 30.940086364746094,
+    "loss": 3.4320526123046875,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 5.156681060791016
+  },
+  {
+    "index": 340,
+    "sentence": "I will confirm and schedule it",
+    "perplexity": 482.6249084472656,
+    "loss": 6.179239749908447,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 80.43748474121094
+  },
+  {
+    "index": 341,
+    "sentence": "If there is exposure we will know",
+    "perplexity": 158.8445281982422,
+    "loss": 5.067925930023193,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 22.69207545689174
+  },
+  {
+    "index": 342,
+    "sentence": "This is my point on it",
+    "perplexity": 83.53189849853516,
+    "loss": 4.425228595733643,
+    "token_count": 6,
+    "word_count": 6,
+    "avg_perplexity_per_token": 13.921983083089193
+  },
+  {
+    "index": 343,
+    "sentence": "I do not know if you did it",
+    "perplexity": 21.048969268798828,
+    "loss": 3.046851634979248,
+    "token_count": 8,
+    "word_count": 8,
+    "avg_perplexity_per_token": 2.6311211585998535
+  },
+  {
+    "index": 344,
+    "sentence": "So yes we can do this now",
+    "perplexity": 80.56047058105469,
+    "loss": 4.389008045196533,
+    "token_count": 7,
+    "word_count": 7,
+    "avg_perplexity_per_token": 11.508638654436384
+  }
+]

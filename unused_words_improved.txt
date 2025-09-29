@@ -1,0 +1,21 @@
+Words in final_word_list.txt but NOT used in selected_sentences.txt
+(After proper contraction splitting)
+============================================================
+
+'em
+areas
+comments
+housing
+income
+let's
+mhm
+n't
+nottingham
+o'clock
+pence
+policies
+prices
+provision
+sites
+various
+yorkshire

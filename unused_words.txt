@@ -1,0 +1,18 @@
+Words in final_word_list.txt but NOT used in selected_sentences.txt
+============================================================
+
+areas
+comments
+housing
+income
+mhm
+n't
+nottingham
+o'clock
+pence
+policies
+prices
+provision
+sites
+various
+yorkshire

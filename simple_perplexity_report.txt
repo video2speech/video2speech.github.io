@@ -1,0 +1,500 @@
+句子困惑度分析报告 (基于N-gram)
+==================================================
+
+模型类型: trigram
+总句子数: 246
+
+所有句子的困惑度 (按困惑度排序):
+--------------------------------------------------
+
+困惑度:     6.73 | 词数:  5 | We have to do it
+
+困惑度:     7.49 | 词数:  6 | They did not get your signature
+
+困惑度:     7.55 | 词数:  4 | We have to think
+
+困惑度:     7.73 | 词数:  5 | They will appeal the case
+
+困惑度:     7.77 | 词数:  7 | We have to confirm the trial schedule
+
+困惑度:     7.78 | 词数:  6 | We have to schedule the trial
+
+困惑度:     7.80 | 词数:  6 | We have to appeal the case
+
+困惑度:     7.88 | 词数:  4 | What is your point
+
+困惑度:     7.96 | 词数:  6 | We have to do it now
+
+困惑度:     8.01 | 词数:  7 | The client is not in the trial
+
+困惑度:     8.05 | 词数:  6 | Do you know about the case
+
+困惑度:     8.11 | 词数:  4 | They will do it
+
+困惑度:     8.14 | 词数:  5 | They did not confirm it
+
+困惑度:     8.19 | 词数:  6 | We have to confirm the signature
+
+困惑度:     8.26 | 词数:  6 | We can get it for you
+
+困惑度:     8.32 | 词数:  7 | I think it is not for you
+
+困惑度:     8.32 | 词数:  6 | The judge will confirm the appeal
+
+困惑度:     8.38 | 词数:  6 | They did not appeal the case
+
+困惑度:     8.43 | 词数:  7 | I think it is not for us
+
+困惑度:     8.48 | 词数:  6 | The client will appeal the case
+
+困惑度:     8.58 | 词数:  6 | The judge will schedule the trial
+
+困惑度:     8.61 | 词数:  6 | I can get it for you
+
+困惑度:     8.67 | 词数:  6 | The judge will confirm the signature
+
+困惑度:     8.78 | 词数:  5 | They will schedule the trial
+
+困惑度:     8.79 | 词数:  5 | We have the case now
+
+困惑度:     8.85 | 词数: 10 | I think that the client is not in the trial
+
+困惑度:     8.86 | 词数:  4 | What do you think
+
+困惑度:     8.88 | 词数:  5 | Do you know about that
+
+困惑度:     8.90 | 词数:  4 | This is for you
+
+困惑度:     8.94 | 词数:  5 | The client is in litigation
+
+困惑度:     8.98 | 词数:  5 | I will confirm the schedule
+
+困惑度:     9.01 | 词数:  6 | We did not get your signature
+
+困惑度:     9.02 | 词数:  6 | We can do it for you
+
+困惑度:     9.02 | 词数:  4 | We have your signature
+
+困惑度:     9.03 | 词数:  9 | We have to confirm the signature for the client
+
+困惑度:     9.03 | 词数:  4 | I know the client
+
+困惑度:     9.04 | 词数:  5 | I did it for you
+
+困惑度:     9.09 | 词数:  6 | Do you know about the litigation
+
+困惑度:     9.10 | 词数:  6 | They did not get the appeal
+
+困惑度:     9.11 | 词数:  6 | What do you think about it
+
+困惑度:     9.14 | 词数:  6 | They did not confirm the schedule
+
+困惑度:     9.16 | 词数:  4 | You can do it
+
+困惑度:     9.19 | 词数:  4 | Do you think so
+
+困惑度:     9.19 | 词数:  8 | Do you know when we will do it
+
+困惑度:     9.26 | 词数:  7 | I confirm the schedule for the trial
+
+困惑度:     9.29 | 词数:  5 | I will think about it
+
+困惑度:     9.41 | 词数:  6 | They did not know the point
+
+困惑度:     9.42 | 词数:  6 | I think the client will appeal
+
+困惑度:     9.43 | 词数:  5 | I think I get it
+
+困惑度:     9.44 | 词数:  6 | We have the trial schedule now
+
+困惑度:     9.45 | 词数:  7 | What is the schedule for the trial
+
+困惑度:     9.50 | 词数:  6 | Do you know what that is
+
+困惑度:     9.52 | 词数:  9 | They did not get the signature in the trial
+
+困惑度:     9.55 | 词数:  6 | The judge is in the trial
+
+困惑度:     9.56 | 词数:  4 | It is for you
+
+困惑度:     9.59 | 词数:  5 | I think you did it
+
+困惑度:     9.59 | 词数:  7 | There is no exposure in this case
+
+困惑度:     9.63 | 词数:  7 | What is your point in this case
+
+困惑度:     9.64 | 词数:  6 | I think that is your point
+
+困惑度:     9.64 | 词数:  6 | I think you are not there
+
+困惑度:     9.67 | 词数:  5 | They will think about it
+
+困惑度:     9.68 | 词数:  4 | I have it now
+
+困惑度:     9.68 | 词数:  6 | What do we have to do
+
+困惑度:     9.74 | 词数:  5 | I think I did it
+
+困惑度:     9.76 | 词数:  8 | I think that the client is in litigation
+
+困惑度:     9.78 | 词数:  6 | The judge did not confirm it
+
+困惑度:     9.84 | 词数:  8 | I think the judge will get the point
+
+困惑度:     9.90 | 词数:  7 | I think you are not there now
+
+困惑度:     9.99 | 词数:  6 | I think it is your case
+
+困惑度:    10.05 | 词数:  6 | Do you know what they think
+
+困惑度:    10.06 | 词数:  6 | I have the case for you
+
+困惑度:    10.07 | 词数: 10 | The judge did not get your point in the trial
+
+困惑度:    10.09 | 词数:  5 | It is not for us
+
+困惑度:    10.16 | 词数:  4 | We know the point
+
+困惑度:    10.21 | 词数:  4 | What do you have
+
+困惑度:    10.31 | 词数:  5 | what is in the case
+
+困惑度:    10.33 | 词数:  6 | I have the schedule for us
+
+困惑度:    10.34 | 词数:  5 | We are not there now
+
+困惑度:    10.34 | 词数:  4 | They can do it
+
+困惑度:    10.38 | 词数:  5 | I think you know this
+
+困惑度:    10.42 | 词数:  4 | We are on it
+
+困惑度:    10.45 | 词数:  8 | They did not confirm the schedule with us
+
+困惑度:    10.46 | 词数:  3 | What about this
+
+困惑度:    10.47 | 词数:  6 | They will have it for you
+
+困惑度:    10.57 | 词数:  7 | Do you know what they will do
+
+困惑度:    10.59 | 词数:  4 | What is it about
+
+困惑度:    10.66 | 词数:  5 | I can confirm it now
+
+困惑度:    10.71 | 词数:  7 | I know what you think about this
+
+困惑度:    10.72 | 词数:  5 | Yes I get the point
+
+困惑度:    10.74 | 词数:  6 | I know what you think now
+
+困惑度:    10.75 | 词数:  6 | I have to think about it
+
+困惑度:    10.76 | 词数:  7 | I will get your signature on this
+
+困惑度:    10.80 | 词数:  6 | I did not get your point
+
+困惑度:    10.80 | 词数:  4 | What is it for
+
+困惑度:    10.82 | 词数:  6 | What is your point about this
+
+困惑度:    10.89 | 词数:  8 | Do you know when we will get it
+
+困惑度:    10.92 | 词数:  4 | What do you get
+
+困惑度:    10.95 | 词数:  6 | What can I do for you
+
+困惑度:    11.04 | 词数:  3 | What about now
+
+困惑度:    11.05 | 词数:  6 | Do you know what this is
+
+困惑度:    11.07 | 词数:  4 | Yes I think so
+
+困惑度:    11.15 | 词数:  4 | We are with you
+
+困惑度:    11.16 | 词数:  6 | I can confirm your signature now
+
+困惑度:    11.20 | 词数:  5 | I know you are there
+
+困惑度:    11.27 | 词数:  6 | I know you are with us
+
+困惑度:    11.28 | 词数:  7 | You and I are in the trial
+
+困惑度:    11.30 | 词数:  6 | We have the client signature now
+
+困惑度:    11.32 | 词数:  8 | You can get the signature for the client
+
+困惑度:    11.32 | 词数:  9 | I think the client is not in the exposure
+
+困惑度:    11.45 | 词数:  6 | We appeal the case for client
+
+困惑度:    11.54 | 词数:  4 | We think about you
+
+困惑度:    11.55 | 词数:  8 | I think there is exposure in this litigation
+
+困惑度:    11.58 | 词数:  8 | The client is in litigation for the case
+
+困惑度:    11.59 | 词数:  9 | The client will confirm the signature for the appeal
+
+困惑度:    11.60 | 词数:  7 | We can get it for you now
+
+困惑度:    11.62 | 词数:  7 | I do not know what that is
+
+困惑度:    11.68 | 词数:  7 | We can confirm the schedule with them
+
+困惑度:    11.68 | 词数:  4 | There is no signature
+
+困惑度:    11.76 | 词数:  4 | When will you confirm
+
+困惑度:    11.77 | 词数:  6 | You can get the signature now
+
+困惑度:    11.80 | 词数:  8 | The judge will confirm your signature on this
+
+困惑度:    11.81 | 词数:  6 | I can know what you think
+
+困惑度:    11.82 | 词数:  6 | I will do this for you
+
+困惑度:    11.82 | 词数:  5 | What is the litigation about
+
+困惑度:    11.83 | 词数:  8 | Do you know when they will get it
+
+困惑度:    11.84 | 词数:  7 | We do not have the trial schedule
+
+困惑度:    11.87 | 词数:  8 | I think that it is not your case
+
+困惑度:    11.91 | 词数:  6 | I know that they will appeal
+
+困惑度:    11.93 | 词数:  7 | There is no exposure in this trial
+
+困惑度:    12.02 | 词数:  4 | When will you know
+
+困惑度:    12.04 | 词数:  7 | We appeal the case to the judge
+
+困惑度:    12.04 | 词数:  6 | There is exposure in this litigation
+
+困惑度:    12.12 | 词数:  7 | There is no exposure for the client
+
+困惑度:    12.13 | 词数:  7 | When will the judge schedule the trial
+
+困惑度:    12.15 | 词数:  4 | Yes I know them
+
+困惑度:    12.16 | 词数:  4 | What did you do
+
+困惑度:    12.18 | 词数:  6 | The client did not have exposure
+
+困惑度:    12.18 | 词数:  4 | Yes I know it
+
+困惑度:    12.21 | 词数:  7 | They will appeal the case and trial
+
+困惑度:    12.23 | 词数:  6 | What is the point in this
+
+困惑度:    12.25 | 词数:  7 | I do not know what to do
+
+困惑度:    12.27 | 词数:  7 | You and I can schedule the trial
+
+困惑度:    12.31 | 词数:  7 | We have litigation exposure on the case
+
+困惑度:    12.34 | 词数:  8 | The judge did not know about the litigation
+
+困惑度:    12.36 | 词数:  5 | We have what we have
+
+困惑度:    12.39 | 词数:  4 | That is the point
+
+困惑度:    12.39 | 词数:  6 | This is what we will do
+
+困惑度:    12.41 | 词数:  9 | Yes I think they are in the trial schedule
+
+困惑度:    12.45 | 词数:  6 | We are on the schedule now
+
+困惑度:    12.53 | 词数:  9 | Yes I will get them on the trial schedule
+
+困惑度:    12.54 | 词数:  6 | Judge will confirm the trial schedule
+
+困惑度:    12.57 | 词数:  6 | Yes I will schedule it now
+
+困惑度:    12.58 | 词数:  4 | This is for them
+
+困惑度:    12.60 | 词数:  4 | It is about you
+
+困惑度:    12.60 | 词数:  7 | We will do it if you confirm
+
+困惑度:    12.61 | 词数:  7 | Yes we can confirm the trial schedule
+
+困惑度:    12.67 | 词数:  7 | We appeal the case on this point
+
+困惑度:    12.72 | 词数:  7 | The client did not appeal this point
+
+困惑度:    12.79 | 词数:  7 | You have no exposure in this case
+
+困惑度:    12.83 | 词数:  6 | You can get the point now
+
+困惑度:    12.85 | 词数:  7 | We are in litigation with them now
+
+困惑度:    12.86 | 词数:  8 | The judge will get the point for appeal
+
+困惑度:    12.87 | 词数:  5 | We did it with them
+
+困惑度:    12.87 | 词数:  7 | I know what you will do now
+
+困惑度:    12.91 | 词数:  6 | Do you think they will confirm
+
+困惑度:    12.92 | 词数:  8 | What do we know about the case now
+
+困惑度:    12.92 | 词数:  5 | What is this point about
+
+困惑度:    12.94 | 词数:  4 | We know that now
+
+困惑度:    13.00 | 词数:  5 | We are what we are
+
+困惑度:    13.01 | 词数:  5 | I have your schedule there
+
+困惑度:    13.03 | 词数:  6 | No we did not get it
+
+困惑度:    13.05 | 词数:  9 | Yes I will get your signature and confirm it
+
+困惑度:    13.13 | 词数:  6 | I will appeal to the judge
+
+困惑度:    13.17 | 词数:  3 | Think about it
+
+困惑度:    13.23 | 词数:  7 | That is what we do for you
+
+困惑度:    13.25 | 词数:  5 | When will you do that
+
+困惑度:    13.28 | 词数:  7 | The client did not have signature there
+
+困惑度:    13.30 | 词数:  6 | I know we can do this
+
+困惑度:    13.30 | 词数:  9 | We do not know if it is the case
+
+困惑度:    13.32 | 词数:  6 | Do you have the case schedule
+
+困惑度:    13.36 | 词数:  8 | It is about the exposure in this case
+
+困惑度:    13.38 | 词数:  6 | Yes you can do it now
+
+困惑度:    13.39 | 词数:  6 | They do not know your case
+
+困惑度:    13.45 | 词数:  4 | When did you know
+
+困惑度:    13.47 | 词数:  6 | Can you get it for us
+
+困惑度:    13.52 | 词数:  5 | That is what I know
+
+困惑度:    13.53 | 词数:  6 | What can I do for it
+
+困惑度:    13.67 | 词数:  6 | What did you do about that
+
+困惑度:    13.78 | 词数:  6 | This is not what I know
+
+困惑度:    13.88 | 词数:  6 | There is no schedule for it
+
+困惑度:    13.89 | 词数:  5 | I confirm the judge signature
+
+困惑度:    13.90 | 词数:  7 | We are in litigation on that point
+
+困惑度:    13.99 | 词数:  6 | I confirm that we will appeal
+
+困惑度:    13.99 | 词数: 10 | But I do not know the schedule for the trial
+
+困惑度:    14.02 | 词数:  6 | Can we get your signature now
+
+困惑度:    14.12 | 词数:  6 | We will confirm the client appeal
+
+困惑度:    14.16 | 词数:  7 | We will not do litigation with them
+
+困惑度:    14.20 | 词数:  6 | They do the litigation for us
+
+困惑度:    14.41 | 词数:  6 | You and I know the judge
+
+困惑度:    14.42 | 词数:  8 | The client and I will get on that
+
+困惑度:    14.46 | 词数:  6 | We do know what they did
+
+困惑度:    14.48 | 词数:  4 | Can you confirm this
+
+困惑度:    14.48 | 词数:  5 | Yes, we have this case
+
+困惑度:    14.59 | 词数:  5 | when did you get that
+
+困惑度:    14.72 | 词数:  6 | This is my point about that
+
+困惑度:    14.82 | 词数: 10 | When will the judge confirm the appeal for the client
+
+困惑度:    14.85 | 词数:  6 | No we did not do it
+
+困惑度:    14.95 | 词数:  6 | It is not the trial now
+
+困惑度:    15.03 | 词数:  6 | They appeal the litigation with us
+
+困惑度:    15.10 | 词数:  6 | This is not what we did
+
+困惑度:    15.23 | 词数:  4 | You will get them
+
+困惑度:    15.23 | 词数:  4 | Can we do that
+
+困惑度:    15.26 | 词数:  5 | When did we get that
+
+困惑度:    15.35 | 词数:  7 | They are not in litigation with us
+
+困惑度:    15.40 | 词数:  5 | That is what I think
+
+困惑度:    15.54 | 词数:  7 | They have exposure in the trial case
+
+困惑度:    15.76 | 词数:  6 | Can you confirm your case now
+
+困惑度:    15.78 | 词数:  8 | If you confirm it we will do it
+
+困惑度:    15.92 | 词数:  7 | This is what they know about now
+
+困惑度:    16.06 | 词数:  4 | You are my client
+
+困惑度:    16.28 | 词数:  6 | They have no appeal for this
+
+困惑度:    16.51 | 词数:  5 | They know it is you
+
+困惑度:    16.57 | 词数:  7 | You do what you have to do
+
+困惑度:    16.67 | 词数:  4 | Now I can confirm
+
+困惑度:    16.74 | 词数:  6 | No I do not think so
+
+困惑度:    16.89 | 词数:  6 | The exposure is not on us
+
+困惑度:    16.96 | 词数:  8 | We think the case is not about exposure
+
+困惑度:    17.13 | 词数:  4 | Is this your signature
+
+困惑度:    17.21 | 词数:  6 | This trial is on schedule now
+
+困惑度:    17.26 | 词数:  4 | So what's the point
+
+困惑度:    17.49 | 词数:  4 | Can I have them
+
+困惑度:    17.72 | 词数:  6 | Did the judge confirm the appeal
+
+困惑度:    17.99 | 词数:  7 | It is for the judge to confirm
+
+困惑度:    18.01 | 词数:  4 | Are you with them
+
+困惑度:    18.21 | 词数:  7 | Confirm with us if you get it
+
+困惑度:    18.38 | 词数:  7 | The point is to have them there
+
+困惑度:    18.54 | 词数:  7 | Is it on your schedule for us
+
+困惑度:    18.64 | 词数:  6 | But you can now confirm it
+
+困惑度:    19.01 | 词数:  6 | My client and I will confirm
+
+困惑度:    19.11 | 词数:  5 | Now what do we do
+
+困惑度:    19.43 | 词数:  8 | But the case is not on trial now
+
+困惑度:    20.18 | 词数: 10 | If you think it is the case you can confirm
+
+困惑度:    20.37 | 词数:  9 | Confirm with the judge if there is no trial
+
+困惑度:    20.89 | 词数:  7 | Litigation exposure is what we think about
+
+困惑度:    22.02 | 词数:  5 | And what do they know
+
+困惑度:    23.18 | 词数: 10 | No there is not exposure for us in this appeal

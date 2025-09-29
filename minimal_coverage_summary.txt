@@ -1,0 +1,13 @@
+MINIMAL PHONEME COVERAGE ANALYSIS SUMMARY
+==================================================
+
+📊 RESULTS:
+   • Total words selected: 0
+   • Phonemes covered: 0/39
+   • Coverage: ❌ Incomplete
+
+📝 WORD LIST (sorted by selection order):
+------------------------------
+
+📈 PHONEME STATISTICS:
+------------------------------
