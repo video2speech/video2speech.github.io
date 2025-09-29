@@ -10,6 +10,7 @@
   .card{border:1px solid #444;border-radius:12px;padding:16px;margin:16px 0;background-color:#2a2a2a}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   video{width:300px;height:200px;background:#000;border-radius:8px;margin:0 auto;display:block;object-fit:contain}
+  .video-mirrored{transform:scaleX(-1)}
   button{padding:10px 14px;border-radius:10px;border:1px solid #555;background:#444;color:#e0e0e0;transition:all 0.1s ease}
   button:active{opacity:.8;transform:scale(0.95)}
   input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #555;background-color:#333;color:#e0e0e0}
@@ -125,6 +126,12 @@
           <option value="360p">360p (640×360) - Low Quality</option>
           <option value="auto">Auto - Camera Default</option>
         </select>
+      </div>
+      <div class="row" style="margin-bottom: 5px; align-items: center;">
+        <label style="font-size: 0.8rem; color: #888; margin-right: 8px;">
+          <input type="checkbox" id="mirrorVideo" checked style="margin-right: 4px;">
+          Mirror Video Display
+        </label>
       </div>
       <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     </div>
@@ -586,6 +593,9 @@ el('init').onclick = async () => {
     // Sentences already loaded through loadSentenceSet(), no need to read from textbox
     await updateSentenceView();
     
+    // Apply mirror effect if enabled
+    updateVideoMirror();
+    
     // Display actual resolution obtained
     const videoTrack = stream.getVideoTracks()[0];
     const settings = videoTrack.getSettings();
@@ -668,6 +678,23 @@ el('redo').onclick = async () => {
   } else {
     console.log('Cannot redo: already at first sentence or no sentences available');
   }
+};
+
+// Update video mirror effect
+function updateVideoMirror() {
+  const videoElement = el('preview');
+  const mirrorCheckbox = el('mirrorVideo');
+  
+  if (mirrorCheckbox.checked) {
+    videoElement.classList.add('video-mirrored');
+  } else {
+    videoElement.classList.remove('video-mirrored');
+  }
+}
+
+// Listen for mirror toggle changes
+el('mirrorVideo').onchange = () => {
+  updateVideoMirror();
 };
 
 // Listen for resolution changes
@@ -810,6 +837,9 @@ el('downloadAll').onclick = async () => {
             audio: true 
           });
           el('preview').srcObject = stream;
+          
+          // Apply mirror effect after restarting stream
+          updateVideoMirror();
           
           console.log('Video stream restarted after ZIP download');
         }
