@@ -1,14 +1,14 @@
-Are you going outside?
-Are you tired?
+Are you going outside
+Are you tired
 Bring my glasses here
 Bring my glasses please
 Do not feel bad
-Do you feel comfortable?
+Do you feel comfortable
 Faith is good
-Hello how are you?
+Hello how are you
 Here is my computer
-How do you feel?
-How do you like my music?
+How do you feel
+How do you like my music
 I am going outside
 I am not going
 I am not hungry
@@ -44,7 +44,7 @@ They are coming here
 They are coming outside
 They are going outside
 They have faith
-What do you do?
-Where is it?
+What do you do
+Where is it
 Yes
 You are not right
