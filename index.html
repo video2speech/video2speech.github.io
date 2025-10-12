@@ -70,10 +70,8 @@
     <div class="row">
       <label>Select Sentence Set</label>
       <select id="sentenceSet" onchange="loadSentenceSet()">
-        <option value="50_sentences">50_Words_Sentences</option>
-        <option value="150_sentences">150_Words_Sentences</option>
         <option value="50_repeat6_sentences">50_Repeat6_Sentences</option>
-        <option value="300_nonrepeating_sentences">300_Nonrepeating_Sentences</option>
+        <option value="300_nonrepeating_sentences" selected>300_Nonrepeating_Sentences</option>
       </select>
       <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">Reset Progress</button>
       <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">Clear All Progress</button>
@@ -92,18 +90,18 @@
 
   <div class="card" style="position: relative; padding: 12px; margin: 12px 0;">
     <video id="preview" playsinline autoplay muted></video>
-    <div id="initCameraOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.85); padding: 30px; border-radius: 16px; text-align: center; max-width: 700px; width: 90%;">
-      <p style="color: #4CAF50; font-size: 1.2rem; margin: 0 0 18px 0; font-weight: 500;">Thank you so much for participating today!</p>
-      <p style="color: #FFB74D; font-size: 1rem; margin: 0 0 18px 0; font-weight: 500;">Please remember to click SAVE ALL after each recording session. Press Space to start or end recording.</p>
-      <h3 style="color: white; margin: 0 0 18px 0; font-size: 1.4rem;">📷 Camera Setup Instructions</h3>
-      <div style="color: #e0e0e0; font-size: 1rem; line-height: 1.5; margin-bottom: 24px; text-align: left;">
-        <p style="margin: 8px 0;"><strong>1.</strong> Position camera below chin level, angling upward so mouth, throat, and cheeks are visible. </p>
-        <p style="margin: 8px 0;"><strong>2.</strong> Try to make the articulatory movements of each phoneme visible.</p>
-        <p style="margin: 8px 0;"><strong>3.</strong> Use soft, even lighting so there are no harsh shadows on the mouth, throat, or cheeks.</p>
-        <p style="margin: 8px 0;"><strong>4.</strong> Maintain similar lighting and camera position across all recording session.</p>
-      </div>
-      <button id="init" style="font-size: 1.3rem; padding: 14px 28px; background: #5a6b5a; color: white; border: none; border-radius: 10px; cursor: pointer;">📷 Initialize Camera</button>
-    </div>
+     <div id="initCameraOverlay" style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.9); padding: 35px; border-radius: 20px; text-align: center; max-width: 750px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+       <p style="color: #90EE90; font-size: 2.2rem; margin: 0 0 20px 0; font-weight: 600;">Thank you so much for participating today!</p>
+       
+       <h3 style="color: white; margin: 0 0 20px 0; font-size: 1.6rem; font-weight: 600;">📋 Instructions:</h3>
+       <div style="color: #e0e0e0; font-size: 1.3rem; line-height: 1.4; margin-bottom: 25px; text-align: left;">
+         <p style="margin: 15px 0;"><strong style="color: #81C784; margin-right: 8px;">1.</strong> Click <strong style="color: #81C784; background: rgba(129, 199, 132, 0.2); padding: 2px 6px; border-radius: 4px;">"Initialize Camera"</strong>, and Position camera below chin level, angling upward so mouth, throat, and cheeks are visible.</p>
+         <p style="margin: 15px 0;"><strong style="color: #64B5F6; margin-right: 8px;">2.</strong> Press <kbd style="background: #333; color: #64B5F6; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-weight: bold;">Space</kbd> key on keyboard to <strong style="color: #64B5F6; background: rgba(100, 181, 246, 0.2); padding: 2px 6px; border-radius: 4px;">start or end recording of each sentence</strong></p>
+         <p style="margin: 15px 0;"><strong style="color: #FFB74D; margin-right: 8px;">3.</strong> If you make mistakes in reading the current sentences, you can press <kbd style="background: #333; color: #FFB74D; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-weight: bold;">Space</kbd> to <strong style="color: #FFB74D; background: rgba(255, 183, 77, 0.2); padding: 2px 6px; border-radius: 4px;">end the recording firstly </strong>, then press <kbd style="background: #333; color: #FFB74D; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-weight: bold;">Left Arrow</kbd> to <strong style="color: #FFB74D; background: rgba(255, 183, 77, 0.2); padding: 2px 6px; border-radius: 4px;">redo that sentence</strong></p>
+         <p style="margin: 15px 0;"><strong style="color: #BA68C8; margin-right: 8px;">4.</strong> Click <strong style="color: #BA68C8; background: rgba(186, 104, 200, 0.2); padding: 2px 6px; border-radius: 4px;">SAVE ALL</strong> <strong style="color: #BA68C8; background: rgba(186, 104, 200, 0.2); padding: 2px 6px; border-radius: 4px;">after each recording session</strong></p>
+       </div>
+       <button id="init" style="font-size: 1.4rem; padding: 16px 32px; background: linear-gradient(135deg, #81C784, #66BB6A); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(129, 199, 132, 0.4); transition: all 0.3s ease;">📷 Initialize Camera</button>
+     </div>
           <div class="row" style="margin-top:8px; justify-content: center;">
         <button id="start" style="font-size: 1.1rem; padding: 10px 20px; background: #5a6b5a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px;">▶ Start</button>
         <button id="stop" style="font-size: 1.1rem; padding: 10px 20px; background: #7a5a5a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px;">⏭ Stop & Next</button>
@@ -328,13 +326,14 @@ async function clearAllStoredVideos() {
 
 // Sentence sets data
 const sentenceSets = {
-  '50_sentences': null,
-  '150_sentences': null,
   '50_repeat6_sentences': null,
   '300_nonrepeating_sentences': null
 };
 
-let currentSentenceSet = '50_sentences';
+let currentSentenceSet = '300_nonrepeating_sentences';
+let isWarmupMode = false;
+let warmupSentences = [];
+let warmupIndex = 0;
 
 // Load sentence set file
 async function loadSentenceFile(filename) {
@@ -349,17 +348,27 @@ async function loadSentenceFile(filename) {
   }
 }
 
+// Load warmup sentences (first 5 from 50_repeat6_sentences.txt)
+async function loadWarmupSentences() {
+  try {
+    const response = await fetch(`materials/../newset/50_repeat6_sentences.txt`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    const allSentences = text.split('\n').map(s => s.trim()).filter(Boolean);
+    return allSentences.slice(0, 5); // Get first 5 sentences
+  } catch (error) {
+    console.error('Failed to load warmup sentences:', error);
+    return [];
+  }
+}
+
 // Load sentence set
 async function loadSentenceSet() {
   const selected = el('sentenceSet').value;
   currentSentenceSet = selected;
   
   let filename;
-  if (selected === '50_sentences') {
-    filename = '50_sentences_list.txt';
-  } else if (selected === '150_sentences') {
-    filename = '150_sentences_list.txt';
-  } else if (selected === '50_repeat6_sentences') {
+  if (selected === '50_repeat6_sentences') {
     filename = '../newset/50_repeat6_sentences.txt';
   } else if (selected === '300_nonrepeating_sentences') {
     filename = '../newset/300_nonrepeating_sentences.txt';
@@ -451,10 +460,6 @@ const ordinal = (n) => {
 };
 
 async function updateSentenceView(){
-  const total = sentences.length;
-  const text = total ? sentences[idx] : '';
-  
-  // Update the text content while preserving the progress indicator
   const currentTextEl = el('currentText');
   const progressEl = el('idxInfo');
   
@@ -465,22 +470,33 @@ async function updateSentenceView(){
     }
   });
   
+  let text = '';
+  let progressText = '';
+  
+  if (isWarmupMode) {
+    // Warmup mode
+    text = warmupSentences.length ? warmupSentences[warmupIndex] : 'No warmup sentences available';
+    progressText = warmupSentences.length ? `WARMUP ${warmupIndex + 1} / ${warmupSentences.length}` : '';
+  } else {
+    // Normal recording mode
+    const total = sentences.length;
+    text = total ? sentences[idx] : '';
+    progressText = total ? `${idx+1} / ${total}` : '';
+    
+    // Always display repetition count, starting from 1st repeat
+    try {
+      const progress = await getProgress(currentSentenceSet);
+      const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
+      progressText += `    ${ordinal(repeatCount)} repeat`;
+    } catch (error) {
+      console.error('Failed to get progress for repetition count:', error);
+      progressText += `    1st repeat`;
+    }
+  }
+  
   // Add the new text
   const textNode = document.createTextNode(text || 'No sentences available');
   currentTextEl.insertBefore(textNode, progressEl);
-  
-  // Update progress indicator with repetition count
-  let progressText = total ? `${idx+1} / ${total}` : '';
-  
-  // Always display repetition count, starting from 1st repeat
-  try {
-    const progress = await getProgress(currentSentenceSet);
-    const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
-    progressText += `    ${ordinal(repeatCount)} repeat`;
-  } catch (error) {
-    console.error('Failed to get progress for repetition count:', error);
-    progressText += `    1st repeat`;
-  }
   
   progressEl.textContent = progressText;
   
@@ -496,7 +512,8 @@ function updateRecordingTimer() {
   const seconds = elapsed % 60;
   const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
   
-  el('recordingStatus').textContent = `🔴 REC ${timeStr}`;
+  const statusText = isWarmupMode ? `🔴 WARMUP ${timeStr}` : `🔴 REC ${timeStr}`;
+  el('recordingStatus').textContent = statusText;
 }
 
 function playRecordingStartSound() {
@@ -590,8 +607,35 @@ el('init').onclick = async () => {
     });
     
     el('preview').srcObject = stream;
-    // Sentences already loaded through loadSentenceSet(), no need to read from textbox
-    await updateSentenceView();
+    
+    // Load warmup sentences and ask user if they want to skip warmup
+    warmupSentences = await loadWarmupSentences();
+    if (warmupSentences.length > 0) {
+      // Ask user if they want to skip warmup
+      const skipWarmup = confirm('🎯 WARMUP OPTION\n\nWould you like to do a 5-sentence warmup first?\n\n• Click OK for "Warm up first and then start formal recording"\n• Click Cancel for "Go to formal recording directly"');
+      
+      if (skipWarmup) {
+        // Start warmup mode
+        isWarmupMode = true;
+        warmupIndex = 0;
+        await updateSentenceView();
+        
+        // Show warmup notification
+        alert('🎯 WARMUP MODE\n\nYou are now in warmup mode with 5 practice sentences.\nThese recordings will NOT be saved.\n\nPress Space to practice, then we will start the formal recording session.');
+      } else {
+        // Skip warmup and go directly to formal recording
+        isWarmupMode = false;
+        warmupIndex = 0;
+        await loadSentenceSet();
+        await updateSentenceView();
+        
+        alert('🎬 FORMAL RECORDING BEGINS\n\nCamera ready! Warmup skipped.\nAll recordings will be saved.\n\n');
+      }
+    } else {
+      // Fallback to normal mode if warmup fails
+      isWarmupMode = false;
+      await updateSentenceView();
+    }
     
     // Apply mirror effect if enabled
     updateVideoMirror();
@@ -609,8 +653,6 @@ el('init').onclick = async () => {
     // Hide the Initialize Camera button overlay and show preparing status
     el('initCameraOverlay').style.display = 'none';
     el('recordingStatus').style.display = 'block';
-    
-    alert('Camera ready! Videos will be stored locally.');
   } catch (e) {
     alert('Unable to access camera/microphone: ' + e);
   }
@@ -902,7 +944,7 @@ el('start').onclick = () => {
   
   mediaRecorder = new MediaRecorder(stream, { mimeType });
   mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-  mediaRecorder.onstop = saveBlob;
+  mediaRecorder.onstop = isWarmupMode ? () => {} : saveBlob; // Don't save in warmup mode
   
   // Play recording start sound
   playRecordingStartSound();
@@ -923,7 +965,8 @@ el('start').onclick = () => {
   timerInterval = setInterval(updateRecordingTimer, 1000);
   
   // Update recording status and sentence appearance
-  el('recordingStatus').textContent = '🔴 REC 0:00';
+  const statusText = isWarmupMode ? '🔴 WARMUP 0:00' : '🔴 REC 0:00';
+  el('recordingStatus').textContent = statusText;
   el('recordingStatus').style.color = '#f44336';
   el('currentText').className = 'big sentence-recording';
   
@@ -960,22 +1003,51 @@ el('stop').onclick = () => {
     el('recordingStatus').style.color = '#888';
     el('currentText').className = 'big sentence-preparing';
     
+    // Handle warmup mode navigation
+    if (isWarmupMode) {
+      if (warmupIndex < warmupSentences.length - 1) {
+        // Move to next warmup sentence
+        warmupIndex++;
+        updateSentenceView();
+      } else {
+        // Warmup completed, start formal recording
+        isWarmupMode = false;
+        warmupIndex = 0;
+        loadSentenceSet().then(() => {
+          alert('🎬 FORMAL RECORDING BEGINS\n\nWarmup completed! Now starting the formal recording session.\nAll recordings from now on will be saved.\n\nGood luck!');
+        });
+      }
+    }
+    
     // Keep Stop button pressed until Start is pressed again
   }
 };
 
-// Add spacebar shortcut support
+// Add keyboard shortcut support
 document.addEventListener('keydown', (event) => {
-  // Only trigger when spacebar is pressed and not focused on input elements
-  if (event.code === 'Space' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
-    event.preventDefault(); // Prevent page scrolling
+  // Only trigger when not focused on input elements
+  if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
     
-    if (!recording) {
-      // Start recording
-      el('start').click();
-    } else {
-      // Stop recording
-      el('stop').click();
+    // Spacebar: Start/Stop recording
+    if (event.code === 'Space') {
+      event.preventDefault(); // Prevent page scrolling
+      
+      if (!recording) {
+        // Start recording
+        el('start').click();
+      } else {
+        // Stop recording
+        el('stop').click();
+      }
+    }
+    
+    // Left Arrow: Redo last sentence
+    else if (event.code === 'ArrowLeft') {
+      event.preventDefault(); // Prevent default behavior
+      
+      if (!recording) { // Only allow redo when not recording
+        el('redo').click();
+      }
     }
   }
 });
