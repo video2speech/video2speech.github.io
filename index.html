@@ -615,7 +615,7 @@ el('init').onclick = async () => {
       const skipWarmup = confirm('🎯 WARMUP OPTION\n\nWould you like to do a 5-sentence warmup first?\n\n• Click OK for "Warm up first and then start formal recording"\n• Click Cancel for "Go to formal recording directly"');
       
       if (skipWarmup) {
-        // Start warmup mode
+        // Start warmup mode - don't load formal sentences yet
         isWarmupMode = true;
         warmupIndex = 0;
         await updateSentenceView();
@@ -634,6 +634,7 @@ el('init').onclick = async () => {
     } else {
       // Fallback to normal mode if warmup fails
       isWarmupMode = false;
+      await loadSentenceSet();
       await updateSentenceView();
     }
     
@@ -706,19 +707,31 @@ el('skip').onclick = async () => {
 
 // Redo last sentence (go back to previous sentence)
 el('redo').onclick = async () => {
-  if (sentences.length && idx > 0) {
-    idx--; // Go back to previous sentence
-    isRedo = true; // Set redo flag for video naming
-    console.log(`Redo last sentence ${idx + 1}: ${sentences[idx]}`);
-    await updateSentenceView();
-    // Save progress
-    try {
-      await saveProgress(currentSentenceSet, idx);
-    } catch (error) {
-      console.error('Failed to save progress:', error);
+  if (isWarmupMode) {
+    // Warmup mode: go back to previous warmup sentence
+    if (warmupSentences.length && warmupIndex > 0) {
+      warmupIndex--; // Go back to previous warmup sentence
+      console.log(`Redo warmup sentence ${warmupIndex + 1}: ${warmupSentences[warmupIndex]}`);
+      await updateSentenceView();
+    } else {
+      console.log('Cannot redo: already at first warmup sentence');
     }
   } else {
-    console.log('Cannot redo: already at first sentence or no sentences available');
+    // Normal mode: go back to previous formal sentence
+    if (sentences.length && idx > 0) {
+      idx--; // Go back to previous sentence
+      isRedo = true; // Set redo flag for video naming
+      console.log(`Redo last sentence ${idx + 1}: ${sentences[idx]}`);
+      await updateSentenceView();
+      // Save progress
+      try {
+        await saveProgress(currentSentenceSet, idx);
+      } catch (error) {
+        console.error('Failed to save progress:', error);
+      }
+    } else {
+      console.log('Cannot redo: already at first sentence or no sentences available');
+    }
   }
 };
 
@@ -1013,6 +1026,8 @@ el('stop').onclick = () => {
         // Warmup completed, start formal recording
         isWarmupMode = false;
         warmupIndex = 0;
+        
+        // Load the selected sentence set and restore progress
         loadSentenceSet().then(() => {
           alert('🎬 FORMAL RECORDING BEGINS\n\nWarmup completed! Now starting the formal recording session.\nAll recordings from now on will be saved.\n\nGood luck!');
         });
