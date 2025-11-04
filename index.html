@@ -150,6 +150,7 @@ let timerInterval = null; // Timer display update interval
 let storageMode = true; // Default to iPad mode (store locally)
 let isRedo = false; // flag for redo mode
 let db;
+let streamHealthCheckInterval = null; // Interval for checking stream health
 
 // Initialize IndexedDB
 async function initDB() {
@@ -493,6 +494,92 @@ function updateRecordingTimer() {
   el('recordingStatus').textContent = `🔴 REC ${timeStr}`;
 }
 
+// Clean up recording resources
+function cleanupRecording() {
+  // Clear timers
+  if (recordingTimer) {
+    clearTimeout(recordingTimer);
+    recordingTimer = null;
+  }
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  
+  // Reset state
+  recordingStartTime = null;
+  recording = false;
+  
+  // Reset UI
+  el('recordingStatus').textContent = 'Preparing';
+  el('recordingStatus').style.color = '#888';
+  el('currentText').className = 'big sentence-preparing';
+  el('start').classList.remove('button-pressed');
+  el('stop').classList.remove('button-pressed');
+  
+  console.log('Recording cleanup completed');
+}
+
+// Check stream health periodically
+function checkStreamHealth() {
+  if (!stream) return;
+  
+  const videoTrack = stream.getVideoTracks()[0];
+  if (!videoTrack) {
+    console.warn('No video track found in stream');
+    return;
+  }
+  
+  const isLive = videoTrack.readyState === 'live';
+  const isEnabled = videoTrack.enabled;
+  
+  if (!isLive || !isEnabled) {
+    console.error('Stream health check failed:', {
+      readyState: videoTrack.readyState,
+      enabled: isEnabled,
+      muted: videoTrack.muted
+    });
+    
+    // Stop recording if active
+    if (recording) {
+      console.warn('Stream became unhealthy during recording, stopping...');
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        try {
+          mediaRecorder.stop();
+        } catch (e) {
+          console.error('Error stopping mediaRecorder on health check:', e);
+        }
+      }
+      cleanupRecording();
+      alert('Camera stream stopped unexpectedly. Please reinitialize camera.');
+    }
+  } else {
+    // Optional: Log health check success (can be commented out to reduce console noise)
+    // console.log('Stream health check passed');
+  }
+}
+
+// Start stream health monitoring
+function startStreamHealthMonitoring() {
+  // Clear any existing interval
+  if (streamHealthCheckInterval) {
+    clearInterval(streamHealthCheckInterval);
+  }
+  
+  // Check stream health every 3 seconds
+  streamHealthCheckInterval = setInterval(checkStreamHealth, 3000);
+  console.log('Stream health monitoring started');
+}
+
+// Stop stream health monitoring
+function stopStreamHealthMonitoring() {
+  if (streamHealthCheckInterval) {
+    clearInterval(streamHealthCheckInterval);
+    streamHealthCheckInterval = null;
+    console.log('Stream health monitoring stopped');
+  }
+}
+
 function playRecordingStartSound() {
   try {
     // Create audio context
@@ -605,6 +692,9 @@ el('init').onclick = async () => {
     // Hide the Initialize Camera button overlay and show preparing status
     el('initCameraOverlay').style.display = 'none';
     el('recordingStatus').style.display = 'block';
+    
+    // Start monitoring stream health
+    startStreamHealthMonitoring();
   } catch (e) {
     alert('Unable to access camera/microphone: ' + e);
   }
@@ -703,25 +793,20 @@ el('resolution').onchange = () => {
     // Hide the recording status
     el('recordingStatus').style.display = 'none';
     
+    // Stop stream health monitoring
+    stopStreamHealthMonitoring();
+    
     // Stop any ongoing recording
     if (recording && mediaRecorder) {
-      mediaRecorder.stop();
-      recording = false;
-      
-      // Clear timers
-      if (recordingTimer) {
-        clearTimeout(recordingTimer);
-        recordingTimer = null;
+      try {
+        if (mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+        cleanupRecording();
+      } catch (error) {
+        console.error('Error stopping recording on resolution change:', error);
+        cleanupRecording();
       }
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-      recordingStartTime = null;
-      
-      // Reset button states
-      el('start').classList.remove('button-pressed');
-      el('stop').classList.remove('button-pressed');
     }
   }
 };
@@ -836,6 +921,9 @@ el('downloadAll').onclick = async () => {
           // Apply mirror effect after restarting stream
           updateVideoMirror();
           
+          // Restart stream health monitoring
+          startStreamHealthMonitoring();
+          
           console.log('Video stream restarted after ZIP download');
         }
         
@@ -885,6 +973,35 @@ el('clearAll').onclick = async () => {
 el('start').onclick = () => {
   if (!stream) return alert('Please initialize camera first!');
   if (recording) return;
+  
+  // Check if stream is still active
+  const videoTrack = stream.getVideoTracks()[0];
+  if (!videoTrack || !videoTrack.enabled || videoTrack.readyState !== 'live') {
+    alert('Camera stream is not active. Please reinitialize camera.');
+    console.error('Stream issue detected:', {
+      hasTrack: !!videoTrack,
+      enabled: videoTrack?.enabled,
+      readyState: videoTrack?.readyState
+    });
+    return;
+  }
+  
+  // Clean up previous MediaRecorder if it exists
+  if (mediaRecorder) {
+    try {
+      if (mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      mediaRecorder.ondataavailable = null;
+      mediaRecorder.onstop = null;
+      mediaRecorder.onerror = null;
+    } catch (e) {
+      console.warn('Error cleaning up previous MediaRecorder:', e);
+    }
+    mediaRecorder = null;
+  }
+  
+  // Clear chunks array
   chunks = [];
   
   // Use MP4 format by default
@@ -895,67 +1012,89 @@ el('start').onclick = () => {
   ];
   const mimeType = mp4Options.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm;codecs=vp9,opus';
   
-  mediaRecorder = new MediaRecorder(stream, { mimeType });
-  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-  mediaRecorder.onstop = saveBlob;
-  
-  // Play recording start sound
-  playRecordingStartSound();
-  
-  mediaRecorder.start();
-  recording = true;
-  recordingStartTime = Date.now();
-  
-  // Set 1-minute auto-stop timer
-  recordingTimer = setTimeout(() => {
-    if (recording && mediaRecorder) {
-      console.log('Auto-stopping recording after 1 minute');
-      el('stop').click(); // Trigger stop button to handle all cleanup
-    }
-  }, 60000); // 60 seconds
-  
-  // Start timer display updates
-  timerInterval = setInterval(updateRecordingTimer, 1000);
-  
-  // Update recording status and sentence appearance
-  el('recordingStatus').textContent = '🔴 REC 0:00';
-  el('recordingStatus').style.color = '#f44336';
-  el('currentText').className = 'big sentence-recording';
-  
-  // Update button states - only START is pressed during recording
-  el('start').classList.add('button-pressed');
-  el('stop').classList.remove('button-pressed');
+  try {
+    // Request timeslice to prevent memory buildup (collect data every 1 second)
+    mediaRecorder = new MediaRecorder(stream, { 
+      mimeType,
+      videoBitsPerSecond: 5000000 // 5 Mbps, reasonable quality
+    });
+    
+    mediaRecorder.ondataavailable = e => { 
+      if (e.data && e.data.size > 0) {
+        chunks.push(e.data);
+        console.log(`Chunk received: ${e.data.size} bytes, total chunks: ${chunks.length}`);
+      }
+    };
+    
+    mediaRecorder.onstop = saveBlob;
+    
+    mediaRecorder.onerror = (event) => {
+      console.error('MediaRecorder error:', event.error);
+      alert('Recording error occurred: ' + event.error);
+      recording = false;
+      cleanupRecording();
+    };
+    
+    // Play recording start sound
+    playRecordingStartSound();
+    
+    // Start with timeslice of 1000ms to regularly emit data
+    mediaRecorder.start(1000);
+    recording = true;
+    recordingStartTime = Date.now();
+    
+    // Set 1-minute auto-stop timer
+    recordingTimer = setTimeout(() => {
+      if (recording && mediaRecorder) {
+        console.log('Auto-stopping recording after 1 minute');
+        el('stop').click(); // Trigger stop button to handle all cleanup
+      }
+    }, 60000); // 60 seconds
+    
+    // Start timer display updates
+    timerInterval = setInterval(updateRecordingTimer, 1000);
+    
+    // Update recording status and sentence appearance
+    el('recordingStatus').textContent = '🔴 REC 0:00';
+    el('recordingStatus').style.color = '#f44336';
+    el('currentText').className = 'big sentence-recording';
+    
+    // Update button states - only START is pressed during recording
+    el('start').classList.add('button-pressed');
+    el('stop').classList.remove('button-pressed');
+    
+  } catch (error) {
+    console.error('Failed to start MediaRecorder:', error);
+    alert('Failed to start recording: ' + error.message);
+    cleanupRecording();
+  }
 };
 
 el('stop').onclick = () => {
   if (mediaRecorder && recording) {
-    // Update button states - only STOP is pressed when stopping
-    el('start').classList.remove('button-pressed');
-    el('stop').classList.add('button-pressed');
-    
-    // Play recording stop sound
-    playRecordingStopSound();
-    
-    mediaRecorder.stop();
-    recording = false;
-    
-    // Clear the recording timer and timer display
-    if (recordingTimer) {
-      clearTimeout(recordingTimer);
-      recordingTimer = null;
+    try {
+      // Update button states - only STOP is pressed when stopping
+      el('start').classList.remove('button-pressed');
+      el('stop').classList.add('button-pressed');
+      
+      // Play recording stop sound
+      playRecordingStopSound();
+      
+      // Stop the MediaRecorder
+      if (mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      
+      // Use the cleanup function
+      cleanupRecording();
+      
+      console.log('Recording stopped successfully');
+    } catch (error) {
+      console.error('Error stopping recording:', error);
+      // Force cleanup even if stop failed
+      cleanupRecording();
+      alert('Error stopping recording: ' + error.message);
     }
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-    recordingStartTime = null;
-    
-    // Reset to preparing status
-    el('recordingStatus').textContent = 'Preparing';
-    el('recordingStatus').style.color = '#888';
-    el('currentText').className = 'big sentence-preparing';
-    
-    // Keep Stop button pressed until Start is pressed again
   }
 };
 
@@ -997,83 +1136,111 @@ function ts(){
   return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 async function saveBlob(){
-  // Determine file extension based on actual mimeType used
-  const isMP4 = mediaRecorder.mimeType.includes('mp4');
-  const fileExt = isMP4 ? 'mp4' : 'webm';
-  const blobType = isMP4 ? 'video/mp4' : 'video/webm';
-  
-  const blob = new Blob(chunks, { type: blobType });
-  const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
-  const timestamp = ts();
-  const redoSuffix = isRedo ? '_redo' : '';
-  
-  // Get progress info for filename
-  let progressInfo = '';
   try {
-    const progress = await getProgress(currentSentenceSet);
-    const total = sentences.length;
-    const currentPos = idx + 1;
+    // Check if we have valid chunks
+    if (!chunks || chunks.length === 0) {
+      console.warn('No video chunks to save');
+      chunks = []; // Clear the array
+      return;
+    }
     
-    // Always include repeat count in filename, starting from repeat1
-    const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
-    progressInfo = `_${currentPos}-${total}_repeat${repeatCount}`;
-  } catch (error) {
-    console.error('Failed to get progress for filename:', error);
-    progressInfo = `_${idx + 1}-${sentences.length}`;
-  }
-  
-  const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.mp4`;
-  
-  if (storageMode) {
-    // iPad mode: Store to IndexedDB
-          try {
+    // Determine file extension based on actual mimeType used
+    const isMP4 = mediaRecorder && mediaRecorder.mimeType.includes('mp4');
+    const fileExt = isMP4 ? 'mp4' : 'webm';
+    const blobType = isMP4 ? 'video/mp4' : 'video/webm';
+    
+    const blob = new Blob(chunks, { type: blobType });
+    
+    // Check if blob is valid
+    if (blob.size === 0) {
+      console.warn('Created blob has zero size');
+      chunks = []; // Clear the array
+      return;
+    }
+    
+    console.log(`Created blob: ${blob.size} bytes from ${chunks.length} chunks`);
+    
+    const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
+    const timestamp = ts();
+    const redoSuffix = isRedo ? '_redo' : '';
+    
+    // Get progress info for filename
+    let progressInfo = '';
+    try {
+      const progress = await getProgress(currentSentenceSet);
+      const total = sentences.length;
+      const currentPos = idx + 1;
+      
+      // Always include repeat count in filename, starting from repeat1
+      const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
+      progressInfo = `_${currentPos}-${total}_repeat${repeatCount}`;
+    } catch (error) {
+      console.error('Failed to get progress for filename:', error);
+      progressInfo = `_${idx + 1}-${sentences.length}`;
+    }
+    
+    const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.mp4`;
+    
+    if (storageMode) {
+      // iPad mode: Store to IndexedDB
+      try {
         await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
-        updateStorageInfo();
+        // Update storage info asynchronously to avoid blocking
+        setTimeout(() => updateStorageInfo(), 100);
         console.log(`Video stored locally: ${fileName}`);
       } catch (error) {
-      console.error('Failed to store video:', error);
-      alert('Failed to store video: ' + error.message);
-      // Fallback to direct download on failure
+        console.error('Failed to store video:', error);
+        alert('Failed to store video: ' + error.message);
+        // Fallback to direct download on failure
+        directDownload(blob, fileName);
+      }
+    } else {
+      // Normal mode: Direct download
       directDownload(blob, fileName);
     }
-  } else {
-    // Normal mode: Direct download
-    directDownload(blob, fileName);
-  }
-  
-  // Reset redo flag after recording completion
-  isRedo = false;
-  
-  // Auto jump to next sentence after recording completion (if not the last sentence)
-  if (idx < sentences.length - 1) {
-    idx++;
-    await updateSentenceView();
     
-    // Save progress
-    try {
-      await saveProgress(currentSentenceSet, idx);
-      console.log(`Auto moved to next sentence: sentence ${idx + 1}`);
-    } catch (error) {
-      console.error('Failed to save progress:', error);
+    // Clear chunks array immediately after use to free memory
+    chunks = [];
+    
+    // Reset redo flag after recording completion
+    isRedo = false;
+    
+    // Auto jump to next sentence after recording completion (if not the last sentence)
+    if (idx < sentences.length - 1) {
+      idx++;
+      await updateSentenceView();
+      
+      // Save progress
+      try {
+        await saveProgress(currentSentenceSet, idx);
+        console.log(`Auto moved to next sentence: sentence ${idx + 1}`);
+      } catch (error) {
+        console.error('Failed to save progress:', error);
+      }
+    } else {
+      // All sentences completed, reset to first sentence for repetition
+      idx = 0;
+      
+      // Save progress and increment repetition counter FIRST
+      try {
+        await saveProgress(currentSentenceSet, idx, true); // true indicates completion
+        console.log(`Completed recording all ${sentences.length} sentences, starting next repetition`);
+      } catch (error) {
+        console.error('Failed to save progress:', error);
+      }
+      
+      // Then update the sentence view to show the new repetition count
+      await updateSentenceView();
     }
-  } else {
-    // All sentences completed, reset to first sentence for repetition
-    idx = 0;
     
-    // Save progress and increment repetition counter FIRST
-    try {
-      await saveProgress(currentSentenceSet, idx, true); // true indicates completion
-      console.log(`Completed recording all ${sentences.length} sentences, starting next repetition`);
-    } catch (error) {
-      console.error('Failed to save progress:', error);
-    }
-    
-    // Then update the sentence view to show the new repetition count
-    await updateSentenceView();
+    // Display format information
+    console.log(`Recording completed, format: ${fileExt.toUpperCase()}, MIME type: ${mediaRecorder.mimeType}`);
+  } catch (error) {
+    console.error('Error in saveBlob:', error);
+    alert('Error saving recording: ' + error.message);
+    // Clear chunks on error to prevent corruption
+    chunks = [];
   }
-  
-  // Display format information
-  console.log(`Recording completed, format: ${fileExt.toUpperCase()}, MIME type: ${mediaRecorder.mimeType}`);
 }
 
 function directDownload(blob, fileName) {
