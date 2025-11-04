@@ -695,6 +695,9 @@ el('init').onclick = async () => {
     
     // Start monitoring stream health
     startStreamHealthMonitoring();
+    
+    // Remove focus from button to allow keyboard shortcuts
+    el('init').blur();
   } catch (e) {
     alert('Unable to access camera/microphone: ' + e);
   }
@@ -763,6 +766,9 @@ el('redo').onclick = async () => {
   } else {
     console.log('Cannot redo: already at first sentence or no sentences available');
   }
+  
+  // Remove focus from button to allow keyboard shortcuts
+  el('redo').blur();
 };
 
 // Update video mirror effect
@@ -883,6 +889,9 @@ el('downloadAll').onclick = async () => {
     
     console.log(`Downloaded ZIP file: ${zipFileName}`);
     
+    // Remove focus from button to restore keyboard shortcuts
+    el('downloadAll').blur();
+    
     // Delete all videos from storage
     for (const video of videos) {
       try {
@@ -930,11 +939,13 @@ el('downloadAll').onclick = async () => {
         // Reset button
         el('downloadAll').textContent = '💾 SAVE ALL';
         el('downloadAll').disabled = false;
+        el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
         
       } catch (error) {
         console.error('Error restarting video stream:', error);
         el('downloadAll').textContent = '💾 SAVE ALL';
         el('downloadAll').disabled = false;
+        el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
       }
     }, 500);
     
@@ -942,6 +953,7 @@ el('downloadAll').onclick = async () => {
     alert('ZIP download failed: ' + error.message);
     el('downloadAll').textContent = '💾 SAVE ALL';
     el('downloadAll').disabled = false;
+    el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
   }
 };
 
@@ -1063,6 +1075,9 @@ el('start').onclick = () => {
     el('start').classList.add('button-pressed');
     el('stop').classList.remove('button-pressed');
     
+    // Remove focus from button to allow keyboard shortcuts
+    el('start').blur();
+    
   } catch (error) {
     console.error('Failed to start MediaRecorder:', error);
     alert('Failed to start recording: ' + error.message);
@@ -1088,11 +1103,15 @@ el('stop').onclick = () => {
       // Use the cleanup function
       cleanupRecording();
       
+      // Remove focus from button to allow keyboard shortcuts
+      el('stop').blur();
+      
       console.log('Recording stopped successfully');
     } catch (error) {
       console.error('Error stopping recording:', error);
       // Force cleanup even if stop failed
       cleanupRecording();
+      el('stop').blur();
       alert('Error stopping recording: ' + error.message);
     }
   }
