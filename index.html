@@ -71,7 +71,7 @@
       <label>Select Sentence Set</label>
       <select id="sentenceSet" onchange="loadSentenceSet()">
         <option value="50_repeat6_sentences">50_Repeat6_Sentences</option>
-        <option value="300_nonrepeating_sentences" selected>300_Nonrepeating_Sentences</option>
+        <option value="350_nonrepeating_sentences" selected>350_Nonrepeating_Sentences</option>
       </select>
       <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">Reset Progress</button>
       <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">Clear All Progress</button>
@@ -328,10 +328,10 @@ async function clearAllStoredVideos() {
 // Sentence sets data
 const sentenceSets = {
   '50_repeat6_sentences': null,
-  '300_nonrepeating_sentences': null
+  '350_nonrepeating_sentences': null
 };
 
-let currentSentenceSet = '300_nonrepeating_sentences';
+let currentSentenceSet = '350_nonrepeating_sentences';
 
 // Load sentence set file
 async function loadSentenceFile(filename) {
@@ -355,8 +355,8 @@ async function loadSentenceSet() {
   let filename;
   if (selected === '50_repeat6_sentences') {
     filename = '../newset/50_repeat6_sentences.txt';
-  } else if (selected === '300_nonrepeating_sentences') {
-    filename = '../newset/300_nonrepeating_sentences.txt';
+  } else if (selected === '350_nonrepeating_sentences') {
+    filename = '../newset/350_nonrepeating_sentences.txt';
   }
   
   // Load sentences from cache or file
