@@ -165,6 +165,8 @@ let storageMode = true; // Default to iPad mode (store locally)
 let isRedo = false; // flag for redo mode
 let db;
 let streamHealthCheckInterval = null; // Interval for checking stream health
+const STORAGE_USAGE_THRESHOLD = 0.78;
+let storageBlocked = false;
 
 // Initialize IndexedDB
 async function initDB() {
@@ -295,36 +297,175 @@ async function deleteProgress(sentenceSet) {
   });
 }
 
-// Get all stored videos
-async function getAllStoredVideos() {
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / (1024 ** exponent);
+  return `${value.toFixed(exponent === 0 ? 0 : 1)} ${units[exponent]}`;
+}
+
+async function getStoredVideoStats() {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(['videos'], 'readonly');
     const store = transaction.objectStore('videos');
-    const request = store.getAll();
-    
+    const request = store.openCursor();
+    let count = 0;
+    let totalSize = 0;
+
     request.onsuccess = () => {
-      const videos = request.result;
-      // Convert ArrayBuffer back to Blob for each video
-      const videosWithBlobs = videos.map(video => ({
-        ...video,
-        blob: new Blob([video.arrayBuffer], { type: video.mimeType || 'video/mp4' })
-      }));
-      resolve(videosWithBlobs);
+      const cursor = request.result;
+      if (!cursor) {
+        resolve({ count, totalSize });
+        return;
+      }
+      const size = Number(cursor.value?.size) || 0;
+      totalSize += size;
+      count += 1;
+      cursor.continue();
     };
     request.onerror = () => reject(request.error);
+    transaction.onerror = () => reject(transaction.error);
   });
 }
 
-// Delete stored video
-async function deleteStoredVideo(id) {
+async function forEachStoredVideo(visitor) {
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['videos'], 'readwrite');
+    const transaction = db.transaction(['videos'], 'readonly');
     const store = transaction.objectStore('videos');
-    const request = store.delete(id);
-    
-    request.onsuccess = () => resolve();
+    const request = store.openCursor();
+    let index = 0;
+
+    request.onsuccess = async () => {
+      const cursor = request.result;
+      if (!cursor) {
+        resolve();
+        return;
+      }
+      try {
+        await visitor(cursor.value, index);
+        index += 1;
+        cursor.continue();
+      } catch (error) {
+        reject(error);
+      }
+    };
     request.onerror = () => reject(request.error);
+    transaction.onerror = () => reject(transaction.error);
   });
+}
+
+async function getStorageEstimateWithExtra(extraBytes = 0) {
+  if (!navigator.storage || typeof navigator.storage.estimate !== 'function') {
+    return null;
+  }
+  try {
+    const estimate = await navigator.storage.estimate();
+    const usage = Number(estimate.usage) || 0;
+    const quota = Number(estimate.quota) || 0;
+    if (!quota) return null;
+    return {
+      usage,
+      quota,
+      projectedUsage: usage + Math.max(0, extraBytes)
+    };
+  } catch (error) {
+    console.warn('Failed to estimate storage quota:', error);
+    return null;
+  }
+}
+
+async function refreshStorageBlockState(extraBytes = 0) {
+  const estimate = await getStorageEstimateWithExtra(extraBytes);
+  if (!estimate) {
+    storageBlocked = false;
+    return { blocked: false, estimate: null };
+  }
+  const thresholdBytes = estimate.quota * STORAGE_USAGE_THRESHOLD;
+  const blocked = estimate.projectedUsage >= thresholdBytes;
+  storageBlocked = blocked;
+  return { blocked, estimate };
+}
+
+function getStorageBlockedMessage(estimate) {
+  if (!estimate) {
+    return 'Local storage is almost full. Please click SAVE ALL to export and clear cached videos before recording more.';
+  }
+  const ratio = (estimate.projectedUsage / estimate.quota) * 100;
+  const used = formatBytes(estimate.projectedUsage);
+  const total = formatBytes(estimate.quota);
+  return `Storage limit warning: projected usage is ${ratio.toFixed(1)}% (${used} / ${total}). Please click SAVE ALL to export and clear cached videos before recording more.`;
+}
+
+async function downloadZipWithBestEffortStreaming(zip, zipFileName) {
+  if (typeof window.showSaveFilePicker === 'function') {
+    try {
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: zipFileName,
+        types: [{
+          description: 'ZIP Archive',
+          accept: { 'application/zip': ['.zip'] }
+        }]
+      });
+      const writable = await fileHandle.createWritable();
+      const streamHelper = zip.generateInternalStream({
+        type: 'uint8array',
+        streamFiles: true,
+        compression: 'STORE'
+      });
+
+      await new Promise((resolve, reject) => {
+        let writeChain = Promise.resolve();
+        let failed = false;
+
+        streamHelper.on('data', (chunk) => {
+          if (failed) return;
+          if (typeof streamHelper.pause === 'function') streamHelper.pause();
+          writeChain = writeChain
+            .then(() => writable.write(chunk))
+            .then(() => {
+              if (typeof streamHelper.resume === 'function') streamHelper.resume();
+            })
+            .catch((error) => {
+              failed = true;
+              reject(error);
+            });
+        });
+
+        streamHelper.on('error', (error) => {
+          failed = true;
+          reject(error);
+        });
+
+        streamHelper.on('end', () => {
+          writeChain.then(resolve).catch(reject);
+        });
+
+        if (typeof streamHelper.resume === 'function') {
+          streamHelper.resume();
+        }
+      });
+
+      await writable.close();
+      return;
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        throw new Error('Save canceled by user.');
+      }
+      console.warn('Streamed file save is not available, falling back to blob download:', error);
+    }
+  }
+
+  const zipBlob = await zip.generateAsync({
+    type: 'blob',
+    streamFiles: true,
+    compression: 'STORE'
+  });
+  const a = document.createElement('a');
+  a.download = zipFileName;
+  a.href = URL.createObjectURL(zipBlob);
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // Clear all stored videos
@@ -840,12 +981,17 @@ async function updateStorageInfo() {
   }
   
   try {
-    const videos = await getAllStoredVideos();
-    const count = videos.length;
-    const totalSize = videos.reduce((sum, video) => sum + video.size, 0);
+    const { count, totalSize } = await getStoredVideoStats();
     const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
-    
-    el('storageInfo').textContent = count > 0 ? `Cached ${count} videos, ~${sizeInMB} MB` : '';
+    const blockState = await refreshStorageBlockState();
+    const quotaText = blockState.estimate
+      ? `, storage ${(blockState.estimate.usage / blockState.estimate.quota * 100).toFixed(1)}% used`
+      : '';
+
+    const baseInfo = count > 0 ? `Cached ${count} videos, ~${sizeInMB} MB${quotaText}` : '';
+    el('storageInfo').textContent = storageBlocked
+      ? `${baseInfo ? `${baseInfo} | ` : ''}Near storage limit, click SAVE ALL`
+      : baseInfo;
     
     console.log(`Storage info updated: ${count} videos, ${sizeInMB} MB`);
   } catch (error) {
@@ -859,13 +1005,13 @@ async function updateStorageInfo() {
 // Download all stored videos
 el('downloadAll').onclick = async () => {
   try {
-    const videos = await getAllStoredVideos();
-    if (videos.length === 0) {
+    const { count } = await getStoredVideoStats();
+    if (count === 0) {
       alert('No stored videos found');
       return;
     }
     
-    if (!confirm(`Are you sure you want to download all ${videos.length} videos as a ZIP file? Videos will be automatically cleared from cache after download.\n\nAfter SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
+    if (!confirm(`Are you sure you want to download all ${count} videos as a ZIP file? Videos will be automatically cleared from cache after download.\n\nAfter SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
     
     // Show progress indicator
     el('downloadAll').textContent = 'Creating ZIP...';
@@ -874,32 +1020,21 @@ el('downloadAll').onclick = async () => {
     // Create ZIP file
     const zip = new JSZip();
     
-    // Add all videos to ZIP
-    for (let i = 0; i < videos.length; i++) {
-      const video = videos[i];
-      console.log(`Adding to ZIP: ${video.fileName}`);
-      
-      // Convert blob to array buffer for ZIP
-      const arrayBuffer = await video.blob.arrayBuffer();
-      zip.file(video.fileName, arrayBuffer);
-      
-      // Update progress
-      el('downloadAll').textContent = `Adding ${i + 1}/${videos.length}...`;
-    }
+    // Add all videos to ZIP with cursor iteration to avoid loading everything at once
+    await forEachStoredVideo(async (videoRecord, i) => {
+      const mimeType = videoRecord.mimeType || 'video/mp4';
+      const blob = new Blob([videoRecord.arrayBuffer], { type: mimeType });
+      zip.file(videoRecord.fileName, blob, { compression: 'STORE' });
+      el('downloadAll').textContent = `Adding ${i + 1}/${count}...`;
+    });
     
-    // Generate ZIP file
-    el('downloadAll').textContent = 'Generating ZIP...';
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    // Generate and save ZIP file
+    el('downloadAll').textContent = 'Saving ZIP...';
     
     // Create download link for ZIP
     const currentDate = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     const zipFileName = `video-recordings-${currentDate}.zip`;
-    
-    const a = document.createElement('a');
-    a.download = zipFileName;
-    a.href = URL.createObjectURL(zipBlob);
-    a.click();
-    URL.revokeObjectURL(a.href);
+    await downloadZipWithBestEffortStreaming(zip, zipFileName);
     
     console.log(`Downloaded ZIP file: ${zipFileName}`);
     
@@ -907,19 +1042,12 @@ el('downloadAll').onclick = async () => {
     el('downloadAll').blur();
     
     // Delete all videos from storage
-    for (const video of videos) {
-      try {
-        await deleteStoredVideo(video.id);
-        console.log(`Deleted stored video: ${video.fileName}`);
-      } catch (error) {
-        console.error(`Failed to delete video: ${video.fileName}`, error);
-      }
-    }
+    await clearAllStoredVideos();
     
     // Update storage info and restart video stream
     setTimeout(async () => {
       try {
-        updateStorageInfo();
+        await updateStorageInfo();
         
         // Restart video stream to refresh camera feed
         if (stream) {
@@ -974,13 +1102,13 @@ el('downloadAll').onclick = async () => {
 // Clear all stored videos
 el('clearAll').onclick = async () => {
   try {
-    const videos = await getAllStoredVideos();
-    if (videos.length === 0) {
+    const { count } = await getStoredVideoStats();
+    if (count === 0) {
       alert('No stored videos found');
       return;
     }
     
-    if (!confirm(`Are you sure you want to clear all ${videos.length} stored videos? This action cannot be undone!`)) return;
+    if (!confirm(`Are you sure you want to clear all ${count} stored videos? This action cannot be undone!`)) return;
     
     await clearAllStoredVideos();
     
@@ -996,9 +1124,14 @@ el('clearAll').onclick = async () => {
   }
 };
 
-el('start').onclick = () => {
+el('start').onclick = async () => {
   if (!stream) return alert('Please initialize camera first!');
   if (recording) return;
+  const blockState = await refreshStorageBlockState();
+  if (blockState.blocked || storageBlocked) {
+    alert(getStorageBlockedMessage(blockState.estimate));
+    return;
+  }
   
   // Check if stream is still active
   const videoTrack = stream.getVideoTracks()[0];
@@ -1217,6 +1350,15 @@ async function saveBlob(){
     if (storageMode) {
       // iPad mode: Store to IndexedDB
       try {
+        const blockState = await refreshStorageBlockState(blob.size);
+        if (blockState.blocked) {
+          const blockedMessage = getStorageBlockedMessage(blockState.estimate);
+          alert(blockedMessage);
+          // Keep the current recording by downloading it directly, but block further cached recording.
+          directDownload(blob, fileName);
+          chunks = [];
+          return;
+        }
         await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
         // Update storage info asynchronously to avoid blocking
         setTimeout(() => updateStorageInfo(), 100);
