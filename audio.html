@@ -91,7 +91,7 @@
       <button id="redo" style="font-size: 0.96rem; padding: 13px 20px; background: rgba(255,255,255,0.02); color: #a9a9a9; border: 1px solid #555; border-radius: 8px; cursor: pointer; margin: 0; opacity: 0.56;">🔄 Redo Last</button>
     </div>
     <div class="row" style="margin-top:14px; justify-content: center;">
-      <button id="startStop" style="font-size: 1.1rem; padding: 18px 22px; width: 276px; background: #4b5650; color: #e8ece8; border: 1px solid #626d67; border-radius: 10px; cursor: pointer; margin: 0; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);">▶ Start</button>
+      <button id="startStop" style="font-size: 1.1rem; padding: 18px 22px; width: 276px; background: #5a7663; color: #f4fbf4; border: 1px solid #7ea58a; border-radius: 10px; cursor: pointer; margin: 0; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);">▶ Start</button>
     </div>
     <div class="row" style="justify-content:center; margin-top:10px;">
       <span class="muted" id="storageInfo" style="font-size: 1rem;"></span>
@@ -677,15 +677,15 @@ function setStartStopButtonState(isRecording) {
   if (!btn) return;
   if (isRecording) {
     btn.textContent = '⏭ Stop & Next';
-    btn.style.background = '#5f4e4e';
-    btn.style.color = '#efe6e6';
-    btn.style.borderColor = '#786464';
+    btn.style.background = '#7a5b5b';
+    btn.style.color = '#fff6f6';
+    btn.style.borderColor = '#9f7a7a';
     btn.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.2)';
   } else {
     btn.textContent = '▶ Start';
-    btn.style.background = '#4b5650';
-    btn.style.color = '#e8ece8';
-    btn.style.borderColor = '#626d67';
+    btn.style.background = '#5a7663';
+    btn.style.color = '#f4fbf4';
+    btn.style.borderColor = '#7ea58a';
     btn.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.18)';
   }
 }
