@@ -84,14 +84,14 @@
     <div id="initMicOverlay" style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.9); padding: 35px; border-radius: 20px; text-align: center; max-width: 700px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
       <button id="init" style="font-size: 1.4rem; padding: 16px 32px; background: linear-gradient(135deg, #81C784, #66BB6A); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(129, 199, 132, 0.4); transition: all 0.3s ease;">🎙 Initialize Microphone</button>
     </div>
-    <div class="row" style="margin-top:10px; justify-content: center;">
-      <button id="downloadAll" style="font-size: 0.96rem; padding: 10px 18px; background: #33414c; color: #cfcfcf; border: 1px solid #4f6571; border-radius: 8px; cursor: pointer; margin: 0; opacity: 0.8; display:none">💾 Save All</button>
+    <div class="row" style="margin-top:12px; justify-content: center;">
+      <button id="downloadAll" style="font-size: 0.96rem; padding: 13px 20px; background: #2f363c; color: #b7bec4; border: 1px solid #444d55; border-radius: 8px; cursor: pointer; margin: 0; opacity: 0.64; display:none">💾 Save All</button>
     </div>
-    <div class="row" style="margin-top:8px; justify-content: center;">
-      <button id="redo" style="font-size: 0.96rem; padding: 10px 18px; background: #3f3a31; color: #cfcfcf; border: 1px solid #5e5647; border-radius: 8px; cursor: pointer; margin: 0; opacity: 0.8;">🔄 Redo Last</button>
+    <div class="row" style="margin-top:12px; justify-content: center;">
+      <button id="redo" style="font-size: 0.96rem; padding: 13px 20px; background: rgba(255,255,255,0.02); color: #a9a9a9; border: 1px solid #555; border-radius: 8px; cursor: pointer; margin: 0; opacity: 0.56;">🔄 Redo Last</button>
     </div>
-    <div class="row" style="margin-top:8px; justify-content: center;">
-      <button id="startStop" style="font-size: 1.1rem; padding: 14px 20px; width: 276px; background: #3f6641; color: #f4fbf4; border: 1px solid #69956c; border-radius: 10px; cursor: pointer; margin: 0; box-shadow: 0 2px 8px rgba(63, 102, 65, 0.22);">▶ Start</button>
+    <div class="row" style="margin-top:14px; justify-content: center;">
+      <button id="startStop" style="font-size: 1.1rem; padding: 18px 22px; width: 276px; background: #4b5650; color: #e8ece8; border: 1px solid #626d67; border-radius: 10px; cursor: pointer; margin: 0; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);">▶ Start</button>
     </div>
     <div class="row" style="justify-content:center; margin-top:10px;">
       <span class="muted" id="storageInfo" style="font-size: 1rem;"></span>
@@ -677,16 +677,16 @@ function setStartStopButtonState(isRecording) {
   if (!btn) return;
   if (isRecording) {
     btn.textContent = '⏭ Stop & Next';
-    btn.style.background = '#704040';
-    btn.style.color = '#fff3f3';
-    btn.style.borderColor = '#9a6464';
-    btn.style.boxShadow = '0 2px 8px rgba(112, 64, 64, 0.22)';
+    btn.style.background = '#5f4e4e';
+    btn.style.color = '#efe6e6';
+    btn.style.borderColor = '#786464';
+    btn.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.2)';
   } else {
     btn.textContent = '▶ Start';
-    btn.style.background = '#3f6641';
-    btn.style.color = '#f4fbf4';
-    btn.style.borderColor = '#69956c';
-    btn.style.boxShadow = '0 2px 8px rgba(63, 102, 65, 0.22)';
+    btn.style.background = '#4b5650';
+    btn.style.color = '#e8ece8';
+    btn.style.borderColor = '#626d67';
+    btn.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.18)';
   }
 }
 
