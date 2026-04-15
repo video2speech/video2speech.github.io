@@ -365,12 +365,12 @@ async function refreshStorageBlockState(extraBytes = 0) {
 
 function getStorageBlockedMessage(estimate) {
   if (!estimate) {
-    return 'Local storage is almost full. Please click SAVE ALL to export and clear cached recordings before recording more.';
+    return 'Local storage is almost full. Please click Save All to export and clear cached recordings before recording more.';
   }
   const ratio = (estimate.projectedUsage / estimate.quota) * 100;
   const used = formatBytes(estimate.projectedUsage);
   const total = formatBytes(estimate.quota);
-  return `Storage limit warning: projected usage is ${ratio.toFixed(1)}% (${used} / ${total}). Please click SAVE ALL to export and clear cached recordings before recording more.`;
+  return `Storage limit warning: projected usage is ${ratio.toFixed(1)}% (${used} / ${total}). Please click Save All to export and clear cached recordings before recording more.`;
 }
 
 async function downloadZipWithBestEffortStreaming(zip, zipFileName) {
@@ -1003,7 +1003,7 @@ async function updateStorageInfo() {
 
     const baseInfo = count > 0 ? `Cached ${count} recordings, ~${sizeInMB} MB${quotaText}` : '';
     el('storageInfo').textContent = storageBlocked
-      ? `${baseInfo ? `${baseInfo} | ` : ''}Near storage limit, click SAVE ALL`
+      ? `${baseInfo ? `${baseInfo} | ` : ''}Near storage limit, click Save All`
       : baseInfo;
     
     console.log(`Storage info updated: ${count} recordings, ${sizeInMB} MB`);
@@ -1057,13 +1057,13 @@ el('downloadAll').onclick = async () => {
     // Delete all audios from storage
     await clearAllStoredAudios();
     await updateStorageInfo();
-    el('downloadAll').textContent = '💾 SAVE ALL';
+    el('downloadAll').textContent = '💾 Save All';
     el('downloadAll').disabled = false;
     el('downloadAll').blur();
     
   } catch (error) {
     alert('ZIP download failed: ' + error.message);
-    el('downloadAll').textContent = '💾 SAVE ALL';
+    el('downloadAll').textContent = '💾 Save All';
     el('downloadAll').disabled = false;
     el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
   }
