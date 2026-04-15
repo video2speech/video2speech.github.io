@@ -18,31 +18,28 @@
   .muted{color:#666}
   
   .sentence-preparing {
-    color: #888;
+    color: #f3f3f3;
   }
   
   /* Responsive font sizes for sentences */
   @media (max-width: 768px) {
     #currentText {
-      font-size: 3.5rem !important;
-      padding: 30px !important;
-      min-height: 35vh !important;
+      font-size: 2rem !important;
+      padding: 22px !important;
     }
   }
   
   @media (min-width: 769px) and (max-width: 1024px) {
     #currentText {
-      font-size: 4.5rem !important;
-      padding: 45px !important;
-      min-height: 40vh !important;
+      font-size: 2.4rem !important;
+      padding: 24px !important;
     }
   }
   
   @media (min-width: 1025px) {
     #currentText {
-      font-size: 5rem !important;
-      padding: 50px !important;
-      min-height: 45vh !important;
+      font-size: 2.8rem !important;
+      padding: 28px !important;
     }
   }
   
@@ -71,8 +68,8 @@
       <button id="next">Next</button>
       <button id="skip">Skip</button>
     </div>
-    <div class="big sentence-preparing" id="currentText" style="font-size: 4rem; font-weight: bold; text-align: center; padding: 40px; border: 2px solid #555; border-radius: 16px; margin: 24px 0; min-height: 45vh; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.3; background-color: #333;">
-      <div id="recordingStatus" style="position: absolute; top: 15px; left: 20px; z-index: 15; font-size: 1.5rem; font-weight: bold; color: #888; background: rgba(0, 0, 0, 0.7); padding: 8px 16px; border-radius: 18px; display: none;">Preparing</div>
+    <div class="big sentence-preparing" id="currentText" style="font-size: 2.8rem; font-weight: 600; text-align: center; padding: 28px; border: 2px solid #555; border-radius: 16px; margin: 24px 0; min-height: 240px; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; line-height: 1.25; background-color: #333;">
+      <div id="recordingStatus" style="position: absolute; top: 15px; left: 20px; z-index: 15; font-size: 1rem; font-weight: normal; color: #888; background: rgba(0, 0, 0, 0.7); padding: 8px 16px; border-radius: 18px; display: none;">Preparing</div>
       <span class="muted" id="idxInfo" style="position: absolute; top: 15px; right: 20px; font-size: 1rem; color: #888; font-weight: normal; text-align: right; white-space: pre-line;"></span>
       Waiting for initialization...
     </div>
@@ -83,13 +80,13 @@
     <div id="initMicOverlay" style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.9); padding: 35px; border-radius: 20px; text-align: center; max-width: 700px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
       <button id="init" style="font-size: 1.4rem; padding: 16px 32px; background: linear-gradient(135deg, #81C784, #66BB6A); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(129, 199, 132, 0.4); transition: all 0.3s ease;">🎙 Initialize Microphone</button>
     </div>
-    <div class="row" style="margin-top:8px; justify-content: center;">
-      <button id="start" style="font-size: 1.1rem; padding: 10px 20px; background: #5a6b5a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px;">▶ Start</button>
-      <button id="stop" style="font-size: 1.1rem; padding: 10px 20px; background: #7a5a5a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px;">⏭ Stop & Next</button>
-      <button id="redo" style="font-size: 1.1rem; padding: 10px 20px; background: #7a6b5a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px;">🔄 Redo last</button>
+    <div class="row" style="margin-top:10px; justify-content: center; gap: 14px;">
+      <button id="start" style="font-size: 1.25rem; padding: 12px 28px; min-width: 185px; background: #2e7d32; color: white; border: 2px solid #66bb6a; border-radius: 10px; cursor: pointer; margin: 0; font-weight: 700; box-shadow: 0 0 0 2px rgba(102, 187, 106, 0.14), 0 6px 14px rgba(46, 125, 50, 0.28);">▶ Start</button>
+      <button id="stop" style="font-size: 1.25rem; padding: 12px 28px; min-width: 185px; background: #c62828; color: white; border: 2px solid #ef5350; border-radius: 10px; cursor: pointer; margin: 0; font-weight: 700; box-shadow: 0 0 0 2px rgba(239, 83, 80, 0.14), 0 6px 14px rgba(198, 40, 40, 0.28);">⏭ Stop & Next</button>
     </div>
-    <div class="row" style="margin-top:8px; justify-content: center;">
-      <button id="downloadAll" style="font-size: 1.1rem; padding: 10px 20px; background: #5a6b7a; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 0 6px; display:none">💾 SAVE ALL</button>
+    <div class="row" style="margin-top:8px; justify-content: center; gap: 8px;">
+      <button id="redo" style="font-size: 0.92rem; padding: 7px 14px; background: #3f3a31; color: #cfcfcf; border: 1px solid #5e5647; border-radius: 8px; cursor: pointer; margin: 0; opacity: 0.78;">🔄 Redo last</button>
+      <button id="downloadAll" style="font-size: 0.92rem; padding: 7px 14px; background: #33414c; color: #cfcfcf; border: 1px solid #4f6571; border-radius: 8px; cursor: pointer; margin: 0; opacity: 0.78; display:none">💾 SAVE ALL</button>
     </div>
     <div class="row" style="justify-content:center; margin-top:10px;">
       <span class="muted" id="storageInfo" style="font-size: 1rem;"></span>
@@ -105,7 +102,6 @@
       <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">Reset Progress</button>
       <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">Clear All Progress</button>
       <button id="clearAll" style="margin-left: 8px;">Clear Storage</button>
-      <button id="logout" onclick="logout()" style="margin-left:auto">Logout</button>
     </div>
   </div>
 
@@ -561,13 +557,6 @@ initDB().then(() => {
   console.error('IndexedDB initialization failed:', err);
 });
 
-// Ordinal function to convert numbers to ordinal form (1st, 2nd, 3rd, etc.)
-const ordinal = (n) => {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-};
-
 async function updateSentenceView(){
   const currentTextEl = el('currentText');
   const progressEl = el('idxInfo');
@@ -586,16 +575,6 @@ async function updateSentenceView(){
   const total = sentences.length;
   text = total ? sentences[idx] : '';
   progressText = total ? `${idx+1} / ${total}` : '';
-  
-  // Always display repetition count, starting from 1st repeat
-  try {
-    const progress = await getProgress(currentSentenceSet);
-    const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
-    progressText += `    ${ordinal(repeatCount)} repeat`;
-  } catch (error) {
-    console.error('Failed to get progress for repetition count:', error);
-    progressText += `    1st repeat`;
-  }
   
   // Add the new text
   const textNode = document.createTextNode(text || 'No sentences available');
