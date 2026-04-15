@@ -103,7 +103,6 @@
         <option value="daily_2026" selected>daily_2026</option>
       </select>
       <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">Reset Progress</button>
-      <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">Clear All Progress</button>
       <button id="clearAll" style="margin-left: 8px;">Clear Storage</button>
     </div>
   </div>
@@ -589,29 +588,6 @@ async function resetProgress() {
   } catch (error) {
     console.error('Failed to reset progress:', error);
     alert('Failed to reset progress: ' + error.message);
-  }
-}
-
-// Clear all progress
-async function clearAllProgress() {
-  if (!confirm('Are you sure you want to clear all recording progress? This action cannot be undone!')) return;
-  
-  try {
-    const transaction = db.transaction(['progress'], 'readwrite');
-    const store = transaction.objectStore('progress');
-    await new Promise((resolve, reject) => {
-      const request = store.clear();
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-    
-    // Reset current progress
-    idx = 0;
-    await updateSentenceView();
-    alert('All progress has been cleared');
-  } catch (error) {
-    console.error('Failed to clear progress:', error);
-    alert('Failed to clear progress: ' + error.message);
   }
 }
 
