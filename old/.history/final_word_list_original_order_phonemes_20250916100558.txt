@@ -1,0 +1,1149 @@
+================================================================================
+FINAL WORD LIST - 按原始顺序输出每个词和对应音素
+ORIGINAL ORDER WORD-TO-PHONEME MAPPING
+================================================================================
+Total words: 1136
+
+   1. the  1                -> /DH AH/
+   2. I                    -> /AY/
+   3. you                  -> /Y UW/
+   4. and     1             -> /AH N D/
+   5. it      1             -> /IH T/
+   6. a      1              -> /AH/
+   7. 's                   -> /IH Z/
+   8. to        1           -> /T UW/
+   9. of                   -> /AH V/
+  10. that                 -> /DH AE T/
+  11. n't                  -> [NOT FOUND]
+  12. in                   -> /IH N/
+  13. we                   -> /W IY/
+  14. is                   -> /IH Z/
+  15. do                   -> /D UW/
+  16. they                 -> /DH EY/
+  17. er                   -> /ER/
+  18. was                  -> /W AA Z/
+  19. yeah                 -> /Y AE/
+  20. have                 -> /HH AE V/
+  21. what                 -> /W AH T/
+  22. he                   -> /HH IY/
+  23. but                  -> /B AH T/
+  24. for                  -> /F AO R/
+  25. be                   -> /B IY/
+  26. on                   -> /AA N/
+  27. this                 -> /DH IH S/
+  28. know                 -> /N OW/
+  29. well                 -> /W EH L/
+  30. so                   -> /S OW/
+  31. oh                   -> /OW/
+  32. got                  -> /G AA T/
+  33. 've                  -> /HH AE V/
+  34. not                  -> /N AA T/
+  35. are                  -> /AA R/
+  36. if                   -> /IH F/
+  37. with                 -> /W IH DH/
+  38. no                   -> /N OW/
+  39. 're                  -> /AA R/
+  40. she                  -> /SH IY/
+  41. at                   -> /AE T/
+  42. there                -> /DH EH R/
+  43. think                -> /TH IH NG K/
+  44. yes                  -> /Y EH S/
+  45. just                 -> /JH AH S T/
+  46. all                  -> /AO L/
+  47. can                  -> /K AE N/
+  48. then                 -> /DH EH N/
+  49. get                  -> /G EH T/
+  50. did                  -> /D IH D/
+  51. or                   -> /AO R/
+  52. would                -> /W UH D/
+  53. them                 -> /DH EH M/
+  54. 'll                  -> /W IH L/
+  55. one                  -> /W AH N/
+  56. up                   -> /AH P/
+  57. go                   -> /G OW/
+  58. now                  -> /N AW/
+  59. your                 -> /Y AO R/
+  60. had                  -> /HH AE D/
+  61. were                 -> /W ER/
+  62. about                -> /AH B AW T/
+  63. two                  -> /T UW/
+  64. said                 -> /S EH D/
+  65. 'm                   -> /AE M/
+  66. see                  -> /S IY/
+  67. me                   -> /M IY/
+  68. very                 -> /V EH R IY/
+  69. out                  -> /AW T/
+  70. my                   -> /M AY/
+  71. when                 -> /W EH N/
+  72. mean                 -> /M IY N/
+  73. right                -> /R AY T/
+  74. lot                  -> /L AA T/
+  75. which                -> /W IH CH/
+  76. from                 -> /F R AH M/
+  77. say                  -> /S EY/
+  78. been                 -> /B IH N/
+  79. people               -> /P IY P AH L/
+  80. some                 -> /S AH M/
+  81. could                -> /K UH D/
+  82. will                 -> /W IH L/
+  83. how                  -> /HH AW/
+  84. an                   -> /AE N/
+  85. time                 -> /T AY M/
+  86. who                  -> /HH UW/
+  87. want                 -> /W AA N T/
+  88. like                 -> /L AY K/
+  89. come                 -> /K AH M/
+  90. really               -> /R IH L IY/
+  91. three                -> /TH R IY/
+  92. by                   -> /B AY/
+  93. here                 -> /HH IY R/
+  94. put                  -> /P UH T/
+  95. has                  -> /HH AE Z/
+  96. good                 -> /G UH D/
+  97. as                   -> /AE Z/
+  98. does                 -> /D AH Z/
+  99. any                  -> /EH N IY/
+ 100. down                 -> /D AW N/
+ 101. where                -> /W EH R/
+ 102. him                  -> /HH IH M/
+ 103. his                  -> /HH IH Z/
+ 104. other                -> /AH DH ER/
+ 105. five                 -> /F AY V/
+ 106. something            -> /S AH M TH IH NG/
+ 107. their                -> /DH EH R/
+ 108. these                -> /DH IY Z/
+ 109. our                  -> /AW ER/
+ 110. way                  -> /W EY/
+ 111. actually             -> /AE K CH AH W AH L IY/
+ 112. back                 -> /B AE K/
+ 113. four                 -> /F AO R/
+ 114. 'd                   -> /W UH D/
+ 115. should               -> /SH UH D/
+ 116. take                 -> /T EY K/
+ 117. thing                -> /TH IH NG/
+ 118. look                 -> /L UH K/
+ 119. those                -> /DH OW Z/
+ 120. why                  -> /W AY/
+ 121. things               -> /TH IH NG Z/
+ 122. only                 -> /OW N L IY/
+ 123. into                 -> /IH N T UW/
+ 124. us                   -> /AH S/
+ 125. quite                -> /K W AY T/
+ 126. hundred              -> /HH AH N D R AH D/
+ 127. make                 -> /M EY K/
+ 128. first                -> /F ER S T/
+ 129. okay                 -> /OW K EY/
+ 130. more                 -> /M AO R/
+ 131. doing                -> /D UW IH NG/
+ 132. done                 -> /D AH N/
+ 133. twenty               -> /T W EH N T IY/
+ 134. went                 -> /W EH N T/
+ 135. six                  -> /S IH K S/
+ 136. give                 -> /G IH V/
+ 137. thought              -> /TH AO T/
+ 138. again                -> /AH G EH N/
+ 139. off                  -> /AO F/
+ 140. might                -> /M AY T/
+ 141. year                 -> /Y IH R/
+ 142. her                  -> /HH ER/
+ 143. last                 -> /L AE S T/
+ 144. much                 -> /M AH CH/
+ 145. need                 -> /N IY D/
+ 146. day                  -> /D EY/
+ 147. used                 -> /Y UW Z D/
+ 148. says                 -> /S EH Z/
+ 149. still                -> /S T IH L/
+ 150. mhm                  -> /AH M HH AH M/
+ 151. ah                   -> /AA/
+ 152. sort                 -> /S AO R T/
+ 153. years                -> /Y IH R Z/
+ 154. never                -> /N EH V ER/
+ 155. little               -> /L IH T AH L/
+ 156. than                 -> /DH AE N/
+ 157. tell                 -> /T EH L/
+ 158. many                 -> /M EH N IY/
+ 159. same                 -> /S EY M/
+ 160. another              -> /AH N AH DH ER/
+ 161. money                -> /M AH N IY/
+ 162. point                -> /P OY N T/
+ 163. being                -> /B IY IH NG/
+ 164. anything             -> /EH N IY TH IH NG/
+ 165. week                 -> /W IY K/
+ 166. too                  -> /T UW/
+ 167. ten                  -> /T EH N/
+ 168. through              -> /TH R UW/
+ 169. eight                -> /EY T/
+ 170. new                  -> /N UW/
+ 171. nice                 -> /N AY S/
+ 172. work                 -> /W ER K/
+ 173. always               -> /AO L W EY Z/
+ 174. thank                -> /TH AE NG K/
+ 175. next                 -> /N EH K S T/
+ 176. must                 -> /M AH S T/
+ 177. probably             -> /P R AA B AH B L IY/
+ 178. saying               -> /S EY IH NG/
+ 179. pounds               -> /P AW N D Z/
+ 180. nine                 -> /N AY N/
+ 181. Mr                   -> /M IH S T ER/
+ 182. seven                -> /S EH V AH N/
+ 183. also                 -> /AO L S OW/
+ 184. big                  -> /B IH G/
+ 185. over                 -> /OW V ER/
+ 186. getting              -> /G EH T IH NG/
+ 187. made                 -> /M EY D/
+ 188. after                -> /AE F T ER/
+ 189. number               -> /N AH M B ER/
+ 190. old                  -> /OW L D/
+ 191. find                 -> /F AY N D/
+ 192. coming               -> /K AH M IH NG/
+ 193. thirty               -> /TH ER D IY/
+ 194. fifty                -> /F IH F T IY/
+ 195. thousand             -> /TH AW Z AH N D/
+ 196. remember             -> /R IH M EH M B ER/
+ 197. anyway               -> /EH N IY W EY/
+ 198. goes                 -> /G OW Z/
+ 199. today                -> /T AH D EY/
+ 200. different            -> /D IH F ER AH N T/
+ 201. fact                 -> /F AE K T/
+ 202. may                  -> /M EY/
+ 203. sure                 -> /SH UH R/
+ 204. else                 -> /EH L S/
+ 205. came                 -> /K EY M/
+ 206. night                -> /N AY T/
+ 207. house                -> /HH AW S/
+ 208. morning              -> /M AO R N IH NG/
+ 209. even                 -> /IY V IH N/
+ 210. every                -> /EH V ER IY/
+ 211. end                  -> /EH N D/
+ 212. use                  -> /Y UW S/
+ 213. having               -> /HH AE V IH NG/
+ 214. keep                 -> /K IY P/
+ 215. perhaps              -> /P ER HH AE P S/
+ 216. own                  -> /OW N/
+ 217. half                 -> /HH AE F/
+ 218. away                 -> /AH W EY/
+ 219. school               -> /S K UW L/
+ 220. sorry                -> /S AA R IY/
+ 221. talking              -> /T AO K IH NG/
+ 222. looking              -> /L UH K IH NG/
+ 223. council              -> /K AW N S AH L/
+ 224. ooh                  -> /UW/
+ 225. gone                 -> /G AO N/
+ 226. round                -> /R AW N D/
+ 227. aye                  -> /AY/
+ 228. whether              -> /W EH DH ER/
+ 229. mum                  -> /M AH M/
+ 230. though               -> /DH OW/
+ 231. somebody             -> /S AH M B AA D IY/
+ 232. man                  -> /M AE N/
+ 233. nothing              -> /N AH TH IH NG/
+ 234. let's                -> /L EH T S/
+ 235. ask                  -> /AE S K/
+ 236. try                  -> /T R AY/
+ 237. let                  -> /L EH T/
+ 238. forty                -> /F AO R T IY/
+ 239. job                  -> /JH AA B/
+ 240. car                  -> /K AA R/
+ 241. side                 -> /S AY D/
+ 242. seen                 -> /S IY N/
+ 243. nineteen             -> /N AY N T IY N/
+ 244. children             -> /CH IH L D R AH N/
+ 245. alright              -> /AO L R AY T/
+ 246. start                -> /S T AA R T/
+ 247. long                 -> /L AO NG/
+ 248. feel                 -> /F IY L/
+ 249. great                -> /G R EY T/
+ 250. told                 -> /T OW L D/
+ 251. please               -> /P L IY Z/
+ 252. everything           -> /EH V R IY TH IH NG/
+ 253. area                 -> /EH R IY AH/
+ 254. part                 -> /P AA R T/
+ 255. place                -> /P L EY S/
+ 256. problem              -> /P R AA B L AH M/
+ 257. few                  -> /F Y UW/
+ 258. ninety               -> /N AY N T IY/
+ 259. able                 -> /EY B AH L/
+ 260. between              -> /B IH T W IY N/
+ 261. its                  -> /IH T S/
+ 262. Road                 -> /R OW D/
+ 263. comes                -> /K AH M Z/
+ 264. pound                -> /P AW N D/
+ 265. days                 -> /D EY Z/
+ 266. ones                 -> /W AH N Z/
+ 267. before               -> /B IH F AO R/
+ 268. wanted               -> /W AA N T AH D/
+ 269. trying               -> /T R AY IH NG/
+ 270. question             -> /K W EH S CH AH N/
+ 271. pay                  -> /P EY/
+ 272. better               -> /B EH T ER/
+ 273. yet                  -> /Y EH T/
+ 274. called               -> /K AO L D/
+ 275. God                  -> /G AA D/
+ 276. local                -> /L OW K AH L/
+ 277. maybe                -> /M EY B IY/
+ 278. certainly            -> /S ER T AH N L IY/
+ 279. name                 -> /N EY M/
+ 280. bad                  -> /B AE D/
+ 281. eighty               -> /EY T IY/
+ 282. obviously            -> /AA B V IY AH S L IY/
+ 283. government           -> /G AH V ER M AH N T/
+ 284. sixty                -> /S IH K S T IY/
+ 285. life                 -> /L AY F/
+ 286. call                 -> /K AO L/
+ 287. whatever             -> /W AH T EH V ER/
+ 288. leave                -> /L IY V/
+ 289. took                 -> /T UH K/
+ 290. moment               -> /M OW M AH N T/
+ 291. times                -> /T AY M Z/
+ 292. working              -> /W ER K IH NG/
+ 293. important            -> /IH M P AO R T AH N T/
+ 294. twelve               -> /T W EH L V/
+ 295. water                -> /W AO T ER/
+ 296. left                 -> /L EH F T/
+ 297. ever                 -> /EH V ER/
+ 298. suppose              -> /S AH P OW Z/
+ 299. stuff                -> /S T AH F/
+ 300. kind                 -> /K AY N D/
+ 301. dad                  -> /D AE D/
+ 302. everybody            -> /EH V R IY B AA D IY/
+ 303. already              -> /AO L R EH D IY/
+ 304. talk                 -> /T AO K/
+ 305. home                 -> /HH OW M/
+ 306. am                   -> /AE M/
+ 307. shall                -> /SH AE L/
+ 308. wrong                -> /R AO NG/
+ 309. together             -> /T AH G EH DH ER/
+ 310. buy                  -> /B AY/
+ 311. started              -> /S T AA R T AH D/
+ 312. most                 -> /M OW S T/
+ 313. John                 -> /JH AA N/
+ 314. read                 -> /R EH D/
+ 315. ago                  -> /AH G OW/
+ 316. county               -> /K AW N T IY/
+ 317. against              -> /AH G EH N S T/
+ 318. believe              -> /B IH L IY V/
+ 319. door                 -> /D AO R/
+ 320. hear                 -> /HH IY R/
+ 321. minutes              -> /M IH N AH T S/
+ 322. idea                 -> /AY D IY AH/
+ 323. within               -> /W IH DH IH N/
+ 324. move                 -> /M UW V/
+ 325. group                -> /G R UW P/
+ 326. anybody              -> /EH N IY B AH D IY/
+ 327. world                -> /W ER L D/
+ 328. whole                -> /HH OW L/
+ 329. bloody               -> /B L AH D IY/
+ 330. mind                 -> /M AY N D/
+ 331. person               -> /P ER S AH N/
+ 332. case                 -> /K EY S/
+ 333. each                 -> /IY CH/
+ 334. enough               -> /IH N AH F/
+ 335. help                 -> /HH EH L P/
+ 336. aha                  -> /AA HH AA/
+ 337. under                -> /AH N D ER/
+ 338. tomorrow             -> /T AH M AA R OW/
+ 339. percent              -> /P ER S EH N T/
+ 340. room                 -> /R UW M/
+ 341. women                -> /W IH M AH N/
+ 342. paper                -> /P EY P ER/
+ 343. heard                -> /HH ER D/
+ 344. taken                -> /T EY K AH N/
+ 345. lovely               -> /L AH V L IY/
+ 346. far                  -> /F AA R/
+ 347. party                -> /P AA R T IY/
+ 348. without              -> /W IH TH AW T/
+ 349. looks                -> /L UH K S/
+ 350. stop                 -> /S T AA P/
+ 351. business             -> /B IH Z N AH S/
+ 352. such                 -> /S AH CH/
+ 353. given                -> /G IH V AH N/
+ 354. making               -> /M EY K IH NG/
+ 355. members              -> /M EH M B ER Z/
+ 356. second               -> /S EH K AH N D/
+ 357. taking               -> /T EY K IH NG/
+ 358. men                  -> /M EH N/
+ 359. policy               -> /P AA L AH S IY/
+ 360. hand                 -> /HH AE N D/
+ 361. couple               -> /K AH P AH L/
+ 362. hello                -> /HH AH L OW/
+ 363. problems             -> /P R AA B L AH M Z/
+ 364. ha                   -> /HH AA/
+ 365. book                 -> /B UH K/
+ 366. minute               -> /M IH N AH T/
+ 367. asked                -> /AE S K T/
+ 368. best                 -> /B EH S T/
+ 369. bring                -> /B R IH NG/
+ 370. small                -> /S M AO L/
+ 371. report               -> /R IY P AO R T/
+ 372. word                 -> /W ER D/
+ 373. eh                   -> /EH/
+ 374. months               -> /M AH N TH S/
+ 375. sit                  -> /S IH T/
+ 376. found                -> /F AW N D/
+ 377. rather               -> /R AE DH ER/
+ 378. looked               -> /L UH K T/
+ 379. particular           -> /P ER T IH K Y AH L ER/
+ 380. fifteen              -> /F IH F T IY N/
+ 381. hope                 -> /HH OW P/
+ 382. write                -> /R AY T/
+ 383. full                 -> /F UH L/
+ 384. information          -> /IH N F ER M EY SH AH N/
+ 385. saw                  -> /S AO/
+ 386. words                -> /W ER D Z/
+ 387. service              -> /S ER V AH S/
+ 388. country              -> /K AH N T R IY/
+ 389. seventy              -> /S EH V AH N T IY/
+ 390. gets                 -> /G EH T S/
+ 391. understand           -> /AH N D ER S T AE N D/
+ 392. difficult            -> /D IH F AH K AH L T/
+ 393. exactly              -> /IH G Z AE K T L IY/
+ 394. sometimes            -> /S AH M T AY M Z/
+ 395. weeks                -> /W IY K S/
+ 396. turn                 -> /T ER N/
+ 397. either               -> /IY DH ER/
+ 398. wants                -> /W AA N T S/
+ 399. top                  -> /T AA P/
+ 400. around               -> /ER AW N D/
+ 401. happened             -> /HH AE P AH N D/
+ 402. play                 -> /P L EY/
+ 403. bought               -> /B AA T/
+ 404. Christmas            -> /K R IH S M AH S/
+ 405. hour                 -> /AW ER/
+ 406. hours                -> /AW ER Z/
+ 407. system               -> /S IH S T AH M/
+ 408. both                 -> /B OW TH/
+ 409. o'clock              -> /AH K L AA K/
+ 410. shop                 -> /SH AA P/
+ 411. fine                 -> /F AY N/
+ 412. committee            -> /K AH M IH T IY/
+ 413. seems                -> /S IY M Z/
+ 414. police               -> /P AH L IY S/
+ 415. high                 -> /HH AY/
+ 416. mother               -> /M AH DH ER/
+ 417. absolutely           -> /AE B S AH L UW T L IY/
+ 418. yourself             -> /Y ER S EH L F/
+ 419. someone              -> /S AH M W AH N/
+ 420. line                 -> /L AY N/
+ 421. young                -> /Y AH NG/
+ 422. reason               -> /R IY Z AH N/
+ 423. later                -> /L EY T ER/
+ 424. thinking             -> /TH IH NG K IH NG/
+ 425. run                  -> /R AH N/
+ 426. meeting              -> /M IY T IH NG/
+ 427. tonight              -> /T AH N AY T/
+ 428. yesterday            -> /Y EH S T ER D EY/
+ 429. bed                  -> /B EH D/
+ 430. mine                 -> /M AY N/
+ 431. true                 -> /T R UW/
+ 432. happy                -> /HH AE P IY/
+ 433. situation            -> /S IH CH UW EY SH AH N/
+ 434. often                -> /AO F AH N/
+ 435. set                  -> /S EH T/
+ 436. across               -> /AH K R AO S/
+ 437. somewhere            -> /S AH M W EH R/
+ 438. tea                  -> /T IY/
+ 439. pick                 -> /P IH K/
+ 440. family               -> /F AE M AH L IY/
+ 441. war                  -> /W AO R/
+ 442. means                -> /M IY N Z/
+ 443. eat                  -> /IY T/
+ 444. view                 -> /V Y UW/
+ 445. show                 -> /SH OW/
+ 446. certain              -> /S ER T AH N/
+ 447. knew                 -> /N UW/
+ 448. office               -> /AO F AH S/
+ 449. past                 -> /P AE S T/
+ 450. live                 -> /L AY V/
+ 451. land                 -> /L AE N D/
+ 452. wait                 -> /W EY T/
+ 453. indeed               -> /IH N D IY D/
+ 454. cut                  -> /K AH T/
+ 455. national             -> /N AE SH AH N AH L/
+ 456. level                -> /L EH V AH L/
+ 457. head                 -> /HH EH D/
+ 458. paid                 -> /P EY D/
+ 459. thanks               -> /TH AE NG K S/
+ 460. makes                -> /M EY K S/
+ 461. general              -> /JH EH N ER AH L/
+ 462. funny                -> /F AH N IY/
+ 463. although             -> /AO L DH OW/
+ 464. change               -> /CH EY N JH/
+ 465. boy                  -> /B OY/
+ 466. sense                -> /S EH N S/
+ 467. myself               -> /M AY S EH L F/
+ 468. mummy                -> /M AH M IY/
+ 469. town                 -> /T AW N/
+ 470. company              -> /K AH M P AH N IY/
+ 471. million              -> /M IH L Y AH N/
+ 472. dear                 -> /D IH R/
+ 473. using                -> /Y UW Z IH NG/
+ 474. happen               -> /HH AE P AH N/
+ 475. girl                 -> /G ER L/
+ 476. while                -> /W AY L/
+ 477. training             -> /T R EY N IH NG/
+ 478. open                 -> /OW P AH N/
+ 479. lost                 -> /L AO S T/
+ 480. finished             -> /F IH N IH SH T/
+ 481. plan                 -> /P L AE N/
+ 482. health               -> /HH EH L TH/
+ 483. eleven               -> /IH L EH V AH N/
+ 484. particularly         -> /P AA R T IH K Y AH L ER L IY/
+ 485. York                 -> /Y AO R K/
+ 486. hard                 -> /HH AA R D/
+ 487. putting              -> /P AH T IH NG/
+ 488. questions            -> /K W EH S CH AH N Z/
+ 489. during               -> /D UH R IH NG/
+ 490. therefore            -> /DH EH R F AO R/
+ 491. worked               -> /W ER K T/
+ 492. forward              -> /F AO R W ER D/
+ 493. chairman             -> /CH EH R M AH N/
+ 494. Friday               -> /F R AY D IY/
+ 495. Mrs                  -> /M IH S IH Z/
+ 496. table                -> /T EY B AH L/
+ 497. afternoon            -> /AE F T ER N UW N/
+ 498. bye                  -> /B AY/
+ 499. watch                -> /W AA CH/
+ 500. gave                 -> /G EY V/
+ 501. month                -> /M AH N TH/
+ 502. black                -> /B L AE K/
+ 503. possible             -> /P AA S AH B AH L/
+ 504. Saturday             -> /S AE T ER D IY/
+ 505. seem                 -> /S IY M/
+ 506. fire                 -> /F AY ER/
+ 507. stay                 -> /S T EY/
+ 508. interesting          -> /IH N T R AH S T IH NG/
+ 509. matter               -> /M AE T ER/
+ 510. usually              -> /Y UW ZH AH W AH L IY/
+ 511. phone                -> /F OW N/
+ 512. nobody               -> /N OW B AA D IY/
+ 513. agree                -> /AH G R IY/
+ 514. Sunday               -> /S AH N D EY/
+ 515. city                 -> /S IH T IY/
+ 516. course               -> /K AO R S/
+ 517. brought              -> /B R AO T/
+ 518. sir                  -> /S ER/
+ 519. father               -> /F AA DH ER/
+ 520. areas                -> /EH R IY AH Z/
+ 521. development          -> /D IH V EH L AH P M AH N T/
+ 522. British              -> /B R IH T IH SH/
+ 523. clear                -> /K L IH R/
+ 524. happens              -> /HH AE P AH N Z/
+ 525. tape                 -> /T EY P/
+ 526. woman                -> /W UH M AH N/
+ 527. amount               -> /AH M AW N T/
+ 528. staff                -> /S T AE F/
+ 529. services             -> /S ER V AH S AH Z/
+ 530. trouble              -> /T R AH B AH L/
+ 531. David                -> /D EY V IH D/
+ 532. street               -> /S T R IY T/
+ 533. page                 -> /P EY JH/
+ 534. send                 -> /S EH N D/
+ 535. until                -> /AH N T IH L/
+ 536. easy                 -> /IY Z IY/
+ 537. difference           -> /D IH F ER AH N S/
+ 538. lord                 -> /L AO R D/
+ 539. rest                 -> /R EH S T/
+ 540. market               -> /M AA R K AH T/
+ 541. union                -> /Y UW N Y AH N/
+ 542. basically            -> /B EY S IH K L IY/
+ 543. concerned            -> /K AH N S ER N D/
+ 544. form                 -> /F AO R M/
+ 545. supposed             -> /S AH P OW Z D/
+ 546. main                 -> /M EY N/
+ 547. centre               -> /S EH N T ER/
+ 548. interest             -> /IH N T R AH S T/
+ 549. fair                 -> /F EH R/
+ 550. real                 -> /R IY L/
+ 551. London               -> /L AH N D AH N/
+ 552. third                -> /TH ER D/
+ 553. letter               -> /L EH T ER/
+ 554. love                 -> /L AH V/
+ 555. white                -> /W AY T/
+ 556. eighteen             -> /EY T IY N/
+ 557. programme            -> /P R OW G R AE M/
+ 558. once                 -> /W AH N S/
+ 559. Monday               -> /M AH N D IY/
+ 560. child                -> /CH AY L D/
+ 561. position             -> /P AH Z IH SH AH N/
+ 562. power                -> /P AW ER/
+ 563. ready                -> /R EH D IY/
+ 564. box                  -> /B AA K S/
+ 565. dog                  -> /D AO G/
+ 566. plus                 -> /P L AH S/
+ 567. speak                -> /S P IY K/
+ 568. short                -> /SH AO R T/
+ 569. nearly               -> /N IH R L IY/
+ 570. takes                -> /T EY K S/
+ 571. stage                -> /S T EY JH/
+ 572. lots                 -> /L AA T S/
+ 573. others               -> /AH DH ER Z/
+ 574. community            -> /K AH M Y UW N AH T IY/
+ 575. red                  -> /R EH D/
+ 576. special              -> /S P EH SH AH L/
+ 577. listen               -> /L IH S AH N/
+ 578. themselves           -> /DH EH M S EH L V Z/
+ 579. wonder               -> /W AH N D ER/
+ 580. age                  -> /EY JH/
+ 581. ought                -> /AO T/
+ 582. towards              -> /T AH W AO R D Z/
+ 583. till                 -> /T IH L/
+ 584. building             -> /B IH L D IH NG/
+ 585. unless               -> /AH N L EH S/
+ 586. walk                 -> /W AO K/
+ 587. knows                -> /N OW Z/
+ 588. trade                -> /T R EY D/
+ 589. behind               -> /B IH HH AY N D/
+ 590. price                -> /P R AY S/
+ 591. changed              -> /CH EY N JH D/
+ 592. piece                -> /P IY S/
+ 593. less                 -> /L EH S/
+ 594. answer               -> /AE N S ER/
+ 595. kids                 -> /K IH D Z/
+ 596. motion               -> /M OW SH AH N/
+ 597. expect               -> /IH K S P EH K T/
+ 598. almost               -> /AO L M OW S T/
+ 599. everyone             -> /EH V R IY W AH N/
+ 600. schools              -> /S K UW L Z/
+ 601. authority            -> /AH TH AO R AH T IY/
+ 602. along                -> /AH L AO NG/
+ 603. hell                 -> /HH EH L/
+ 604. district             -> /D IH S T R IH K T/
+ 605. anyone               -> /EH N IY W AH N/
+ 606. extra                -> /EH K S T R AH/
+ 607. type                 -> /T AY P/
+ 608. bottom               -> /B AA T AH M/
+ 609. sell                 -> /S EH L/
+ 610. sitting              -> /S IH T IH NG/
+ 611. forget               -> /F ER G EH T/
+ 612. ya                   -> /Y AA/
+ 613. food                 -> /F UW D/
+ 614. yep                  -> /Y EH P/
+ 615. Paul                 -> /P AO L/
+ 616. carry                -> /K AE R IY/
+ 617. large                -> /L AA R JH/
+ 618. education            -> /EH JH AH K EY SH AH N/
+ 619. social               -> /S OW SH AH L/
+ 620. cost                 -> /K AA S T/
+ 621. fucking              -> /F AH K IH NG/
+ 622. fairly               -> /F EH R L IY/
+ 623. news                 -> /N UW Z/
+ 624. jobs                 -> /JH AA B Z/
+ 625. stand                -> /S T AE N D/
+ 626. worth                -> /W ER TH/
+ 627. pardon               -> /P AA R D AH N/
+ 628. list                 -> /L IH S T/
+ 629. traffic              -> /T R AE F IH K/
+ 630. free                 -> /F R IY/
+ 631. giving               -> /G IH V IH NG/
+ 632. kept                 -> /K EH P T/
+ 633. running              -> /R AH N IH NG/
+ 634. wish                 -> /W IH SH/
+ 635. issue                -> /IH SH UW/
+ 636. cup                  -> /K AH P/
+ 637. bits                 -> /B IH T S/
+ 638. since                -> /S IH N S/
+ 639. normally             -> /N AO R M AH L IY/
+ 640. quarter              -> /K W AO R T ER/
+ 641. actual               -> /AE K CH AH W AH L/
+ 642. game                 -> /G EY M/
+ 643. parents              -> /P EH R AH N T S/
+ 644. hair                 -> /HH EH R/
+ 645. order                -> /AO R D ER/
+ 646. period               -> /P IH R IY AH D/
+ 647. mentioned            -> /M EH N SH AH N D/
+ 648. asking               -> /AE S K IH NG/
+ 649. points               -> /P OY N T S/
+ 650. interested           -> /IH N T R AH S T AH D/
+ 651. hold                 -> /HH OW L D/
+ 652. sent                 -> /S EH N T/
+ 653. budget               -> /B AH JH IH T/
+ 654. cold                 -> /K OW L D/
+ 655. become               -> /B IH K AH M/
+ 656. chance               -> /CH AE N S/
+ 657. body                 -> /B AA D IY/
+ 658. telling              -> /T EH L IH NG/
+ 659. state                -> /S T EY T/
+ 660. fourteen             -> /F AO R T IY N/
+ 661. class                -> /K L AE S/
+ 662. pretty               -> /P R IH T IY/
+ 663. evening              -> /IY V N IH NG/
+ 664. add                  -> /AE D/
+ 665. playing              -> /P L EY IH NG/
+ 666. church               -> /CH ER CH/
+ 667. shut                 -> /SH AH T/
+ 668. clearly              -> /K L IH R L IY/
+ 669. tax                  -> /T AE K S/
+ 670. numbers              -> /N AH M B ER Z/
+ 671. wife                 -> /W AY F/
+ 672. sixteen              -> /S IH K S T IY N/
+ 673. tried                -> /T R AY D/
+ 674. felt                 -> /F EH L T/
+ 675. ways                 -> /W EY Z/
+ 676. moved                -> /M UW V D/
+ 677. figures              -> /F IH G Y ER Z/
+ 678. doctor               -> /D AA K T ER/
+ 679. daddy                -> /D AE D IY/
+ 680. hang                 -> /HH AE NG/
+ 681. itself               -> /IH T S EH L F/
+ 682. allowed              -> /AH L AW D/
+ 683. size                 -> /S AY Z/
+ 684. support              -> /S AH P AO R T/
+ 685. needs                -> /N IY D Z/
+ 686. friends              -> /F R EH N D Z/
+ 687. major                -> /M EY JH ER/
+ 688. available            -> /AH V EY L AH B AH L/
+ 689. early                -> /ER L IY/
+ 690. spend                -> /S P EH N D/
+ 691. god                  -> /G AA D/
+ 692. face                 -> /F EY S/
+ 693. south                -> /S AW TH/
+ 694. experience           -> /IH K S P IH R IY AH N S/
+ 695. meant                -> /M EH N T/
+ 696. quid                 -> /K W IH D/
+ 697. yo                   -> /Y OW/
+ 698. friend               -> /F R EH N D/
+ 699. term                 -> /T ER M/
+ 700. public               -> /P AH B L IH K/
+ 701. late                 -> /L EY T/
+ 702. management           -> /M AE N AH JH M AH N T/
+ 703. various              -> /V EH R IY AH S/
+ 704. board                -> /B AO R D/
+ 705. poor                 -> /P UH R/
+ 706. Jesus                -> /JH IY Z AH S/
+ 707. turned               -> /T ER N D/
+ 708. meet                 -> /M IY T/
+ 709. future               -> /F Y UW CH ER/
+ 710. quality              -> /K W AA L AH T IY/
+ 711. lady                 -> /L EY D IY/
+ 712. simply               -> /S IH M P L IY/
+ 713. gives                -> /G IH V Z/
+ 714. further              -> /F ER DH ER/
+ 715. holiday              -> /HH AA L AH D EY/
+ 716. thirteen             -> /TH ER T IY N/
+ 717. yours                -> /Y UH R Z/
+ 718. bet                  -> /B EH T/
+ 719. decision             -> /D IH S IH ZH AH N/
+ 720. girls                -> /G ER L Z/
+ 721. hospital             -> /HH AA S P IH T AH L/
+ 722. houses               -> /HH AW S AH Z/
+ 723. figure               -> /F IH G Y ER/
+ 724. bag                  -> /B AE G/
+ 725. moving               -> /M UW V IH NG/
+ 726. Secretary            -> /S EH K R AH T EH R IY/
+ 727. hot                  -> /HH AA T/
+ 728. care                 -> /K EH R/
+ 729. dinner               -> /D IH N ER/
+ 730. planning             -> /P L AE N IH NG/
+ 731. front                -> /F R AH N T/
+ 732. floor                -> /F L AO R/
+ 733. story                -> /S T AO R IY/
+ 734. paying               -> /P EY IH NG/
+ 735. straight             -> /S T R EY T/
+ 736. onto                 -> /AA N T UW/
+ 737. card                 -> /K AA R D/
+ 738. Wednesday            -> /W EH N Z D IY/
+ 739. basis                -> /B EY S AH S/
+ 740. bus                  -> /B AH S/
+ 741. worry                -> /W ER IY/
+ 742. hands                -> /HH AE N D Z/
+ 743. accept               -> /AE K S EH P T/
+ 744. written              -> /R IH T AH N/
+ 745. single               -> /S IH NG G AH L/
+ 746. court                -> /K AO R T/
+ 747. baby                 -> /B EY B IY/
+ 748. imagine              -> /IH M AE JH AH N/
+ 749. team                 -> /T IY M/
+ 750. known                -> /N OW N/
+ 751. Oxford               -> /AA K S F ER D/
+ 752. definitely           -> /D EH F AH N AH T L IY/
+ 753. weekend              -> /W IY K EH N D/
+ 754. awful                -> /AA F AH L/
+ 755. window               -> /W IH N D OW/
+ 756. department           -> /D IH P AA R T M AH N T/
+ 757. places               -> /P L EY S AH Z/
+ 758. quick                -> /K W IH K/
+ 759. likely               -> /L AY K L IY/
+ 760. ball                 -> /B AO L/
+ 761. picture              -> /P IH K CH ER/
+ 762. low                  -> /L OW/
+ 763. region               -> /R IY JH AH N/
+ 764. coffee               -> /K AA F IY/
+ 765. reckon               -> /R EH K AH N/
+ 766. settlement           -> /S EH T AH L M AH N T/
+ 767. light                -> /L AY T/
+ 768. however              -> /HH AW EH V ER/
+ 769. club                 -> /K L AH B/
+ 770. society              -> /S AH S AY AH T IY/
+ 771. especially           -> /AH S P EH SH L IY/
+ 772. decided              -> /D IH S AY D IH D/
+ 773. rate                 -> /R EY T/
+ 774. section              -> /S EH K SH AH N/
+ 775. Thursday             -> /TH ER Z D EY/
+ 776. quickly              -> /K W IH K L IY/
+ 777. chair                -> /CH EH R/
+ 778. law                  -> /L AO/
+ 779. normal               -> /N AO R M AH L/
+ 780. green                -> /G R IY N/
+ 781. north                -> /N AO R TH/
+ 782. minus                -> /M AY N AH S/
+ 783. sorts                -> /S AO R T S/
+ 784. garden               -> /G AA R D AH N/
+ 785. action               -> /AE K SH AH N/
+ 786. possibly             -> /P AA S AH B L IY/
+ 787. provide              -> /P R AH V AY D/
+ 788. ring                 -> /R IH NG/
+ 789. near                 -> /N IH R/
+ 790. otherwise            -> /AH DH ER W AY Z/
+ 791. station              -> /S T EY SH AH N/
+ 792. Michael              -> /M AY K AH L/
+ 793. machine              -> /M AH SH IY N/
+ 794. effect               -> /IH F EH K T/
+ 795. officers             -> /AO F AH S ER Z/
+ 796. Peter                -> /P IY T ER/
+ 797. books                -> /B UH K S/
+ 798. himself              -> /HH IH M S EH L F/
+ 799. blue                 -> /B L UW/
+ 800. middle               -> /M IH D AH L/
+ 801. happening            -> /HH AE P AH N IH NG/
+ 802. air                  -> /EH R/
+ 803. aware                -> /AH W EH R/
+ 804. corner               -> /K AO R N ER/
+ 805. bank                 -> /B AE NG K/
+ 806. learn                -> /L ER N/
+ 807. groups               -> /G R UW P S/
+ 808. feet                 -> /F IY T/
+ 809. member               -> /M EH M B ER/
+ 810. agreed               -> /AH G R IY D/
+ 811. terrible             -> /T EH R AH B AH L/
+ 812. computer             -> /K AH M P Y UW T ER/
+ 813. foot                 -> /F UH T/
+ 814. project              -> /P R AA JH EH K T/
+ 815. Tuesday              -> /T UW Z D IY/
+ 816. control              -> /K AH N T R OW L/
+ 817. save                 -> /S EY V/
+ 818. built                -> /B IH L T/
+ 819. stupid               -> /S T UW P AH D/
+ 820. works                -> /W ER K S/
+ 821. soon                 -> /S UW N/
+ 822. miles                -> /M AY L Z/
+ 823. earlier              -> /ER L IY ER/
+ 824. evidence             -> /EH V AH D AH N S/
+ 825. lived                -> /L AY V D/
+ 826. simple               -> /S IH M P AH L/
+ 827. upon                 -> /AH P AA N/
+ 828. finish               -> /F IH N IH SH/
+ 829. ground               -> /G R AW N D/
+ 830. income               -> /IH N K AH M/
+ 831. husband              -> /HH AH Z B AH N D/
+ 832. involved             -> /IH N V AA L V D/
+ 833. deal                 -> /D IY L/
+ 834. date                 -> /D EY T/
+ 835. completely           -> /K AH M P L IY T L IY/
+ 836. issues               -> /IH SH UW Z/
+ 837. structure            -> /S T R AH K CH ER/
+ 838. wall                 -> /W AO L/
+ 839. died                 -> /D AY D/
+ 840. based                -> /B EY S T/
+ 841. anywhere             -> /EH N IY W EH R/
+ 842. football             -> /F UH T B AO L/
+ 843. space                -> /S P EY S/
+ 844. language             -> /L AE NG G W AH JH/
+ 845. officer              -> /AO F AH S ER/
+ 846. hit                  -> /HH IH T/
+ 847. financial            -> /F AH N AE N SH AH L/
+ 848. cars                 -> /K AA R Z/
+ 849. television           -> /T EH L AH V IH ZH AH N/
+ 850. hall                 -> /HH AO L/
+ 851. totally              -> /T OW T AH L IY/
+ 852. radio                -> /R EY D IY OW/
+ 853. site                 -> /S AY T/
+ 854. wear                 -> /W EH R/
+ 855. boys                 -> /B OY Z/
+ 856. sounds               -> /S AW N D Z/
+ 857. process              -> /P R AA S EH S/
+ 858. scheme               -> /S K IY M/
+ 859. housing              -> /HH AW Z IH NG/
+ 860. Richard              -> /R IH CH ER D/
+ 861. industry             -> /IH N D AH S T R IY/
+ 862. suggest              -> /S AH G JH EH S T/
+ 863. Britain              -> /B R IH T AH N/
+ 864. strong               -> /S T R AO NG/
+ 865. needed               -> /N IY D AH D/
+ 866. odd                  -> /AA D/
+ 867. birthday             -> /B ER TH D EY/
+ 868. president            -> /P R EH Z AH D EH N T/
+ 869. music                -> /M Y UW Z IH K/
+ 870. terms                -> /T ER M Z/
+ 871. sat                  -> /S AE T/
+ 872. park                 -> /P AA R K/
+ 873. draw                 -> /D R AO/
+ 874. waiting              -> /W EY T IH NG/
+ 875. bigger               -> /B IH G ER/
+ 876. spent                -> /S P EH N T/
+ 877. example              -> /IH G Z AE M P AH L/
+ 878. opportunity          -> /AA P ER T UW N AH T IY/
+ 879. check                -> /CH EH K/
+ 880. slightly             -> /S L AY T L IY/
+ 881. tend                 -> /T EH N D/
+ 882. post                 -> /P OW S T/
+ 883. afford               -> /AH F AO R D/
+ 884. kitchen              -> /K IH CH AH N/
+ 885. proper               -> /P R AA P ER/
+ 886. university           -> /Y UW N AH V ER S AH T IY/
+ 887. reasons              -> /R IY Z AH N Z/
+ 888. Yorkshire            -> /Y AO R K SH ER/
+ 889. beginning            -> /B IH G IH N IH NG/
+ 890. walking              -> /W AO K IH NG/
+ 891. living               -> /L IH V IH NG/
+ 892. result               -> /R IH Z AH L T/
+ 893. companies            -> /K AH M P AH N IY Z/
+ 894. brother              -> /B R AH DH ER/
+ 895. record               -> /R AH K AO R D/
+ 896. video                -> /V IH D IY OW/
+ 897. statement            -> /S T EY T M AH N T/
+ 898. rid                  -> /R IH D/
+ 899. properly             -> /P R AA P ER L IY/
+ 900. brilliant            -> /B R IH L Y AH N T/
+ 901. hey                  -> /HH EY/
+ 902. apparently           -> /AH P EH R AH N T L IY/
+ 903. college              -> /K AA L IH JH/
+ 904. choice               -> /CH OY S/
+ 905. pressure             -> /P R EH SH ER/
+ 906. double               -> /D AH B AH L/
+ 907. account              -> /AH K AW N T/
+ 908. seventeen            -> /S EH V AH N T IY N/
+ 909. authorities          -> /AH TH AO R AH T IY Z/
+ 910. colleagues           -> /K AA L IY G Z/
+ 911. son                  -> /S AH N/
+ 912. per                  -> /P ER/
+ 913. bar                  -> /B AA R/
+ 914. necessary            -> /N EH S AH S EH R IY/
+ 915. central              -> /S EH N T R AH L/
+ 916. political            -> /P AH L IH T AH K AH L/
+ 917. none                 -> /N AH N/
+ 918. miss                 -> /M IH S/
+ 919. cases                -> /K EY S AH Z/
+ 920. worse                -> /W ER S/
+ 921. depends              -> /D IH P EH N D Z/
+ 922. stopped              -> /S T AA P T/
+ 923. lunch                -> /L AH N CH/
+ 924. Chris                -> /K R IH S/
+ 925. lose                 -> /L UW Z/
+ 926. met                  -> /M EH T/
+ 927. drink                -> /D R IH NG K/
+ 928. value                -> /V AE L Y UW/
+ 929. environment          -> /IH N V AY R AH N M AH N T/
+ 930. benefit              -> /B EH N AH F IH T/
+ 931. pull                 -> /P UH L/
+ 932. history              -> /HH IH S T ER IY/
+ 933. ideas                -> /AY D IY AH Z/
+ 934. beautiful            -> /B Y UW T AH F AH L/
+ 935. Mark                 -> /M AA R K/
+ 936. European             -> /Y UH R AH P IY AH N/
+ 937. expensive            -> /IH K S P EH N S IH V/
+ 938. similar              -> /S IH M AH L ER/
+ 939. carried              -> /K AE R IY D/
+ 940. pass                 -> /P AE S/
+ 941. west                 -> /W EH S T/
+ 942. private              -> /P R AY V AH T/
+ 943. summer               -> /S AH M ER/
+ 944. changes              -> /CH EY N JH AH Z/
+ 945. pension              -> /P EH N SH AH N/
+ 946. win                  -> /W IH N/
+ 947. conference           -> /K AA N F ER AH N S/
+ 948. fish                 -> /F IH SH/
+ 949. decide               -> /D IH S AY D/
+ 950. played               -> /P L EY D/
+ 951. pence                -> /P EH N S/
+ 952. speaking             -> /S P IY K IH NG/
+ 953. names                -> /N EY M Z/
+ 954. stick                -> /S T IH K/
+ 955. bill                 -> /B IH L/
+ 956. item                 -> /AY T AH M/
+ 957. talked               -> /T AO K T/
+ 958. safety               -> /S EY F T IY/
+ 959. close                -> /K L OW S/
+ 960. common               -> /K AA M AH N/
+ 961. shit                 -> /SH IH T/
+ 962. teacher              -> /T IY CH ER/
+ 963. bloke                -> /B L OW K/
+ 964. explain              -> /IH K S P L EY N/
+ 965. teachers             -> /T IY CH ER Z/
+ 966. ourselves            -> /AW ER S EH L V Z/
+ 967. won                  -> /W AH N/
+ 968. wonderful            -> /W AH N D ER F AH L/
+ 969. continue             -> /K AH N T IH N Y UW/
+ 970. subject              -> /S AH B JH EH K T/
+ 971. gas                  -> /G AE S/
+ 972. silly                -> /S IH L IY/
+ 973. role                 -> /R OW L/
+ 974. picked               -> /P IH K T/
+ 975. film                 -> /F IH L M/
+ 976. older                -> /OW L D ER/
+ 977. client               -> /K L AY AH N T/
+ 978. higher               -> /HH AY ER/
+ 979. bedroom              -> /B EH D R UW M/
+ 980. consider             -> /K AH N S IH D ER/
+ 981. Christ               -> /K R AY S T/
+ 982. sales                -> /S EY L Z/
+ 983. shops                -> /SH AA P S/
+ 984. careful              -> /K EH R F AH L/
+ 985. hate                 -> /HH EY T/
+ 986. manager              -> /M AE N AH JH ER/
+ 987. insurance            -> /IH N SH UH R AH N S/
+ 988. employment           -> /EH M P L OY M AH N T/
+ 989. costs                -> /K AA S T S/
+ 990. outside              -> /AW T S AY D/
+ 991. personal             -> /P ER S IH N IH L/
+ 992. easier               -> /IY Z IY ER/
+ 993. present              -> /P R EH Z AH N T/
+ 994. serious              -> /S IH R IY AH S/
+ 995. flats                -> /F L AE T S/
+ 996. appropriate          -> /AH P R OW P R IY AH T/
+ 997. loads                -> /L OW D Z/
+ 998. correct              -> /K ER EH K T/
+ 999. advice               -> /AE D V AY S/
+1000. east                 -> /IY S T/
+1001. whereas              -> /W EH R AE Z/
+1002. da                   -> /D AA/
+1003. bother               -> /B AA DH ER/
+1004. Dave                 -> /D EY V/
+1005. several              -> /S EH V R AH L/
+1006. contract             -> /K AA N T R AE K T/
+1007. sold                 -> /S OW L D/
+1008. ours                 -> /AW ER Z/
+1009. milk                 -> /M IH L K/
+1010. parts                -> /P AA R T S/
+1011. nature               -> /N EY CH ER/
+1012. workers              -> /W ER K ER Z/
+1013. eyes                 -> /AY Z/
+1014. standing             -> /S T AE N D IH NG/
+1015. upstairs             -> /AH P S T EH R Z/
+1016. guy                  -> /G AY/
+1017. dead                 -> /D EH D/
+1018. writing              -> /R AY T IH NG/
+1019. weight               -> /W EY T/
+1020. twice                -> /T W AY S/
+1021. positive             -> /P AA Z AH T IH V/
+1022. Greater              -> /G R EY T ER/
+1023. congress             -> /K AA NG G R AH S/
+1024. sick                 -> /S IH K/
+1025. busy                 -> /B IH Z IY/
+1026. watching             -> /W AA CH IH NG/
+1027. Europe               -> /Y UH R AH P/
+1028. surely               -> /SH UH R L IY/
+1029. thinks               -> /TH IH NG K S/
+1030. practice             -> /P R AE K T AH S/
+1031. James                -> /JH EY M Z/
+1032. listening            -> /L IH S AH N IH NG/
+1033. comments             -> /K AA M EH N T S/
+1034. fill                 -> /F IH L/
+1035. test                 -> /T EH S T/
+1036. transport            -> /T R AE N S P AO R T/
+1037. horse                -> /HH AO R S/
+1038. sister               -> /S IH S T ER/
+1039. June                 -> /JH UW N/
+1040. press                -> /P R EH S/
+1041. conversation         -> /K AA N V ER S EY SH AH N/
+1042. wrote                -> /R OW T/
+1043. build                -> /B IH L D/
+1044. honest               -> /AA N AH S T/
+1045. seeing               -> /S IY IH NG/
+1046. necessarily          -> /N EH S AH S EH R AH L IY/
+1047. sector               -> /S EH K T ER/
+1048. boat                 -> /B OW T/
+1049. bread                -> /B R EH D/
+1050. produce              -> /P R AH D UW S/
+1051. cheap                -> /CH IY P/
+1052. starts               -> /S T AA R T S/
+1053. recently             -> /R IY S AH N T L IY/
+1054. coal                 -> /K OW L/
+1055. born                 -> /B AO R N/
+1056. seemed               -> /S IY M D/
+1057. wee                  -> /W IY/
+1058. generally            -> /JH EH N ER AH L IY/
+1059. resources            -> /R IY S AO R S IH Z/
+1060. range                -> /R EY N JH/
+1061. research             -> /R IY S ER CH/
+1062. join                 -> /JH OY N/
+1063. buying               -> /B AY IH NG/
+1064. application          -> /AE P L AH K EY SH AH N/
+1065. break                -> /B R EY K/
+1066. realize              -> /R IY L AY Z/
+1067. village              -> /V IH L AH JH/
+1068. eventually           -> /IH V EH N CH AH W AH L IY/
+1069. afraid               -> /AH F R EY D/
+1070. letters              -> /L EH T ER Z/
+1071. Jim                  -> /JH IH M/
+1072. field                -> /F IY L D/
+1073. product              -> /P R AA D AH K T/
+1074. Tony                 -> /T OW N IY/
+1075. clothes              -> /K L OW DH Z/
+1076. follow               -> /F AA L OW/
+1077. weather              -> /W EH DH ER/
+1078. 'em                  -> /DH EH M/
+1079. current              -> /K ER AH N T/
+1080. specific             -> /S P AH S IH F IH K/
+1081. policies             -> /P AA L AH S IY Z/
+1082. useful               -> /Y UW S F AH L/
+1083. drive                -> /D R AY V/
+1084. capital              -> /K AE P AH T AH L/
+1085. responsibility       -> /R IY S P AA N S AH B IH L AH T IY/
+1086. lucky                -> /L AH K IY/
+1087. prices               -> /P R AY S AH Z/
+1088. starting             -> /S T AA R T IH NG/
+1089. death                -> /D EH TH/
+1090. increase             -> /IH N K R IY S/
+1091. lights               -> /L AY T S/
+1092. sites                -> /S AY T S/
+1093. plenty               -> /P L EH N T IY/
+1094. extent               -> /IH K S T EH N T/
+1095. individual           -> /IH N D AH V IH JH AH W AH L/
+1096. discussion           -> /D IH S K AH SH AH N/
+1097. countries            -> /K AH N T R IY Z/
+1098. lines                -> /L AY N Z/
+1099. paragraph            -> /P AE R AH G R AE F/
+1100. George               -> /JH AO R JH/
+1101. missed               -> /M IH S T/
+1102. heart                -> /HH AA R T/
+1103. heavy                -> /HH EH V IY/
+1104. England              -> /IH NG G L AH N D/
+1105. horrible             -> /HH AO R AH B AH L/
+1106. act                  -> /AE K T/
+1107. debate               -> /D AH B EY T/
+1108. reasonable           -> /R IY Z AH N AH B AH L/
+1109. cover                -> /K AH V ER/
+1110. hopefully            -> /HH OW P F AH L IY/
+1111. cat                  -> /K AE T/
+1112. fit                  -> /F IH T/
+1113. held                 -> /HH EH L D/
+1114. Jane                 -> /JH EY N/
+1115. conditions           -> /K AH N D IH SH AH N Z/
+1116. train                -> /T R EY N/
+1117. minister             -> /M IH N AH S T ER/
+1118. throw                -> /TH R OW/
+1119. walked               -> /W AO K T/
+1120. earth                -> /ER TH/
+1121. Nottingham           -> /N AA T IH NG HH AE M/
+1122. enjoy                -> /EH N JH OY/
+1123. American             -> /AH M EH R AH K AH N/
+1124. pleased              -> /P L IY Z D/
+1125. sun                  -> /S AH N/
+1126. telephone            -> /T EH L AH F OW N/
+1127. united               -> /Y UW N AY T AH D/
+1128. rubbish              -> /R AH B IH SH/
+1129. excellent            -> /EH K S AH L AH N T/
+1130. chap                 -> /CH AE P/
+1131. darling              -> /D AA R L IH NG/
+1132. pair                 -> /P EH R/
+1133. argument             -> /AA R G Y AH M AH N T/
+1134. pieces               -> /P IY S AH Z/
+1135. final                -> /F AY N AH L/
+1136. provision            -> /P R AH V IH ZH AH N/
+
+================================================================================
+SUMMARY:
+Total words: 1136
+Successfully mapped: 1135
+Failed to map: 1
+Success rate: 99.9%

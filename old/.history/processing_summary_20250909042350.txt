@@ -1,0 +1,42 @@
+MOVIE LINES PROCESSING SUMMARY
+==============================
+
+Input File: materials/movie_lines.tsv
+Word List: final_word_list.txt (1,135 allowed words)
+Output File: selected_sentences.txt
+
+PROCESSING RESULTS:
+- Total lines processed: 304,713
+- Total sentences extracted: 547,083
+- Valid sentences found: 95,262
+- Unique valid sentences: 95,262 (no duplicates)
+
+CRITERIA APPLIED:
+1. ✅ Each sentence split from lines (handling multiple sentences per line)
+2. ✅ Words tokenized including contractions (n't, 's, 'll, 'd, 'm, 're, 've)
+3. ✅ All words must exist in final_word_list.txt
+4. ✅ Sentence must have >= 3 words (excluding punctuation)
+5. ✅ Sentence-ending punctuation preserved
+6. ✅ Duplicates removed
+
+CONTRACTION HANDLING:
+- "don't" → ["do", "n't"]
+- "I'm" → ["I", "'m"]
+- "we'll" → ["we", "'ll"]
+- "you'd" → ["you", "'d"]
+- "can't" → ["can", "n't"]
+- "won't" → ["wo", "n't"]
+
+EXAMPLE VALID SENTENCES:
+- "They do not!"
+- "Let's go."
+- "I hope so."
+- "You're asking me out."
+- "What's your name again?"
+- "How do you get your hair to look like that?"
+
+SUCCESS RATE:
+- 95,262 valid sentences from 547,083 total sentences (17.4% pass rate)
+- All selected sentences contain only words from the approved vocabulary list
+- All sentences are at least 3 words long
+- All duplicates have been removed
