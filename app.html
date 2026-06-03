@@ -166,7 +166,9 @@ let isRedo = false; // flag for redo mode
 let db;
 let streamHealthCheckInterval = null; // Interval for checking stream health
 const STORAGE_USAGE_THRESHOLD = 0.78;
+const SAVE_REMINDER_INTERVAL = 50;
 let storageBlocked = false;
+let saveAllInProgress = false;
 
 // Initialize IndexedDB
 async function initDB() {
@@ -1003,7 +1005,10 @@ async function updateStorageInfo() {
 
 
 // Download all stored videos
-el('downloadAll').onclick = async () => {
+async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
+  if (saveAllInProgress) return;
+  saveAllInProgress = true;
+
   try {
     const { count } = await getStoredVideoStats();
     if (count === 0) {
@@ -1011,7 +1016,7 @@ el('downloadAll').onclick = async () => {
       return;
     }
     
-    if (!confirm(`Are you sure you want to download all ${count} videos as a ZIP file? Videos will be automatically cleared from cache after download.\n\nAfter SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
+    if (!skipConfirm && !confirm(`Are you sure you want to download all ${count} videos as a ZIP file? Videos will be automatically cleared from cache after download.\n\nAfter SAVE ALL: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
     
     // Show progress indicator
     el('downloadAll').textContent = 'Creating ZIP...';
@@ -1096,8 +1101,20 @@ el('downloadAll').onclick = async () => {
     el('downloadAll').textContent = '💾 SAVE ALL';
     el('downloadAll').disabled = false;
     el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
+  } finally {
+    saveAllInProgress = false;
   }
-};
+}
+
+el('downloadAll').onclick = () => downloadAllStoredVideos();
+
+async function maybePromptSaveAllCheckpoint() {
+  const { count } = await getStoredVideoStats();
+  if (count > 0 && count % SAVE_REMINDER_INTERVAL === 0) {
+    alert(`You have ${count} cached videos. Click OK to SAVE ALL now before continuing.`);
+    await downloadAllStoredVideos({ skipConfirm: true });
+  }
+}
 
 // Clear all stored videos
 el('clearAll').onclick = async () => {
@@ -1346,6 +1363,7 @@ async function saveBlob(){
     }
     
     const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.mp4`;
+    let shouldPromptSaveAllCheckpoint = false;
     
     if (storageMode) {
       // iPad mode: Store to IndexedDB
@@ -1360,6 +1378,7 @@ async function saveBlob(){
           return;
         }
         await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
+        shouldPromptSaveAllCheckpoint = true;
         // Update storage info asynchronously to avoid blocking
         setTimeout(() => updateStorageInfo(), 100);
         console.log(`Video stored locally: ${fileName}`);
@@ -1376,6 +1395,10 @@ async function saveBlob(){
     
     // Clear chunks array immediately after use to free memory
     chunks = [];
+
+    if (shouldPromptSaveAllCheckpoint) {
+      await maybePromptSaveAllCheckpoint();
+    }
     
     // Reset redo flag after recording completion
     isRedo = false;
