@@ -73,6 +73,63 @@
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
     transform: scale(0.95);
   }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.62);
+  }
+
+  .modal-backdrop.is-open {
+    display: flex;
+  }
+
+  .modal-dialog {
+    width: min(520px, 100%);
+    border: 1px solid #555;
+    border-radius: 16px;
+    background: #1f1f1f;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.5);
+    padding: 24px;
+    color: #f0f0f0;
+  }
+
+  .modal-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .modal-message {
+    color: #e4e4e4;
+    font-size: 1rem;
+    line-height: 1.45;
+    white-space: pre-line;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .modal-actions button {
+    width: auto;
+    min-width: 96px;
+  }
+
+  .modal-primary {
+    background: #9fc1f8;
+    border-color: #9fc1f8;
+    color: #14315f;
+    font-weight: 700;
+  }
 </style>
 <body>
   <div class="card" style="padding:14px; margin:14px 0;">
@@ -91,6 +148,14 @@
   <div class="card" style="position: relative; padding: 12px; margin: 12px 0;">
     <video id="preview" class="video-preparing" playsinline autoplay muted></video>
     <div id="initCameraOverlay" style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.9); padding: 35px; border-radius: 20px; text-align: center; max-width: 700px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+      <p style="color: #90EE90; font-size: 1.6rem; margin: 0 0 18px 0; font-weight: 600;">Thank you so much for participating today!!</p>
+      <h3 style="color: white; margin: 0 0 16px 0; font-size: 1.2rem; font-weight: 600;">Instructions</h3>
+      <div style="color: #e0e0e0; font-size: 1rem; line-height: 1.45; margin-bottom: 24px; text-align: left;">
+        <p style="margin: 10px 0;"><strong style="color: #81C784; margin-right: 8px;">1.</strong> Click <strong style="color: #81C784; background: rgba(129, 199, 132, 0.2); padding: 2px 6px; border-radius: 4px;">Initialize Camera + Microphone</strong>, then position the camera below chin level, angling upward so mouth, throat, and cheeks are visible.</p>
+        <p style="margin: 10px 0;"><strong style="color: #64B5F6; margin-right: 8px;">2.</strong> Press <kbd style="background: #333; color: #64B5F6; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-weight: bold;">Space</kbd> to start or stop recording each sentence.</p>
+        <p style="margin: 10px 0;"><strong style="color: #FFB74D; margin-right: 8px;">3.</strong> If you make a mistake, stop the recording first, then press <kbd style="background: #333; color: #FFB74D; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-weight: bold;">Left Arrow</kbd> to redo the previous sentence.</p>
+        <p style="margin: 10px 0;"><strong style="color: #BA68C8; margin-right: 8px;">4.</strong> Click <strong style="color: #BA68C8; background: rgba(186, 104, 200, 0.2); padding: 2px 6px; border-radius: 4px;">Save All</strong> after each recording session.</p>
+      </div>
       <button id="init" style="font-size: 1.4rem; padding: 16px 32px; background: linear-gradient(135deg, #81C784, #66BB6A); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 15px rgba(129, 199, 132, 0.4); transition: all 0.3s ease;">🎥 Initialize Camera + Microphone</button>
     </div>
     <div class="row" style="margin:16px auto 0 auto; justify-content: center; gap: 40px; width: 276px;">
@@ -109,7 +174,7 @@
     <div class="row">
       <label>Select Sentence Set</label>
       <select id="sentenceSet" onchange="loadSentenceSet()">
-        <option value="350_nonrepeating_sentences" selected>350_Sentences</option>
+        <option value="350_with_warmup_sentences" selected>350_Sentences</option>
       </select>
       <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">Reset Progress</button>
       <button id="clearProgress" onclick="clearAllProgress()" style="margin-left: 8px;">Clear All Progress</button>
@@ -135,8 +200,64 @@
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
   </div>
 
+  <div id="appModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div id="modalTitle" class="modal-title">Notice</div>
+      <div id="modalMessage" class="modal-message"></div>
+      <div class="modal-actions">
+        <button id="modalCancel" type="button">Cancel</button>
+        <button id="modalOk" class="modal-primary" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 const el = id => document.getElementById(id);
+function showModal({ title = 'Notice', message = '', confirm = false, okText = 'OK', cancelText = 'Cancel' }) {
+  return new Promise(resolve => {
+    const modal = el('appModal');
+    const titleEl = el('modalTitle');
+    const messageEl = el('modalMessage');
+    const okButton = el('modalOk');
+    const cancelButton = el('modalCancel');
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    okButton.textContent = okText;
+    cancelButton.textContent = cancelText;
+    cancelButton.style.display = confirm ? 'inline-block' : 'none';
+
+    const close = result => {
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      okButton.onclick = null;
+      cancelButton.onclick = null;
+      modal.onclick = null;
+      document.removeEventListener('keydown', handleKeydown);
+      resolve(result);
+    };
+
+    const handleKeydown = event => {
+      if (event.key === 'Escape') close(confirm ? false : true);
+      if (event.key === 'Enter') close(true);
+    };
+
+    okButton.onclick = () => close(true);
+    cancelButton.onclick = () => close(false);
+    modal.onclick = event => {
+      if (event.target === modal && confirm) close(false);
+    };
+    document.addEventListener('keydown', handleKeydown);
+
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    setTimeout(() => okButton.focus(), 0);
+  });
+}
+
+const showAlert = (message, title = 'Notice') => showModal({ title, message });
+const showConfirm = (message, title = 'Confirm') => showModal({ title, message, confirm: true });
+
 function logout() {
   sessionStorage.removeItem('v2s_auth_ok');
   sessionStorage.removeItem('v2s_auth_user');
@@ -476,15 +597,17 @@ async function clearAllStoredVideos() {
 
 // Sentence sets data
 const sentenceSets = {
-  '350_nonrepeating_sentences': null
+  '350_with_warmup_sentences': null
 };
 
-let currentSentenceSet = '350_nonrepeating_sentences';
+let currentSentenceSet = '350_with_warmup_sentences';
+let warmupSentenceCount = 0;
+let formalSentenceCount = 0;
 
 // Load sentence set file
 async function loadSentenceFile(filename) {
   try {
-    const response = await fetch(`materials/${filename}`);
+    const response = await fetch(filename);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const text = await response.text();
     return text.split('\n').map(s => s.trim()).filter(Boolean);
@@ -556,11 +679,15 @@ async function loadSentenceSet() {
   const selected = el('sentenceSet').value;
   currentSentenceSet = selected;
   
-  const filename = '../newset/350_nonrepeating_sentences.txt';
-  
   // Load sentences from cache or file
   if (!sentenceSets[selected]) {
-    sentenceSets[selected] = await loadSentenceFile(filename);
+    const warmupSentences = await loadSentenceFile('newset/aac_extra_5_sentences.txt');
+    const formalSentences = await loadSentenceFile('newset/350_nonrepeating_sentences.txt');
+    if (formalSentences) {
+      warmupSentenceCount = warmupSentences ? warmupSentences.length : 0;
+      formalSentenceCount = formalSentences.length;
+      sentenceSets[selected] = [...(warmupSentences || []), ...formalSentences];
+    }
   }
   
   if (sentenceSets[selected]) {
@@ -596,22 +723,22 @@ async function loadSentenceSet() {
 
 // Reset progress
 async function resetProgress() {
-  if (!confirm('Are you sure you want to reset the recording progress for the current sentence set?')) return;
+  if (!await showConfirm('Are you sure you want to reset the recording progress for the current sentence set?')) return;
   
   try {
     await deleteProgress(currentSentenceSet);
     idx = 0;
     await updateSentenceView();
-    alert('Progress has been reset');
+    await showAlert('Progress has been reset');
   } catch (error) {
     console.error('Failed to reset progress:', error);
-    alert('Failed to reset progress: ' + error.message);
+    await showAlert('Failed to reset progress: ' + error.message);
   }
 }
 
 // Clear all progress
 async function clearAllProgress() {
-  if (!confirm('Are you sure you want to clear all recording progress? This action cannot be undone!')) return;
+  if (!await showConfirm('Are you sure you want to clear all recording progress? This action cannot be undone!')) return;
   
   try {
     const transaction = db.transaction(['progress'], 'readwrite');
@@ -625,10 +752,10 @@ async function clearAllProgress() {
     // Reset current progress
     idx = 0;
     await updateSentenceView();
-    alert('All progress has been cleared');
+    await showAlert('All progress has been cleared');
   } catch (error) {
     console.error('Failed to clear progress:', error);
-    alert('Failed to clear progress: ' + error.message);
+    await showAlert('Failed to clear progress: ' + error.message);
   }
 }
 
@@ -647,13 +774,6 @@ window.addEventListener('resize', () => {
   scheduleMaterialBoxResize();
 });
 
-// Ordinal function to convert numbers to ordinal form (1st, 2nd, 3rd, etc.)
-const ordinal = (n) => {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-};
-
 async function updateSentenceView(){
   const currentTextEl = el('currentText');
   const progressEl = el('idxInfo');
@@ -671,16 +791,11 @@ async function updateSentenceView(){
   // Normal recording mode
   const total = sentences.length;
   text = total ? sentences[idx] : '';
-  progressText = total ? `${idx+1} / ${total}` : '';
-  
-  // Always display repetition count, starting from 1st repeat
-  try {
-    const progress = await getProgress(currentSentenceSet);
-    const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
-    progressText += `    ${ordinal(repeatCount)} repeat`;
-  } catch (error) {
-    console.error('Failed to get progress for repetition count:', error);
-    progressText += `    1st repeat`;
+  if (total && idx < warmupSentenceCount) {
+    progressText = `Warm-up ${idx+1} / ${warmupSentenceCount}`;
+  } else if (total) {
+    const formalIndex = idx - warmupSentenceCount + 1;
+    progressText = `${formalIndex} / ${formalSentenceCount || Math.max(total - warmupSentenceCount, 0)}`;
   }
   
   // Add the new text
@@ -749,7 +864,7 @@ function cleanupRecording() {
 }
 
 // Check stream health periodically
-function checkStreamHealth() {
+async function checkStreamHealth() {
   if (!stream) return;
   
   const videoTrack = stream.getVideoTracks()[0];
@@ -779,7 +894,7 @@ function checkStreamHealth() {
         }
       }
       cleanupRecording();
-      alert('Camera stream stopped unexpectedly. Please reinitialize camera.');
+      await showAlert('Camera stream stopped unexpectedly. Please reinitialize camera.');
     }
   } else {
     // Optional: Log health check success (can be commented out to reduce console noise)
@@ -917,6 +1032,10 @@ el('init').onclick = async () => {
     el('downloadAll').style.display = 'inline-block';
     el('clearAll').style.display = 'inline-block';
     
+    if (idx < warmupSentenceCount) {
+      await showAlert(`Warm-up: Please record these ${warmupSentenceCount} practice sentences before starting the formal set.`);
+    }
+
     // Hide the Initialize Camera button overlay and show preparing status
     el('initCameraOverlay').style.display = 'none';
     el('recordingStatus').style.display = 'block';
@@ -927,7 +1046,7 @@ el('init').onclick = async () => {
     // Remove focus from button to allow keyboard shortcuts
     el('init').blur();
   } catch (e) {
-    alert('Unable to access camera/microphone: ' + e);
+    await showAlert('Unable to access camera/microphone: ' + e);
   }
 };
 
@@ -973,7 +1092,7 @@ el('skip').onclick = async () => {
       console.error('Failed to save progress:', error);
     }
   } else if (idx >= sentences.length - 1) {
-    alert('This is the last sentence!');
+    await showAlert('This is the last sentence!');
   }
 };
 
@@ -1083,11 +1202,11 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
   try {
     const { count } = await getStoredVideoStats();
     if (count === 0) {
-      alert('No stored videos found');
+      await showAlert('No stored videos found');
       return;
     }
     
-    if (!skipConfirm && !confirm(`Are you sure you want to download all ${count} videos as a ZIP file? Videos will be automatically cleared from cache after download.\n\nAfter Save All: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
+    if (!skipConfirm && !await showConfirm(`Are you sure you want to download all ${count} videos as a ZIP file? Videos will be automatically cleared from cache after download.\n\nAfter Save All: If you want to continue recording, remember to refresh the page to avoid frozen video.`)) return;
     
     // Show progress indicator
     el('downloadAll').textContent = 'Creating ZIP...';
@@ -1168,7 +1287,7 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
     }, 500);
     
   } catch (error) {
-    alert('ZIP download failed: ' + error.message);
+    await showAlert('ZIP download failed: ' + error.message);
     el('downloadAll').textContent = '💾 Save All';
     el('downloadAll').disabled = false;
     el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
@@ -1179,10 +1298,13 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
 
 el('downloadAll').onclick = () => downloadAllStoredVideos();
 
-async function maybePromptSaveAllCheckpoint() {
+async function maybePromptSaveAllCheckpoint({ isComplete = false } = {}) {
   const { count } = await getStoredVideoStats();
-  if (count > 0 && count % SAVE_REMINDER_INTERVAL === 0) {
-    alert(`You have ${count} cached videos. Click OK to Save All now before continuing.`);
+  if (count > 0 && (isComplete || count % SAVE_REMINDER_INTERVAL === 0)) {
+    const message = isComplete
+      ? `You have completed all ${formalSentenceCount || sentences.length - warmupSentenceCount} sentences. Click OK to Save All now.`
+      : `You have ${count} cached videos. Click OK to Save All now before continuing.`;
+    await showAlert(message);
     await downloadAllStoredVideos({ skipConfirm: true });
   }
 }
@@ -1192,11 +1314,11 @@ el('clearAll').onclick = async () => {
   try {
     const { count } = await getStoredVideoStats();
     if (count === 0) {
-      alert('No stored videos found');
+      await showAlert('No stored videos found');
       return;
     }
     
-    if (!confirm(`Are you sure you want to clear all ${count} stored videos? This action cannot be undone!`)) return;
+    if (!await showConfirm(`Are you sure you want to clear all ${count} stored videos? This action cannot be undone!`)) return;
     
     await clearAllStoredVideos();
     
@@ -1205,26 +1327,26 @@ el('clearAll').onclick = async () => {
       updateStorageInfo();
     }, 100);
     
-    alert('All stored videos have been cleared');
+    await showAlert('All stored videos have been cleared');
   } catch (error) {
     console.error('Clear storage error:', error);
-    alert('Failed to clear storage: ' + error.message);
+    await showAlert('Failed to clear storage: ' + error.message);
   }
 };
 
 async function startRecording() {
-  if (!stream) return alert('Please initialize camera first!');
+  if (!stream) return await showAlert('Please initialize camera first!');
   if (recording) return;
   const blockState = await refreshStorageBlockState();
   if (blockState.blocked || storageBlocked) {
-    alert(getStorageBlockedMessage(blockState.estimate));
+    await showAlert(getStorageBlockedMessage(blockState.estimate));
     return;
   }
   
   // Check if stream is still active
   const videoTrack = stream.getVideoTracks()[0];
   if (!videoTrack || !videoTrack.enabled || videoTrack.readyState !== 'live') {
-    alert('Camera stream is not active. Please reinitialize camera.');
+    await showAlert('Camera stream is not active. Please reinitialize camera.');
     console.error('Stream issue detected:', {
       hasTrack: !!videoTrack,
       enabled: videoTrack?.enabled,
@@ -1275,9 +1397,9 @@ async function startRecording() {
     
     mediaRecorder.onstop = saveBlob;
     
-    mediaRecorder.onerror = (event) => {
+    mediaRecorder.onerror = async (event) => {
       console.error('MediaRecorder error:', event.error);
-      alert('Recording error occurred: ' + event.error);
+      await showAlert('Recording error occurred: ' + event.error);
       recording = false;
       cleanupRecording();
     };
@@ -1315,12 +1437,12 @@ async function startRecording() {
     
   } catch (error) {
     console.error('Failed to start MediaRecorder:', error);
-    alert('Failed to start recording: ' + error.message);
+    await showAlert('Failed to start recording: ' + error.message);
     cleanupRecording();
   }
 }
 
-function stopRecording() {
+async function stopRecording() {
   if (mediaRecorder && recording) {
     try {
       // Play recording stop sound
@@ -1343,7 +1465,7 @@ function stopRecording() {
       // Force cleanup even if stop failed
       cleanupRecording();
       el('startStop').blur();
-      alert('Error stopping recording: ' + error.message);
+      await showAlert('Error stopping recording: ' + error.message);
     }
   }
 }
@@ -1419,19 +1541,23 @@ async function saveBlob(){
     let progressInfo = '';
     try {
       const progress = await getProgress(currentSentenceSet);
-      const total = sentences.length;
-      const currentPos = idx + 1;
+      const isWarmupSentence = idx < warmupSentenceCount;
+      const total = isWarmupSentence ? warmupSentenceCount : (formalSentenceCount || sentences.length - warmupSentenceCount);
+      const currentPos = isWarmupSentence ? idx + 1 : idx - warmupSentenceCount + 1;
       
       // Always include repeat count in filename, starting from repeat1
       const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
-      progressInfo = `_${currentPos}-${total}_repeat${repeatCount}`;
+      progressInfo = `${isWarmupSentence ? '_warmup' : '_'}${currentPos}-${total}_repeat${repeatCount}`;
     } catch (error) {
       console.error('Failed to get progress for filename:', error);
-      progressInfo = `_${idx + 1}-${sentences.length}`;
+      progressInfo = idx < warmupSentenceCount
+        ? `_warmup${idx + 1}-${warmupSentenceCount}`
+        : `_${idx - warmupSentenceCount + 1}-${formalSentenceCount || sentences.length - warmupSentenceCount}`;
     }
     
     const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.mp4`;
     let shouldPromptSaveAllCheckpoint = false;
+    const isCompletingSentenceSet = idx >= sentences.length - 1;
     
     if (storageMode) {
       // iPad mode: Store to IndexedDB
@@ -1439,7 +1565,7 @@ async function saveBlob(){
         const blockState = await refreshStorageBlockState(blob.size);
         if (blockState.blocked) {
           const blockedMessage = getStorageBlockedMessage(blockState.estimate);
-          alert(blockedMessage);
+          await showAlert(blockedMessage);
           // Keep the current recording by downloading it directly, but block further cached recording.
           directDownload(blob, fileName);
           chunks = [];
@@ -1452,7 +1578,7 @@ async function saveBlob(){
         console.log(`Video stored locally: ${fileName}`);
       } catch (error) {
         console.error('Failed to store video:', error);
-        alert('Failed to store video: ' + error.message);
+        await showAlert('Failed to store video: ' + error.message);
         // Fallback to direct download on failure
         directDownload(blob, fileName);
       }
@@ -1464,7 +1590,7 @@ async function saveBlob(){
     // Clear chunks array immediately after use to free memory
     chunks = [];
 
-    if (shouldPromptSaveAllCheckpoint) {
+    if (shouldPromptSaveAllCheckpoint && !isCompletingSentenceSet) {
       await maybePromptSaveAllCheckpoint();
     }
     
@@ -1473,8 +1599,13 @@ async function saveBlob(){
     
     // Auto jump to next sentence after recording completion (if not the last sentence)
     if (idx < sentences.length - 1) {
+      const completedWarmup = warmupSentenceCount > 0 && idx === warmupSentenceCount - 1;
       idx++;
       await updateSentenceView();
+
+      if (completedWarmup) {
+        await showAlert('Warm-up complete. The formal recording will begin now.');
+      }
       
       // Save progress
       try {
@@ -1497,13 +1628,17 @@ async function saveBlob(){
       
       // Then update the sentence view to show the new repetition count
       await updateSentenceView();
+
+      if (shouldPromptSaveAllCheckpoint) {
+        await maybePromptSaveAllCheckpoint({ isComplete: true });
+      }
     }
     
     // Display format information
     console.log(`Recording completed, format: ${fileExt.toUpperCase()}, MIME type: ${mediaRecorder.mimeType}`);
   } catch (error) {
     console.error('Error in saveBlob:', error);
-    alert('Error saving recording: ' + error.message);
+    await showAlert('Error saving recording: ' + error.message);
     // Clear chunks on error to prevent corruption
     chunks = [];
   }
