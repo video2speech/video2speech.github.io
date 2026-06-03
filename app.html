@@ -122,6 +122,23 @@
   .modal-actions button {
     width: auto;
     min-width: 96px;
+    cursor: pointer;
+    transition: transform 0.14s ease, filter 0.14s ease, border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+  }
+
+  .modal-actions button:hover,
+  .modal-actions button:focus-visible {
+    transform: translateY(-1px);
+    filter: brightness(1.12);
+    border-color: #8d8d8d;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+    outline: none;
+  }
+
+  .modal-actions button:active {
+    transform: translateY(0);
+    filter: brightness(0.96);
+    box-shadow: none;
   }
 
   .modal-primary {
@@ -129,6 +146,12 @@
     border-color: #9fc1f8;
     color: #14315f;
     font-weight: 700;
+  }
+
+  .modal-primary:hover,
+  .modal-primary:focus-visible {
+    background: #b8d0ff;
+    border-color: #b8d0ff;
   }
 </style>
 <body>
@@ -213,6 +236,9 @@
 
 <script>
 const el = id => document.getElementById(id);
+let modalOpen = false;
+const isModalOpen = () => modalOpen;
+
 function showModal({ title = 'Notice', message = '', confirm = false, okText = 'OK', cancelText = 'Cancel' }) {
   return new Promise(resolve => {
     const modal = el('appModal');
@@ -228,18 +254,23 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
     cancelButton.style.display = confirm ? 'inline-block' : 'none';
 
     const close = result => {
+      modalOpen = false;
       modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
       okButton.onclick = null;
       cancelButton.onclick = null;
       modal.onclick = null;
-      document.removeEventListener('keydown', handleKeydown);
+      document.removeEventListener('keydown', handleKeydown, true);
       resolve(result);
     };
 
     const handleKeydown = event => {
+      if (event.key !== 'Tab') {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       if (event.key === 'Escape') close(confirm ? false : true);
-      if (event.key === 'Enter') close(true);
+      if (event.key === 'Enter' || event.code === 'Space') close(true);
     };
 
     okButton.onclick = () => close(true);
@@ -247,8 +278,9 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
     modal.onclick = event => {
       if (event.target === modal && confirm) close(false);
     };
-    document.addEventListener('keydown', handleKeydown);
+    document.addEventListener('keydown', handleKeydown, true);
 
+    modalOpen = true;
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     setTimeout(() => okButton.focus(), 0);
@@ -268,6 +300,7 @@ let stream, mediaRecorder, chunks = [];
 let sentences = [];
 let idx = 0;
 let recording = false;
+let sessionComplete = false;
 let recordingTimer = null; // Timer for auto-stop after 1 minute
 let recordingStartTime = null; // Track recording start time
 let timerInterval = null; // Timer display update interval
@@ -691,6 +724,7 @@ async function loadSentenceSet() {
   }
   
   if (sentenceSets[selected]) {
+    resetCompletionView();
     sentences = sentenceSets[selected];
     setMaterialBoxFixedHeightByLongestSentence();
     
@@ -727,6 +761,7 @@ async function resetProgress() {
   
   try {
     await deleteProgress(currentSentenceSet);
+    resetCompletionView();
     idx = 0;
     await updateSentenceView();
     await showAlert('Progress has been reset');
@@ -750,6 +785,7 @@ async function clearAllProgress() {
     });
     
     // Reset current progress
+    resetCompletionView();
     idx = 0;
     await updateSentenceView();
     await showAlert('All progress has been cleared');
@@ -806,6 +842,38 @@ async function updateSentenceView(){
   
   // Add default preparing state (blinking gray)
   currentTextEl.className = 'big sentence-preparing';
+}
+
+function showCompletionView() {
+  sessionComplete = true;
+  const currentTextEl = el('currentText');
+  const progressEl = el('idxInfo');
+
+  currentTextEl.childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      node.remove();
+    }
+  });
+
+  const textNode = document.createTextNode('Congrats, recording complete!');
+  currentTextEl.insertBefore(textNode, progressEl);
+  progressEl.textContent = 'Finished';
+  currentTextEl.className = 'big sentence-recording';
+  el('recordingStatus').style.display = 'none';
+  el('preview').classList.add('video-preparing');
+  setStartStopButtonState(false);
+  el('startStop').disabled = true;
+  el('startStop').style.opacity = '0.45';
+  el('redo').disabled = true;
+  el('redo').style.opacity = '0.35';
+}
+
+function resetCompletionView() {
+  sessionComplete = false;
+  el('startStop').disabled = false;
+  el('startStop').style.opacity = '1';
+  el('redo').disabled = false;
+  el('redo').style.opacity = '0.64';
 }
 
 function updateRecordingTimer() {
@@ -1098,6 +1166,8 @@ el('skip').onclick = async () => {
 
 // Redo last sentence (go back to previous sentence)
 el('redo').onclick = async () => {
+  if (isModalOpen()) return;
+  if (sessionComplete) return;
   // Go back to previous sentence
   if (sentences.length && idx > 0) {
     idx--; // Go back to previous sentence
@@ -1335,6 +1405,8 @@ el('clearAll').onclick = async () => {
 };
 
 async function startRecording() {
+  if (isModalOpen()) return;
+  if (sessionComplete) return;
   if (!stream) return await showAlert('Please initialize camera first!');
   if (recording) return;
   const blockState = await refreshStorageBlockState();
@@ -1443,6 +1515,7 @@ async function startRecording() {
 }
 
 async function stopRecording() {
+  if (isModalOpen()) return;
   if (mediaRecorder && recording) {
     try {
       // Play recording stop sound
@@ -1471,6 +1544,7 @@ async function stopRecording() {
 }
 
 el('startStop').onclick = () => {
+  if (isModalOpen()) return;
   if (recording) {
     stopRecording();
   } else {
@@ -1480,6 +1554,11 @@ el('startStop').onclick = () => {
 
 // Add keyboard shortcut support
 document.addEventListener('keydown', (event) => {
+  if (isModalOpen()) {
+    event.preventDefault();
+    return;
+  }
+
   // Only trigger when not focused on input elements
   if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
     
@@ -1615,19 +1694,15 @@ async function saveBlob(){
         console.error('Failed to save progress:', error);
       }
     } else {
-      // All sentences completed, reset to first sentence for repetition
-      idx = 0;
-      
-      // Save progress and increment repetition counter FIRST
+      // All sentences completed. Keep the session finished instead of starting another round.
       try {
-        await saveProgress(currentSentenceSet, idx, true); // true indicates completion
-        console.log(`Completed recording all ${sentences.length} sentences, starting next repetition`);
+        await saveProgress(currentSentenceSet, sentences.length - 1, true);
+        console.log(`Completed recording all ${sentences.length} sentences`);
       } catch (error) {
         console.error('Failed to save progress:', error);
       }
       
-      // Then update the sentence view to show the new repetition count
-      await updateSentenceView();
+      showCompletionView();
 
       if (shouldPromptSaveAllCheckpoint) {
         await maybePromptSaveAllCheckpoint({ isComplete: true });
