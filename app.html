@@ -324,6 +324,24 @@ const MATERIAL_BOX_BADGE_RESERVED = 58;
 let storageBlocked = false;
 let saveAllInProgress = false;
 
+function isInteractionBlocked() {
+  return isModalOpen() || saveAllInProgress;
+}
+
+function setSaveAllBusyState(isBusy) {
+  ['resetProgress', 'clearAll', 'sentenceSet', 'resolution', 'mirrorVideo'].forEach(id => {
+    const element = el(id);
+    if (element) element.disabled = isBusy;
+  });
+
+  if (!sessionComplete) {
+    ['startStop', 'redo'].forEach(id => {
+      const element = el(id);
+      if (element) element.disabled = isBusy;
+    });
+  }
+}
+
 // Initialize IndexedDB
 async function initDB() {
   return new Promise((resolve, reject) => {
@@ -1153,7 +1171,7 @@ el('skip').onclick = async () => {
 
 // Redo last sentence (go back to previous sentence)
 el('redo').onclick = async () => {
-  if (isModalOpen()) return;
+  if (isInteractionBlocked()) return;
   if (sessionComplete) return;
   // Go back to previous sentence
   if (sentences.length && idx > 0) {
@@ -1254,7 +1272,10 @@ async function updateStorageInfo() {
 // Download all stored videos
 async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
   if (saveAllInProgress) return;
-  saveAllInProgress = true;
+  if (recording) {
+    await showAlert('Please stop the current recording before Save All.');
+    return;
+  }
 
   try {
     const { count } = await getStoredVideoStats();
@@ -1264,9 +1285,12 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
     }
     
     if (!skipConfirm && !await showConfirm(
-      `This will download all ${count} cached videos as a ZIP file.\n\nAfter the ZIP is created, cached videos will be cleared from this browser. Your sentence progress will not be reset.\n\nIf you continue recording after Save All, refresh the page first to avoid frozen video.\n\nContinue?`,
+      `This will download all ${count} cached videos as a ZIP file.\n\nAfter the ZIP is created, cached videos will be cleared from this browser. Your sentence progress will not be reset.\n\nRecording controls will stay locked until Save All finishes and the camera is ready again.\n\nContinue?`,
       'Save All'
     )) return;
+
+    saveAllInProgress = true;
+    setSaveAllBusyState(true);
     
     // Show progress indicator
     el('downloadAll').textContent = 'Creating ZIP...';
@@ -1300,59 +1324,46 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
     await clearAllStoredVideos();
     
     // Update storage info and restart video stream
-    setTimeout(async () => {
-      try {
-        await updateStorageInfo();
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await updateStorageInfo();
+
+      // Restart video stream to refresh camera feed
+      if (stream) {
+        stopStreamHealthMonitoring();
+        stream.getTracks().forEach(track => track.stop());
+
+        const resolution = el('resolution').value;
+        let videoConstraints = { facingMode: 'user' };
         
-        // Restart video stream to refresh camera feed
-        if (stream) {
-          // Stop current stream
-          stream.getTracks().forEach(track => track.stop());
-          
-          // Restart camera with current resolution
-          const resolution = el('resolution').value;
-          let videoConstraints = { facingMode: 'user' };
-          
-          if (resolution === '4k') videoConstraints = { ...videoConstraints, width: 3840, height: 2160 };
-          else if (resolution === '1080p') videoConstraints = { ...videoConstraints, width: 1920, height: 1080 };
-          else if (resolution === '720p') videoConstraints = { ...videoConstraints, width: 1280, height: 720 };
-          else if (resolution === '480p') videoConstraints = { ...videoConstraints, width: 640, height: 480 };
-          
-          stream = await navigator.mediaDevices.getUserMedia({ 
-            video: videoConstraints, 
-            audio: true 
-          });
-          el('preview').srcObject = stream;
-          
-          // Apply mirror effect after restarting stream
-          updateVideoMirror();
-          
-          // Restart stream health monitoring
-          startStreamHealthMonitoring();
-          
-          console.log('Video stream restarted after ZIP download');
-        }
+        if (resolution === '4k') videoConstraints = { ...videoConstraints, width: 3840, height: 2160 };
+        else if (resolution === '1080p') videoConstraints = { ...videoConstraints, width: 1920, height: 1080 };
+        else if (resolution === '720p') videoConstraints = { ...videoConstraints, width: 1280, height: 720 };
+        else if (resolution === '480p') videoConstraints = { ...videoConstraints, width: 640, height: 480 };
         
-        // Reset button
-        el('downloadAll').textContent = '💾 Save All';
-        el('downloadAll').disabled = false;
-        el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
-        
-      } catch (error) {
-        console.error('Error restarting video stream:', error);
-        el('downloadAll').textContent = '💾 Save All';
-        el('downloadAll').disabled = false;
-        el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: true
+        });
+        el('preview').srcObject = stream;
+        updateVideoMirror();
+        startStreamHealthMonitoring();
+
+        console.log('Video stream restarted after ZIP download');
       }
-    }, 500);
+    } catch (restartError) {
+      console.error('Error restarting video stream:', restartError);
+      await showAlert('Videos were saved, but camera restart failed. Please reinitialize camera before continuing: ' + restartError.message);
+    }
     
   } catch (error) {
     await showAlert('ZIP download failed: ' + error.message);
+  } finally {
+    saveAllInProgress = false;
+    setSaveAllBusyState(false);
     el('downloadAll').textContent = '💾 Save All';
     el('downloadAll').disabled = false;
     el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
-  } finally {
-    saveAllInProgress = false;
   }
 }
 
@@ -1398,7 +1409,7 @@ el('clearAll').onclick = async () => {
 };
 
 async function startRecording() {
-  if (isModalOpen()) return;
+  if (isInteractionBlocked()) return;
   if (sessionComplete) return;
   if (!stream) return await showAlert('Please initialize camera first!');
   if (recording) return;
@@ -1508,7 +1519,7 @@ async function startRecording() {
 }
 
 async function stopRecording() {
-  if (isModalOpen()) return;
+  if (isInteractionBlocked()) return;
   if (mediaRecorder && recording) {
     try {
       // Play recording stop sound
@@ -1537,7 +1548,7 @@ async function stopRecording() {
 }
 
 el('startStop').onclick = () => {
-  if (isModalOpen()) return;
+  if (isInteractionBlocked()) return;
   if (recording) {
     stopRecording();
   } else {
@@ -1547,7 +1558,7 @@ el('startStop').onclick = () => {
 
 // Add keyboard shortcut support
 document.addEventListener('keydown', (event) => {
-  if (isModalOpen()) {
+  if (isInteractionBlocked()) {
     event.preventDefault();
     return;
   }
@@ -1661,10 +1672,6 @@ async function saveBlob(){
     
     // Clear chunks array immediately after use to free memory
     chunks = [];
-
-    if (shouldPromptSaveAllCheckpoint && !isCompletingSentenceSet) {
-      await maybePromptSaveAllCheckpoint();
-    }
     
     // Reset redo flag after recording completion
     isRedo = false;
@@ -1673,11 +1680,6 @@ async function saveBlob(){
     if (idx < sentences.length - 1) {
       const completedWarmup = warmupSentenceCount > 0 && idx === warmupSentenceCount - 1;
       idx++;
-      await updateSentenceView();
-
-      if (completedWarmup) {
-        await showAlert('Warm-up complete. The formal recording will begin now.');
-      }
       
       // Save progress
       try {
@@ -1685,6 +1687,16 @@ async function saveBlob(){
         console.log(`Auto moved to next sentence: sentence ${idx + 1}`);
       } catch (error) {
         console.error('Failed to save progress:', error);
+      }
+
+      await updateSentenceView();
+
+      if (completedWarmup) {
+        await showAlert('Warm-up complete. The formal recording will begin now.');
+      }
+
+      if (shouldPromptSaveAllCheckpoint) {
+        await maybePromptSaveAllCheckpoint();
       }
     } else {
       // All sentences completed. Keep the session finished instead of starting another round.
