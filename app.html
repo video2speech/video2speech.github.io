@@ -250,7 +250,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 78</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 79</span>
     </div>
   </div>
 
@@ -370,8 +370,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '78';
-const MATERIAL_CACHE_VERSION = 'materials_v78';
+const APP_VERSION = '79';
+const MATERIAL_CACHE_VERSION = 'materials_v79';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -380,6 +380,7 @@ const STOP_RECORDING_DELAY_MS = 300;
 const DEFAULT_AUDIO_BITS_PER_SECOND = 192000;
 const WAVEFORM_WINDOW_SECONDS = 6;
 const WAVEFORM_POINTS_PER_SECOND = 60;
+const WAVEFORM_VISUAL_GAIN = 3;
 const WAVEFORM_MIN_SIGNAL_PEAK = 0.004;
 const WAVEFORM_NO_SIGNAL_MS = 8000;
 const WAVEFORM_STUCK_MS = 9000;
@@ -1590,6 +1591,7 @@ function startWaveformVisualization() {
         if (i % 64 === 0) signature += waveformFrameArray[i] * (i + 1);
       }
       const normalizedPeak = Math.min(1, peak);
+      const visualPeak = Math.min(1, normalizedPeak * WAVEFORM_VISUAL_GAIN);
       if (normalizedPeak >= WAVEFORM_MIN_SIGNAL_PEAK) {
         waveformLastAudioActivityAt = timestamp;
       }
@@ -1597,7 +1599,7 @@ function startWaveformVisualization() {
         waveformLastChangeAt = timestamp;
         waveformLastSignature = signature;
       }
-      waveformHistory.push({ time: timestamp, peak: normalizedPeak });
+      waveformHistory.push({ time: timestamp, peak: visualPeak });
       waveformHistory = waveformHistory.filter(point => timestamp - point.time <= windowMs);
       waveformLastSampleAt = timestamp;
     }
