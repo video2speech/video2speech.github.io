@@ -17,6 +17,11 @@
   .card{border:1px solid #444;border-radius:12px;padding:16px;margin:16px 0;background-color:#2a2a2a}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   video{width:auto;max-width:100%;height:104px;background:transparent;border-radius:8px;margin:0 auto;display:block;object-fit:contain;transition:opacity 0.16s ease}
+  .media-strip{--media-frame-width:185px;display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;width:100%;margin:0 auto}
+  .media-frame{width:var(--media-frame-width);height:104px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px}
+  .video-frame{background:transparent}
+  .waveform-frame{background:#0f0f0f}
+  #audioWaveform{width:100%;height:104px;background:#0f0f0f;border-radius:8px;display:block}
   .video-mirrored{transform:scaleX(-1)}
   .video-preparing{opacity:0.55}
   button{padding:10px 14px;border-radius:10px;border:1px solid #555;background:#444;color:#e0e0e0;cursor:pointer;transition:transform 0.14s ease, filter 0.14s ease, border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease}
@@ -178,7 +183,14 @@
   </div>
 
   <div class="card" style="position: relative; padding: 12px; margin: 12px 0;">
-    <video id="preview" class="video-preparing" playsinline autoplay muted></video>
+    <div class="media-strip">
+      <div class="media-frame video-frame">
+        <video id="preview" class="video-preparing" playsinline autoplay muted></video>
+      </div>
+      <div class="media-frame waveform-frame">
+        <canvas id="audioWaveform" width="185" height="104"></canvas>
+      </div>
+    </div>
     <div id="initCameraOverlay" style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.9); padding: 35px; border-radius: 20px; text-align: center; max-width: 700px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
       <p style="color: #90EE90; font-size: 1.6rem; margin: 0 0 18px 0; font-weight: 600;">Thank you so much for participating today!!</p>
       <h3 style="color: white; margin: 0 0 16px 0; font-size: 1.2rem; font-weight: 600;">Instructions</h3>
@@ -309,6 +321,7 @@ let sentences = [];
 let idx = 0;
 let recording = false;
 let sessionComplete = false;
+let discardCurrentRecording = false;
 let recordingTimer = null; // Timer for auto-stop after 1 minute
 let recordingStartTime = null; // Track recording start time
 let timerInterval = null; // Timer display update interval
@@ -317,8 +330,40 @@ let isRedo = false; // flag for redo mode
 let db;
 let streamHealthCheckInterval = null; // Interval for checking stream health
 let materialBoxResizeTimer = null;
+let audioContext;
+let analyserNode;
+let waveformFrameArray;
+let waveformHistory = [];
+let waveformLastSampleAt = 0;
+let waveformAnimationId = null;
+let waveformSourceNode = null;
+let waveformSilenceGainNode = null;
+let waveformLastAudioActivityAt = 0;
+let waveformLastChangeAt = 0;
+let waveformLastFrameAt = 0;
+let waveformLastSignature = null;
+let waveformMonitorStartedAt = 0;
+let videoFrameCallbackId = null;
+let videoLastFrameAt = 0;
+let videoLastChangeAt = 0;
+let videoLastCurrentTime = null;
+let videoLastSignature = null;
+let videoMonitorStartedAt = 0;
+let videoSignatureCanvas = null;
+let streamIssueAlertShown = false;
 const STORAGE_USAGE_THRESHOLD = 0.78;
 const SAVE_REMINDER_INTERVAL = 50;
+const WAVEFORM_WINDOW_SECONDS = 6;
+const WAVEFORM_POINTS_PER_SECOND = 60;
+const WAVEFORM_MIN_SIGNAL_PEAK = 0.004;
+const WAVEFORM_NO_SIGNAL_MS = 8000;
+const WAVEFORM_STUCK_MS = 9000;
+const WAVEFORM_MONITOR_GRACE_MS = 2500;
+const WAVEFORM_SIGNATURE_DELTA = 0.0005;
+const VIDEO_STUCK_MS = 9000;
+const VIDEO_NO_CHANGE_MS = 12000;
+const VIDEO_MONITOR_GRACE_MS = 3000;
+const VIDEO_SIGNATURE_DELTA = 0.03;
 const MATERIAL_BOX_MIN_HEIGHT = 236;
 const MATERIAL_BOX_BADGE_RESERVED = 58;
 let storageBlocked = false;
@@ -932,8 +977,335 @@ function cleanupRecording() {
   el('currentText').className = 'big sentence-preparing';
   el('preview').classList.add('video-preparing');
   setStartStopButtonState(false);
+  stopWaveformVisualization();
+  stopVideoMonitor();
   
   console.log('Recording cleanup completed');
+}
+
+function syncMediaFrameSize() {
+  const video = el('preview');
+  const strip = document.querySelector('.media-strip');
+  if (!video || !strip) return;
+
+  const ratio = video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
+  const height = video.clientHeight || 104;
+  const width = Math.round(height * ratio);
+  strip.style.setProperty('--media-frame-width', `${width}px`);
+  clearWaveformCanvas();
+}
+
+function stopVideoMonitor() {
+  const video = el('preview');
+  if (videoFrameCallbackId !== null && video && typeof video.cancelVideoFrameCallback === 'function') {
+    try { video.cancelVideoFrameCallback(videoFrameCallbackId); } catch (e) {}
+  }
+  videoFrameCallbackId = null;
+  videoLastFrameAt = 0;
+  videoLastChangeAt = 0;
+  videoLastCurrentTime = null;
+  videoLastSignature = null;
+  videoMonitorStartedAt = 0;
+}
+
+function getVideoFrameSignature(video) {
+  if (!video || !video.videoWidth || !video.videoHeight) return null;
+
+  const width = 12;
+  const height = 8;
+  if (!videoSignatureCanvas) {
+    videoSignatureCanvas = document.createElement('canvas');
+  }
+  videoSignatureCanvas.width = width;
+  videoSignatureCanvas.height = height;
+
+  const ctx = videoSignatureCanvas.getContext('2d', { willReadFrequently: true });
+  try {
+    ctx.drawImage(video, 0, 0, width, height);
+    const data = ctx.getImageData(0, 0, width, height).data;
+    const signature = [];
+    for (let i = 0; i < data.length; i += 4) {
+      signature.push((data[i] * 0.299) + (data[i + 1] * 0.587) + (data[i + 2] * 0.114));
+    }
+    return signature;
+  } catch (error) {
+    console.warn('Failed to sample video frame:', error);
+    return null;
+  }
+}
+
+function updateVideoSignature(timestamp = performance.now()) {
+  const video = el('preview');
+  const signature = getVideoFrameSignature(video);
+  if (!signature) return;
+
+  if (!videoLastSignature) {
+    videoLastSignature = signature;
+    videoLastChangeAt = timestamp;
+    return;
+  }
+
+  let diff = 0;
+  for (let i = 0; i < signature.length; i++) {
+    diff += Math.abs(signature[i] - videoLastSignature[i]);
+  }
+  diff /= signature.length || 1;
+
+  if (diff > VIDEO_SIGNATURE_DELTA) {
+    videoLastSignature = signature;
+    videoLastChangeAt = timestamp;
+  }
+}
+
+function startVideoMonitor() {
+  stopVideoMonitor();
+
+  const video = el('preview');
+  const startedAt = performance.now();
+  videoMonitorStartedAt = startedAt;
+  videoLastFrameAt = startedAt;
+  videoLastChangeAt = startedAt;
+  videoLastCurrentTime = Number.isFinite(video.currentTime) ? video.currentTime : null;
+  updateVideoSignature(startedAt);
+
+  if (typeof video.requestVideoFrameCallback === 'function') {
+    const onFrame = (now) => {
+      if (!recording) return;
+      const timestamp = performance.now();
+      videoLastFrameAt = timestamp;
+      updateVideoSignature(timestamp);
+      videoFrameCallbackId = video.requestVideoFrameCallback(onFrame);
+    };
+    videoFrameCallbackId = video.requestVideoFrameCallback(onFrame);
+  }
+}
+
+function getVideoIssueMessage() {
+  if (!recording || streamIssueAlertShown) return '';
+
+  const video = el('preview');
+  const now = performance.now();
+  const startedAt = videoMonitorStartedAt || recordingStartTime || now;
+  if (now - startedAt < VIDEO_MONITOR_GRACE_MS) return '';
+
+  if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
+    return 'No live video image is available. The current recording was stopped. Please reinitialize camera + microphone.';
+  }
+
+  if (typeof video.requestVideoFrameCallback !== 'function') {
+    const currentTime = Number.isFinite(video.currentTime) ? video.currentTime : null;
+    if (currentTime !== null) {
+      if (videoLastCurrentTime === null || currentTime > videoLastCurrentTime + 0.05) {
+        videoLastFrameAt = now;
+        videoLastCurrentTime = currentTime;
+      }
+    }
+  }
+
+  updateVideoSignature(now);
+
+  if (!videoLastFrameAt || now - videoLastFrameAt > VIDEO_STUCK_MS) {
+    return 'Video preview appears frozen. The current recording was stopped. Please reinitialize camera + microphone.';
+  }
+
+  if (videoLastChangeAt && now - videoLastChangeAt > VIDEO_NO_CHANGE_MS) {
+    return 'Video image appears frozen. The current recording was stopped. Please reinitialize camera + microphone.';
+  }
+
+  return '';
+}
+
+function clearWaveformCanvas(resize = true) {
+  const canvas = el('audioWaveform');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const width = canvas.clientWidth || canvas.width;
+  const height = canvas.clientHeight || canvas.height;
+  if (resize) {
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  ctx.fillStyle = '#0f0f0f';
+  ctx.fillRect(0, 0, width, height);
+}
+
+function initWaveformAnalyzer() {
+  if (!stream) return;
+
+  clearWaveformCanvas();
+
+  if (!audioContext || audioContext.state === 'closed') {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioContext.state === 'suspended') {
+    audioContext.resume().catch(() => {});
+  }
+
+  if (waveformSourceNode) {
+    try { waveformSourceNode.disconnect(); } catch (e) {}
+  }
+  if (waveformSilenceGainNode) {
+    try { waveformSilenceGainNode.disconnect(); } catch (e) {}
+  }
+
+  analyserNode = audioContext.createAnalyser();
+  analyserNode.fftSize = 2048;
+  analyserNode.smoothingTimeConstant = 0.85;
+  waveformFrameArray = new Float32Array(analyserNode.fftSize);
+
+  waveformSourceNode = audioContext.createMediaStreamSource(stream);
+  waveformSourceNode.connect(analyserNode);
+
+  waveformSilenceGainNode = audioContext.createGain();
+  waveformSilenceGainNode.gain.value = 0;
+  analyserNode.connect(waveformSilenceGainNode);
+  waveformSilenceGainNode.connect(audioContext.destination);
+}
+
+function stopWaveformVisualization() {
+  if (waveformAnimationId) {
+    cancelAnimationFrame(waveformAnimationId);
+    waveformAnimationId = null;
+  }
+  waveformHistory = [];
+  waveformLastSampleAt = 0;
+  waveformLastAudioActivityAt = 0;
+  waveformLastChangeAt = 0;
+  waveformLastFrameAt = 0;
+  waveformLastSignature = null;
+  waveformMonitorStartedAt = 0;
+  clearWaveformCanvas();
+}
+
+function startWaveformVisualization() {
+  if (!analyserNode || !waveformFrameArray) return;
+
+  stopWaveformVisualization();
+
+  const startedAt = performance.now();
+  waveformLastAudioActivityAt = startedAt;
+  waveformLastChangeAt = startedAt;
+  waveformLastFrameAt = startedAt;
+  waveformMonitorStartedAt = startedAt;
+
+  const canvas = el('audioWaveform');
+  const ctx = canvas.getContext('2d');
+  const width = canvas.clientWidth || canvas.width;
+  const height = canvas.clientHeight || canvas.height;
+  const mid = height / 2;
+  const half = height * 0.38;
+  const windowMs = WAVEFORM_WINDOW_SECONDS * 1000;
+
+  const draw = (timestamp) => {
+    if (!recording) return;
+    waveformAnimationId = requestAnimationFrame(draw);
+    waveformLastFrameAt = timestamp;
+    analyserNode.getFloatTimeDomainData(waveformFrameArray);
+
+    const sampleIntervalMs = 1000 / WAVEFORM_POINTS_PER_SECOND;
+    if (!waveformLastSampleAt) waveformLastSampleAt = timestamp;
+    if (timestamp - waveformLastSampleAt >= sampleIntervalMs) {
+      let peak = 0;
+      let signature = 0;
+      for (let i = 0; i < waveformFrameArray.length; i++) {
+        const v = Math.abs(waveformFrameArray[i]);
+        if (v > peak) peak = v;
+        if (i % 64 === 0) signature += waveformFrameArray[i] * (i + 1);
+      }
+      const normalizedPeak = Math.min(1, peak);
+      if (normalizedPeak >= WAVEFORM_MIN_SIGNAL_PEAK) {
+        waveformLastAudioActivityAt = timestamp;
+      }
+      if (waveformLastSignature === null || Math.abs(signature - waveformLastSignature) > WAVEFORM_SIGNATURE_DELTA) {
+        waveformLastChangeAt = timestamp;
+        waveformLastSignature = signature;
+      }
+      waveformHistory.push({ time: timestamp, peak: normalizedPeak });
+      waveformHistory = waveformHistory.filter(point => timestamp - point.time <= windowMs);
+      waveformLastSampleAt = timestamp;
+    }
+
+    clearWaveformCanvas(false);
+    const points = waveformHistory;
+    if (!points.length) return;
+
+    ctx.fillStyle = 'rgba(180, 180, 180, 0.16)';
+    ctx.beginPath();
+    ctx.moveTo(width - ((timestamp - points[0].time) / windowMs) * width, mid);
+    for (let i = 0; i < points.length; i++) {
+      const x = width - ((timestamp - points[i].time) / windowMs) * width;
+      const yTop = mid - points[i].peak * half;
+      ctx.lineTo(x, yTop);
+    }
+    for (let i = points.length - 1; i >= 0; i--) {
+      const x = width - ((timestamp - points[i].time) / windowMs) * width;
+      const yBottom = mid + points[i].peak * half;
+      ctx.lineTo(x, yBottom);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#9a9a9a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < points.length; i++) {
+      const x = width - ((timestamp - points[i].time) / windowMs) * width;
+      const y = mid - points[i].peak * half;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  };
+
+  waveformAnimationId = requestAnimationFrame(draw);
+}
+
+async function stopRecordingForStreamIssue(message, details = {}) {
+  if (!recording) return;
+  if (streamIssueAlertShown) return;
+  streamIssueAlertShown = true;
+  discardCurrentRecording = true;
+  console.error('Recording stream issue:', details);
+
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    try {
+      mediaRecorder.stop();
+    } catch (e) {
+      console.error('Error stopping MediaRecorder after stream issue:', e);
+    }
+  }
+
+  cleanupRecording();
+  await showAlert(message);
+}
+
+function getWaveformIssueMessage() {
+  if (!recording || streamIssueAlertShown) return '';
+
+  const now = performance.now();
+  const startedAt = waveformMonitorStartedAt || recordingStartTime || now;
+  if (now - startedAt < WAVEFORM_MONITOR_GRACE_MS) return '';
+
+  if (!analyserNode || !waveformFrameArray) {
+    return 'Audio waveform is not available. The current recording was stopped. Please reinitialize camera + microphone.';
+  }
+
+  if (!waveformLastFrameAt || now - waveformLastFrameAt > WAVEFORM_STUCK_MS) {
+    return 'Audio waveform display appears frozen. The current recording was stopped. Please reinitialize camera + microphone.';
+  }
+
+  if (waveformLastChangeAt && now - waveformLastChangeAt > WAVEFORM_STUCK_MS) {
+    return 'Audio waveform appears frozen. The current recording was stopped. Please reinitialize camera + microphone.';
+  }
+
+  if (waveformLastAudioActivityAt && now - waveformLastAudioActivityAt > WAVEFORM_NO_SIGNAL_MS) {
+    return 'No audio waveform has been detected for several seconds. The current recording was stopped. Please check the microphone and reinitialize camera + microphone.';
+  }
+
+  return '';
 }
 
 // Check stream health periodically
@@ -950,25 +1322,69 @@ async function checkStreamHealth() {
   const isEnabled = videoTrack.enabled;
   
   if (!isLive || !isEnabled) {
-    console.error('Stream health check failed:', {
-      readyState: videoTrack.readyState,
-      enabled: isEnabled,
-      muted: videoTrack.muted
-    });
-    
-    // Stop recording if active
     if (recording) {
-      console.warn('Stream became unhealthy during recording, stopping...');
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        try {
-          mediaRecorder.stop();
-        } catch (e) {
-          console.error('Error stopping mediaRecorder on health check:', e);
+      await stopRecordingForStreamIssue(
+        'Camera stream stopped unexpectedly. The current recording was stopped. Please reinitialize camera + microphone.',
+        {
+          readyState: videoTrack.readyState,
+          enabled: isEnabled,
+          muted: videoTrack.muted
         }
-      }
-      cleanupRecording();
-      await showAlert('Camera stream stopped unexpectedly. Please reinitialize camera.');
+      );
     }
+    return;
+  }
+
+  const videoIssueMessage = getVideoIssueMessage();
+  if (videoIssueMessage) {
+    await stopRecordingForStreamIssue(videoIssueMessage, {
+      lastFrameAt: videoLastFrameAt,
+      lastChangeAt: videoLastChangeAt,
+      monitorStartedAt: videoMonitorStartedAt,
+      currentTime: el('preview')?.currentTime,
+      readyState: el('preview')?.readyState,
+      videoWidth: el('preview')?.videoWidth,
+      videoHeight: el('preview')?.videoHeight
+    });
+    return;
+  }
+
+  const audioTrack = stream.getAudioTracks()[0];
+  if (!audioTrack) {
+    console.warn('No audio track found in stream');
+    if (recording) {
+      await stopRecordingForStreamIssue(
+        'Microphone stream is not available. The current recording was stopped. Please reinitialize camera + microphone.',
+        { hasAudioTrack: false }
+      );
+    }
+    return;
+  }
+
+  const isAudioLive = audioTrack.readyState === 'live';
+  const isAudioEnabled = audioTrack.enabled;
+  const isAudioMuted = audioTrack.muted;
+
+  if (!isAudioLive || !isAudioEnabled || isAudioMuted) {
+    await stopRecordingForStreamIssue(
+      'Microphone stream stopped or muted unexpectedly. The current recording was stopped. Please reinitialize camera + microphone.',
+      {
+        readyState: audioTrack.readyState,
+        enabled: isAudioEnabled,
+        muted: isAudioMuted
+      }
+    );
+    return;
+  }
+
+  const waveformIssueMessage = getWaveformIssueMessage();
+  if (waveformIssueMessage) {
+    await stopRecordingForStreamIssue(waveformIssueMessage, {
+      lastAudioActivityAt: waveformLastAudioActivityAt,
+      lastChangeAt: waveformLastChangeAt,
+      lastFrameAt: waveformLastFrameAt,
+      monitorStartedAt: waveformMonitorStartedAt
+    });
   } else {
     // Optional: Log health check success (can be commented out to reduce console noise)
     // console.log('Stream health check passed');
@@ -1087,6 +1503,9 @@ el('init').onclick = async () => {
     });
     
     el('preview').srcObject = stream;
+    el('preview').onloadedmetadata = syncMediaFrameSize;
+    syncMediaFrameSize();
+    initWaveformAnalyzer();
     
     // Load sentence set and start recording
     await loadSentenceSet();
@@ -1346,6 +1765,9 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
           audio: true
         });
         el('preview').srcObject = stream;
+        el('preview').onloadedmetadata = syncMediaFrameSize;
+        syncMediaFrameSize();
+        initWaveformAnalyzer();
         updateVideoMirror();
         startStreamHealthMonitoring();
 
@@ -1430,6 +1852,18 @@ async function startRecording() {
     });
     return;
   }
+
+  const audioTrack = stream.getAudioTracks()[0];
+  if (!audioTrack || !audioTrack.enabled || audioTrack.readyState !== 'live' || audioTrack.muted) {
+    await showAlert('Microphone stream is not active. Please reinitialize camera + microphone.');
+    console.error('Audio stream issue detected:', {
+      hasTrack: !!audioTrack,
+      enabled: audioTrack?.enabled,
+      readyState: audioTrack?.readyState,
+      muted: audioTrack?.muted
+    });
+    return;
+  }
   
   // Clean up previous MediaRecorder if it exists
   if (mediaRecorder) {
@@ -1448,6 +1882,8 @@ async function startRecording() {
   
   // Clear chunks array
   chunks = [];
+  discardCurrentRecording = false;
+  streamIssueAlertShown = false;
   
   // Use MP4 format by default
   const mp4Options = [
@@ -1504,6 +1940,8 @@ async function startRecording() {
     el('recordingStatus').style.color = '#f44336';
     el('currentText').className = 'big sentence-recording';
     el('preview').classList.remove('video-preparing');
+    startVideoMonitor();
+    startWaveformVisualization();
     
     // Update start/stop toggle button state
     setStartStopButtonState(true);
@@ -1593,6 +2031,14 @@ function ts(){
 }
 async function saveBlob(){
   try {
+    if (discardCurrentRecording) {
+      console.warn('Discarding current recording because stream health check failed');
+      chunks = [];
+      discardCurrentRecording = false;
+      isRedo = false;
+      return;
+    }
+
     // Check if we have valid chunks
     if (!chunks || chunks.length === 0) {
       console.warn('No video chunks to save');
