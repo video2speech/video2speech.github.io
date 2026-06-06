@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '83';
+  const APP_URL_VERSION = '84';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=83"></script>
+<script src="vendor/jszip.min.js?v=84"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -273,7 +273,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 83</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 84</span>
     </div>
   </div>
 
@@ -417,8 +417,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '83';
-const MATERIAL_CACHE_VERSION = 'materials_v83';
+const APP_VERSION = '84';
+const MATERIAL_CACHE_VERSION = 'materials_v84';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -2597,6 +2597,19 @@ function ts(){
   const pad = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
+
+async function stayOnSentenceForRetry(saveIndex, reason) {
+  idx = saveIndex;
+  isRedo = true;
+  try {
+    await saveProgress(currentSentenceSet, idx);
+  } catch (error) {
+    console.error('Failed to keep progress on current sentence for retry:', error);
+  }
+  await updateSentenceView();
+  console.log(`${reason}: staying on sentence ${idx + 1} for retry`);
+}
+
 async function saveBlob(){
   recordingSavePending = true;
   const context = currentRecordingContext;
@@ -2660,6 +2673,8 @@ async function saveBlob(){
     const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.${mimeInfo.fileExt}`;
     const metadata = buildRecordingMetadata(context, fileName, blob, mimeInfo);
     const audioQualityWarning = getAudioQualityWarning(metadata.audioQuality);
+    metadata.audioQualityWarning = audioQualityWarning;
+    metadata.requiresRetry = Boolean(audioQualityWarning);
     let shouldPromptSaveAllCheckpoint = false;
     
     if (storageMode) {
@@ -2673,6 +2688,7 @@ async function saveBlob(){
           directDownload(blob, fileName, metadata);
           if (audioQualityWarning) {
             await showAlert(audioQualityWarning, 'Audio Level Warning');
+            await stayOnSentenceForRetry(saveIndex, 'Audio quality warning');
           }
           chunks = [];
           return;
@@ -2695,8 +2711,11 @@ async function saveBlob(){
 
     if (audioQualityWarning) {
       await showAlert(audioQualityWarning, 'Audio Level Warning');
+      await stayOnSentenceForRetry(saveIndex, 'Audio quality warning');
+      chunks = [];
+      return;
     }
-    
+
     // Clear chunks array immediately after use to free memory
     chunks = [];
     
