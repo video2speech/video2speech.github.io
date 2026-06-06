@@ -2,6 +2,9 @@
 <html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Video Recording Tool - Login</title>
 <style>
   :root {
@@ -250,18 +253,44 @@
   </main>
 
 <script>
-function getSafeNext(rawNext) {
-  if (typeof rawNext !== 'string' || rawNext.length === 0) return '/app.html';
-  if (!rawNext.startsWith('/') || rawNext.startsWith('//')) return '/app.html';
-  return rawNext;
+const APP_VERSION = '82';
+
+async function getLatestAppVersion() {
+  try {
+    const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return data.appVersion || APP_VERSION;
+  } catch (error) {
+    console.warn('Failed to check latest app version:', error);
+    return APP_VERSION;
+  }
+}
+
+function addAppVersion(path, appVersion) {
+  const url = new URL(path, window.location.origin);
+  if (url.pathname === '/app.html' || url.pathname.endsWith('/app.html')) {
+    url.searchParams.set('v', appVersion);
+  }
+  return url.pathname + url.search + url.hash;
+}
+
+function getSafeNext(rawNext, appVersion = APP_VERSION) {
+  const fallback = addAppVersion('/app.html', appVersion);
+  if (typeof rawNext !== 'string' || rawNext.length === 0) return fallback;
+  if (!rawNext.startsWith('/') || rawNext.startsWith('//')) return fallback;
+  return addAppVersion(rawNext, appVersion);
 }
 
 const params = new URLSearchParams(window.location.search);
-const nextPath = getSafeNext(params.get('next'));
+let nextPath = getSafeNext(params.get('next'));
 
-if (sessionStorage.getItem('v2s_auth_ok') === '1') {
-  window.location.replace(nextPath);
-}
+getLatestAppVersion().then(appVersion => {
+  nextPath = getSafeNext(params.get('next'), appVersion);
+  if (sessionStorage.getItem('v2s_auth_ok') === '1') {
+    window.location.replace(nextPath);
+  }
+});
 
 const loginForm = document.getElementById('loginForm');
 const usernameInput = document.getElementById('username');
