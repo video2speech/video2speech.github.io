@@ -10,7 +10,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -235,12 +235,23 @@
       </select>
     </div>
     <div class="row" style="margin-top: 8px; align-items: center;">
+      <label style="font-size: 0.8rem; color: #888; margin-right: 8px;">Recording Quality</label>
+      <select id="quality" style="font-size: 0.8rem; padding: 2px 4px;">
+        <option value="8000000">8 Mbps - Compatibility</option>
+        <option value="12000000">12 Mbps - High Quality</option>
+        <option value="15000000" selected>15 Mbps - Research Quality</option>
+      </select>
+    </div>
+    <div class="row" style="margin-top: 8px; align-items: center;">
       <label style="font-size: 0.8rem; color: #888; margin-right: 8px;">
         <input type="checkbox" id="mirrorVideo" checked style="margin-right: 4px;">
         Mirror Video Display
       </label>
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
+    <div class="row" style="margin-top: 8px;">
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 78</span>
+    </div>
   </div>
 
   <div id="appModal" class="modal-backdrop" aria-hidden="true">
@@ -281,6 +292,7 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
       cancelButton.onclick = null;
       modal.onclick = null;
       document.removeEventListener('keydown', handleKeydown, true);
+      if (typeof refreshControlLockState === 'function') refreshControlLockState();
       resolve(result);
     };
 
@@ -303,6 +315,7 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
     modalOpen = true;
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
+    if (typeof refreshControlLockState === 'function') refreshControlLockState();
     setTimeout(() => okButton.focus(), 0);
   });
 }
@@ -311,6 +324,7 @@ const showAlert = (message, title = 'Notice') => showModal({ title, message });
 const showConfirm = (message, title = 'Confirm') => showModal({ title, message, confirm: true });
 
 function logout() {
+  if (typeof isInteractionBlocked === 'function' && isInteractionBlocked()) return;
   sessionStorage.removeItem('v2s_auth_ok');
   sessionStorage.removeItem('v2s_auth_user');
   window.location.replace('/index.html');
@@ -321,8 +335,11 @@ let sentences = [];
 let idx = 0;
 let recording = false;
 let recordingStopPending = false;
+let recordingSavePending = false;
 let sessionComplete = false;
 let discardCurrentRecording = false;
+let currentRecordingContext = null;
+let currentAudioConstraintMode = 'none';
 let recordingTimer = null; // Timer for auto-stop after 1 minute
 let recordingStopDelayTimer = null;
 let recordingStartTime = null; // Track recording start time
@@ -353,9 +370,14 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
+const APP_VERSION = '78';
+const MATERIAL_CACHE_VERSION = 'materials_v78';
+const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
+const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
 const SAVE_REMINDER_INTERVAL = 50;
 const STOP_RECORDING_DELAY_MS = 300;
+const DEFAULT_AUDIO_BITS_PER_SECOND = 192000;
 const WAVEFORM_WINDOW_SECONDS = 6;
 const WAVEFORM_POINTS_PER_SECOND = 60;
 const WAVEFORM_MIN_SIGNAL_PEAK = 0.004;
@@ -372,22 +394,42 @@ const MATERIAL_BOX_BADGE_RESERVED = 58;
 let storageBlocked = false;
 let saveAllInProgress = false;
 
-function isInteractionBlocked() {
-  return isModalOpen() || saveAllInProgress || recordingStopPending;
+function isInteractionBlocked({ allowRecording = false, allowRecordingSavePending = false } = {}) {
+  return (
+    isModalOpen()
+    || saveAllInProgress
+    || recordingStopPending
+    || (!allowRecordingSavePending && recordingSavePending)
+    || (!allowRecording && recording)
+  );
 }
 
-function setSaveAllBusyState(isBusy) {
-  ['resetProgress', 'clearAll', 'sentenceSet', 'resolution', 'mirrorVideo'].forEach(id => {
+function refreshControlLockState() {
+  const workflowLocked = recording || recordingStopPending || recordingSavePending;
+  const auxControlsLocked = saveAllInProgress || workflowLocked;
+
+  ['downloadAll', 'resetProgress', 'clearAll', 'sentenceSet', 'resolution', 'quality', 'logout', 'init', 'prev', 'next', 'skip'].forEach(id => {
     const element = el(id);
-    if (element) element.disabled = isBusy;
+    if (element) element.disabled = auxControlsLocked;
   });
 
-  if (!sessionComplete) {
-    ['startStop', 'redo'].forEach(id => {
-      const element = el(id);
-      if (element) element.disabled = isBusy;
-    });
+  const redoButton = el('redo');
+  if (redoButton) {
+    const redoDisabled = auxControlsLocked || sessionComplete;
+    redoButton.disabled = redoDisabled;
+    redoButton.style.opacity = redoDisabled ? '0.35' : '0.64';
   }
+
+  const startStopButton = el('startStop');
+  if (startStopButton) {
+    const startStopDisabled = saveAllInProgress || recordingStopPending || recordingSavePending || sessionComplete;
+    startStopButton.disabled = startStopDisabled;
+    startStopButton.style.opacity = startStopDisabled ? '0.45' : '1';
+  }
+}
+
+function setSaveAllBusyState() {
+  refreshControlLockState();
 }
 
 // Initialize IndexedDB
@@ -422,7 +464,7 @@ async function initDB() {
 }
 
 // Store video to IndexedDB
-async function storeVideo(blob, fileName, sentence, sentenceSet, sentenceIndex) {
+async function storeVideo(blob, fileName, sentence, sentenceSet, sentenceIndex, metadata = {}) {
   return new Promise(async (resolve, reject) => {
     try {
       // Convert Blob to ArrayBuffer for IndexedDB storage
@@ -437,9 +479,10 @@ async function storeVideo(blob, fileName, sentence, sentenceSet, sentenceIndex) 
         mimeType: blob.type, // Store MIME type separately
         sentence: sentence,
         sentenceSet: sentenceSet || 'custom',
-        sentenceIndex: sentenceIndex || idx,
+        sentenceIndex: sentenceIndex ?? idx,
         timestamp: new Date().toISOString(),
-        size: blob.size
+        size: blob.size,
+        metadata
       };
       
       const request = store.add(videoData);
@@ -483,6 +526,8 @@ async function saveProgress(sentenceSet, currentIndex, isCompletion = false) {
         sentenceSet: sentenceSet,
         currentIndex: currentIndex,
         repetitionCount: repetitionCount,
+        completed: Boolean(isCompletion),
+        completedAt: isCompletion ? new Date().toISOString() : null,
         timestamp: new Date().toISOString()
       };
       
@@ -558,14 +603,14 @@ async function forEachStoredVideo(visitor) {
     const request = store.openCursor();
     let index = 0;
 
-    request.onsuccess = async () => {
+    request.onsuccess = () => {
       const cursor = request.result;
       if (!cursor) {
         resolve();
         return;
       }
       try {
-        await visitor(cursor.value, index);
+        visitor(cursor.value, index);
         index += 1;
         cursor.continue();
       } catch (error) {
@@ -619,6 +664,273 @@ function getStorageBlockedMessage(estimate) {
   return `Storage limit warning: projected usage is ${ratio.toFixed(1)}% (${used} / ${total}). Please click Save All to export and clear cached videos before recording more.`;
 }
 
+function getQualityProfile() {
+  const qualityControl = el('quality');
+  const bitsPerSecond = Number(qualityControl?.value) || 15000000;
+  const label = qualityControl?.selectedOptions?.[0]?.textContent || `${Math.round(bitsPerSecond / 1000000)} Mbps`;
+  return { label, videoBitsPerSecond: bitsPerSecond };
+}
+
+function getVideoConstraints() {
+  const resolution = el('resolution')?.value || '1080p';
+  const videoConstraints = {
+    facingMode: 'user',
+    frameRate: { ideal: 30 }
+  };
+  const resolutions = {
+    '360p': { width: 640, height: 360 },
+    '480p': { width: 854, height: 480 },
+    '720p': { width: 1280, height: 720 },
+    '1080p': { width: 1920, height: 1080 }
+  };
+
+  if (resolutions[resolution]) {
+    videoConstraints.width = { ideal: resolutions[resolution].width };
+    videoConstraints.height = { ideal: resolutions[resolution].height };
+  }
+
+  return videoConstraints;
+}
+
+function getRawAudioConstraints() {
+  return {
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl: false,
+    sampleRate: 48000,
+    channelCount: 1
+  };
+}
+
+function getTrackSettings(track) {
+  if (!track || typeof track.getSettings !== 'function') return {};
+  try {
+    return track.getSettings() || {};
+  } catch (error) {
+    console.warn('Failed to read track settings:', error);
+    return {};
+  }
+}
+
+function getTrackConstraints(track) {
+  if (!track || typeof track.getConstraints !== 'function') return {};
+  try {
+    return track.getConstraints() || {};
+  } catch (error) {
+    console.warn('Failed to read track constraints:', error);
+    return {};
+  }
+}
+
+function getMediaSettingsSnapshot() {
+  const videoTrack = stream?.getVideoTracks?.()[0] || null;
+  const audioTrack = stream?.getAudioTracks?.()[0] || null;
+  return {
+    video: {
+      settings: getTrackSettings(videoTrack),
+      constraints: getTrackConstraints(videoTrack)
+    },
+    audio: {
+      settings: getTrackSettings(audioTrack),
+      constraints: getTrackConstraints(audioTrack),
+      constraintMode: currentAudioConstraintMode
+    }
+  };
+}
+
+function updateActualMediaInfo() {
+  const infoEl = el('resolutionInfo');
+  if (!infoEl || !stream) return;
+
+  const quality = getQualityProfile();
+  const settings = getMediaSettingsSnapshot();
+  const video = settings.video.settings || {};
+  const audio = settings.audio.settings || {};
+  const resolutionText = video.width && video.height ? `${video.width}×${video.height}` : 'unknown resolution';
+  const fpsText = video.frameRate ? `${Number(video.frameRate).toFixed(1)} fps` : 'fps unknown';
+  const sampleText = audio.sampleRate ? `${audio.sampleRate} Hz` : 'audio rate unknown';
+  const audioModeText = currentAudioConstraintMode === 'raw' ? 'raw audio requested' : 'audio fallback';
+  infoEl.textContent = `Actual: ${resolutionText}, ${fpsText} | ${quality.label} | ${sampleText}, ${audioModeText}`;
+}
+
+function stopCurrentStream({ clearPreview = false } = {}) {
+  stopStreamHealthMonitoring();
+  stopWaveformVisualization();
+  stopVideoMonitor();
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+  currentAudioConstraintMode = 'none';
+  if (clearPreview) {
+    const preview = el('preview');
+    if (preview) preview.srcObject = null;
+    clearWaveformCanvas();
+  }
+}
+
+async function openRecordingStream() {
+  if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+    throw new Error('This browser does not support camera/microphone recording on this page.');
+  }
+
+  const video = getVideoConstraints();
+  try {
+    const openedStream = await navigator.mediaDevices.getUserMedia({
+      video,
+      audio: getRawAudioConstraints()
+    });
+    currentAudioConstraintMode = 'raw';
+    return openedStream;
+  } catch (rawError) {
+    console.warn('Raw audio constraints failed; retrying with browser default audio constraints:', rawError);
+    const openedStream = await navigator.mediaDevices.getUserMedia({
+      video,
+      audio: true
+    });
+    currentAudioConstraintMode = 'fallback';
+    return openedStream;
+  }
+}
+
+function getRecorderOptionCandidates(videoBitsPerSecond) {
+  const base = {
+    videoBitsPerSecond,
+    audioBitsPerSecond: DEFAULT_AUDIO_BITS_PER_SECOND
+  };
+  if (typeof MediaRecorder === 'undefined') return [];
+
+  const mimeTypes = [
+    'video/mp4;codecs=h264,aac',
+    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+    'video/mp4',
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm'
+  ];
+
+  const supported = mimeTypes
+    .filter(type => {
+      try {
+        return MediaRecorder.isTypeSupported(type);
+      } catch (error) {
+        return false;
+      }
+    })
+    .map(type => ({
+      options: { ...base, mimeType: type },
+      requestedMimeType: type
+    }));
+
+  supported.push({
+    options: base,
+    requestedMimeType: 'browser-default-with-bitrates'
+  });
+  supported.push({
+    options: {},
+    requestedMimeType: 'browser-default'
+  });
+
+  return supported;
+}
+
+function createSupportedMediaRecorder(streamToRecord, videoBitsPerSecond) {
+  if (typeof MediaRecorder === 'undefined') {
+    throw new Error('This browser does not support MediaRecorder.');
+  }
+
+  const attempts = [];
+  for (const candidate of getRecorderOptionCandidates(videoBitsPerSecond)) {
+    try {
+      return {
+        recorder: new MediaRecorder(streamToRecord, candidate.options),
+        config: candidate
+      };
+    } catch (error) {
+      attempts.push(`${candidate.requestedMimeType}: ${error.name || error.message}`);
+    }
+  }
+
+  throw new Error(`No supported recording format was available. Attempts: ${attempts.join('; ')}`);
+}
+
+function getRecordingMimeInfo(recorder, recordedChunks, configuredMimeType = '') {
+  const recorderMime = recorder?.mimeType || '';
+  const chunkMime = recordedChunks.find(chunk => chunk?.type)?.type || '';
+  const requestedMime = configuredMimeType.startsWith('video/') ? configuredMimeType : '';
+  const mimeType = recorderMime || chunkMime || requestedMime || 'video/webm';
+  const lower = mimeType.toLowerCase();
+  let fileExt = 'webm';
+  if (lower.includes('mp4') || lower.includes('h264') || lower.includes('avc')) fileExt = 'mp4';
+  else if (lower.includes('webm')) fileExt = 'webm';
+  return { mimeType, fileExt };
+}
+
+function getSidecarFileName(fileName) {
+  return fileName.replace(/\.[^.]+$/, '') + '.json';
+}
+
+function buildRecordingContext(recorderConfig) {
+  const isWarmupSentence = idx < warmupSentenceCount;
+  const total = isWarmupSentence ? warmupSentenceCount : (formalSentenceCount || sentences.length - warmupSentenceCount);
+  const currentPos = isWarmupSentence ? idx + 1 : idx - warmupSentenceCount + 1;
+  const quality = getQualityProfile();
+  return {
+    appVersion: APP_VERSION,
+    materialCacheVersion: MATERIAL_CACHE_VERSION,
+    sentenceSet: currentSentenceSet,
+    sentenceIndex: idx,
+    sentence: sentences[idx] || 'unknown sentence',
+    phase: isWarmupSentence ? 'warmup' : 'formal',
+    position: currentPos,
+    total,
+    redo: isRedo,
+    quality,
+    requestedVideoConstraints: getVideoConstraints(),
+    requestedAudioConstraints: currentAudioConstraintMode === 'raw' ? getRawAudioConstraints() : true,
+    recorderConfig: recorderConfig || null,
+    startedAt: new Date().toISOString(),
+    mediaAtStart: getMediaSettingsSnapshot(),
+    userAgent: navigator.userAgent,
+    platform: navigator.platform || '',
+    language: navigator.language || ''
+  };
+}
+
+function buildRecordingMetadata(context, fileName, blob, mimeInfo) {
+  return {
+    appVersion: APP_VERSION,
+    materialCacheVersion: MATERIAL_CACHE_VERSION,
+    createdAt: new Date().toISOString(),
+    startedAt: context?.startedAt || null,
+    fileName,
+    sidecarFileName: getSidecarFileName(fileName),
+    mimeType: mimeInfo.mimeType,
+    fileExt: mimeInfo.fileExt,
+    size: blob.size,
+    sentenceSet: context?.sentenceSet || currentSentenceSet,
+    sentenceIndex: context?.sentenceIndex ?? idx,
+    phase: context?.phase || (idx < warmupSentenceCount ? 'warmup' : 'formal'),
+    position: context?.position ?? (idx + 1),
+    total: context?.total ?? sentences.length,
+    sentence: context?.sentence || sentences[idx] || 'unknown sentence',
+    redo: Boolean(context?.redo),
+    quality: context?.quality || getQualityProfile(),
+    requestedVideoConstraints: context?.requestedVideoConstraints || getVideoConstraints(),
+    requestedAudioConstraints: context?.requestedAudioConstraints || null,
+    recorderConfig: context?.recorderConfig || null,
+    stopDelayMs: STOP_RECORDING_DELAY_MS,
+    mediaAtStart: context?.mediaAtStart || null,
+    mediaAtSave: getMediaSettingsSnapshot(),
+    browser: {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform || '',
+      language: navigator.language || ''
+    },
+    downloadClearPolicy: 'auto_clear_unverified_fallback'
+  };
+}
+
 async function downloadZipWithBestEffortStreaming(zip, zipFileName) {
   if (typeof window.showSaveFilePicker === 'function') {
     try {
@@ -669,7 +981,7 @@ async function downloadZipWithBestEffortStreaming(zip, zipFileName) {
       });
 
       await writable.close();
-      return;
+      return { method: 'showSaveFilePicker', verified: true };
     } catch (error) {
       if (error?.name === 'AbortError') {
         throw new Error('Save canceled by user.');
@@ -687,7 +999,9 @@ async function downloadZipWithBestEffortStreaming(zip, zipFileName) {
   a.download = zipFileName;
   a.href = URL.createObjectURL(zipBlob);
   a.click();
-  URL.revokeObjectURL(a.href);
+  const objectUrl = a.href;
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+  return { method: 'download_anchor', verified: false };
 }
 
 // Clear all stored videos
@@ -713,14 +1027,38 @@ let formalSentenceCount = 0;
 
 // Load sentence set file
 async function loadSentenceFile(filename) {
-  try {
-    const response = await fetch(filename);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const text = await response.text();
-    return text.split('\n').map(s => s.trim()).filter(Boolean);
-  } catch (error) {
-    console.error(`Failed to load sentence file (${filename}):`, error);
-    return null;
+  const separator = filename.includes('?') ? '&' : '?';
+  const response = await fetch(`${filename}${separator}v=${MATERIAL_CACHE_VERSION}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`${filename}: HTTP ${response.status}`);
+  const text = await response.text();
+  const lines = text.replace(/\r/g, '').split('\n');
+  if (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+  const blankIndex = lines.findIndex(line => line.trim() === '');
+  if (blankIndex !== -1) {
+    throw new Error(`${filename}: blank line at ${blankIndex + 1}`);
+  }
+  return lines.map(s => s.trim());
+}
+
+function findDuplicateSentences(list) {
+  const seen = new Set();
+  const duplicates = new Set();
+  list.forEach(sentence => {
+    const key = sentence.toLowerCase();
+    if (seen.has(key)) duplicates.add(sentence);
+    else seen.add(key);
+  });
+  return [...duplicates];
+}
+
+function validateSentenceFile(label, list, expectedCount) {
+  if (!Array.isArray(list)) throw new Error(`${label} failed to load.`);
+  if (list.length !== expectedCount) {
+    throw new Error(`${label} must contain ${expectedCount} sentences, but loaded ${list.length}.`);
+  }
+  const duplicates = findDuplicateSentences(list);
+  if (duplicates.length) {
+    throw new Error(`${label} has duplicate sentences: ${duplicates.slice(0, 3).join(' | ')}`);
   }
 }
 
@@ -783,17 +1121,36 @@ function scheduleMaterialBoxResize() {
 
 // Load sentence set
 async function loadSentenceSet() {
+  if (isInteractionBlocked()) {
+    el('sentenceSet').value = currentSentenceSet;
+    return;
+  }
+
   const selected = el('sentenceSet').value;
   currentSentenceSet = selected;
   
   // Load sentences from cache or file
   if (!sentenceSets[selected]) {
-    const warmupSentences = await loadSentenceFile('newset/aac_extra_5_sentences.txt');
-    const formalSentences = await loadSentenceFile('newset/350_nonrepeating_sentences.txt');
-    if (formalSentences) {
-      warmupSentenceCount = warmupSentences ? warmupSentences.length : 0;
+    try {
+      const warmupSentences = await loadSentenceFile('newset/aac_extra_5_sentences.txt');
+      const formalSentences = await loadSentenceFile('newset/350_nonrepeating_sentences.txt');
+      validateSentenceFile('Warm-up sentence file', warmupSentences, EXPECTED_WARMUP_SENTENCE_COUNT);
+      validateSentenceFile('Formal sentence file', formalSentences, EXPECTED_FORMAL_SENTENCE_COUNT);
+      const combinedDuplicates = findDuplicateSentences([...warmupSentences, ...formalSentences]);
+      if (combinedDuplicates.length) {
+        throw new Error(`Combined sentence set has duplicate sentences: ${combinedDuplicates.slice(0, 3).join(' | ')}`);
+      }
+      warmupSentenceCount = warmupSentences.length;
       formalSentenceCount = formalSentences.length;
-      sentenceSets[selected] = [...(warmupSentences || []), ...formalSentences];
+      sentenceSets[selected] = [...warmupSentences, ...formalSentences];
+    } catch (error) {
+      console.error('Sentence set validation failed:', error);
+      sentenceSets[selected] = null;
+      sentences = [];
+      idx = 0;
+      await updateSentenceView();
+      await showAlert(`Sentence set failed to load correctly.\n\n${error.message}\n\nPlease hard refresh this page before recording.`);
+      return;
     }
   }
   
@@ -805,7 +1162,12 @@ async function loadSentenceSet() {
     // Restore progress
     try {
       const progress = await getProgress(selected);
-      if (progress && progress.currentIndex < sentences.length) {
+      if (progress?.completed || (progress?.currentIndex >= sentences.length - 1 && progress?.repetitionCount > 0)) {
+        idx = Math.min(Number(progress.currentIndex) || sentences.length - 1, sentences.length - 1);
+        showCompletionView();
+        console.log(`Completed progress restored: ${idx + 1}`);
+        return;
+      } else if (progress && progress.currentIndex < sentences.length) {
         idx = progress.currentIndex;
         console.log(`Progress restored: sentence ${idx + 1}`);
       } else {
@@ -920,6 +1282,7 @@ function showCompletionView() {
   el('startStop').style.opacity = '0.45';
   el('redo').disabled = true;
   el('redo').style.opacity = '0.35';
+  refreshControlLockState();
 }
 
 function resetCompletionView() {
@@ -928,6 +1291,7 @@ function resetCompletionView() {
   el('startStop').style.opacity = '1';
   el('redo').disabled = false;
   el('redo').style.opacity = '0.64';
+  refreshControlLockState();
 }
 
 function updateRecordingTimer() {
@@ -988,6 +1352,7 @@ function cleanupRecording() {
   setStartStopButtonState(false);
   stopWaveformVisualization();
   stopVideoMonitor();
+  refreshControlLockState();
   
   console.log('Recording cleanup completed');
 }
@@ -1482,34 +1847,10 @@ function playRecordingStopSound() {
 }
 
 el('init').onclick = async () => {
+  if (isInteractionBlocked()) return;
   try {
-    // Get user selected resolution
-    const resolution = el('resolution').value;
-    let videoConstraints = { facingMode: 'user' };
-    
-    // Set resolution based on selection
-    if (resolution !== 'auto') {
-      const resolutions = {
-        '360p': { width: 640, height: 360 },
-        '480p': { width: 854, height: 480 },
-        '720p': { width: 1280, height: 720 },
-        '1080p': { width: 1920, height: 1080 }
-      };
-      
-      if (resolutions[resolution]) {
-        videoConstraints = {
-          ...videoConstraints,
-          width: { ideal: resolutions[resolution].width },
-          height: { ideal: resolutions[resolution].height }
-        };
-      }
-    }
-    
-    // Front camera; change 'user' to 'environment' for rear camera
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: videoConstraints,
-      audio: true
-    });
+    stopCurrentStream({ clearPreview: true });
+    stream = await openRecordingStream();
     
     el('preview').srcObject = stream;
     el('preview').onloadedmetadata = syncMediaFrameSize;
@@ -1523,11 +1864,7 @@ el('init').onclick = async () => {
     // Apply mirror effect if enabled
     updateVideoMirror();
     
-    // Display actual resolution obtained
-    const videoTrack = stream.getVideoTracks()[0];
-    const settings = videoTrack.getSettings();
-    const actualRes = `${settings.width}×${settings.height}`;
-    el('resolutionInfo').textContent = `Actual Resolution: ${actualRes}`;
+    updateActualMediaInfo();
     
     // Show storage buttons since we're in iPad mode by default
     el('downloadAll').style.display = 'inline-block';
@@ -1552,6 +1889,7 @@ el('init').onclick = async () => {
 };
 
 el('next').onclick = async () => { 
+  if (isInteractionBlocked()) return;
   if (sentences.length){ 
     idx = Math.min(idx+1, sentences.length-1); 
     isRedo = false; // Reset redo flag
@@ -1566,6 +1904,7 @@ el('next').onclick = async () => {
 };
 
 el('prev').onclick = async () => { 
+  if (isInteractionBlocked()) return;
   if (sentences.length){ 
     idx = Math.max(idx-1, 0); 
     isRedo = false; // Reset redo flag
@@ -1581,6 +1920,7 @@ el('prev').onclick = async () => {
 
 // Skip current sentence
 el('skip').onclick = async () => {
+  if (isInteractionBlocked()) return;
   if (sentences.length && idx < sentences.length - 1) {
     idx++;
     isRedo = false; // Reset redo flag
@@ -1635,37 +1975,47 @@ function updateVideoMirror() {
 
 // Listen for mirror toggle changes
 el('mirrorVideo').onchange = () => {
-  if (isInteractionBlocked()) return;
+  if (isInteractionBlocked()) {
+    el('mirrorVideo').checked = el('preview').classList.contains('video-mirrored');
+    return;
+  }
   updateVideoMirror();
 };
 
 // Listen for resolution changes
+el('resolution').dataset.currentValue = el('resolution').value;
 el('resolution').onchange = () => {
-  if (isInteractionBlocked()) return;
+  const resolutionControl = el('resolution');
+  if (isInteractionBlocked()) {
+    resolutionControl.value = resolutionControl.dataset.currentValue || '1080p';
+    return;
+  }
+
+  resolutionControl.dataset.currentValue = resolutionControl.value;
+
   if (stream) {
     el('resolutionInfo').textContent = 'Resolution changed, please reinitialize camera';
-    
-    // Show the Initialize Camera button overlay
     el('initCameraOverlay').style.display = 'block';
-    
-    // Hide the recording status
     el('recordingStatus').style.display = 'none';
-    
-    // Stop stream health monitoring
-    stopStreamHealthMonitoring();
-    
-    // Stop any ongoing recording
-    if (recording && mediaRecorder) {
-      try {
-        if (mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
-        }
-        cleanupRecording();
-      } catch (error) {
-        console.error('Error stopping recording on resolution change:', error);
-        cleanupRecording();
-      }
-    }
+    stopCurrentStream({ clearPreview: true });
+  }
+};
+
+el('quality').dataset.currentValue = el('quality').value;
+el('quality').onchange = () => {
+  const qualityControl = el('quality');
+  if (isInteractionBlocked()) {
+    qualityControl.value = qualityControl.dataset.currentValue || '15000000';
+    return;
+  }
+
+  qualityControl.dataset.currentValue = qualityControl.value;
+
+  if (stream) {
+    el('resolutionInfo').textContent = 'Recording quality changed, please reinitialize camera';
+    el('initCameraOverlay').style.display = 'block';
+    el('recordingStatus').style.display = 'none';
+    stopCurrentStream({ clearPreview: true });
   }
 };
 
@@ -1700,11 +2050,15 @@ async function updateStorageInfo() {
 
 
 // Download all stored videos
-async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
-  if (isInteractionBlocked()) return;
+async function downloadAllStoredVideos({ skipConfirm = false, allowRecordingSavePending = false } = {}) {
+  if (isInteractionBlocked({ allowRecording: true, allowRecordingSavePending })) return;
   if (saveAllInProgress) return;
   if (recording) {
     await showAlert('Please stop the current recording before Save All.');
+    return;
+  }
+  if (typeof JSZip !== 'function') {
+    await showAlert('Save All is not available because the ZIP library failed to load. Please refresh the page and try again.');
     return;
   }
 
@@ -1729,14 +2083,37 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
     
     // Create ZIP file
     const zip = new JSZip();
+    const manifest = {
+      appVersion: APP_VERSION,
+      materialCacheVersion: MATERIAL_CACHE_VERSION,
+      exportedAt: new Date().toISOString(),
+      recordCount: count,
+      records: []
+    };
     
     // Add all videos to ZIP with cursor iteration to avoid loading everything at once
-    await forEachStoredVideo(async (videoRecord, i) => {
+    await forEachStoredVideo((videoRecord, i) => {
       const mimeType = videoRecord.mimeType || 'video/mp4';
       const blob = new Blob([videoRecord.arrayBuffer], { type: mimeType });
       zip.file(videoRecord.fileName, blob, { compression: 'STORE' });
+      const recordMetadata = {
+        ...(videoRecord.metadata || {}),
+        fileName: videoRecord.fileName,
+        size: videoRecord.size,
+        storedAt: videoRecord.timestamp,
+        mimeType: videoRecord.mimeType || videoRecord.metadata?.mimeType || mimeType,
+        sentence: videoRecord.sentence,
+        sentenceSet: videoRecord.sentenceSet,
+        sentenceIndex: videoRecord.sentenceIndex
+      };
+      zip.file(getSidecarFileName(videoRecord.fileName), JSON.stringify(recordMetadata, null, 2));
+      manifest.records.push(recordMetadata);
       el('downloadAll').textContent = `Adding ${i + 1}/${count}...`;
     });
+    if (manifest.records.length !== count) {
+      throw new Error(`ZIP manifest count mismatch: expected ${count}, added ${manifest.records.length}. Cached videos were not cleared.`);
+    }
+    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
     
     // Generate and save ZIP file
     el('downloadAll').textContent = 'Saving ZIP...';
@@ -1744,7 +2121,14 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
     // Create download link for ZIP
     const currentDate = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     const zipFileName = `video-recordings-${currentDate}.zip`;
-    await downloadZipWithBestEffortStreaming(zip, zipFileName);
+    const downloadResult = await downloadZipWithBestEffortStreaming(zip, zipFileName);
+    if (!downloadResult?.verified) {
+      console.warn('ZIP download uses an unverified fallback; cached videos will still be cleared by current policy.', {
+        method: downloadResult?.method || 'unknown',
+        zipFileName
+      });
+      el('storageInfo').textContent = `Saved ${zipFileName} with unverified browser download fallback; clearing cache by policy`;
+    }
     
     console.log(`Downloaded ZIP file: ${zipFileName}`);
     
@@ -1761,26 +2145,14 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
 
       // Restart video stream to refresh camera feed
       if (stream) {
-        stopStreamHealthMonitoring();
-        stream.getTracks().forEach(track => track.stop());
-
-        const resolution = el('resolution').value;
-        let videoConstraints = { facingMode: 'user' };
-        
-        if (resolution === '4k') videoConstraints = { ...videoConstraints, width: 3840, height: 2160 };
-        else if (resolution === '1080p') videoConstraints = { ...videoConstraints, width: 1920, height: 1080 };
-        else if (resolution === '720p') videoConstraints = { ...videoConstraints, width: 1280, height: 720 };
-        else if (resolution === '480p') videoConstraints = { ...videoConstraints, width: 640, height: 480 };
-        
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: videoConstraints,
-          audio: true
-        });
+        stopCurrentStream({ clearPreview: true });
+        stream = await openRecordingStream();
         el('preview').srcObject = stream;
         el('preview').onloadedmetadata = syncMediaFrameSize;
         syncMediaFrameSize();
         initWaveformAnalyzer();
         updateVideoMirror();
+        updateActualMediaInfo();
         startStreamHealthMonitoring();
 
         console.log('Video stream restarted after ZIP download');
@@ -1796,7 +2168,7 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
     saveAllInProgress = false;
     setSaveAllBusyState(false);
     el('downloadAll').textContent = '💾 Save All';
-    el('downloadAll').disabled = false;
+    refreshControlLockState();
     el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
   }
 }
@@ -1804,13 +2176,15 @@ async function downloadAllStoredVideos({ skipConfirm = false } = {}) {
 el('downloadAll').onclick = () => downloadAllStoredVideos();
 
 async function maybePromptSaveAllCheckpoint({ isComplete = false } = {}) {
+  if (recording || recordingStopPending) return;
+
   const { count } = await getStoredVideoStats();
   if (count > 0 && (isComplete || count % SAVE_REMINDER_INTERVAL === 0)) {
     const message = isComplete
       ? `You have completed all ${formalSentenceCount || sentences.length - warmupSentenceCount} sentences. Click OK to Save All now.`
       : `You have ${count} cached videos. Click OK to Save All now before continuing.`;
     await showAlert(message);
-    await downloadAllStoredVideos({ skipConfirm: true });
+    await downloadAllStoredVideos({ skipConfirm: true, allowRecordingSavePending: true });
   }
 }
 
@@ -1847,6 +2221,11 @@ async function startRecording() {
   if (isInteractionBlocked()) return;
   if (sessionComplete) return;
   if (!stream) return await showAlert('Please initialize camera first!');
+  if (!sentences.length) return await showAlert('Sentence set is not available. Please refresh and initialize again.');
+  if (typeof MediaRecorder === 'undefined') {
+    await showAlert('This browser does not support MediaRecorder. Please use a current Safari, Chrome, Edge, or Firefox browser.');
+    return;
+  }
   if (recording) return;
   recordingStopPending = false;
   const blockState = await refreshStorageBlockState();
@@ -1898,21 +2277,15 @@ async function startRecording() {
   chunks = [];
   discardCurrentRecording = false;
   streamIssueAlertShown = false;
-  
-  // Use MP4 format by default
-  const mp4Options = [
-    'video/mp4;codecs=h264,aac',
-    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-    'video/mp4'
-  ];
-  const mimeType = mp4Options.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm;codecs=vp9,opus';
+  currentRecordingContext = null;
   
   try {
+    const quality = getQualityProfile();
+    const recorderResult = createSupportedMediaRecorder(stream, quality.videoBitsPerSecond);
+
     // Request timeslice to prevent memory buildup (collect data every 1 second)
-    mediaRecorder = new MediaRecorder(stream, { 
-      mimeType,
-      videoBitsPerSecond: 5000000 // 5 Mbps, reasonable quality
-    });
+    mediaRecorder = recorderResult.recorder;
+    currentRecordingContext = buildRecordingContext(recorderResult.config);
     
     mediaRecorder.ondataavailable = e => { 
       if (e.data && e.data.size > 0) {
@@ -1937,6 +2310,8 @@ async function startRecording() {
     mediaRecorder.start(1000);
     recording = true;
     recordingStartTime = Date.now();
+    refreshControlLockState();
+    updateActualMediaInfo();
     
     // Set 1-minute auto-stop timer
     recordingTimer = setTimeout(() => {
@@ -1971,19 +2346,24 @@ async function startRecording() {
 }
 
 async function stopRecording() {
-  if (isInteractionBlocked()) return;
+  if (isInteractionBlocked({ allowRecording: true })) return;
   if (mediaRecorder && recording) {
     recordingStopPending = true;
+    refreshControlLockState();
     el('startStop').blur();
 
     recordingStopDelayTimer = setTimeout(async () => {
       recordingStopDelayTimer = null;
       if (!mediaRecorder || !recording) {
         recordingStopPending = false;
+        refreshControlLockState();
         return;
       }
 
       try {
+        recordingSavePending = true;
+        refreshControlLockState();
+
         // Play recording stop sound after the stop delay.
         playRecordingStopSound();
 
@@ -2000,6 +2380,8 @@ async function stopRecording() {
 
         console.log('Recording stopped successfully');
       } catch (error) {
+        recordingSavePending = false;
+        refreshControlLockState();
         console.error('Error stopping recording:', error);
         // Force cleanup even if stop failed
         cleanupRecording();
@@ -2011,17 +2393,18 @@ async function stopRecording() {
 }
 
 el('startStop').onclick = () => {
-  if (isInteractionBlocked()) return;
   if (recording) {
     stopRecording();
   } else {
+    if (isInteractionBlocked()) return;
     startRecording();
   }
 };
 
 // Add keyboard shortcut support
 document.addEventListener('keydown', (event) => {
-  if (isInteractionBlocked()) {
+  const isStopShortcut = event.code === 'Space' && recording;
+  if (isInteractionBlocked({ allowRecording: isStopShortcut })) {
     event.preventDefault();
     return;
   }
@@ -2055,12 +2438,15 @@ function ts(){
   return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 async function saveBlob(){
+  recordingSavePending = true;
+  const context = currentRecordingContext;
   try {
     if (discardCurrentRecording) {
       console.warn('Discarding current recording because stream health check failed');
       chunks = [];
       discardCurrentRecording = false;
       isRedo = false;
+      currentRecordingContext = null;
       return;
     }
 
@@ -2068,50 +2454,52 @@ async function saveBlob(){
     if (!chunks || chunks.length === 0) {
       console.warn('No video chunks to save');
       chunks = []; // Clear the array
+      currentRecordingContext = null;
       return;
     }
     
     // Determine file extension based on actual mimeType used
-    const isMP4 = mediaRecorder && mediaRecorder.mimeType.includes('mp4');
-    const fileExt = isMP4 ? 'mp4' : 'webm';
-    const blobType = isMP4 ? 'video/mp4' : 'video/webm';
+    const mimeInfo = getRecordingMimeInfo(mediaRecorder, chunks, context?.recorderConfig?.requestedMimeType || '');
     
-    const blob = new Blob(chunks, { type: blobType });
+    const blob = new Blob(chunks, { type: mimeInfo.mimeType });
     
     // Check if blob is valid
     if (blob.size === 0) {
       console.warn('Created blob has zero size');
       chunks = []; // Clear the array
+      currentRecordingContext = null;
       return;
     }
     
     console.log(`Created blob: ${blob.size} bytes from ${chunks.length} chunks`);
     
-    const sentence = sentences[idx] ? sanitize(sentences[idx]) : 'unknown_sentence';
+    const saveIndex = Number.isInteger(context?.sentenceIndex) ? context.sentenceIndex : idx;
+    idx = saveIndex;
+    const sentence = context?.sentence ? sanitize(context.sentence) : (sentences[saveIndex] ? sanitize(sentences[saveIndex]) : 'unknown_sentence');
     const timestamp = ts();
-    const redoSuffix = isRedo ? '_redo' : '';
+    const redoSuffix = context?.redo ? '_redo' : '';
     
     // Get progress info for filename
     let progressInfo = '';
     try {
       const progress = await getProgress(currentSentenceSet);
-      const isWarmupSentence = idx < warmupSentenceCount;
+      const isWarmupSentence = saveIndex < warmupSentenceCount;
       const total = isWarmupSentence ? warmupSentenceCount : (formalSentenceCount || sentences.length - warmupSentenceCount);
-      const currentPos = isWarmupSentence ? idx + 1 : idx - warmupSentenceCount + 1;
+      const currentPos = isWarmupSentence ? saveIndex + 1 : saveIndex - warmupSentenceCount + 1;
       
       // Always include repeat count in filename, starting from repeat1
       const repeatCount = progress ? (progress.repetitionCount || 0) + 1 : 1;
       progressInfo = `${isWarmupSentence ? '_warmup' : '_'}${currentPos}-${total}_repeat${repeatCount}`;
     } catch (error) {
       console.error('Failed to get progress for filename:', error);
-      progressInfo = idx < warmupSentenceCount
-        ? `_warmup${idx + 1}-${warmupSentenceCount}`
-        : `_${idx - warmupSentenceCount + 1}-${formalSentenceCount || sentences.length - warmupSentenceCount}`;
+      progressInfo = saveIndex < warmupSentenceCount
+        ? `_warmup${saveIndex + 1}-${warmupSentenceCount}`
+        : `_${saveIndex - warmupSentenceCount + 1}-${formalSentenceCount || sentences.length - warmupSentenceCount}`;
     }
     
-    const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.mp4`;
+    const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.${mimeInfo.fileExt}`;
+    const metadata = buildRecordingMetadata(context, fileName, blob, mimeInfo);
     let shouldPromptSaveAllCheckpoint = false;
-    const isCompletingSentenceSet = idx >= sentences.length - 1;
     
     if (storageMode) {
       // iPad mode: Store to IndexedDB
@@ -2121,11 +2509,11 @@ async function saveBlob(){
           const blockedMessage = getStorageBlockedMessage(blockState.estimate);
           await showAlert(blockedMessage);
           // Keep the current recording by downloading it directly, but block further cached recording.
-          directDownload(blob, fileName);
+          directDownload(blob, fileName, metadata);
           chunks = [];
           return;
         }
-        await storeVideo(blob, fileName, sentences[idx] || 'unknown sentence', currentSentenceSet, idx);
+        await storeVideo(blob, fileName, context?.sentence || sentences[saveIndex] || 'unknown sentence', currentSentenceSet, saveIndex, metadata);
         shouldPromptSaveAllCheckpoint = true;
         // Update storage info asynchronously to avoid blocking
         setTimeout(() => updateStorageInfo(), 100);
@@ -2134,11 +2522,11 @@ async function saveBlob(){
         console.error('Failed to store video:', error);
         await showAlert('Failed to store video: ' + error.message);
         // Fallback to direct download on failure
-        directDownload(blob, fileName);
+        directDownload(blob, fileName, metadata);
       }
     } else {
       // Normal mode: Direct download
-      directDownload(blob, fileName);
+      directDownload(blob, fileName, metadata);
     }
     
     // Clear chunks array immediately after use to free memory
@@ -2148,9 +2536,9 @@ async function saveBlob(){
     isRedo = false;
     
     // Auto jump to next sentence after recording completion (if not the last sentence)
-    if (idx < sentences.length - 1) {
-      const completedWarmup = warmupSentenceCount > 0 && idx === warmupSentenceCount - 1;
-      idx++;
+    if (saveIndex < sentences.length - 1) {
+      const completedWarmup = warmupSentenceCount > 0 && saveIndex === warmupSentenceCount - 1;
+      idx = saveIndex + 1;
       
       // Save progress
       try {
@@ -2186,21 +2574,36 @@ async function saveBlob(){
     }
     
     // Display format information
-    console.log(`Recording completed, format: ${fileExt.toUpperCase()}, MIME type: ${mediaRecorder.mimeType}`);
+    console.log(`Recording completed, format: ${mimeInfo.fileExt.toUpperCase()}, MIME type: ${mimeInfo.mimeType}`);
   } catch (error) {
     console.error('Error in saveBlob:', error);
     await showAlert('Error saving recording: ' + error.message);
     // Clear chunks on error to prevent corruption
     chunks = [];
+  } finally {
+    recordingSavePending = false;
+    currentRecordingContext = null;
+    refreshControlLockState();
   }
 }
 
-function directDownload(blob, fileName) {
+function directDownload(blob, fileName, metadata = null) {
   const a = document.createElement('a');
   a.download = fileName;
   a.href = URL.createObjectURL(blob);
   a.click();
-  URL.revokeObjectURL(a.href);
+  const objectUrl = a.href;
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+
+  if (metadata) {
+    const metaBlob = new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' });
+    const metaLink = document.createElement('a');
+    metaLink.download = getSidecarFileName(fileName);
+    metaLink.href = URL.createObjectURL(metaBlob);
+    metaLink.click();
+    const metaUrl = metaLink.href;
+    setTimeout(() => URL.revokeObjectURL(metaUrl), 60000);
+  }
 }
 </script>
 </body>
