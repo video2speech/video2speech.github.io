@@ -250,7 +250,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 79</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 80</span>
     </div>
   </div>
 
@@ -370,8 +370,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '79';
-const MATERIAL_CACHE_VERSION = 'materials_v79';
+const APP_VERSION = '80';
+const MATERIAL_CACHE_VERSION = 'materials_v80';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -380,12 +380,16 @@ const STOP_RECORDING_DELAY_MS = 300;
 const DEFAULT_AUDIO_BITS_PER_SECOND = 192000;
 const WAVEFORM_WINDOW_SECONDS = 6;
 const WAVEFORM_POINTS_PER_SECOND = 60;
-const WAVEFORM_VISUAL_GAIN = 3;
+const WAVEFORM_VISUAL_GAIN = 5;
 const WAVEFORM_MIN_SIGNAL_PEAK = 0.004;
 const WAVEFORM_NO_SIGNAL_MS = 8000;
 const WAVEFORM_STUCK_MS = 9000;
 const WAVEFORM_MONITOR_GRACE_MS = 2500;
 const WAVEFORM_SIGNATURE_DELTA = 0.0005;
+const AUDIO_QC_LOW_RMS_THRESHOLD = 0.008;
+const AUDIO_QC_LOW_PEAK_THRESHOLD = 0.05;
+const AUDIO_QC_CLIPPING_SAMPLE_THRESHOLD = 0.98;
+const AUDIO_QC_CLIPPING_RATE_THRESHOLD = 0.002;
 const VIDEO_STUCK_MS = 9000;
 const VIDEO_NO_CHANGE_MS = 12000;
 const VIDEO_MONITOR_GRACE_MS = 3000;
@@ -871,6 +875,83 @@ function getSidecarFileName(fileName) {
   return fileName.replace(/\.[^.]+$/, '') + '.json';
 }
 
+function createAudioLevelStats() {
+  return {
+    startedAt: new Date().toISOString(),
+    lastUpdatedAt: null,
+    frames: 0,
+    sampleCount: 0,
+    sumSquares: 0,
+    peak: 0,
+    clippingSamples: 0
+  };
+}
+
+function updateAudioLevelStats(sampleCount, frameSumSquares, framePeak, frameClippingSamples) {
+  const stats = currentRecordingContext?.audioLevelStats;
+  if (!stats || !sampleCount) return;
+
+  stats.frames += 1;
+  stats.sampleCount += sampleCount;
+  stats.sumSquares += frameSumSquares;
+  stats.peak = Math.max(stats.peak, framePeak);
+  stats.clippingSamples += frameClippingSamples;
+  stats.lastUpdatedAt = new Date().toISOString();
+}
+
+function getAudioLevelSummary(stats) {
+  if (!stats || !stats.sampleCount) {
+    return {
+      rms: null,
+      peak: null,
+      clippingRate: null,
+      clippingSamples: 0,
+      sampleCount: 0,
+      frames: 0,
+      visualGain: WAVEFORM_VISUAL_GAIN,
+      thresholds: getAudioQualityThresholds()
+    };
+  }
+
+  const rms = Math.sqrt(stats.sumSquares / stats.sampleCount);
+  const clippingRate = stats.clippingSamples / stats.sampleCount;
+  return {
+    rms: Number(rms.toFixed(6)),
+    peak: Number(stats.peak.toFixed(6)),
+    clippingRate: Number(clippingRate.toFixed(6)),
+    clippingSamples: stats.clippingSamples,
+    sampleCount: stats.sampleCount,
+    frames: stats.frames,
+    startedAt: stats.startedAt,
+    lastUpdatedAt: stats.lastUpdatedAt,
+    visualGain: WAVEFORM_VISUAL_GAIN,
+    thresholds: getAudioQualityThresholds()
+  };
+}
+
+function getAudioQualityThresholds() {
+  return {
+    lowRms: AUDIO_QC_LOW_RMS_THRESHOLD,
+    lowPeak: AUDIO_QC_LOW_PEAK_THRESHOLD,
+    clippingSample: AUDIO_QC_CLIPPING_SAMPLE_THRESHOLD,
+    clippingRate: AUDIO_QC_CLIPPING_RATE_THRESHOLD
+  };
+}
+
+function getAudioQualityWarning(audioQuality) {
+  if (!audioQuality || audioQuality.rms === null || audioQuality.peak === null) return null;
+
+  if (audioQuality.clippingRate >= AUDIO_QC_CLIPPING_RATE_THRESHOLD || audioQuality.peak >= 0.999) {
+    return 'Audio level is too high. Please move slightly farther away.';
+  }
+
+  if (audioQuality.rms < AUDIO_QC_LOW_RMS_THRESHOLD && audioQuality.peak < AUDIO_QC_LOW_PEAK_THRESHOLD) {
+    return 'Microphone level is very low. Please move closer or check microphone.';
+  }
+
+  return null;
+}
+
 function buildRecordingContext(recorderConfig) {
   const isWarmupSentence = idx < warmupSentenceCount;
   const total = isWarmupSentence ? warmupSentenceCount : (formalSentenceCount || sentences.length - warmupSentenceCount);
@@ -891,6 +972,7 @@ function buildRecordingContext(recorderConfig) {
     requestedAudioConstraints: currentAudioConstraintMode === 'raw' ? getRawAudioConstraints() : true,
     recorderConfig: recorderConfig || null,
     startedAt: new Date().toISOString(),
+    audioLevelStats: createAudioLevelStats(),
     mediaAtStart: getMediaSettingsSnapshot(),
     userAgent: navigator.userAgent,
     platform: navigator.platform || '',
@@ -921,6 +1003,7 @@ function buildRecordingMetadata(context, fileName, blob, mimeInfo) {
     requestedAudioConstraints: context?.requestedAudioConstraints || null,
     recorderConfig: context?.recorderConfig || null,
     stopDelayMs: STOP_RECORDING_DELAY_MS,
+    audioQuality: getAudioLevelSummary(context?.audioLevelStats),
     mediaAtStart: context?.mediaAtStart || null,
     mediaAtSave: getMediaSettingsSnapshot(),
     browser: {
@@ -1585,13 +1668,19 @@ function startWaveformVisualization() {
     if (timestamp - waveformLastSampleAt >= sampleIntervalMs) {
       let peak = 0;
       let signature = 0;
+      let frameSumSquares = 0;
+      let frameClippingSamples = 0;
       for (let i = 0; i < waveformFrameArray.length; i++) {
-        const v = Math.abs(waveformFrameArray[i]);
+        const sample = waveformFrameArray[i];
+        const v = Math.abs(sample);
+        frameSumSquares += sample * sample;
         if (v > peak) peak = v;
+        if (v >= AUDIO_QC_CLIPPING_SAMPLE_THRESHOLD) frameClippingSamples++;
         if (i % 64 === 0) signature += waveformFrameArray[i] * (i + 1);
       }
       const normalizedPeak = Math.min(1, peak);
       const visualPeak = Math.min(1, normalizedPeak * WAVEFORM_VISUAL_GAIN);
+      updateAudioLevelStats(waveformFrameArray.length, frameSumSquares, peak, frameClippingSamples);
       if (normalizedPeak >= WAVEFORM_MIN_SIGNAL_PEAK) {
         waveformLastAudioActivityAt = timestamp;
       }
@@ -2501,6 +2590,7 @@ async function saveBlob(){
     
     const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.${mimeInfo.fileExt}`;
     const metadata = buildRecordingMetadata(context, fileName, blob, mimeInfo);
+    const audioQualityWarning = getAudioQualityWarning(metadata.audioQuality);
     let shouldPromptSaveAllCheckpoint = false;
     
     if (storageMode) {
@@ -2512,6 +2602,9 @@ async function saveBlob(){
           await showAlert(blockedMessage);
           // Keep the current recording by downloading it directly, but block further cached recording.
           directDownload(blob, fileName, metadata);
+          if (audioQualityWarning) {
+            await showAlert(audioQualityWarning, 'Audio Level Warning');
+          }
           chunks = [];
           return;
         }
@@ -2529,6 +2622,10 @@ async function saveBlob(){
     } else {
       // Normal mode: Direct download
       directDownload(blob, fileName, metadata);
+    }
+
+    if (audioQualityWarning) {
+      await showAlert(audioQualityWarning, 'Audio Level Warning');
     }
     
     // Clear chunks array immediately after use to free memory
