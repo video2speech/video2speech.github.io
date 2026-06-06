@@ -1744,7 +1744,7 @@ async function stopRecordingForStreamIssue(message, details = {}) {
   }
 
   cleanupRecording();
-  await showAlert(message);
+  await promptAndReinitializeCamera(message);
 }
 
 function getWaveformIssueMessage() {
@@ -1937,43 +1937,65 @@ function playRecordingStopSound() {
   }
 }
 
+async function waitForRecordingSaveToSettle(timeoutMs = 2000) {
+  const startedAt = Date.now();
+  while (recordingSavePending && Date.now() - startedAt < timeoutMs) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+}
+
+async function initializeCameraAndMicrophone({ showWarmupNotice = true } = {}) {
+  stopCurrentStream({ clearPreview: true });
+  stream = await openRecordingStream();
+
+  el('preview').srcObject = stream;
+  el('preview').onloadedmetadata = syncMediaFrameSize;
+  syncMediaFrameSize();
+  initWaveformAnalyzer();
+
+  // Load sentence set and start recording
+  await loadSentenceSet();
+  await updateSentenceView();
+
+  // Apply mirror effect if enabled
+  updateVideoMirror();
+
+  updateActualMediaInfo();
+
+  // Show storage buttons since we're in iPad mode by default
+  el('downloadAll').style.display = 'inline-block';
+  el('clearAll').style.display = 'inline-block';
+
+  if (showWarmupNotice && idx < warmupSentenceCount) {
+    await showAlert(`Warm-up: Please record these ${warmupSentenceCount} practice sentences before starting the formal set.`);
+  }
+
+  // Hide the Initialize Camera button overlay and show preparing status
+  el('initCameraOverlay').style.display = 'none';
+  el('recordingStatus').style.display = 'block';
+
+  // Start monitoring stream health
+  startStreamHealthMonitoring();
+
+  // Remove focus from button to allow keyboard shortcuts
+  el('init').blur();
+}
+
+async function promptAndReinitializeCamera(message) {
+  await showAlert(`${message}\n\nClick OK to reinitialize now.`);
+  try {
+    await waitForRecordingSaveToSettle();
+    await initializeCameraAndMicrophone({ showWarmupNotice: false });
+  } catch (error) {
+    console.error('Automatic camera/microphone reinitialization failed:', error);
+    await showAlert('Unable to reinitialize camera/microphone: ' + error.message);
+  }
+}
+
 el('init').onclick = async () => {
   if (isInteractionBlocked()) return;
   try {
-    stopCurrentStream({ clearPreview: true });
-    stream = await openRecordingStream();
-    
-    el('preview').srcObject = stream;
-    el('preview').onloadedmetadata = syncMediaFrameSize;
-    syncMediaFrameSize();
-    initWaveformAnalyzer();
-    
-    // Load sentence set and start recording
-    await loadSentenceSet();
-    await updateSentenceView();
-    
-    // Apply mirror effect if enabled
-    updateVideoMirror();
-    
-    updateActualMediaInfo();
-    
-    // Show storage buttons since we're in iPad mode by default
-    el('downloadAll').style.display = 'inline-block';
-    el('clearAll').style.display = 'inline-block';
-    
-    if (idx < warmupSentenceCount) {
-      await showAlert(`Warm-up: Please record these ${warmupSentenceCount} practice sentences before starting the formal set.`);
-    }
-
-    // Hide the Initialize Camera button overlay and show preparing status
-    el('initCameraOverlay').style.display = 'none';
-    el('recordingStatus').style.display = 'block';
-    
-    // Start monitoring stream health
-    startStreamHealthMonitoring();
-    
-    // Remove focus from button to allow keyboard shortcuts
-    el('init').blur();
+    await initializeCameraAndMicrophone();
   } catch (e) {
     await showAlert('Unable to access camera/microphone: ' + e);
   }
@@ -2328,24 +2350,24 @@ async function startRecording() {
   // Check if stream is still active
   const videoTrack = stream.getVideoTracks()[0];
   if (!videoTrack || !videoTrack.enabled || videoTrack.readyState !== 'live') {
-    await showAlert('Camera stream is not active. Please reinitialize camera.');
     console.error('Stream issue detected:', {
       hasTrack: !!videoTrack,
       enabled: videoTrack?.enabled,
       readyState: videoTrack?.readyState
     });
+    await promptAndReinitializeCamera('Camera stream is not active.');
     return;
   }
 
   const audioTrack = stream.getAudioTracks()[0];
   if (!audioTrack || !audioTrack.enabled || audioTrack.readyState !== 'live' || audioTrack.muted) {
-    await showAlert('Microphone stream is not active. Please reinitialize camera + microphone.');
     console.error('Audio stream issue detected:', {
       hasTrack: !!audioTrack,
       enabled: audioTrack?.enabled,
       readyState: audioTrack?.readyState,
       muted: audioTrack?.muted
     });
+    await promptAndReinitializeCamera('Microphone stream is not active.');
     return;
   }
   
