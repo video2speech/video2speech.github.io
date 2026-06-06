@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '82';
+  const APP_URL_VERSION = '83';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=82"></script>
+<script src="vendor/jszip.min.js?v=83"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -273,7 +273,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 82</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 83</span>
     </div>
   </div>
 
@@ -417,8 +417,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '82';
-const MATERIAL_CACHE_VERSION = 'materials_v82';
+const APP_VERSION = '83';
+const MATERIAL_CACHE_VERSION = 'materials_v83';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
