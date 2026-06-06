@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '86';
+  const APP_URL_VERSION = '88';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=86"></script>
+<script src="vendor/jszip.min.js?v=88"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -263,6 +263,15 @@
         <option value="8000000">8 Mbps - Compatibility</option>
         <option value="12000000">12 Mbps - High Quality</option>
         <option value="15000000" selected>15 Mbps - Research Quality</option>
+        <option value="25000000">25 Mbps - Fast Motion</option>
+        <option value="40000000">40 Mbps - Maximum Quality</option>
+      </select>
+    </div>
+    <div class="row" style="margin-top: 8px; align-items: center;">
+      <label style="font-size: 0.8rem; color: #888; margin-right: 8px;">Recording Frame Rate</label>
+      <select id="frameRate" style="font-size: 0.8rem; padding: 2px 4px;">
+        <option value="30" selected>30 fps - Standard</option>
+        <option value="60">60 fps - Fast Motion</option>
       </select>
     </div>
     <div class="row" style="margin-top: 8px; align-items: center;">
@@ -273,7 +282,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 86</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 88</span>
     </div>
   </div>
 
@@ -417,8 +426,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '86';
-const MATERIAL_CACHE_VERSION = 'materials_v86';
+const APP_VERSION = '88';
+const MATERIAL_CACHE_VERSION = 'materials_v88';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -460,7 +469,7 @@ function refreshControlLockState() {
   const workflowLocked = recording || recordingStopPending || recordingSavePending;
   const auxControlsLocked = saveAllInProgress || workflowLocked;
 
-  ['downloadAll', 'resetProgress', 'clearAll', 'sentenceSet', 'resolution', 'quality', 'logout', 'init', 'prev', 'next', 'skip'].forEach(id => {
+  ['downloadAll', 'resetProgress', 'clearAll', 'sentenceSet', 'resolution', 'quality', 'frameRate', 'logout', 'init', 'prev', 'next', 'skip'].forEach(id => {
     const element = el(id);
     if (element) element.disabled = auxControlsLocked;
   });
@@ -723,11 +732,19 @@ function getQualityProfile() {
   return { label, videoBitsPerSecond: bitsPerSecond };
 }
 
+function getFrameRateProfile() {
+  const frameRateControl = el('frameRate');
+  const fps = Number(frameRateControl?.value) || 30;
+  const label = frameRateControl?.selectedOptions?.[0]?.textContent || `${fps} fps`;
+  return { label, fps };
+}
+
 function getVideoConstraints() {
   const resolution = el('resolution')?.value || '1080p';
+  const frameRate = getFrameRateProfile();
   const videoConstraints = {
     facingMode: 'user',
-    frameRate: { ideal: 30 }
+    frameRate: { ideal: frameRate.fps }
   };
   const resolutions = {
     '360p': { width: 640, height: 360 },
@@ -795,6 +812,7 @@ function updateActualMediaInfo() {
   if (!infoEl || !stream) return;
 
   const quality = getQualityProfile();
+  const frameRate = getFrameRateProfile();
   const settings = getMediaSettingsSnapshot();
   const video = settings.video.settings || {};
   const audio = settings.audio.settings || {};
@@ -802,7 +820,7 @@ function updateActualMediaInfo() {
   const fpsText = video.frameRate ? `${Number(video.frameRate).toFixed(1)} fps` : 'fps unknown';
   const sampleText = audio.sampleRate ? `${audio.sampleRate} Hz` : 'audio rate unknown';
   const audioModeText = currentAudioConstraintMode === 'raw' ? 'raw audio requested' : 'audio fallback';
-  infoEl.textContent = `Actual: ${resolutionText}, ${fpsText} | ${quality.label} | ${sampleText}, ${audioModeText}`;
+  infoEl.textContent = `Actual: ${resolutionText}, ${fpsText} | ${frameRate.label}, ${quality.label} | ${sampleText}, ${audioModeText}`;
 }
 
 function stopCurrentStream({ clearPreview = false } = {}) {
@@ -2187,6 +2205,24 @@ el('quality').onchange = () => {
 
   if (stream) {
     el('resolutionInfo').textContent = 'Recording quality changed, please reinitialize camera';
+    el('initCameraOverlay').style.display = 'block';
+    el('recordingStatus').style.display = 'none';
+    stopCurrentStream({ clearPreview: true });
+  }
+};
+
+el('frameRate').dataset.currentValue = el('frameRate').value;
+el('frameRate').onchange = () => {
+  const frameRateControl = el('frameRate');
+  if (isInteractionBlocked()) {
+    frameRateControl.value = frameRateControl.dataset.currentValue || '30';
+    return;
+  }
+
+  frameRateControl.dataset.currentValue = frameRateControl.value;
+
+  if (stream) {
+    el('resolutionInfo').textContent = 'Recording frame rate changed, please reinitialize camera';
     el('initCameraOverlay').style.display = 'block';
     el('recordingStatus').style.display = 'none';
     stopCurrentStream({ clearPreview: true });
