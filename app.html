@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '91';
+  const APP_URL_VERSION = '92';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=91"></script>
+<script src="vendor/jszip.min.js?v=92"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -289,7 +289,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 91</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 92</span>
     </div>
   </div>
 
@@ -433,8 +433,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '91';
-const MATERIAL_CACHE_VERSION = 'materials_v91';
+const APP_VERSION = '92';
+const MATERIAL_CACHE_VERSION = 'materials_v92';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -443,7 +443,7 @@ const STOP_RECORDING_DELAY_MS = 300;
 const DEFAULT_AUDIO_BITS_PER_SECOND = 192000;
 const WAVEFORM_WINDOW_SECONDS = 6;
 const WAVEFORM_POINTS_PER_SECOND = 60;
-const WAVEFORM_VISUAL_GAIN = 5;
+const WAVEFORM_VISUAL_GAIN = 3;
 const WAVEFORM_MIN_SIGNAL_PEAK = 0.004;
 const WAVEFORM_NO_SIGNAL_MS = 8000;
 const WAVEFORM_STUCK_MS = 9000;
@@ -451,8 +451,8 @@ const WAVEFORM_MONITOR_GRACE_MS = 2500;
 const WAVEFORM_SIGNATURE_DELTA = 0.0005;
 const AUDIO_QC_LOW_RMS_THRESHOLD = 0.0025;
 const AUDIO_QC_LOW_PEAK_THRESHOLD = 0.02;
-const AUDIO_QC_CLIPPING_SAMPLE_THRESHOLD = 0.98;
-const AUDIO_QC_CLIPPING_RATE_THRESHOLD = 0.002;
+const AUDIO_QC_CLIPPING_SAMPLE_THRESHOLD = 0.995;
+const AUDIO_QC_CLIPPING_RATE_THRESHOLD = 0.01;
 const VIDEO_STUCK_MS = 9000;
 const VIDEO_NO_CHANGE_MS = 12000;
 const VIDEO_MONITOR_GRACE_MS = 3000;
@@ -1027,7 +1027,7 @@ function getAudioQualityThresholds() {
 function getAudioQualityWarning(audioQuality) {
   if (!audioQuality || audioQuality.rms === null || audioQuality.peak === null) return null;
 
-  if (audioQuality.clippingRate >= AUDIO_QC_CLIPPING_RATE_THRESHOLD || audioQuality.peak >= 0.999) {
+  if (audioQuality.clippingRate >= AUDIO_QC_CLIPPING_RATE_THRESHOLD) {
     return 'Audio level is too high. Please move slightly farther away.';
   }
 
