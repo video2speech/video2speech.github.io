@@ -27,7 +27,7 @@ Can you help me with this please?
 I want to get up.
 What can the doctor do for me?
 When can I eat this?
-What do I need to turn off?
+I need it off now.
 I need you to help me out.
 Yes, I need help.
 Can you put this down for me?
@@ -40,10 +40,10 @@ I want you to stop here.
 Can I drink water with this?
 Please come here and help me.
 Please help me drink water.
-Can you help me to the bathroom?
+Can you help me go to the bathroom?
 Can you help me with the pain?
 Can you put it there?
-Can you turn it up more please?
+Please turn it up.
 Can the doctor come with you?
 No, I do not feel good.
 That is bad for me.
@@ -54,7 +54,7 @@ Do I have to go to the bathroom?
 Can you come with me?
 I want the doctor to come here.
 Can I turn this off?
-I need this off me.
+I need to get this off me.
 I feel good when you come here.
 You can help me feel good.
 I feel bad with this on.
@@ -69,7 +69,7 @@ When can the doctor come to me?
 Where do I need to go?
 Can you put this on me?
 I want more water to drink.
-Can you please turn it up more?
+Can you turn that up for me?
 I need the doctor.
 Can I go out with you?
 When can the doctor come?
@@ -139,10 +139,10 @@ Yes, I feel good.
 When can you come here?
 Please put this on me.
 Where can I get help with this?
-This is good on me.
+Yes, I like it on.
 I want more to eat.
 I do not want you to stop.
-I want to get out with you.
+I want to get out now.
 No, please do not help me.
 No, put it there please.
 Can you come with the doctor?
@@ -166,7 +166,7 @@ Can I have more water please?
 Can you please help me down?
 Do you want me to eat?
 Please get the doctor now.
-I like to go there with you.
+I want to go there with you.
 Help me get down here.
 Please turn this off and help me.
 Can you help me get up?
@@ -183,7 +183,7 @@ Please put it up for me.
 I feel good when you help.
 Can I eat it here?
 I want you here with the doctor.
-Can you help me to eat?
+Can you help me eat this?
 Please turn this on.
 I like it there.
 I want to do it with you.
@@ -287,8 +287,8 @@ Please stop here for now.
 I want to drink water please.
 I do not have pain.
 Can you come to the bathroom?
-Yes, I want to go out with you.
-Where can you get the water?
+Yes, I want to go out.
+Where can you get water for me?
 The doctor is here now.
 What can I drink with this?
 No, I do not need the bathroom.
@@ -307,7 +307,7 @@ Can I talk with you?
 You are good.
 Please stay with me.
 Please turn the light on.
-Can I have time?
+Can I have more time?
 I feel cold here.
 Please stop the noise.
 Please get the nurse for me.
@@ -317,10 +317,10 @@ Please get clothes for me.
 I need the walker.
 Can you put this on the table?
 Please lower it for me.
-Can you help with the shirt?
+Can you help me with the shirt?
 I can see you.
 I want to sit here.
-Please put this on the arm.
+Please put this on the tray.
 Please wait here.
 I need therapy.
 Can you turn the radio on?
@@ -338,9 +338,9 @@ Please tell someone to come.
 This is ok.
 Can you raise it please?
 I want to call home.
-The computer is not good.
+The computer is not working.
 Can you close this for me?
-Can you help me to bed?
+Can you help me get to bed?
 Can I eat lunch here?
 I like music.
 Can you open it?
