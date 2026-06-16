@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '103';
+  const APP_URL_VERSION = '105';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=103"></script>
+<script src="vendor/jszip.min.js?v=105"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -296,7 +296,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 103</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 105</span>
     </div>
   </div>
 
@@ -501,8 +501,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '103';
-const MATERIAL_CACHE_VERSION = 'materials_v103';
+const APP_VERSION = '105';
+const MATERIAL_CACHE_VERSION = 'materials_v105';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -2165,9 +2165,9 @@ async function startWarmupDemoTutorial() {
     message: 'Before recording the first warm-up sentence, confirm these steps.',
     okText: 'Continue',
     checklist: [
-      'Press Space on the keyboard or click Start/Stop on the page to start recording the sentence.',
+      'Press Space on the keyboard or click Start on the page to start recording the sentence.',
       'While recording, check that the audio waveform is moving.',
-      'When the sentence is finished, press Space again or click Start/Stop to stop recording.'
+      'When the sentence is finished, press Space again or click Stop to stop recording.'
     ]
   });
 }
@@ -2181,7 +2181,7 @@ async function runWarmupDemoStepAfterAdvance(saveIndex) {
       'Confirm that the audio waveform moved during your recording.',
       'Audio Check'
     );
-    await showAlert('You can now try again.', 'Next Practice');
+    await showAlert('You can now proceed to try one more sentence.', 'Next Practice');
     return;
   }
 
@@ -2189,9 +2189,10 @@ async function runWarmupDemoStepAfterAdvance(saveIndex) {
     if (warmupTutorialState.redoPracticeStarted && !warmupTutorialState.finalInstructionsShown) {
       warmupTutorialState.finalInstructionsShown = true;
       await showAlert(
-        'Every 50 recordings, the page will remind you to save. When the reminder appears, click OK and choose where to save the ZIP file. You can also click Save All before closing the page.',
+        'Every 50 recordings, the page will remind you to save. When the reminder appears, click OK and choose where to save the ZIP file. You can also click Save All before closing the page.\n\nClick OK now to try the automatic Save All reminder, choose a save location, and check that the ZIP file is saved successfully.',
         'Saving Recordings'
       );
+      await downloadAllStoredVideos({ skipConfirm: true, allowRecordingSavePending: true });
       await showAlert(
         'The demonstration is finished. Please complete the remaining three warm-up sentences. After warm-up, formal recording will begin.',
         'Demo Complete'
