@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '101';
+  const APP_URL_VERSION = '103';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=101"></script>
+<script src="vendor/jszip.min.js?v=103"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -214,9 +214,11 @@
         <canvas id="audioWaveform" width="185" height="104"></canvas>
       </div>
     </div>
-    <div id="initCameraOverlay" style="position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: rgba(0, 0, 0, 0.92); padding: 52px 48px; border-radius: 24px; text-align: center; max-width: 920px; width: 94%; box-shadow: 0 10px 42px rgba(0,0,0,0.56);">
+    <div id="initCameraOverlay" style="position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 28px; background: rgba(0, 0, 0, 0.78); backdrop-filter: blur(2px);">
+      <div style="background: rgba(0, 0, 0, 0.94); padding: 52px 48px; border-radius: 24px; text-align: center; max-width: 920px; width: 94%; box-shadow: 0 14px 48px rgba(0,0,0,0.62);">
       <p style="color: #90EE90; font-size: 2.2rem; line-height: 1.18; margin: 0 0 22px 0; font-weight: 700;">Thank you so much for participating today!!</p>
       <p style="color: #f2f2f2; font-size: 1.42rem; line-height: 1.35; margin: 0 0 28px 0; font-weight: 560;">Now to get started, choose Warm-up or Bypass warm-up, then click Initialize Camera + Microphone.</p>
+      <p style="color: #d7d7d7; font-size: 1.08rem; line-height: 1.42; margin: -14px 0 28px 0;">If this is your first time using this page, keep Warm-up selected. To skip warm-up and begin formal recording directly, select Bypass warm-up.</p>
       <div class="row" style="justify-content: center; gap: 16px; margin-bottom: 30px;">
         <label style="font-size: 1.16rem; color: #f4f4f4; font-weight: 650; border: 1px solid rgba(129, 199, 132, 0.64); border-radius: 14px; padding: 14px 20px; background: rgba(129, 199, 132, 0.16); cursor: pointer;">
           <input type="radio" id="startupWarmupMode" name="startupMode" value="warmup" checked style="width: auto; margin-right: 8px; transform: scale(1.2);">
@@ -228,6 +230,7 @@
         </label>
       </div>
       <button id="init" style="font-size: 1.72rem; padding: 20px 38px; background: linear-gradient(135deg, #81C784, #66BB6A); color: white; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; box-shadow: 0 5px 18px rgba(129, 199, 132, 0.42); transition: all 0.3s ease;">🎥 Initialize Camera + Microphone</button>
+      </div>
     </div>
     <div class="row" style="margin:16px auto 0 auto; justify-content: center; gap: 40px; width: 276px;">
       <button id="downloadAll" style="font-size: 0.96rem; padding: 12px 8px; width: 104px; box-sizing: border-box; background: #2f363c; color: #b7bec4; border: 1px solid #444d55; border-radius: 8px; cursor: pointer; margin: 0; opacity: 0.64; display:none">💾 Save All</button>
@@ -293,7 +296,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 101</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 103</span>
     </div>
   </div>
 
@@ -403,8 +406,7 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
         event.preventDefault();
         event.stopPropagation();
       }
-      if (event.key === 'Escape') close(confirm ? false : true);
-      if (event.key === 'Enter' || event.code === 'Space') close(true);
+      if (event.key === 'Escape' && confirm) close(false);
     };
 
     okButton.onclick = () => close(true);
@@ -499,8 +501,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '101';
-const MATERIAL_CACHE_VERSION = 'materials_v101';
+const APP_VERSION = '103';
+const MATERIAL_CACHE_VERSION = 'materials_v103';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -2102,12 +2104,12 @@ function playRecordingStartSound() {
     
     // Set volume envelope for a quick "beep"
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+    gainNode.gain.linearRampToValueAtTime(0.18, audioContext.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.06);
     
     // Start and stop the sound
     oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
+    oscillator.stop(audioContext.currentTime + 0.06);
   } catch (error) {
     // Silently fail if audio context is not available
     console.log('Audio not available:', error);
@@ -2132,12 +2134,12 @@ function playRecordingStopSound() {
     
     // Set volume envelope for a slightly longer "stop" sound
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+    gainNode.gain.linearRampToValueAtTime(0.18, audioContext.currentTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.06);
     
     // Start and stop the sound
     oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.3);
+    oscillator.stop(audioContext.currentTime + 0.06);
   } catch (error) {
     // Silently fail if audio context is not available
     console.log('Audio not available:', error);
@@ -2436,7 +2438,7 @@ el('resolution').onchange = () => {
 
   if (stream) {
     el('resolutionInfo').textContent = 'Resolution changed, please reinitialize camera';
-    el('initCameraOverlay').style.display = 'block';
+    el('initCameraOverlay').style.display = 'flex';
     el('recordingStatus').style.display = 'none';
     stopCurrentStream({ clearPreview: true });
   }
@@ -2454,7 +2456,7 @@ el('quality').onchange = () => {
 
   if (stream) {
     el('resolutionInfo').textContent = 'Recording quality changed, please reinitialize camera';
-    el('initCameraOverlay').style.display = 'block';
+    el('initCameraOverlay').style.display = 'flex';
     el('recordingStatus').style.display = 'none';
     stopCurrentStream({ clearPreview: true });
   }
@@ -2472,7 +2474,7 @@ el('frameRate').onchange = () => {
 
   if (stream) {
     el('resolutionInfo').textContent = 'Recording frame rate changed, please reinitialize camera';
-    el('initCameraOverlay').style.display = 'block';
+    el('initCameraOverlay').style.display = 'flex';
     el('recordingStatus').style.display = 'none';
     stopCurrentStream({ clearPreview: true });
   }
@@ -2490,7 +2492,7 @@ el('audioMode').onchange = () => {
 
   if (stream) {
     el('resolutionInfo').textContent = 'Audio mode changed, please reinitialize camera';
-    el('initCameraOverlay').style.display = 'block';
+    el('initCameraOverlay').style.display = 'flex';
     el('recordingStatus').style.display = 'none';
     stopCurrentStream({ clearPreview: true });
   }
