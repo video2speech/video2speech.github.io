@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '105';
+  const APP_URL_VERSION = '107';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=105"></script>
+<script src="vendor/jszip.min.js?v=107"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -147,6 +147,87 @@
     font-size: 1rem;
     line-height: 1.45;
     white-space: pre-line;
+  }
+
+  .modal-message-block {
+    padding: 12px 14px;
+    border: 1px solid rgba(159, 193, 248, 0.2);
+    border-left: 4px solid rgba(159, 193, 248, 0.72);
+    border-radius: 12px;
+    background: rgba(159, 193, 248, 0.07);
+  }
+
+  .modal-message-emphasis {
+    color: #9fc1f8;
+    font-weight: 800;
+  }
+
+  .modal-message-action {
+    color: #8ee29a;
+    font-weight: 800;
+  }
+
+  .modal-message-warning {
+    color: #ffd38a;
+    font-weight: 800;
+  }
+
+  .modal-message-key {
+    display: inline-block;
+    padding: 1px 7px 2px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #f7f7f7;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .modal-checklist {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .modal-checklist-item {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 12px;
+    align-items: start;
+    cursor: pointer;
+    color: #f1f1f1;
+    line-height: 1.38;
+    padding: 12px 13px;
+    border: 1px solid rgba(155, 184, 255, 0.25);
+    border-left: 4px solid #9fc1f8;
+    border-radius: 12px;
+    background: rgba(159, 193, 248, 0.08);
+  }
+
+  .modal-checklist-item:nth-child(2n) {
+    border-left-color: #8ee29a;
+    background: rgba(142, 226, 154, 0.08);
+  }
+
+  .modal-checklist-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+    accent-color: #9fc1f8;
+  }
+
+  .modal-checklist-text {
+    display: block;
+  }
+
+  .modal-checklist-lead {
+    color: #9fc1f8;
+    font-weight: 800;
+  }
+
+  .modal-checklist-item:nth-child(2n) .modal-checklist-lead {
+    color: #8ee29a;
   }
 
   .modal-actions {
@@ -296,7 +377,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 105</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 107</span>
     </div>
   </div>
 
@@ -316,6 +397,35 @@ const el = id => document.getElementById(id);
 let modalOpen = false;
 const isModalOpen = () => modalOpen;
 
+const modalEmphasis = text => ({ text, className: 'modal-message-emphasis' });
+const modalAction = text => ({ text, className: 'modal-message-action' });
+const modalWarning = text => ({ text, className: 'modal-message-warning' });
+const modalKey = text => ({ text, tag: 'kbd', className: 'modal-message-key' });
+
+function appendModalMessageContent(parent, content) {
+  const messageBlock = document.createElement('div');
+  messageBlock.className = 'modal-message-block';
+  const parts = Array.isArray(content) ? content : [content];
+
+  parts.forEach(part => {
+    if (part === null || part === undefined) return;
+    if (typeof part === 'string' || typeof part === 'number') {
+      messageBlock.appendChild(document.createTextNode(String(part)));
+      return;
+    }
+
+    if (typeof part === 'object') {
+      const tagName = part.tag === 'kbd' ? 'kbd' : (part.tag === 'strong' ? 'strong' : 'span');
+      const node = document.createElement(tagName);
+      node.textContent = part.text || '';
+      if (part.className) node.className = part.className;
+      messageBlock.appendChild(node);
+    }
+  });
+
+  parent.appendChild(messageBlock);
+}
+
 function showModal({ title = 'Notice', message = '', confirm = false, okText = 'OK', cancelText = 'Cancel', checklist = [] }) {
   return new Promise(resolve => {
     const modal = el('appModal');
@@ -323,15 +433,22 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
     const messageEl = el('modalMessage');
     const okButton = el('modalOk');
     const cancelButton = el('modalCancel');
-    const checklistItems = Array.isArray(checklist) ? checklist.filter(Boolean) : [];
+    const normalizeChecklistItem = item => {
+      if (!item) return null;
+      if (typeof item === 'string') return { text: item };
+      if (typeof item === 'object') return {
+        lead: item.lead || '',
+        detail: item.detail || '',
+        text: item.text || ''
+      };
+      return null;
+    };
+    const checklistItems = Array.isArray(checklist) ? checklist.map(normalizeChecklistItem).filter(Boolean) : [];
+    const hasMessage = Array.isArray(message) ? message.length > 0 : Boolean(message);
 
     titleEl.textContent = title;
     messageEl.textContent = '';
-    if (message) {
-      const messageBlock = document.createElement('div');
-      messageBlock.textContent = message;
-      messageEl.appendChild(messageBlock);
-    }
+    if (hasMessage) appendModalMessageContent(messageEl, message);
     okButton.textContent = okText;
     cancelButton.textContent = cancelText;
     cancelButton.style.display = confirm ? 'inline-block' : 'none';
@@ -347,29 +464,28 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
 
     if (checklistItems.length) {
       const list = document.createElement('div');
-      list.style.display = 'grid';
-      list.style.gap = '12px';
-      list.style.marginTop = message ? '18px' : '0';
+      list.className = 'modal-checklist';
+      if (!hasMessage) list.style.marginTop = '0';
       checklistItems.forEach((item, index) => {
         const label = document.createElement('label');
-        label.style.display = 'grid';
-        label.style.gridTemplateColumns = '24px 1fr';
-        label.style.gap = '10px';
-        label.style.alignItems = 'start';
-        label.style.cursor = 'pointer';
-        label.style.color = '#f1f1f1';
-        label.style.lineHeight = '1.38';
+        label.className = 'modal-checklist-item';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.style.width = '18px';
-        checkbox.style.height = '18px';
-        checkbox.style.marginTop = '2px';
-        checkbox.setAttribute('aria-label', `Step ${index + 1}`);
+        checkbox.setAttribute('aria-label', item.lead || item.text || `Step ${index + 1}`);
         checkbox.addEventListener('change', updateChecklistState);
 
         const text = document.createElement('span');
-        text.textContent = item;
+        text.className = 'modal-checklist-text';
+        if (item.lead) {
+          const lead = document.createElement('strong');
+          lead.className = 'modal-checklist-lead';
+          lead.textContent = item.lead;
+          text.appendChild(lead);
+          text.appendChild(document.createTextNode(item.detail ? ` ${item.detail}` : ''));
+        } else {
+          text.textContent = item.text;
+        }
 
         label.appendChild(checkbox);
         label.appendChild(text);
@@ -501,8 +617,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '105';
-const MATERIAL_CACHE_VERSION = 'materials_v105';
+const APP_VERSION = '107';
+const MATERIAL_CACHE_VERSION = 'materials_v107';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -528,6 +644,7 @@ const VIDEO_MONITOR_GRACE_MS = 3000;
 const VIDEO_SIGNATURE_DELTA = 0.03;
 const MATERIAL_BOX_MIN_HEIGHT = 236;
 const MATERIAL_BOX_BADGE_RESERVED = 58;
+const WARMUP_DEMO_REDO_TARGET_INDEX = 1;
 let storageBlocked = false;
 let saveAllInProgress = false;
 let warmupDemoActive = false;
@@ -2153,21 +2270,82 @@ async function waitForRecordingSaveToSettle(timeoutMs = 2000) {
   }
 }
 
+function getWarmupSentenceOrdinal(sentenceIndex) {
+  const ordinals = ['first', 'second', 'third', 'fourth', 'fifth'];
+  return ordinals[sentenceIndex] || `warm-up #${sentenceIndex + 1}`;
+}
+
+function getLeftArrowPressText(pressCount) {
+  if (pressCount === 1) return 'once';
+  if (pressCount === 2) return 'twice';
+  return `${pressCount} times`;
+}
+
+function shouldPromptRedoPracticeReturn() {
+  return (
+    warmupDemoActive
+    && warmupTutorialState.redoStepShown
+    && !warmupTutorialState.finalInstructionsShown
+    && idx > WARMUP_DEMO_REDO_TARGET_INDEX
+    && idx < warmupSentenceCount
+  );
+}
+
+function markRedoPracticeTargetReached() {
+  if (
+    warmupDemoActive
+    && warmupTutorialState.redoStepShown
+    && !warmupTutorialState.finalInstructionsShown
+    && idx === WARMUP_DEMO_REDO_TARGET_INDEX
+  ) {
+    warmupTutorialState.redoPracticeStarted = true;
+  }
+}
+
+async function promptRedoPracticeReturnToTarget() {
+  if (!shouldPromptRedoPracticeReturn()) return false;
+
+  const pressCount = idx - WARMUP_DEMO_REDO_TARGET_INDEX;
+  await showAlert([
+    'You are on the ',
+    modalWarning(`${getWarmupSentenceOrdinal(idx)} warm-up sentence`),
+    '. For this redo practice, press ',
+    modalKey('Left Arrow'),
+    ` ${getLeftArrowPressText(pressCount)} to return to the `,
+    modalEmphasis('second warm-up sentence'),
+    ', then record that sentence again.'
+  ], 'Redo Practice');
+  return true;
+}
+
 async function startWarmupDemoTutorial() {
   if (!warmupDemoActive || warmupTutorialState.introShown) return;
   warmupTutorialState.introShown = true;
-  await showAlert(
-    'Position the camera below chin level and angle it upward so your mouth, throat, and cheeks are visible.',
-    'Camera Position'
-  );
   await showModal({
     title: 'How to Record',
-    message: 'Before recording the first warm-up sentence, confirm these steps.',
+    message: [
+      'Before recording the ',
+      modalEmphasis('first warm-up sentence'),
+      ', confirm these steps.'
+    ],
     okText: 'Continue',
     checklist: [
-      'Press Space on the keyboard or click Start on the page to start recording the sentence.',
-      'While recording, check that the audio waveform is moving.',
-      'When the sentence is finished, press Space again or click Stop to stop recording.'
+      {
+        lead: 'Position the camera',
+        detail: 'below chin level and angle it upward so your mouth, throat, and cheeks are visible.'
+      },
+      {
+        lead: 'Start recording',
+        detail: 'by pressing Space on the keyboard or clicking Start on the page.'
+      },
+      {
+        lead: 'Check the waveform',
+        detail: 'while recording to make sure the audio waveform is moving.'
+      },
+      {
+        lead: 'Stop recording',
+        detail: 'when the sentence is finished by pressing Space again or clicking Stop.'
+      }
     ]
   });
 }
@@ -2178,10 +2356,18 @@ async function runWarmupDemoStepAfterAdvance(saveIndex) {
   if (saveIndex === 0 && !warmupTutorialState.secondStepShown) {
     warmupTutorialState.secondStepShown = true;
     await showAlert(
-      'Confirm that the audio waveform moved during your recording.',
+      [
+        'Confirm that the ',
+        modalEmphasis('audio waveform moved'),
+        ' during your recording.'
+      ],
       'Audio Check'
     );
-    await showAlert('You can now proceed to try one more sentence.', 'Next Practice');
+    await showAlert([
+      'You can now proceed to try ',
+      modalEmphasis('one more sentence'),
+      '.'
+    ], 'Next Practice');
     return;
   }
 
@@ -2189,12 +2375,31 @@ async function runWarmupDemoStepAfterAdvance(saveIndex) {
     if (warmupTutorialState.redoPracticeStarted && !warmupTutorialState.finalInstructionsShown) {
       warmupTutorialState.finalInstructionsShown = true;
       await showAlert(
-        'Every 50 recordings, the page will remind you to save. When the reminder appears, click OK and choose where to save the ZIP file. You can also click Save All before closing the page.\n\nClick OK now to try the automatic Save All reminder, choose a save location, and check that the ZIP file is saved successfully.',
+        [
+          modalWarning('Every 50 recordings'),
+          ', the page will remind you to save. When the reminder appears, click ',
+          modalAction('OK'),
+          ' and choose where to save the ',
+          modalEmphasis('ZIP file'),
+          '. You can also click ',
+          modalAction('Save All'),
+          ' before closing the page.\n\nClick ',
+          modalAction('OK'),
+          ' now to try the automatic Save All reminder, choose a save location, and check that the ',
+          modalEmphasis('ZIP file is saved successfully'),
+          '.'
+        ],
         'Saving Recordings'
       );
       await downloadAllStoredVideos({ skipConfirm: true, allowRecordingSavePending: true });
       await showAlert(
-        'The demonstration is finished. Please complete the remaining three warm-up sentences. After warm-up, formal recording will begin.',
+        [
+          'The demonstration is finished. Please complete the ',
+          modalEmphasis('remaining three warm-up sentences'),
+          '. After warm-up, ',
+          modalAction('formal recording'),
+          ' will begin.'
+        ],
         'Demo Complete'
       );
       return;
@@ -2203,14 +2408,32 @@ async function runWarmupDemoStepAfterAdvance(saveIndex) {
     if (!warmupTutorialState.redoStepShown) {
       warmupTutorialState.redoStepShown = true;
       await showAlert(
-        'If you make a mistake, stop the recording first. Then press Left Arrow on the keyboard or click Redo Last on the page to redo the previous sentence.',
+        [
+          'If you make a mistake, ',
+          modalWarning('stop the recording first'),
+          '. Then press ',
+          modalKey('Left Arrow'),
+          ' on the keyboard or click ',
+          modalAction('Redo Last'),
+          ' on the page to redo the previous sentence.'
+        ],
         'Redo Practice'
       );
       await showAlert(
-        'Now press Left Arrow to go back to the previous sentence, then record that sentence again as practice for correcting a mistake.',
+        [
+          'Now press ',
+          modalKey('Left Arrow'),
+          ' to go back to the ',
+          modalEmphasis('previous sentence'),
+          ', then record that sentence again as practice for correcting a mistake.'
+        ],
         'Try Redo'
       );
     }
+  }
+
+  if (saveIndex >= 2) {
+    await promptRedoPracticeReturnToTarget();
   }
 }
 
@@ -2321,12 +2544,14 @@ el('next').onclick = async () => {
     idx = Math.min(idx+1, sentences.length-1); 
     isRedo = false; // Reset redo flag
     await updateSentenceView(); 
+    markRedoPracticeTargetReached();
     // Save progress
     try {
       await saveProgressForCurrentFlow(idx);
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
+    await promptRedoPracticeReturnToTarget();
   } 
 };
 
@@ -2336,12 +2561,14 @@ el('prev').onclick = async () => {
     idx = Math.max(idx-1, 0); 
     isRedo = false; // Reset redo flag
     await updateSentenceView(); 
+    markRedoPracticeTargetReached();
     // Save progress
     try {
       await saveProgressForCurrentFlow(idx);
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
+    await promptRedoPracticeReturnToTarget();
   } 
 };
 
@@ -2352,6 +2579,7 @@ el('skip').onclick = async () => {
     idx++;
     isRedo = false; // Reset redo flag
     await updateSentenceView();
+    markRedoPracticeTargetReached();
     // Save progress
     try {
       await saveProgressForCurrentFlow(idx);
@@ -2359,6 +2587,7 @@ el('skip').onclick = async () => {
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
+    await promptRedoPracticeReturnToTarget();
   } else if (idx >= sentences.length - 1) {
     await showAlert('This is the last sentence!');
   }
@@ -2391,12 +2620,14 @@ el('redo').onclick = async () => {
     isRedo = true; // Set redo flag for video naming
     console.log(`Redo last sentence ${idx + 1}: ${sentences[idx]}`);
     await updateSentenceView();
+    markRedoPracticeTargetReached();
     // Save progress
     try {
       await saveProgressForCurrentFlow(idx);
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
+    await promptRedoPracticeReturnToTarget();
   } else {
     console.log('Cannot redo: already at first sentence or no sentences available');
   }
@@ -2707,6 +2938,8 @@ async function startRecording() {
     return;
   }
   if (recording) return;
+  markRedoPracticeTargetReached();
+  if (await promptRedoPracticeReturnToTarget()) return;
   recordingStopPending = false;
   const blockState = await refreshStorageBlockState();
   if (blockState.blocked || storageBlocked) {
