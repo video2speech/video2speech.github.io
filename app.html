@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '107';
+  const APP_URL_VERSION = '110';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=107"></script>
+<script src="vendor/jszip.min.js?v=110"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -377,7 +377,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 107</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 110</span>
     </div>
   </div>
 
@@ -402,15 +402,13 @@ const modalAction = text => ({ text, className: 'modal-message-action' });
 const modalWarning = text => ({ text, className: 'modal-message-warning' });
 const modalKey = text => ({ text, tag: 'kbd', className: 'modal-message-key' });
 
-function appendModalMessageContent(parent, content) {
-  const messageBlock = document.createElement('div');
-  messageBlock.className = 'modal-message-block';
+function appendModalInlineContent(parent, content) {
   const parts = Array.isArray(content) ? content : [content];
 
   parts.forEach(part => {
     if (part === null || part === undefined) return;
     if (typeof part === 'string' || typeof part === 'number') {
-      messageBlock.appendChild(document.createTextNode(String(part)));
+      parent.appendChild(document.createTextNode(String(part)));
       return;
     }
 
@@ -419,10 +417,15 @@ function appendModalMessageContent(parent, content) {
       const node = document.createElement(tagName);
       node.textContent = part.text || '';
       if (part.className) node.className = part.className;
-      messageBlock.appendChild(node);
+      parent.appendChild(node);
     }
   });
+}
 
+function appendModalMessageContent(parent, content) {
+  const messageBlock = document.createElement('div');
+  messageBlock.className = 'modal-message-block';
+  appendModalInlineContent(messageBlock, content);
   parent.appendChild(messageBlock);
 }
 
@@ -482,9 +485,12 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
           lead.className = 'modal-checklist-lead';
           lead.textContent = item.lead;
           text.appendChild(lead);
-          text.appendChild(document.createTextNode(item.detail ? ` ${item.detail}` : ''));
+          if (item.detail) {
+            text.appendChild(document.createTextNode(' '));
+            appendModalInlineContent(text, item.detail);
+          }
         } else {
-          text.textContent = item.text;
+          appendModalInlineContent(text, item.text);
         }
 
         label.appendChild(checkbox);
@@ -617,8 +623,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '107';
-const MATERIAL_CACHE_VERSION = 'materials_v107';
+const APP_VERSION = '110';
+const MATERIAL_CACHE_VERSION = 'materials_v110';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -1988,7 +1994,9 @@ function startWaveformVisualization() {
 
     const sampleIntervalMs = 1000 / WAVEFORM_POINTS_PER_SECOND;
     if (!waveformLastSampleAt) waveformLastSampleAt = timestamp;
-    if (timestamp - waveformLastSampleAt >= sampleIntervalMs) {
+    const waveformDisplayAndAnalysisReady = timestamp - startedAt >= WAVEFORM_DISPLAY_DELAY_MS;
+    const shouldSample = timestamp - waveformLastSampleAt >= sampleIntervalMs || (waveformDisplayAndAnalysisReady && waveformHistory.length === 0);
+    if (shouldSample) {
       let peak = 0;
       let signature = 0;
       let frameSumSquares = 0;
@@ -2003,7 +2011,6 @@ function startWaveformVisualization() {
       }
       const normalizedPeak = Math.min(1, peak);
       const visualPeak = Math.min(1, normalizedPeak * WAVEFORM_VISUAL_GAIN);
-      const waveformDisplayAndAnalysisReady = timestamp - startedAt >= WAVEFORM_DISPLAY_DELAY_MS;
       if (waveformDisplayAndAnalysisReady) {
         if (normalizedPeak >= WAVEFORM_MIN_SIGNAL_PEAK) {
           waveformLastAudioActivityAt = timestamp;
@@ -2336,15 +2343,31 @@ async function startWarmupDemoTutorial() {
       },
       {
         lead: 'Start recording',
-        detail: 'by pressing Space on the keyboard or clicking Start on the page.'
+        detail: [
+          'by pressing ',
+          modalKey('Space'),
+          ' on the keyboard or clicking ',
+          modalAction('Start'),
+          ' on the page.'
+        ]
       },
       {
         lead: 'Check the waveform',
-        detail: 'while recording to make sure the audio waveform is moving.'
+        detail: [
+          'while recording to make sure the ',
+          modalEmphasis('audio waveform'),
+          ' is moving.'
+        ]
       },
       {
         lead: 'Stop recording',
-        detail: 'when the sentence is finished by pressing Space again or clicking Stop.'
+        detail: [
+          'when the sentence is finished by pressing ',
+          modalKey('Space'),
+          ' again or clicking ',
+          modalAction('Stop'),
+          '.'
+        ]
       }
     ]
   });
@@ -2459,7 +2482,10 @@ async function finishWarmupDemo() {
   resetCompletionView();
   await saveProgress(currentSentenceSet, idx);
   await updateSentenceView();
-  await showAlert('Warm-up complete. The formal recording will begin now.');
+  await showAlert([
+    'Warm-up complete. ',
+    modalAction('The formal recording will begin now.')
+  ]);
 }
 
 async function initializeCameraAndMicrophone({ startupMode = 'resume' } = {}) {
@@ -3299,7 +3325,10 @@ async function saveBlob(){
       } else {
         await updateSentenceView();
         if (completedWarmup) {
-          await showAlert('Warm-up complete. The formal recording will begin now.');
+          await showAlert([
+            'Warm-up complete. ',
+            modalAction('The formal recording will begin now.')
+          ]);
         }
       }
 
