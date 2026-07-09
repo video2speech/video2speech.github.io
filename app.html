@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '110';
+  const APP_URL_VERSION = '111';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=110"></script>
+<script src="vendor/jszip.min.js?v=111"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -377,7 +377,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 110</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 111</span>
     </div>
   </div>
 
@@ -401,6 +401,31 @@ const modalEmphasis = text => ({ text, className: 'modal-message-emphasis' });
 const modalAction = text => ({ text, className: 'modal-message-action' });
 const modalWarning = text => ({ text, className: 'modal-message-warning' });
 const modalKey = text => ({ text, tag: 'kbd', className: 'modal-message-key' });
+
+function isTextEntryTarget(target) {
+  if (!target || !(target instanceof Element)) return false;
+  const editable = target.closest('textarea, select, [contenteditable="true"], [contenteditable=""]');
+  if (editable) return true;
+  const input = target.closest('input');
+  if (!input) return false;
+  const type = (input.getAttribute('type') || 'text').toLowerCase();
+  return [
+    'text', 'search', 'url', 'tel', 'email', 'password',
+    'number', 'date', 'datetime-local', 'month', 'time', 'week'
+  ].includes(type);
+}
+
+function focusShortcutSurface() {
+  if (modalOpen || !document.hasFocus()) return;
+  const target = el('currentText');
+  if (!target) return;
+  if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+  try {
+    target.focus({ preventScroll: true });
+  } catch (error) {
+    target.focus();
+  }
+}
 
 function appendModalInlineContent(parent, content) {
   const parts = Array.isArray(content) ? content : [content];
@@ -513,6 +538,7 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
       modal.onclick = null;
       document.removeEventListener('keydown', handleKeydown, true);
       if (typeof refreshControlLockState === 'function') refreshControlLockState();
+      setTimeout(focusShortcutSurface, 0);
       resolve(result);
     };
 
@@ -623,8 +649,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '110';
-const MATERIAL_CACHE_VERSION = 'materials_v110';
+const APP_VERSION = '111';
+const MATERIAL_CACHE_VERSION = 'materials_v111';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const EXPECTED_FORMAL_SENTENCE_COUNT = 350;
 const STORAGE_USAGE_THRESHOLD = 0.78;
@@ -2536,8 +2562,8 @@ async function initializeCameraAndMicrophone({ startupMode = 'resume' } = {}) {
   // Start monitoring stream health
   startStreamHealthMonitoring();
 
-  // Remove focus from button to allow keyboard shortcuts
-  el('init').blur();
+  // Return focus to the page so keyboard shortcuts work after initialization.
+  focusShortcutSurface();
 
   if (warmupDemoActive) {
     await startWarmupDemoTutorial();
@@ -2634,7 +2660,7 @@ el('redo').onclick = async () => {
     } catch (error) {
       console.error('Failed to save progress:', error);
     }
-    el('redo').blur();
+    focusShortcutSurface();
     return;
   }
   // Go back to previous sentence
@@ -2659,7 +2685,7 @@ el('redo').onclick = async () => {
   }
   
   // Remove focus from button to allow keyboard shortcuts
-  el('redo').blur();
+  focusShortcutSurface();
 };
 
 // Update video mirror effect
@@ -2869,8 +2895,8 @@ async function downloadAllStoredVideos({ skipConfirm = false, allowRecordingSave
     
     console.log(`Downloaded ZIP file: ${zipFileName}`);
     
-    // Remove focus from button to restore keyboard shortcuts
-    el('downloadAll').blur();
+    // Return focus to the page so keyboard shortcuts work after saving.
+    focusShortcutSurface();
     
     // Delete all videos from storage
     await clearAllStoredVideos();
@@ -2906,7 +2932,7 @@ async function downloadAllStoredVideos({ skipConfirm = false, allowRecordingSave
     setSaveAllBusyState(false);
     el('downloadAll').textContent = '💾 Save All';
     refreshControlLockState();
-    el('downloadAll').blur(); // Remove focus to restore keyboard shortcuts
+    focusShortcutSurface();
   }
 }
 
@@ -3075,7 +3101,7 @@ async function startRecording() {
     setStartStopButtonState(true);
     
     // Remove focus from button to allow keyboard shortcuts
-    el('startStop').blur();
+    focusShortcutSurface();
     
   } catch (error) {
     console.error('Failed to start MediaRecorder:', error);
@@ -3089,7 +3115,7 @@ async function stopRecording() {
   if (mediaRecorder && recording) {
     recordingStopPending = true;
     refreshControlLockState();
-    el('startStop').blur();
+    focusShortcutSurface();
 
     recordingStopDelayTimer = setTimeout(async () => {
       recordingStopDelayTimer = null;
@@ -3115,7 +3141,7 @@ async function stopRecording() {
         cleanupRecording();
 
         // Remove focus from button to allow keyboard shortcuts
-        el('startStop').blur();
+        focusShortcutSurface();
 
         console.log('Recording stopped successfully');
       } catch (error) {
@@ -3124,7 +3150,7 @@ async function stopRecording() {
         console.error('Error stopping recording:', error);
         // Force cleanup even if stop failed
         cleanupRecording();
-        el('startStop').blur();
+        focusShortcutSurface();
         await showAlert('Error stopping recording: ' + error.message);
       }
     }, STOP_RECORDING_DELAY_MS);
@@ -3142,28 +3168,28 @@ el('startStop').onclick = () => {
 
 // Add keyboard shortcut support
 document.addEventListener('keydown', (event) => {
-  const isStopShortcut = event.code === 'Space' && recording;
+  const isSpaceShortcut = event.code === 'Space' || event.key === ' ';
+  const isLeftArrowShortcut = event.code === 'ArrowLeft' || event.key === 'ArrowLeft' || event.key === 'Left';
+  const isStopShortcut = isSpaceShortcut && recording;
   if (isInteractionBlocked({ allowRecording: isStopShortcut })) {
     event.preventDefault();
     return;
   }
 
-  // Only trigger when not focused on input elements
-  if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
-    
-    // Spacebar: Start/Stop recording
-    if (event.code === 'Space') {
-      event.preventDefault(); // Prevent page scrolling
-      el('startStop').click();
-    }
-    
-    // Left Arrow: Redo last sentence
-    else if (event.code === 'ArrowLeft') {
-      event.preventDefault(); // Prevent default behavior
-      
-      if (!recording) { // Only allow redo when not recording
-        el('redo').click();
-      }
+  if (isTextEntryTarget(event.target)) return;
+
+  // Spacebar: Start/Stop recording
+  if (isSpaceShortcut) {
+    event.preventDefault(); // Prevent page scrolling
+    el('startStop').click();
+  }
+
+  // Left Arrow: Redo last sentence
+  else if (isLeftArrowShortcut) {
+    event.preventDefault(); // Prevent default behavior
+
+    if (!recording) { // Only allow redo when not recording
+      el('redo').click();
     }
   }
 });
