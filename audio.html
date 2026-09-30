@@ -98,9 +98,10 @@
 
   <div class="card">
     <div class="row">
-      <label>Select Sentence Set</label>
+      <label for="sentenceSet">Select Sentence Set</label>
       <select id="sentenceSet" onchange="loadSentenceSet()">
-        <option value="daily_2026" selected>daily_2026</option>
+        <option value="Open_300sentences" selected>Open_300sentences</option>
+        <option value="50words_350sentences">50words_350sentences</option>
       </select>
       <button id="resetProgress" onclick="resetProgress()" style="margin-left: 8px;">Reset Progress</button>
       <button id="clearAll" style="margin-left: 8px;">Clear Storage</button>
@@ -119,6 +120,7 @@ let stream, mediaRecorder, chunks = [];
 let sentences = [];
 let idx = 0;
 let recording = false;
+let recordingSavePending = false;
 let recordingTimer = null; // Timer for auto-stop after 1 minute
 let recordingStartTime = null; // Track recording start time
 let timerInterval = null; // Timer display update interval
@@ -459,23 +461,26 @@ async function clearAllStoredAudios() {
 }
 
 // Sentence sets data
-const sentenceSets = {
-  'daily_2026': null
+const SENTENCE_SET_FILES = {
+  '50words_350sentences': { filename: 'newset/350_nonrepeating_sentences.txt', count: 350 },
+  'Open_300sentences': { filename: 'newset/sentence_set_style.txt', count: 300, legacyProgressKey: 'daily_2026' }
 };
+const sentenceSets = {};
 
-let currentSentenceSet = 'daily_2026';
+let currentSentenceSet = 'Open_300sentences';
+let sentenceSetLoadRequest = 0;
+let sentenceSetLoadedRequest = 0;
 
 // Load sentence set file
-async function loadSentenceFile(filename) {
-  try {
-    const response = await fetch(filename);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const text = await response.text();
-    return text.split('\n').map(s => s.trim()).filter(Boolean);
-  } catch (error) {
-    console.error(`Failed to load sentence file (${filename}):`, error);
-    return null;
+async function loadSentenceFile(filename, expectedCount) {
+  const response = await fetch(filename, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`${filename}: HTTP ${response.status}`);
+  const text = await response.text();
+  const lines = text.split('\n').map(s => s.trim()).filter(Boolean);
+  if (lines.length !== expectedCount) {
+    throw new Error(`${filename}: expected ${expectedCount} sentences, got ${lines.length}`);
   }
+  return lines;
 }
 
 function setMaterialBoxFixedHeightByLongestSentence() {
@@ -535,25 +540,63 @@ function scheduleMaterialBoxResize() {
 }
 
 
+async function getSentenceSetProgress(selected) {
+  let progress = await getProgress(selected);
+  const legacyKey = SENTENCE_SET_FILES[selected].legacyProgressKey;
+  if (!progress && legacyKey) {
+    const legacyProgress = await getProgress(legacyKey);
+    if (legacyProgress) {
+      progress = { ...legacyProgress, sentenceSet: selected };
+      await new Promise((resolve, reject) => {
+        const transaction = db.transaction(['progress'], 'readwrite');
+        const store = transaction.objectStore('progress');
+        store.put(progress);
+        store.delete(legacyKey);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      });
+    }
+  }
+  return progress;
+}
+
 // Load sentence set
 async function loadSentenceSet() {
+  if (recording || recordingSavePending || saveAllInProgress) {
+    el('sentenceSet').value = currentSentenceSet;
+    return;
+  }
   const selected = el('sentenceSet').value;
+  const config = SENTENCE_SET_FILES[selected];
+  const requestId = ++sentenceSetLoadRequest;
   currentSentenceSet = selected;
-  
-  const filename = 'newset/sentence_set_style.txt';
+  el('startStop').disabled = true;
   
   // Load sentences from cache or file
   if (!sentenceSets[selected]) {
-    sentenceSets[selected] = await loadSentenceFile(filename);
+    try {
+      sentenceSets[selected] = await loadSentenceFile(config.filename, config.count);
+    } catch (error) {
+      if (requestId !== sentenceSetLoadRequest) return;
+      console.error('Failed to load sentence set:', error);
+      sentences = [];
+      idx = 0;
+      await updateSentenceView();
+      alert(`Sentence set failed to load: ${error.message}`);
+      return;
+    }
   }
+  if (requestId !== sentenceSetLoadRequest) return;
   
   if (sentenceSets[selected]) {
     sentences = sentenceSets[selected];
+    isRedo = false;
     setMaterialBoxFixedHeightByLongestSentence();
     
     // Restore progress
     try {
-      const progress = await getProgress(selected);
+      const progress = await getSentenceSetProgress(selected);
+      if (requestId !== sentenceSetLoadRequest) return;
       if (progress && progress.currentIndex < sentences.length) {
         idx = progress.currentIndex;
         console.log(`Progress restored: sentence ${idx + 1}`);
@@ -561,10 +604,13 @@ async function loadSentenceSet() {
         idx = 0;
       }
     } catch (error) {
+      if (requestId !== sentenceSetLoadRequest) return;
       console.error('Failed to restore progress:', error);
       idx = 0;
     }
     
+    sentenceSetLoadedRequest = requestId;
+    el('startStop').disabled = false;
     await updateSentenceView();
   } else {
     sentences = [];
@@ -681,6 +727,7 @@ function cleanupRecording() {
   // Reset state
   recordingStartTime = null;
   recording = false;
+  el('sentenceSet').disabled = recordingSavePending;
   
   // Reset UI
   el('recordingStatus').textContent = 'Preparing';
@@ -1108,6 +1155,7 @@ el('clearAll').onclick = async () => {
 async function startRecording() {
   if (!stream) return alert('Please initialize microphone first!');
   if (recording) return;
+  if (sentenceSetLoadRequest !== sentenceSetLoadedRequest || !sentences.length) return;
   const blockState = await refreshStorageBlockState();
   if (blockState.blocked || storageBlocked) {
     alert(getStorageBlockedMessage(blockState.estimate));
@@ -1171,6 +1219,7 @@ async function startRecording() {
       console.error('MediaRecorder error:', event.error);
       alert('Recording error occurred: ' + event.error);
       recording = false;
+      recordingSavePending = false;
       cleanupRecording();
     };
     
@@ -1180,6 +1229,7 @@ async function startRecording() {
     // Start with timeslice of 1000ms to regularly emit data
     mediaRecorder.start(1000);
     recording = true;
+    el('sentenceSet').disabled = true;
     recordingStartTime = Date.now();
     startWaveformVisualization();
     
@@ -1215,6 +1265,7 @@ async function startRecording() {
 function stopRecording() {
   if (mediaRecorder && recording) {
     try {
+      recordingSavePending = true;
       // Play recording stop sound
       playRecordingStopSound();
       
@@ -1233,6 +1284,7 @@ function stopRecording() {
     } catch (error) {
       console.error('Error stopping recording:', error);
       // Force cleanup even if stop failed
+      recordingSavePending = false;
       cleanupRecording();
       el('startStop').blur();
       alert('Error stopping recording: ' + error.message);
@@ -1401,6 +1453,9 @@ async function saveBlob(){
     alert('Error saving recording: ' + error.message);
     // Clear chunks on error to prevent corruption
     chunks = [];
+  } finally {
+    recordingSavePending = false;
+    el('sentenceSet').disabled = false;
   }
 }
 
