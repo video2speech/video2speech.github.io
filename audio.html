@@ -98,7 +98,7 @@
 
   <div class="card">
     <div class="row">
-      <label for="sentenceSet">Select Sentence Set</label>
+      <label>Select Sentence Set</label>
       <select id="sentenceSet" onchange="loadSentenceSet()">
         <option value="Open_300sentences" selected>Open_300sentences</option>
         <option value="50words_350sentences">50words_350sentences</option>
@@ -462,8 +462,8 @@ async function clearAllStoredAudios() {
 
 // Sentence sets data
 const SENTENCE_SET_FILES = {
-  '50words_350sentences': { filename: 'newset/350_nonrepeating_sentences.txt', count: 350 },
-  'Open_300sentences': { filename: 'newset/sentence_set_style.txt', count: 300, legacyProgressKey: 'daily_2026' }
+  '50words_350sentences': 'newset/350_nonrepeating_sentences.txt',
+  'Open_300sentences': 'newset/sentence_set_style.txt'
 };
 const sentenceSets = {};
 
@@ -472,15 +472,16 @@ let sentenceSetLoadRequest = 0;
 let sentenceSetLoadedRequest = 0;
 
 // Load sentence set file
-async function loadSentenceFile(filename, expectedCount) {
-  const response = await fetch(filename, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`${filename}: HTTP ${response.status}`);
-  const text = await response.text();
-  const lines = text.split('\n').map(s => s.trim()).filter(Boolean);
-  if (lines.length !== expectedCount) {
-    throw new Error(`${filename}: expected ${expectedCount} sentences, got ${lines.length}`);
+async function loadSentenceFile(filename) {
+  try {
+    const response = await fetch(filename);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    return text.split('\n').map(s => s.trim()).filter(Boolean);
+  } catch (error) {
+    console.error(`Failed to load sentence file (${filename}):`, error);
+    return null;
   }
-  return lines;
 }
 
 function setMaterialBoxFixedHeightByLongestSentence() {
@@ -542,16 +543,15 @@ function scheduleMaterialBoxResize() {
 
 async function getSentenceSetProgress(selected) {
   let progress = await getProgress(selected);
-  const legacyKey = SENTENCE_SET_FILES[selected].legacyProgressKey;
-  if (!progress && legacyKey) {
-    const legacyProgress = await getProgress(legacyKey);
+  if (!progress && selected === 'Open_300sentences') {
+    const legacyProgress = await getProgress('daily_2026');
     if (legacyProgress) {
       progress = { ...legacyProgress, sentenceSet: selected };
       await new Promise((resolve, reject) => {
         const transaction = db.transaction(['progress'], 'readwrite');
         const store = transaction.objectStore('progress');
         store.put(progress);
-        store.delete(legacyKey);
+        store.delete('daily_2026');
         transaction.oncomplete = () => resolve();
         transaction.onerror = () => reject(transaction.error);
       });
@@ -567,24 +567,15 @@ async function loadSentenceSet() {
     return;
   }
   const selected = el('sentenceSet').value;
-  const config = SENTENCE_SET_FILES[selected];
   const requestId = ++sentenceSetLoadRequest;
   currentSentenceSet = selected;
   el('startStop').disabled = true;
+
+  const filename = SENTENCE_SET_FILES[selected];
   
   // Load sentences from cache or file
   if (!sentenceSets[selected]) {
-    try {
-      sentenceSets[selected] = await loadSentenceFile(config.filename, config.count);
-    } catch (error) {
-      if (requestId !== sentenceSetLoadRequest) return;
-      console.error('Failed to load sentence set:', error);
-      sentences = [];
-      idx = 0;
-      await updateSentenceView();
-      alert(`Sentence set failed to load: ${error.message}`);
-      return;
-    }
+    sentenceSets[selected] = await loadSentenceFile(filename);
   }
   if (requestId !== sentenceSetLoadRequest) return;
   
@@ -626,6 +617,7 @@ async function loadSentenceSet() {
 
 // Reset progress
 async function resetProgress() {
+  if (sentenceSetLoadRequest !== sentenceSetLoadedRequest) return;
   if (!confirm('Are you sure you want to reset the recording progress for the current sentence set?')) return;
   
   try {
@@ -1009,6 +1001,7 @@ el('skip').onclick = async () => {
 
 // Redo last sentence (go back to previous sentence)
 el('redo').onclick = async () => {
+  if (sentenceSetLoadRequest !== sentenceSetLoadedRequest) return;
   // Go back to previous sentence
   if (sentences.length && idx > 0) {
     idx--; // Go back to previous sentence

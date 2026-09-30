@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '113';
+  const APP_URL_VERSION = '111';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=112"></script>
+<script src="vendor/jszip.min.js?v=111"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -327,7 +327,7 @@
 
   <div class="card" style="margin-top: 160px;">
     <div class="row">
-      <label for="sentenceSet">Select Sentence Set</label>
+      <label>Select Sentence Set</label>
       <select id="sentenceSet" onchange="loadSentenceSet()">
         <option value="50words_350sentences" selected>50words_350sentences</option>
         <option value="Open_300sentences">Open_300sentences</option>
@@ -650,8 +650,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '113';
-const MATERIAL_CACHE_VERSION = 'materials_v112';
+const APP_VERSION = '111';
+const MATERIAL_CACHE_VERSION = 'materials_v111';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const SENTENCE_SET_FILES = {
   '50words_350sentences': { filename: 'newset/350_nonrepeating_sentences.txt', count: 350, legacyProgressKey: '350_with_warmup_sentences' },
@@ -718,7 +718,7 @@ function refreshControlLockState() {
 
   const redoButton = el('redo');
   if (redoButton) {
-    const redoDisabled = auxControlsLocked || !sentences.length;
+    const redoDisabled = auxControlsLocked || !sentences.length || sentenceSetLoadRequest !== sentenceSetLoadedRequest;
     redoButton.disabled = redoDisabled;
     redoButton.style.opacity = redoDisabled ? '0.35' : '0.64';
   }
@@ -1582,9 +1582,15 @@ async function getSentenceSetProgress(selected) {
   return progress;
 }
 
+// Load sentence set
 async function loadSentenceSet() {
   if (isInteractionBlocked()) {
     el('sentenceSet').value = currentSentenceSet;
+    return;
+  }
+  if (warmupDemoActive && el('sentenceSet').value !== currentSentenceSet) {
+    el('sentenceSet').value = currentSentenceSet;
+    await showAlert('Finish the current warm-up before changing sentence sets.');
     return;
   }
 
@@ -1597,10 +1603,8 @@ async function loadSentenceSet() {
   // Load sentences from cache or file
   if (!sentenceSets[selected]) {
     try {
-      const [warmupSentences, formalSentences] = await Promise.all([
-        loadSentenceFile('newset/aac_extra_5_sentences.txt'),
-        loadSentenceFile(config.filename)
-      ]);
+      const warmupSentences = await loadSentenceFile('newset/aac_extra_5_sentences.txt');
+      const formalSentences = await loadSentenceFile(config.filename);
       validateSentenceFile('Warm-up sentence file', warmupSentences, EXPECTED_WARMUP_SENTENCE_COUNT);
       validateSentenceFile('Formal sentence file', formalSentences, config.count);
       const combinedDuplicates = findDuplicateSentences([...warmupSentences, ...formalSentences]);
@@ -1645,12 +1649,17 @@ async function loadSentenceSet() {
       } else {
         idx = 0;
       }
+      if (getSelectedStartupMode() === 'bypass' && idx < warmupSentenceCount) {
+        idx = warmupSentenceCount;
+        await saveProgress(selected, idx);
+      }
     } catch (error) {
       if (requestId !== sentenceSetLoadRequest) return;
       console.error('Failed to restore progress:', error);
-      idx = 0;
+      idx = getSelectedStartupMode() === 'bypass' ? warmupSentenceCount : 0;
     }
-    
+    if (requestId !== sentenceSetLoadRequest) return;
+
     sentenceSetLoadedRequest = requestId;
     refreshControlLockState();
     await updateSentenceView();
@@ -1669,6 +1678,7 @@ async function loadSentenceSet() {
 // Reset progress
 async function resetProgress() {
   if (isInteractionBlocked()) return;
+  if (sentenceSetLoadRequest !== sentenceSetLoadedRequest) return;
   if (!await showConfirm(
     'This will reset your position to the first warm-up sentence.\n\nIt will not delete any cached video recordings. Use Save All or Clear Storage for cached videos.\n\nContinue?',
     'Reset Progress'
