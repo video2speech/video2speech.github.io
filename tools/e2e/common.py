@@ -20,6 +20,11 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 SAMPLE_RATE = 48000
 MEDIA_DIR = os.path.join(tempfile.gettempdir(), 'v2s_e2e_media')
 
+# Before the switch the new recorder is app_next.html and the legacy one app.html;
+# after it, the new recorder is app.html and the legacy one app_legacy.html.
+NEXT_PAGE = 'app_next.html' if os.path.exists(os.path.join(REPO, 'app_next.html')) else 'app.html'
+LEGACY_PAGE = 'app_legacy.html' if os.path.exists(os.path.join(REPO, 'app_legacy.html')) else 'app.html'
+
 
 def _write_wav(path, seconds, sample_fn):
     random.seed(0)

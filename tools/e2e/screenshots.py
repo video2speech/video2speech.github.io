@@ -8,7 +8,7 @@ import sys
 
 from playwright.async_api import async_playwright
 
-from common import launch, static_server
+from common import NEXT_PAGE, launch, static_server
 import test_next_app as t
 
 VIEWPORTS = {
@@ -31,7 +31,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         await page.wait_for_timeout(350)
         await page.screenshot(path=f'{prefix}-{label}.png')
 
-    await page.goto(f'{base}/app_next.html')
+    await page.goto(f'{base}/{NEXT_PAGE}')
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await shot('01-setup')
     await page.fill('#setupId', 'P017')

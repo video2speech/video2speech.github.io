@@ -1,4 +1,4 @@
-"""Scenario tests for the v113 hotfix of the legacy recorder (app.html).
+"""Scenario tests for the v113 hotfix of the legacy recorder (app.html, or app_legacy.html after the switch).
 
 Run:  <venv>/bin/python tools/e2e/test_legacy_hotfix.py
 """
@@ -8,7 +8,7 @@ import time
 
 from playwright.async_api import async_playwright
 
-from common import Checks, launch, static_server
+from common import LEGACY_PAGE, Checks, launch, static_server
 
 STATE_JS = """() => ({
   rec: recording, idx, modal: modalOpen,
@@ -33,7 +33,7 @@ RECORDS_JS = """() => new Promise(resolve => {
 
 
 async def boot(page, base):
-    await page.goto(f'{base}/app.html?v=113')
+    await page.goto(f'{base}/{LEGACY_PAGE}')
     await page.wait_for_selector('#init')
     await page.check('#startupBypassMode')
     await page.click('#init')

@@ -1,4 +1,4 @@
-"""Scenario tests for the new recorder (app_next.html).
+"""Scenario tests for the new recorder (app_next.html, or app.html after the switch).
 
 Run:  <venv>/bin/python tools/e2e/test_next_app.py [scenario-name ...]
 """
@@ -12,7 +12,7 @@ import zipfile
 
 from playwright.async_api import async_playwright
 
-from common import Checks, launch, static_server
+from common import NEXT_PAGE, Checks, launch, static_server
 
 STATE_JS = """() => {
   const ctx = V2S.session.getContext();
@@ -63,7 +63,7 @@ async def wait_ready(page, timeout=15000):
 
 
 async def setup_participant(page, base, participant='P017', save='zip', before_submit=None):
-    await page.goto(f'{base}/app_next.html')
+    await page.goto(f'{base}/{NEXT_PAGE}')
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await page.fill('#setupId', participant)
     if before_submit:
@@ -437,7 +437,7 @@ async def s_legacy_progress(pw, base):
         })""")
 
     browser, _, page, errors = await launch(pw, audio='speech')
-    await page.goto(f'{base}/app_next.html')
+    await page.goto(f'{base}/{NEXT_PAGE}')
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await seed(page)
     await page.fill('#setupId', 'P020')
@@ -468,7 +468,7 @@ async def s_legacy_progress(pw, base):
 async def s_keyboard_only(pw, base):
     c = Checks('The whole flow works with the keyboard alone')
     browser, _, page, errors = await launch(pw, audio='speech')
-    await page.goto(f'{base}/app_next.html')
+    await page.goto(f'{base}/{NEXT_PAGE}')
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await wait_for(page, "() => document.activeElement && document.activeElement.id === 'setupId'")
     await page.keyboard.type('p030')
@@ -566,7 +566,7 @@ async def s_finish_and_admin(pw, base):
     await page.wait_for_selector('#screen-welcome:not([hidden])')
     c.check(await page.is_visible('#welcomeUnsaved'), 'welcome repeats the reminder')
 
-    await page.goto(f'{base}/app_next.html?admin=1')
+    await page.goto(f'{base}/{NEXT_PAGE}?admin=1')
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
     c.check(await page.is_visible('#adminButton'), '?admin=1 shows the researcher button')
     await page.click('#adminButton')
