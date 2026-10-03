@@ -99,23 +99,44 @@ def static_server():
 
 
 async def launch(playwright, audio='speech', viewport=None, init_scripts=(), authed=True,
-                 has_touch=False, is_mobile=False):
-    """Returns (browser, context, page, errors)."""
-    browser = await playwright.chromium.launch(channel='chrome', headless=True, args=[
-        '--use-fake-device-for-media-stream',
-        '--use-fake-ui-for-media-stream',
-        '--autoplay-policy=no-user-gesture-required',
-        '--use-file-for-fake-audio-capture=' + media_file(audio),
-    ])
-    context = await browser.new_context(
-        viewport=viewport or {'width': 1440, 'height': 900},
-        permissions=['camera', 'microphone'],
-        accept_downloads=True,
-        has_touch=has_touch,
-        is_mobile=is_mobile,
-    )
+                 has_touch=False, is_mobile=False, engine='chrome', media=None, fsa=False):
+    """Returns (browser, context, page, errors).
+
+    engine: 'chrome' (installed Google Chrome), 'webkit' (Safari's engine) or 'firefox'.
+    media:  'fake'  - Chrome's fake camera + the generated WAV as microphone (Chrome only)
+            'shim'  - synthetic camera and voice from shims.MEDIA_SHIM (any engine; the
+                      sound can be switched during a test with window.__v2sAudio.set()).
+            Default: 'fake' on Chrome, 'shim' elsewhere.
+    fsa:    inject shims.FSA_SHIM (Chrome's File System Access rules on a private folder).
+    """
+    from shims import FSA_SHIM, MEDIA_SHIM
+    media = media or ('fake' if engine == 'chrome' else 'shim')
+    if engine == 'chrome':
+        args = ['--autoplay-policy=no-user-gesture-required']
+        if media == 'fake':
+            args += ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream',
+                     '--use-file-for-fake-audio-capture=' + media_file(audio)]
+        browser = await playwright.chromium.launch(channel='chrome', headless=True, args=args)
+    elif engine == 'webkit':
+        browser = await playwright.webkit.launch(headless=True)
+    elif engine == 'firefox':
+        browser = await playwright.firefox.launch(headless=True, firefox_user_prefs={
+            'media.autoplay.default': 0, 'media.autoplay.blocking_policy': 0})
+    else:
+        raise ValueError(engine)
+    options = dict(viewport=viewport or {'width': 1440, 'height': 900}, accept_downloads=True, has_touch=has_touch)
+    if engine != 'firefox':
+        options['is_mobile'] = is_mobile
+    if engine == 'chrome' and media == 'fake':
+        options['permissions'] = ['camera', 'microphone']
+    context = await browser.new_context(**options)
     if authed:
         await context.add_init_script("sessionStorage.setItem('v2s_auth_ok','1');")
+    if media == 'shim':
+        await context.add_init_script(f"sessionStorage.setItem('__audio_kind', {audio!r});")
+        await context.add_init_script(MEDIA_SHIM)
+    if fsa:
+        await context.add_init_script(FSA_SHIM)
     for script in init_scripts:
         await context.add_init_script(script)
     page = await context.new_page()

@@ -160,11 +160,61 @@ async def scenario_save_unverified(pw, base):
     return c.done()
 
 
+TRACE_ZIP = """
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.JSZip) return;
+  const original = JSZip.prototype.file;
+  JSZip.prototype.file = function (...args) {
+    if (window.__fsaLog && args.length > 1) window.__fsaLog.push({ event: 'zip.file', active: null });
+    return original.apply(this, args);
+  };
+});
+"""
+
+LIST_SAVED_JS = """async () => {
+  const root = await navigator.storage.getDirectory();
+  const out = [];
+  try {
+    const dir = await root.getDirectoryHandle('saved-zips');
+    for await (const [name, handle] of dir.entries()) out.push([name, (await handle.getFile()).size]);
+  } catch (e) { /* none */ }
+  return out;
+}"""
+
+
+async def scenario_save_dialog_first(pw, base):
+    c = Checks('Chrome: Save All asks where to save right after the click, before building the ZIP')
+    browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[TRACE_ZIP])
+    downloads = []
+    page.on('download', lambda d: downloads.append(d.suggested_filename))
+    await boot(page, base)
+    await record_once(page)
+    await page.evaluate('window.__fsaLog.length = 0')
+    await page.click('#downloadAll')
+    await page.wait_for_selector('#appModal.is-open')
+    await page.click('#modalOk')
+    await page.wait_for_function('() => saveAllInProgress', timeout=10000)
+    await page.wait_for_function('() => !saveAllInProgress && !modalOpen', timeout=20000)
+    log = await page.evaluate('window.__fsaLog')
+    events = [e['event'] for e in log]
+    picker = [e for e in log if e['event'] == 'showSaveFilePicker']
+    c.check(picker and all(e['active'] for e in picker), 'save dialog opened while the click still counts', log)
+    c.check('zip.file' in events and events.index('showSaveFilePicker') < events.index('zip.file'),
+            'dialog came before the ZIP was built', events)
+    saved = await page.evaluate(LIST_SAVED_JS)
+    c.check(len(saved) == 1 and saved[0][1] > 1000, 'ZIP written to the chosen place', saved)
+    c.check(not downloads, 'no download to the default folder', downloads)
+    c.check(len(await page.evaluate(RECORDS_JS)) == 0, 'verified save clears the cache')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
 async def main():
     results = []
     with static_server() as base:
         async with async_playwright() as pw:
-            for scenario in (scenario_hold, scenario_no_speech, scenario_save_unverified):
+            for scenario in (scenario_hold, scenario_no_speech, scenario_save_unverified, scenario_save_dialog_first):
                 results.append(await scenario(pw, base))
     ok = all(results)
     print('\nALL PASSED' if ok else '\nSOME CHECKS FAILED')
