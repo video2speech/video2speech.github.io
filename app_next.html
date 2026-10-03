@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="theme-color" content="#F3F4F6">
+  <title>Speech Recording</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23151B2B'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23D92D20'/%3E%3C/svg%3E">
+  <script>
+    // Theme first (no flash), then the sign-in and version gate. main.js waits for
+    // window.__v2sGate before starting anything.
+    (function () {
+      try {
+        var theme = localStorage.getItem('v2s_theme');
+        if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
+      } catch (error) { /* storage unavailable */ }
+
+      var APP_VERSION = '200';
+      var path = window.location.pathname;
+      if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
+        window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
+        window.__v2sGate = new Promise(function () {});
+        return;
+      }
+      // While the new recorder is being tested at app_next.html it follows its own version key.
+      var versionKey = /\/app_next\.html$/.test(path) ? 'nextAppVersion' : 'appVersion';
+      window.__v2sGate = fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .catch(function () { return null; })
+        .then(function (data) {
+          var latest = (data && data[versionKey]) || APP_VERSION;
+          var url = new URL(window.location.href);
+          if (url.searchParams.get('v') !== latest) {
+            url.searchParams.set('v', latest);
+            window.location.replace(url.pathname + url.search + url.hash);
+            return new Promise(function () {});
+          }
+          return true;
+        });
+    })();
+  </script>
+  <link rel="stylesheet" href="css/app.css?v=200">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Speech Recording</span>
+      </div>
+      <div class="topbar-right">
+        <span class="chip" id="participantChip" hidden></span>
+        <button class="icon-button" id="adminButton" type="button" hidden aria-label="Research settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="screens">
+      <section class="screen screen-center" id="screen-loading">
+        <div class="loading">
+          <div class="spinner" aria-hidden="true"></div>
+          <p class="muted" id="loadingText">Loading…</p>
+        </div>
+      </section>
+
+      <section class="screen screen-center" id="screen-setup" hidden>
+        <div class="panel panel-narrow">
+          <p class="eyebrow">First-time setup</p>
+          <div id="setupStepId">
+            <h1 id="setupTitle"></h1>
+            <p class="lead" id="setupLead"></p>
+            <form id="setupForm" class="form" novalidate autocomplete="off">
+              <label class="field-label" for="setupId" id="setupIdLabel"></label>
+              <input class="input input-xl" id="setupId" name="participant" type="text" inputmode="text"
+                     autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="24">
+              <p class="field-hint" id="setupHint"></p>
+              <p class="field-error" id="setupError" role="alert" hidden></p>
+              <button class="btn btn-primary btn-xl btn-block" id="setupNext" type="submit"></button>
+            </form>
+          </div>
+          <div id="setupStepConfirm" hidden>
+            <h1 id="setupConfirmTitle"></h1>
+            <p class="id-display" id="setupConfirmId"></p>
+            <div class="option-list" id="setupLegacy" hidden></div>
+            <div class="stack">
+              <button class="btn btn-primary btn-xl btn-block" id="setupConfirmYes" type="button"></button>
+              <button class="btn btn-secondary btn-lg btn-block" id="setupConfirmChange" type="button"></button>
+            </div>
+          </div>
+          <div id="setupStepFolder" hidden>
+            <h1 id="setupFolderTitle"></h1>
+            <p class="lead" id="setupFolderLead"></p>
+            <p class="field-error" id="setupFolderError" role="alert" hidden></p>
+            <div class="stack">
+              <button class="btn btn-primary btn-xl btn-block" id="setupFolderChoose" type="button"></button>
+              <button class="btn btn-secondary btn-lg btn-block" id="setupFolderZip" type="button"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen-center" id="screen-welcome" hidden>
+        <div class="panel panel-narrow welcome">
+          <h1 id="welcomeTitle"></h1>
+          <p class="lead" id="welcomeLead"></p>
+          <div class="summary" id="welcomeSummary">
+            <div class="summary-top">
+              <span class="summary-label" id="welcomeBlock"></span>
+              <span class="summary-count" id="welcomeCount"></span>
+            </div>
+            <div class="bar" aria-hidden="true"><div class="bar-fill" id="welcomeBar"></div></div>
+          </div>
+          <div class="notice notice-warn" id="welcomeUnsaved" hidden>
+            <p id="welcomeUnsavedText"></p>
+            <button class="btn btn-secondary btn-md" id="welcomeSaveNow" type="button"></button>
+          </div>
+          <button class="btn btn-primary btn-xl btn-block" id="welcomeStart" type="button"></button>
+          <p class="fineprint" id="welcomeParticipant"></p>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-check" hidden>
+        <div class="check">
+          <div class="preview-frame preview-large" id="checkFrame">
+            <video id="checkPreview" playsinline muted autoplay></video>
+            <div class="face-guide" aria-hidden="true"></div>
+            <div class="preview-status" id="checkStatus"></div>
+          </div>
+          <div class="check-side">
+            <h1 id="checkTitle"></h1>
+            <ol class="steps">
+              <li>
+                <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 10.5 20.6 7a.6.6 0 0 1 .9.5v9a.6.6 0 0 1-.9.5L15 13.5"/><rect x="2.5" y="6" width="12.5" height="12" rx="2.5"/></svg></span>
+                <span id="checkFace"></span>
+              </li>
+              <li>
+                <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4M8.5 21.5h7"/></svg></span>
+                <span id="checkVoice"></span>
+              </li>
+            </ol>
+            <div class="level level-large" aria-hidden="true"><div class="level-fill" id="checkLevel"></div></div>
+            <button class="btn btn-primary btn-xl btn-block" id="checkOk" type="button"></button>
+            <button class="btn-link" id="checkHelp" type="button"></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen-record" id="screen-record" hidden>
+        <div class="record">
+          <div class="record-progress">
+            <div class="record-progress-text">
+              <span class="progress-main" id="progressMain"></span>
+              <span class="progress-sub" id="progressSub"></span>
+            </div>
+            <div class="bar" aria-hidden="true"><div class="bar-fill" id="progressBar"></div></div>
+          </div>
+
+          <article class="sentence-card" id="sentenceCard" data-state="ready">
+            <div class="card-head">
+              <span class="status" id="statusPill" role="status" aria-live="polite">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span id="statusText"></span>
+              </span>
+            </div>
+            <div class="sentence-wrap" id="sentenceWrap">
+              <p class="sentence" id="sentenceText"></p>
+            </div>
+            <div class="card-foot">
+              <p class="coach" id="coach" hidden></p>
+              <div class="feedback" id="feedback" role="alert" hidden>
+                <span class="feedback-icon" aria-hidden="true"></span>
+                <span id="feedbackText"></span>
+              </div>
+            </div>
+          </article>
+
+          <div class="record-controls">
+            <button class="btn btn-secondary btn-lg control-secondary" id="secondaryButton" type="button">
+              <span class="btn-icon" id="secondaryIcon" aria-hidden="true"></span>
+              <span id="secondaryLabel"></span>
+              <kbd class="key-hint" aria-hidden="true">←</kbd>
+            </button>
+            <button class="btn btn-primary btn-xl control-primary" id="primaryButton" type="button">
+              <span class="btn-icon" id="primaryIcon" aria-hidden="true"></span>
+              <span id="primaryLabel"></span>
+              <kbd class="key-hint" aria-hidden="true">Space</kbd>
+            </button>
+            <div class="selfview">
+              <div class="preview-frame preview-small" id="recordFrame"><video id="recordPreview" playsinline muted autoplay></video></div>
+              <div class="level" aria-hidden="true"><div class="level-fill" id="recordLevel"></div></div>
+            </div>
+          </div>
+
+          <div class="record-footer">
+            <button class="btn-link" id="finishButton" type="button"></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen-center" id="screen-break" hidden>
+        <div class="panel panel-narrow">
+          <div class="badge badge-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+          <h1 id="breakTitle"></h1>
+          <p class="lead" id="breakLead"></p>
+          <div class="save-box" id="breakSaveBox">
+            <p class="save-text" id="breakSaveText"></p>
+            <div class="save-progress" id="breakSaveProgress" hidden>
+              <div class="bar" aria-hidden="true"><div class="bar-fill" id="breakSaveBar"></div></div>
+              <span class="save-label" id="breakSaveLabel"></span>
+            </div>
+          </div>
+          <div class="stack">
+            <button class="btn btn-primary btn-xl btn-block" id="breakPrimary" type="button"></button>
+            <button class="btn btn-secondary btn-lg btn-block" id="breakSecondary" type="button"></button>
+            <button class="btn-link" id="breakTertiary" type="button" hidden></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen-center" id="screen-done" hidden>
+        <div class="panel panel-narrow">
+          <div class="badge badge-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+          <h1 id="doneTitle"></h1>
+          <p class="lead" id="doneBody"></p>
+          <div class="notice notice-warn" id="doneUnsaved" hidden><p id="doneUnsavedText"></p></div>
+          <div class="stack">
+            <button class="btn btn-primary btn-xl btn-block" id="doneSave" type="button" hidden></button>
+            <button class="btn btn-secondary btn-lg btn-block" id="doneAgain" type="button"></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen-center" id="screen-error" hidden>
+        <div class="panel panel-narrow">
+          <div class="badge badge-warn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9.5"/></svg></div>
+          <h1 id="errorTitle"></h1>
+          <p class="lead" id="errorBody"></p>
+          <p class="help-text" id="errorHelp" hidden></p>
+          <button class="btn btn-primary btn-xl btn-block" id="errorAction" type="button"></button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="overlay" id="dialog" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogBody">
+      <h2 id="dialogTitle"></h2>
+      <div class="dialog-body" id="dialogBody"></div>
+      <div class="dialog-actions" id="dialogActions"></div>
+    </div>
+  </div>
+
+  <div class="overlay overlay-side" id="adminPanel" hidden>
+    <aside class="admin" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <header class="admin-head">
+        <h2 id="adminTitle">Research settings</h2>
+        <button class="icon-button" id="adminClose" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="admin-body" id="adminBody"></div>
+    </aside>
+  </div>
+
+  <script defer src="vendor/jszip.min.js?v=200"></script>
+  <script defer src="js/config.js?v=200"></script>
+  <script defer src="js/copy.js?v=200"></script>
+  <script defer src="js/util.js?v=200"></script>
+  <script defer src="js/storage.js?v=200"></script>
+  <script defer src="js/sentences.js?v=200"></script>
+  <script defer src="js/media.js?v=200"></script>
+  <script defer src="js/meter.js?v=200"></script>
+  <script defer src="js/qc.js?v=200"></script>
+  <script defer src="js/input.js?v=200"></script>
+  <script defer src="js/ui.js?v=200"></script>
+  <script defer src="js/export.js?v=200"></script>
+  <script defer src="js/session.js?v=200"></script>
+  <script defer src="js/admin.js?v=200"></script>
+  <script defer src="js/main.js?v=200"></script>
+</body>
+</html>
