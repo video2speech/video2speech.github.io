@@ -15,16 +15,24 @@ VIEWPORTS = {
     'phone': ({'width': 390, 'height': 844}, True),
     'phone-se': ({'width': 375, 'height': 667}, True),
     'phone-land': ({'width': 844, 'height': 390}, True),
+    'phone-se-land': ({'width': 667, 'height': 375}, True),
+    'ipad-mini': ({'width': 744, 'height': 1133}, True),
     'ipad': ({'width': 820, 'height': 1180}, True),
+    'ipad-pro': ({'width': 1024, 'height': 1366}, True),
     'ipad-land': ({'width': 1180, 'height': 820}, True),
     'laptop': ({'width': 1440, 'height': 900}, False),
 }
 
 
+ENGINE = 'chrome'
+
+
 async def capture(pw, base, out, name, viewport, mobile, theme):
-    scripts = [f"try {{ localStorage.setItem('v2s_theme', '{theme}'); }} catch (e) {{}}"]
+    # Browsers without save/folder dialogs (iPad, phones) show the download + confirm flow.
+    scripts = [f"try {{ localStorage.setItem('v2s_theme', '{theme}'); }} catch (e) {{}}",
+               'delete window.showDirectoryPicker; delete window.showSaveFilePicker;']
     browser, context, page, errors = await launch(pw, audio='fan', viewport=viewport, has_touch=mobile,
-                                                  is_mobile=mobile, init_scripts=scripts)
+                                                  is_mobile=mobile, init_scripts=scripts, engine=ENGINE)
     prefix = os.path.join(out, f'{name}-{theme}')
 
     async def shot(label):
@@ -83,10 +91,11 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
 
     # Second pass with speech so a take is accepted at the end of a block.
     browser, context, page, errors = await launch(pw, audio='speech', viewport=viewport, has_touch=mobile,
-                                                  is_mobile=mobile, init_scripts=scripts)
+                                                  is_mobile=mobile, init_scripts=scripts, engine=ENGINE)
     await t.setup_participant(page, base)
     await t.start_session(page)
-    await t.set_index(page, 5 + 49)
+    await t.set_index(page, 5 + 48)
+    await t.record(page)
     await shot('11-last-in-block')
     await t.record(page)
     await page.wait_for_selector('#screen-break:not([hidden])')
@@ -112,4 +121,13 @@ async def main(out):
 
 
 if __name__ == '__main__':
-    asyncio.run(main(sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), 'shots')))
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--engine', choices=['chrome', 'webkit', 'firefox'], default='chrome')
+    parser.add_argument('--only', nargs='*', help='viewport names, e.g. phone ipad')
+    parser.add_argument('out', nargs='?', default=os.path.join(os.path.dirname(__file__), 'shots'))
+    args = parser.parse_args()
+    ENGINE = args.engine
+    if args.only:
+        VIEWPORTS = {k: v for k, v in VIEWPORTS.items() if k in args.only}
+    asyncio.run(main(args.out))

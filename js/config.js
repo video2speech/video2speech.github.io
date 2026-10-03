@@ -28,12 +28,13 @@ V2S.config = Object.freeze({
   HOLD_MS: 1000,           // a press held this long aborts the take
   DEBOUNCE_MS: 300,        // presses closer than this are ignored (switch bounce)
   START_CUE_LEAD_MS: 150,  // start sound plays first so it is not recorded
-  TAIL_MS: 1000,           // keep recording this long after Stop
+  TAIL_MS: 700,            // keep recording this long after Stop (legacy page: 300 ms)…
+  TAIL_MAX_MS: 1500,       // …and up to this long while the person is still speaking
+  TAIL_SPEECH_WINDOW_MS: 250,
   MAX_TAKE_MS: 60000,      // a take this long is aborted and the sentence restarts
-  SAVED_FLASH_MS: 650,     // "Saved" confirmation before the next sentence
+  SAVED_LABEL_MS: 1400,    // "Saved" shows on the next sentence without making anyone wait
   IDLE_SPEECH_HINT_MS: 500,     // speaking this long before Start shows a hint
   IDLE_SPEECH_HINT_COOLDOWN_MS: 6000,
-  TUTORIAL_TAKES: 2,       // coach marks on the first two sentences of the first session
 
   // Recording check (approved 2026-10-03). A frame counts as speech when its RMS is
   // at least max(SPEECH_MIN_RMS, SPEECH_NOISE_MULTIPLIER x noise floor); the noise

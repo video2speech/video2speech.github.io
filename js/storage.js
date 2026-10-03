@@ -152,7 +152,15 @@ V2S.storage = (() => {
   // recorder (fallback page) continues from the same sentence on this device.
   async function saveParticipantProgress(record) {
     record.timestamp = new Date().toISOString();
-    const mirror = {
+    await transact(videoDb, ['progress'], 'readwrite', tx => {
+      const store = tx.objectStore('progress');
+      store.put(record);
+      store.put(legacyMirror(record));
+    });
+  }
+
+  function legacyMirror(record) {
+    return {
       sentenceSet: record.set,
       currentIndex: record.currentIndex,
       repetitionCount: record.repetitionCount || 0,
@@ -161,14 +169,21 @@ V2S.storage = (() => {
       timestamp: record.timestamp,
       mirroredFrom: record.participantId
     };
-    await transact(videoDb, ['progress'], 'readwrite', tx => {
-      const store = tx.objectStore('progress');
-      store.put(record);
-      store.put(mirror);
-    });
   }
 
   // ---- takes (the "videos" store) ----
+  // Stores a take and the progress it causes in ONE transaction: either both are saved
+  // or neither, so progress can never move past a take that was not stored.
+  function commitTake(record, progress) {
+    progress.timestamp = new Date().toISOString();
+    return transact(videoDb, ['videos', 'progress'], 'readwrite', tx => {
+      const progressStore = tx.objectStore('progress');
+      progressStore.put(progress);
+      progressStore.put(legacyMirror(progress));
+      return tx.objectStore('videos').add(record);
+    });
+  }
+
   function addTake(record) {
     return transact(videoDb, ['videos'], 'readwrite', tx => tx.objectStore('videos').add(record));
   }
@@ -298,6 +313,7 @@ V2S.storage = (() => {
     findUnclaimedLegacyProgress,
     createParticipantProgress,
     saveParticipantProgress,
+    commitTake,
     addTake,
     getTake,
     deleteTakes,

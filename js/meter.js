@@ -1,11 +1,13 @@
-// Live microphone analysis: one AudioContext, an analyser sampled ~60 times a second.
-// Feeds the level bars, collects frames for the recording check, and notices speech
-// while nothing is being recorded ("Not recording yet").
+// Live microphone analysis: one AudioContext, an analyser sampled about 60 times a
+// second. Draws the rolling waveforms (always live, so the microphone can be checked
+// before starting; green while recording), collects frames for the recording check,
+// and notices speech while nothing is being recorded ("Not recording yet").
 window.V2S = window.V2S || {};
 
 V2S.meter = (() => {
   const cfg = V2S.config;
   const Q = cfg.QC;
+  const WAVE_WINDOW_MS = 4000;
 
   let audioContext = null;
   let analyser = null;
@@ -14,14 +16,17 @@ V2S.meter = (() => {
   let buffer = null;
   let rafId = null;
   let lastSampleAt = 0;
-  let level = 0;
-  const levelBars = new Set();
+  let lastDrawAt = 0;
 
   let collector = null;
   let idleEnabled = false;
   let idleListener = null;
   let lastIdleHintAt = -Infinity;
-  const idleWindow = [];
+  const recent = [];          // frames of the last 5 s (noise floor for the idle hint)
+  const history = [];         // { t, v } for the waveform, v in 0..1
+  const waves = new Set();
+  let live = false;
+  let colors = null;
 
   function context() {
     if (!audioContext || audioContext.state === 'closed') {
@@ -31,10 +36,10 @@ V2S.meter = (() => {
     return audioContext;
   }
 
-  // Must be called from a user gesture on iOS so audio analysis and cues can run.
+  // Call from a user gesture: iOS only runs audio after one, and can pause it later.
   function resume() {
     const ctx = context();
-    if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+    if (ctx && ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume().catch(() => {});
     return ctx;
   }
 
@@ -52,7 +57,8 @@ V2S.meter = (() => {
     source.connect(analyser);
     analyser.connect(sink);
     sink.connect(ctx.destination);
-    idleWindow.length = 0;
+    recent.length = 0;
+    history.length = 0;
     if (!rafId) rafId = requestAnimationFrame(tick);
   }
 
@@ -67,18 +73,83 @@ V2S.meter = (() => {
     source = null;
     analyser = null;
     sink = null;
-    level = 0;
-    renderLevel(0, 0);
+    history.length = 0;
+    drawWaves(performance.now());
   }
 
-  function registerLevelBar(element) {
-    levelBars.add(element);
+  // ---- waveform ----
+  function registerWave(canvas) {
+    waves.add(canvas);
   }
 
-  function renderLevel(value, peak) {
-    levelBars.forEach(bar => {
-      bar.style.transform = `scaleX(${value.toFixed(3)})`;
-      bar.parentElement.classList.toggle('is-hot', peak >= 0.98);
+  function setLive(value) {
+    live = Boolean(value);
+    colors = null;
+  }
+
+  function refreshColors() {
+    colors = null;
+  }
+
+  function resolveColors() {
+    const style = getComputedStyle(document.documentElement);
+    colors = {
+      idle: style.getPropertyValue('--wave-idle').trim() || '#A7A9AF',
+      live: style.getPropertyValue('--wave-live').trim() || '#13A150'
+    };
+    return colors;
+  }
+
+  // Loudness in 0..1 on a decibel scale, so quiet speech still shows.
+  function level(rms) {
+    const db = 20 * Math.log10(Math.max(rms, 1e-6));
+    const v = Math.min(1, Math.max(0, (db + 58) / 46));
+    return Math.sqrt(v);
+  }
+
+  function drawWaves(now) {
+    const palette = colors || resolveColors();
+    const color = live ? palette.live : palette.idle;
+    waves.forEach(canvas => {
+      if (!canvas.isConnected || canvas.offsetParent === null) return;
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.round(canvas.clientWidth * dpr);
+      const height = Math.round(canvas.clientHeight * dpr);
+      if (!width || !height) return;
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = color;
+      const barWidth = Math.max(2, Math.round(3 * dpr));
+      const gap = Math.max(2, Math.round(2.5 * dpr));
+      const bars = Math.floor(width / (barWidth + gap));
+      const slice = WAVE_WINDOW_MS / bars;
+      const minHeight = Math.max(2, Math.round(3 * dpr));
+      let index = history.length - 1;
+      for (let b = 0; b < bars; b++) {
+        const end = now - b * slice;
+        const start = end - slice;
+        let value = 0;
+        while (index >= 0 && history[index].t > end) index--;
+        let j = index;
+        while (j >= 0 && history[j].t > start) {
+          if (history[j].v > value) value = history[j].v;
+          j--;
+        }
+        const barHeight = Math.max(minHeight, value * (height - 2 * dpr));
+        const x = width - (b + 1) * (barWidth + gap) + gap;
+        const y = (height - barHeight) / 2;
+        if (typeof ctx.roundRect === 'function') {
+          ctx.beginPath();
+          ctx.roundRect(x, y, barWidth, barHeight, barWidth / 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(x, y, barWidth, barHeight);
+        }
+      }
     });
   }
 
@@ -100,29 +171,29 @@ V2S.meter = (() => {
     const frame = { t: time, rms: Math.sqrt(sumSquares / buffer.length), peak, clipped, samples: buffer.length };
     if (collector) collector.push(frame);
 
-    // Level bar: -60 dBFS..-6 dBFS mapped to 0..1, fast attack, slow release.
-    const db = 20 * Math.log10(Math.max(frame.rms, 1e-6));
-    const target = Math.min(1, Math.max(0, (db + 60) / 54));
-    level += (target - level) * (target > level ? 0.6 : 0.12);
-    renderLevel(level, peak);
-
+    history.push({ t: time, v: level(frame.rms) });
+    while (history.length && time - history[0].t > WAVE_WINDOW_MS + 200) history.shift();
+    if (time - lastDrawAt >= 30) {
+      lastDrawAt = time;
+      drawWaves(time);
+    }
     checkIdleSpeech(frame);
   }
 
   // Speech while nothing records: same frame rule as the recording check, with the
   // noise floor taken from the last five seconds.
   function checkIdleSpeech(frame) {
-    idleWindow.push(frame);
-    while (idleWindow.length && frame.t - idleWindow[0].t > 5000) idleWindow.shift();
+    recent.push(frame);
+    while (recent.length && frame.t - recent[0].t > 5000) recent.shift();
     if (!idleEnabled || !idleListener) return;
-    if (idleWindow.length < 2 || frame.t - idleWindow[0].t < 1500) return;
+    if (recent.length < 2 || frame.t - recent[0].t < 1500) return;
     if (frame.t - lastIdleHintAt < cfg.IDLE_SPEECH_HINT_COOLDOWN_MS) return;
-    const floor = V2S.util.percentile(idleWindow.map(f => f.rms), Q.NOISE_FLOOR_PERCENTILE);
+    const floor = V2S.util.percentile(recent.map(f => f.rms), Q.NOISE_FLOOR_PERCENTILE);
     const threshold = Math.max(Q.SPEECH_MIN_RMS, Q.SPEECH_NOISE_MULTIPLIER * floor);
-    const recent = idleWindow.filter(f => frame.t - f.t <= 1000);
-    if (recent.length < 2) return;
-    const interval = (recent[recent.length - 1].t - recent[0].t) / (recent.length - 1);
-    const speechMs = recent.filter(f => f.rms >= threshold).length * interval;
+    const lastSecond = recent.filter(f => frame.t - f.t <= 1000);
+    if (lastSecond.length < 2) return;
+    const interval = (lastSecond[lastSecond.length - 1].t - lastSecond[0].t) / (lastSecond.length - 1);
+    const speechMs = lastSecond.filter(f => f.rms >= threshold).length * interval;
     if (speechMs >= cfg.IDLE_SPEECH_HINT_MS) {
       lastIdleHintAt = frame.t;
       idleListener();
@@ -132,6 +203,16 @@ V2S.meter = (() => {
   function setIdleDetection(enabled, listener) {
     idleEnabled = enabled;
     if (listener) idleListener = listener;
+  }
+
+  // Is the person still speaking right now? Used to keep the tail open a little longer.
+  function speakingRecently(windowMs) {
+    const frames = collector || [];
+    if (frames.length < 4) return false;
+    const floor = V2S.util.percentile(frames.map(f => f.rms), Q.NOISE_FLOOR_PERCENTILE);
+    const threshold = Math.max(Q.SPEECH_MIN_RMS, Q.SPEECH_NOISE_MULTIPLIER * floor);
+    const last = frames[frames.length - 1].t;
+    return frames.some(f => last - f.t <= windowMs && f.rms >= threshold);
   }
 
   function beginCollect() {
@@ -151,8 +232,11 @@ V2S.meter = (() => {
     resume,
     attach,
     detach,
-    registerLevelBar,
+    registerWave,
+    setLive,
+    refreshColors,
     setIdleDetection,
+    speakingRecently,
     beginCollect,
     endCollect,
     isRunning

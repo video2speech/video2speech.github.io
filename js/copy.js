@@ -3,70 +3,87 @@
 window.V2S = window.V2S || {};
 
 V2S.copy = {
-  appName: 'Speech Recording',
-
   loading: 'Loading…',
 
   setup: {
+    eyebrow: 'First-time setup',
     title: 'Set up this device',
     lead: 'For the research team or a helper. You only do this once.',
     idLabel: 'Participant ID',
     idPlaceholder: 'e.g. P017',
-    idHint: 'Letters, numbers and dashes only.',
-    idInvalid: 'Please enter an ID using letters, numbers or dashes.',
+    idHint: 'Letters, numbers and dashes.',
+    idInvalid: 'Please use letters, numbers or dashes.',
     next: 'Continue',
     confirmTitle: 'Is this ID correct?',
     confirmYes: "Yes, it's correct",
     confirmChange: 'Change',
+    legacyContinue: place => `Continue from ${place}`,
+    legacyContinueDetail: 'This device already has progress from the earlier recording page.',
+    legacyFresh: 'Start from the beginning',
+    legacyFreshDetail: 'Choose this if that progress belongs to someone else.',
     folderTitle: 'Where should recordings be saved?',
-    folderLead: 'Choose a folder on this computer. Each recording is saved there automatically.',
+    folderLead: 'Choose a folder on this computer. Every recording is saved there automatically.',
     folderChoose: 'Choose folder',
     folderZip: 'Save as ZIP files instead',
-    folderChosen: name => `Saving to “${name}”.`,
-    folderFailed: 'That folder could not be used. Recordings will be saved as ZIP files.'
+    folderFailed: 'That folder cannot be used. Please choose another one.'
   },
 
   welcome: {
     titleFirst: 'Welcome',
     titleBack: 'Welcome back',
-    lead: 'You will read short sentences aloud. We record your voice and face.',
+    lead: 'Read each sentence aloud when it turns green.',
     start: 'Start',
     participant: id => `Participant ${id}`,
-    warmup: (n, total) => `Warm-up · sentence ${n} of ${total}`,
+    warmup: 'Warm-up',
+    warmupCount: (n, total) => `${n} of ${total}`,
     block: (b, total) => `Block ${b} of ${total}`,
-    blockProgress: (done, size) => `${done} of ${size} sentences done`,
-    allDone: 'All sentences are done.',
-    unsaved: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved to a file yet.`,
-    saveNow: 'Save now',
-    later: 'Later'
+    blockCount: (done, size) => `${done} of ${size} done`,
+    allDone: 'All sentences are done',
+    pending: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet.`,
+    saveNow: 'Save now'
+  },
+
+  folder: {
+    title: 'Allow saving to your folder',
+    lead: name => `Recordings are saved in “${name}”. The browser needs your permission again.`,
+    allow: 'Allow',
+    choose: 'Choose a different folder',
+    zip: 'Save as ZIP files instead',
+    denied: 'Permission was not given. Press Allow, then choose Allow (or Allow on every visit).',
+    failed: 'That folder cannot be used. Please choose another one.'
   },
 
   check: {
-    title: 'Check camera and microphone',
-    face: 'Place the camera so your face fits the outline.',
-    voice: 'Say hello. The bar should move.',
+    title: 'Camera and microphone',
+    face: 'Your face fits inside the outline',
+    voice: 'Say hello. The waves should move.',
     ok: 'Looks good',
     help: 'Camera not working?',
     starting: 'Starting camera…'
   },
 
   record: {
-    statusReady: 'Not recording',
-    statusRecording: 'Recording — read now',
-    statusSaving: 'Saving…',
-    statusSaved: 'Saved',
+    stateReady: 'Not recording',
+    stateRecording: 'Recording',
+    stateSaving: 'Saving…',
+    stateSaved: 'Saved',
     start: 'Start',
     stop: 'Stop',
     saving: 'Saving…',
     redoLast: 'Redo last',
     startOver: 'Start over',
     finish: 'Finish for today',
-    sentenceOf: (n, total) => `Sentence ${n} of ${total}`,
     warmupOf: (n, total) => `Warm-up ${n} of ${total}`,
-    blockOf: (b, total) => `Block ${b} of ${total}`,
-    untilBreak: n => (n === 1 ? '1 more until your break' : `${n} more until your break`),
-    lastInBlock: 'Last sentence before your break',
-    warmupLead: 'Warm-up sentences help you get comfortable.'
+    sentenceOf: (n, total) => `Sentence ${n} of ${total}`,
+    breakIn: n => (n === 1 ? 'Break after this one' : `Break in ${n}`),
+    blockOf: (b, total) => `Block ${b} of ${total}`
+  },
+
+  saveStatus: {
+    folder: name => `Saved to “${name}”`,
+    folderSaving: 'Saving to folder…',
+    folderProblem: 'Not saved to the folder — fix',
+    device: 'Kept on this device until the break'
   },
 
   feedback: {
@@ -90,29 +107,35 @@ V2S.copy = {
     keep: 'Keep it and continue'
   },
 
+  // Shown once, on the first takes of a participant's first session.
   tutorial: {
-    readyFirst: 'Press Start, then read the sentence aloud.',
-    recordingFirst: 'Read it now. Press Stop when you finish.',
-    readySecond: 'Great. That’s all there is to it.',
-    recordingSecond: 'Made a mistake? Press Start over.'
+    startFirst: 'Press Start, then read the sentence aloud.',
+    stopFirst: 'Read it now. Press Stop when you finish.',
+    redoLast: 'To redo the last sentence, press Redo last.',
+    startOver: 'Made a mistake? Press Start over.',
+    saveFolder: 'Recordings save to your folder automatically.',
+    saveDevice: 'Recordings stay on this device. You save them at each break.'
   },
 
   warmupDone: {
     title: 'Warm-up done',
-    body: 'Next come the real sentences. Same steps as before.',
+    body: 'Now the real sentences begin. Same steps as before.',
     next: 'Continue'
   },
 
   breakScreen: {
     title: b => `Block ${b} done`,
-    lead: 'Take a short rest. Have some water if you like.',
-    savedFolder: 'All recordings are saved in your folder.',
-    savePrompt: 'Save your recordings before you continue.',
+    lead: 'Take a short rest.',
+    savedFolder: (n, name) => `${n} recording${n === 1 ? '' : 's'} saved in “${name}”.`,
+    savingFolder: 'Saving to the folder…',
+    folderProblem: n => `${n} recording${n === 1 ? ' is' : 's are'} not in the folder yet.`,
+    allowFolder: 'Allow saving to the folder',
+    zipPrompt: 'Save your recordings before you continue.',
     saveButton: 'Save recordings',
     saving: (i, n) => `Preparing file… ${i} of ${n}`,
     savedZip: 'Saved. You can continue.',
     notConfirmed: 'Not saved yet. Your recordings are still on this device.',
-    folderProblem: n => `${n} recording${n === 1 ? '' : 's'} could not be written to the folder. Save them as a ZIP file instead.`,
+    savePromptTitle: 'Save your recordings',
     continue: 'Continue',
     finish: 'Finish for today',
     later: 'Save later'
@@ -122,7 +145,7 @@ V2S.copy = {
     title: 'Did the file save?',
     ios: file => `Tap the ⬇ button at the top of Safari. You should see “${file}”.`,
     android: file => `Check the download notification for “${file}”.`,
-    desktop: file => `Check your Downloads folder for “${file}”.`,
+    desktop: file => `Check the browser’s downloads for “${file}”.`,
     yes: 'Yes, it saved',
     no: 'No, try again',
     unsure: 'Not sure'
@@ -132,8 +155,9 @@ V2S.copy = {
     finishTitle: 'Great work today',
     finishBody: 'Your place is saved. You can close this page.',
     allTitle: 'All sentences are done',
-    allBody: 'Thank you! Please make sure your recordings are saved.',
-    unsaved: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved to a file yet.`,
+    allBody: 'Thank you!',
+    pending: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet.`,
+    savedFolder: name => `All recordings are saved in “${name}”.`,
     save: 'Save recordings',
     again: 'Record more'
   },
@@ -162,8 +186,6 @@ V2S.copy = {
   },
 
   common: {
-    ok: 'OK',
-    cancel: 'Cancel',
-    close: 'Close'
+    ok: 'OK'
   }
 };

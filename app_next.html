@@ -6,9 +6,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="theme-color" content="#F3F4F6">
+  <meta name="theme-color" content="#F4F3EF">
   <title>Speech Recording</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23151B2B'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23D92D20'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2315181E'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23E03A2F'/%3E%3C/svg%3E">
   <script>
     // Theme first (no flash), then the sign-in and version gate. main.js waits for
     // window.__v2sGate before starting anything.
@@ -46,30 +46,21 @@
 </head>
 <body>
   <div class="app" id="app">
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-name">Speech Recording</span>
-      </div>
-      <div class="topbar-right">
-        <span class="chip" id="participantChip" hidden></span>
-        <button class="icon-button" id="adminButton" type="button" hidden aria-label="Research settings">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
-        </button>
-      </div>
-    </header>
+    <button class="corner-button" id="adminButton" type="button" hidden aria-label="Research settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+    </button>
 
     <main class="screens">
+      <!-- Loading -->
       <section class="screen screen-center" id="screen-loading">
-        <div class="loading">
-          <div class="spinner" aria-hidden="true"></div>
-          <p class="muted" id="loadingText">Loading…</p>
-        </div>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="quiet" id="loadingText"></p>
       </section>
 
+      <!-- First-time setup: research team or helper, once per device -->
       <section class="screen screen-center" id="screen-setup" hidden>
-        <div class="panel panel-narrow">
-          <p class="eyebrow">First-time setup</p>
+        <div class="column">
+          <p class="eyebrow" id="setupEyebrow"></p>
           <div id="setupStepId">
             <h1 id="setupTitle"></h1>
             <p class="lead" id="setupLead"></p>
@@ -85,44 +76,61 @@
           <div id="setupStepConfirm" hidden>
             <h1 id="setupConfirmTitle"></h1>
             <p class="id-display" id="setupConfirmId"></p>
-            <div class="option-list" id="setupLegacy" hidden></div>
-            <div class="stack">
+            <div class="options" id="setupLegacy" hidden></div>
+            <div class="actions">
               <button class="btn btn-primary btn-xl btn-block" id="setupConfirmYes" type="button"></button>
-              <button class="btn btn-secondary btn-lg btn-block" id="setupConfirmChange" type="button"></button>
+              <button class="btn btn-quiet btn-lg btn-block" id="setupConfirmChange" type="button"></button>
             </div>
           </div>
           <div id="setupStepFolder" hidden>
             <h1 id="setupFolderTitle"></h1>
             <p class="lead" id="setupFolderLead"></p>
             <p class="field-error" id="setupFolderError" role="alert" hidden></p>
-            <div class="stack">
+            <div class="actions">
               <button class="btn btn-primary btn-xl btn-block" id="setupFolderChoose" type="button"></button>
-              <button class="btn btn-secondary btn-lg btn-block" id="setupFolderZip" type="button"></button>
+              <button class="btn btn-quiet btn-lg btn-block" id="setupFolderZip" type="button"></button>
             </div>
           </div>
         </div>
       </section>
 
+      <!-- Welcome -->
       <section class="screen screen-center" id="screen-welcome" hidden>
-        <div class="panel panel-narrow welcome">
+        <div class="column column-center">
+          <p class="eyebrow" id="welcomeParticipant"></p>
           <h1 id="welcomeTitle"></h1>
           <p class="lead" id="welcomeLead"></p>
-          <div class="summary" id="welcomeSummary">
-            <div class="summary-top">
-              <span class="summary-label" id="welcomeBlock"></span>
-              <span class="summary-count" id="welcomeCount"></span>
+          <div class="journey" id="welcomeJourney">
+            <div class="journey-row">
+              <span class="journey-label" id="welcomeBlock"></span>
+              <span class="journey-count" id="welcomeCount"></span>
             </div>
             <div class="bar" aria-hidden="true"><div class="bar-fill" id="welcomeBar"></div></div>
           </div>
-          <div class="notice notice-warn" id="welcomeUnsaved" hidden>
-            <p id="welcomeUnsavedText"></p>
-            <button class="btn btn-secondary btn-md" id="welcomeSaveNow" type="button"></button>
+          <div class="notice" id="welcomeNotice" hidden>
+            <p id="welcomeNoticeText"></p>
+            <button class="btn btn-quiet btn-md" id="welcomeNoticeAction" type="button"></button>
           </div>
-          <button class="btn btn-primary btn-xl btn-block" id="welcomeStart" type="button"></button>
-          <p class="fineprint" id="welcomeParticipant"></p>
+          <button class="btn btn-primary btn-xl btn-wide" id="welcomeStart" type="button"></button>
         </div>
       </section>
 
+      <!-- Folder permission (Chrome/Edge folder mode) -->
+      <section class="screen screen-center" id="screen-folder" hidden>
+        <div class="column column-center">
+          <div class="badge badge-neutral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2.5h6.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-10Z"/></svg></div>
+          <h1 id="folderTitle"></h1>
+          <p class="lead" id="folderLead"></p>
+          <p class="field-error" id="folderError" role="alert" hidden></p>
+          <div class="actions">
+            <button class="btn btn-primary btn-xl btn-block" id="folderAllow" type="button"></button>
+            <button class="btn btn-quiet btn-lg btn-block" id="folderChoose" type="button"></button>
+          </div>
+          <button class="btn-link" id="folderZip" type="button"></button>
+        </div>
+      </section>
+
+      <!-- Camera and microphone check -->
       <section class="screen" id="screen-check" hidden>
         <div class="check">
           <div class="preview-frame preview-large" id="checkFrame">
@@ -132,119 +140,114 @@
           </div>
           <div class="check-side">
             <h1 id="checkTitle"></h1>
-            <ol class="steps">
-              <li>
-                <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 10.5 20.6 7a.6.6 0 0 1 .9.5v9a.6.6 0 0 1-.9.5L15 13.5"/><rect x="2.5" y="6" width="12.5" height="12" rx="2.5"/></svg></span>
-                <span id="checkFace"></span>
-              </li>
-              <li>
-                <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4M8.5 21.5h7"/></svg></span>
-                <span id="checkVoice"></span>
-              </li>
-            </ol>
-            <div class="level level-large" aria-hidden="true"><div class="level-fill" id="checkLevel"></div></div>
+            <ul class="hints">
+              <li><span class="hint-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6.5"/><path d="M8.5 21h7"/></svg></span><span id="checkFace"></span></li>
+              <li><span class="hint-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h0"/></svg></span><span id="checkVoice"></span></li>
+            </ul>
+            <canvas class="wave wave-large" id="checkWave" aria-hidden="true"></canvas>
             <button class="btn btn-primary btn-xl btn-block" id="checkOk" type="button"></button>
             <button class="btn-link" id="checkHelp" type="button"></button>
           </div>
         </div>
       </section>
 
-      <section class="screen screen-record" id="screen-record" hidden>
-        <div class="record">
-          <div class="record-progress">
-            <div class="record-progress-text">
-              <span class="progress-main" id="progressMain"></span>
-              <span class="progress-sub" id="progressSub"></span>
-            </div>
-            <div class="bar" aria-hidden="true"><div class="bar-fill" id="progressBar"></div></div>
+      <!-- Recording -->
+      <section class="screen screen-record" id="screen-record" hidden data-state="ready">
+        <header class="rec-top">
+          <div class="rec-progress">
+            <span class="rec-progress-main" id="progressMain"></span>
+            <span class="rec-progress-sub" id="progressSub"></span>
           </div>
+          <div class="bar bar-thin" aria-hidden="true"><div class="bar-fill" id="progressBar"></div></div>
+        </header>
 
-          <article class="sentence-card" id="sentenceCard" data-state="ready">
-            <div class="card-head">
-              <span class="status" id="statusPill" role="status" aria-live="polite">
-                <span class="status-dot" aria-hidden="true"></span>
-                <span id="statusText"></span>
-              </span>
-            </div>
-            <div class="sentence-wrap" id="sentenceWrap">
-              <p class="sentence" id="sentenceText"></p>
-            </div>
-            <div class="card-foot">
-              <p class="coach" id="coach" hidden></p>
-              <div class="feedback" id="feedback" role="alert" hidden>
-                <span class="feedback-icon" aria-hidden="true"></span>
-                <span id="feedbackText"></span>
-              </div>
-            </div>
-          </article>
+        <div class="rec-stage" id="recStage">
+          <p class="rec-state" id="recState" role="status" aria-live="polite">
+            <span class="rec-dot" aria-hidden="true"></span><span id="recStateText"></span>
+          </p>
+          <p class="sentence" id="sentenceText"></p>
+          <p class="rec-message" id="recMessage" aria-live="polite">
+            <span class="rec-message-body"><span class="rec-message-icon" id="recMessageIcon" aria-hidden="true"></span><span id="recMessageText"></span></span>
+          </p>
+        </div>
 
-          <div class="record-controls">
-            <button class="btn btn-secondary btn-lg control-secondary" id="secondaryButton" type="button">
+        <footer class="rec-controls">
+          <div class="rec-side rec-side-left">
+            <button class="btn btn-secondary btn-lg" id="secondaryButton" type="button">
               <span class="btn-icon" id="secondaryIcon" aria-hidden="true"></span>
               <span id="secondaryLabel"></span>
               <kbd class="key-hint" aria-hidden="true">←</kbd>
             </button>
-            <button class="btn btn-primary btn-xl control-primary" id="primaryButton" type="button">
-              <span class="btn-icon" id="primaryIcon" aria-hidden="true"></span>
-              <span id="primaryLabel"></span>
-              <kbd class="key-hint" aria-hidden="true">Space</kbd>
-            </button>
-            <div class="selfview">
+          </div>
+          <button class="btn btn-primary btn-xxl" id="primaryButton" type="button">
+            <span class="btn-icon" id="primaryIcon" aria-hidden="true"></span>
+            <span id="primaryLabel"></span>
+            <kbd class="key-hint" aria-hidden="true">Space</kbd>
+          </button>
+          <div class="rec-side rec-side-right">
+            <div class="monitor">
+              <canvas class="wave" id="recordWave" aria-hidden="true"></canvas>
               <div class="preview-frame preview-small" id="recordFrame"><video id="recordPreview" playsinline muted autoplay></video></div>
-              <div class="level" aria-hidden="true"><div class="level-fill" id="recordLevel"></div></div>
             </div>
+            <button class="save-status" id="saveStatus" type="button"></button>
           </div>
+        </footer>
 
-          <div class="record-footer">
-            <button class="btn-link" id="finishButton" type="button"></button>
-          </div>
+        <div class="rec-bottom">
+          <button class="btn-link" id="finishButton" type="button"></button>
         </div>
       </section>
 
+      <!-- Block break, warm-up done, and saving -->
       <section class="screen screen-center" id="screen-break" hidden>
-        <div class="panel panel-narrow">
+        <div class="column column-center">
           <div class="badge badge-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
           <h1 id="breakTitle"></h1>
           <p class="lead" id="breakLead"></p>
-          <div class="save-box" id="breakSaveBox">
-            <p class="save-text" id="breakSaveText"></p>
+          <div class="save-panel" id="breakSave">
+            <p class="save-panel-text" id="breakSaveText"></p>
             <div class="save-progress" id="breakSaveProgress" hidden>
-              <div class="bar" aria-hidden="true"><div class="bar-fill" id="breakSaveBar"></div></div>
-              <span class="save-label" id="breakSaveLabel"></span>
+              <div class="bar bar-thin" aria-hidden="true"><div class="bar-fill" id="breakSaveBar"></div></div>
+              <span class="quiet" id="breakSaveLabel"></span>
             </div>
           </div>
-          <div class="stack">
+          <div class="actions">
             <button class="btn btn-primary btn-xl btn-block" id="breakPrimary" type="button"></button>
-            <button class="btn btn-secondary btn-lg btn-block" id="breakSecondary" type="button"></button>
-            <button class="btn-link" id="breakTertiary" type="button" hidden></button>
+            <button class="btn btn-quiet btn-lg btn-block" id="breakSecondary" type="button"></button>
           </div>
+          <button class="btn-link" id="breakTertiary" type="button" hidden></button>
         </div>
       </section>
 
+      <!-- Done -->
       <section class="screen screen-center" id="screen-done" hidden>
-        <div class="panel panel-narrow">
+        <div class="column column-center">
           <div class="badge badge-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
           <h1 id="doneTitle"></h1>
           <p class="lead" id="doneBody"></p>
-          <div class="notice notice-warn" id="doneUnsaved" hidden><p id="doneUnsavedText"></p></div>
-          <div class="stack">
+          <div class="save-panel" id="doneSavePanel" hidden><p class="save-panel-text" id="doneSaveText"></p></div>
+          <div class="actions">
             <button class="btn btn-primary btn-xl btn-block" id="doneSave" type="button" hidden></button>
-            <button class="btn btn-secondary btn-lg btn-block" id="doneAgain" type="button"></button>
+            <button class="btn btn-quiet btn-lg btn-block" id="doneAgain" type="button"></button>
           </div>
         </div>
       </section>
 
+      <!-- Problems -->
       <section class="screen screen-center" id="screen-error" hidden>
-        <div class="panel panel-narrow">
-          <div class="badge badge-warn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9.5"/></svg></div>
+        <div class="column column-center">
+          <div class="badge badge-warn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7.5v6M12 16.8v.2"/><circle cx="12" cy="12" r="9.5"/></svg></div>
           <h1 id="errorTitle"></h1>
           <p class="lead" id="errorBody"></p>
           <p class="help-text" id="errorHelp" hidden></p>
-          <button class="btn btn-primary btn-xl btn-block" id="errorAction" type="button"></button>
+          <button class="btn btn-primary btn-xl btn-wide" id="errorAction" type="button"></button>
         </div>
       </section>
     </main>
   </div>
+
+  <!-- Recording frame around the whole screen -->
+  <div class="rec-frame" aria-hidden="true"></div>
 
   <div class="overlay" id="dialog" hidden>
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogBody">
@@ -258,7 +261,7 @@
     <aside class="admin" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <header class="admin-head">
         <h2 id="adminTitle">Research settings</h2>
-        <button class="icon-button" id="adminClose" type="button" aria-label="Close">
+        <button class="corner-button corner-button-static" id="adminClose" type="button" aria-label="Close">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
       </header>

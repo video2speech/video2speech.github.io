@@ -16,7 +16,6 @@ V2S.admin = (() => {
     } catch (error) { /* ignore */ }
     const enabled = sessionStorage.getItem('v2s_admin') === '1';
     el('adminButton').hidden = !enabled;
-    el('participantChip').hidden = !enabled;
     el('adminButton').addEventListener('click', open);
     el('adminClose').addEventListener('click', close);
     el('adminPanel').addEventListener('click', event => { if (event.target === el('adminPanel')) close(); });
@@ -145,7 +144,7 @@ V2S.admin = (() => {
         }),
         button('Reset progress', async () => {
           if (!window.confirm('Reset this participant to the first warm-up sentence and show the tutorial again? Recordings are not deleted.')) return;
-          Object.assign(state.progress, { currentIndex: 0, completed: false, completedAt: null, tutorialTakes: 0 });
+          Object.assign(state.progress, { currentIndex: 0, completed: false, completedAt: null, tutorialStep: 0, tutorialTakes: 0 });
           await saveProgress(state);
           logEvent('admin_reset_progress', {});
           await restart();
@@ -163,11 +162,20 @@ V2S.admin = (() => {
         ['Storage used', estimate ? `${(estimate.ratio * 100).toFixed(1)}% of ${formatBytes(estimate.quota)}` : 'unknown']
       ]),
       buttons([
-        button('Download ZIP now', async () => {
-          close();
-          await api.runZipSave('manual');
-          await open();
-        }),
+        V2S.exporter.getSaveMode() === 'folder'
+          ? button('Write them to the folder', async () => {
+            if (!V2S.exporter.isFolderActive() && (await V2S.exporter.requestFolderPermission()) !== 'granted') {
+              return window.alert('The browser did not allow access to the folder.');
+            }
+            const result = await V2S.exporter.flushPendingToFolder();
+            window.alert(`Written: ${result.written}. Not written: ${result.failed}.`);
+            await render();
+          })
+          : button('Download ZIP now', async () => {
+            close();
+            await api.runZipSave('manual');
+            await open();
+          }),
         button('Delete cached recordings…', async () => {
           if (!takes.length) return;
           if (!window.confirm(`Permanently delete ${takes.length} cached recordings from this browser? Only do this after they are saved.`)) return;
@@ -181,14 +189,17 @@ V2S.admin = (() => {
 
     const folderSupported = V2S.exporter.folderSupported();
     body.append(section('Saving', [
-      kv([['Mode', V2S.exporter.getSaveMode() === 'folder' ? `Folder “${V2S.exporter.folderName() || '?'}”` : 'ZIP download'], ['Folder access', V2S.exporter.isFolderActive() ? 'granted' : 'not active']]),
+      kv([['Mode', V2S.exporter.getSaveMode() === 'folder' ? `Folder “${V2S.exporter.folderName() || '?'}”` : 'ZIP download'], ['Folder access', V2S.exporter.status().permission]]),
       folderSupported ? buttons([
         button('Choose folder…', async () => {
           try {
-            await V2S.exporter.chooseFolder();
-            logEvent('admin_folder', { name: V2S.exporter.folderName() });
+            const name = await V2S.exporter.chooseFolder(); // first: browser shows its picker
+            if (name) {
+              logEvent('admin_folder', { name });
+              await V2S.exporter.flushPendingToFolder();
+            }
           } catch (error) {
-            if (!error || error.name !== 'AbortError') window.alert('That folder could not be used.');
+            window.alert('That folder could not be used.');
           }
           await render();
         }),

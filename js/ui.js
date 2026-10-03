@@ -1,4 +1,4 @@
-// Rendering only: screens, the recording card, dialogs. No recording logic here.
+// Rendering only: screens, the recording screen, dialogs. No recording logic here.
 window.V2S = window.V2S || {};
 
 V2S.ui = (() => {
@@ -8,17 +8,20 @@ V2S.ui = (() => {
   const ICONS = {
     undo: '<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
     restart: '<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
-    alert: '<svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9.5"/></svg>',
-    info: '<svg viewBox="0 0 24 24"><path d="M12 11v6M12 7.5v.5"/><circle cx="12" cy="12" r="9.5"/></svg>'
+    warn: '<svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9.5"/></svg>',
+    tip: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>',
+    info: '<svg viewBox="0 0 24 24"><path d="M12 11v6M12 7.5v.5"/><circle cx="12" cy="12" r="9.5"/></svg>',
+    check: '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'
   };
 
-  const SCREENS = ['loading', 'setup', 'welcome', 'check', 'record', 'break', 'done', 'error'];
+  const SCREENS = ['loading', 'setup', 'welcome', 'folder', 'check', 'record', 'break', 'done', 'error'];
   let currentScreen = 'loading';
 
   function show(name) {
     SCREENS.forEach(screen => { el(`screen-${screen}`).hidden = screen !== name; });
     currentScreen = name;
     document.body.dataset.screen = name;
+    if (name !== 'record') setRecordingFrame(false);
     window.scrollTo(0, 0);
   }
 
@@ -29,25 +32,11 @@ V2S.ui = (() => {
     if (node) node.textContent = text == null ? '' : String(text);
   }
 
-  function setLabel(button, text) {
-    button.textContent = text;
+  function setRecordingFrame(on) {
+    document.body.dataset.rec = on ? 'on' : 'off';
   }
 
-  // ---- recording card ----
-  const view = {
-    state: 'ready',
-    status: '',
-    sentence: '',
-    progressMain: '',
-    progressSub: '',
-    progress: 0,
-    primary: { label: '', icon: 'rec', disabled: false },
-    secondary: { label: '', icon: 'undo', hidden: false, disabled: false },
-    coach: null,
-    feedback: null,
-    showFinish: false
-  };
-
+  // ---- recording screen ----
   function iconMarkup(icon) {
     if (icon === 'rec') return '<span class="icon-rec"></span>';
     if (icon === 'stop') return '<span class="icon-stop"></span>';
@@ -55,22 +44,24 @@ V2S.ui = (() => {
     return ICONS[icon] || '';
   }
 
-  function renderRecord(patch = {}) {
-    Object.assign(view, patch);
-    const card = el('sentenceCard');
-    card.dataset.state = view.state;
-    setText('statusText', view.status);
+  function renderRecord(view) {
+    const screenEl = el('screen-record');
+    screenEl.dataset.state = view.state;
+    screenEl.classList.toggle('just-saved', Boolean(view.justSaved) && view.state === 'ready');
+    setRecordingFrame(view.state === 'recording');
+
+    setText('recStateText', view.stateText);
     setText('sentenceText', view.sentence);
     setText('progressMain', view.progressMain);
     setText('progressSub', view.progressSub);
-    el('progressBar').style.transform = `scaleX(${Math.max(0, Math.min(1, view.progress)).toFixed(4)})`;
+    el('progressBar').style.transform = `scaleX(${Math.max(0, Math.min(1, view.progress || 0)).toFixed(4)})`;
 
     const primary = el('primaryButton');
     el('primaryIcon').innerHTML = iconMarkup(view.primary.icon);
     setText('primaryLabel', view.primary.label);
     primary.setAttribute('aria-disabled', view.primary.disabled ? 'true' : 'false');
 
-    // Hidden secondary buttons keep their space so nothing else moves.
+    // A hidden secondary button keeps its space so nothing else moves.
     const secondary = el('secondaryButton');
     const secondaryHidden = Boolean(view.secondary.hidden);
     secondary.classList.toggle('is-invisible', secondaryHidden);
@@ -80,47 +71,54 @@ V2S.ui = (() => {
     setText('secondaryLabel', view.secondary.label);
     secondary.setAttribute('aria-disabled', view.secondary.disabled || secondaryHidden ? 'true' : 'false');
 
-    // One message at a time: feedback about the last attempt wins over tutorial tips.
-    const hasFeedback = Boolean(view.feedback && view.feedback.text);
-    const coach = el('coach');
-    coach.hidden = !view.coach || hasFeedback;
-    coach.textContent = view.coach || '';
+    // One message at a time.
+    const message = el('recMessage');
+    const hasMessage = Boolean(view.message && view.message.text);
+    message.className = `rec-message${hasMessage ? ` tone-${view.message.tone}` : ' is-empty'}`;
+    setText('recMessageText', hasMessage ? view.message.text : '');
+    el('recMessageIcon').innerHTML = hasMessage ? (ICONS[view.message.tone] || '') : '';
 
-    const feedback = el('feedback');
-    if (hasFeedback) {
-      feedback.hidden = false;
-      feedback.className = `feedback tone-${view.feedback.tone || 'warn'}`;
-      el('feedbackText').textContent = view.feedback.text;
-      feedback.querySelector('.feedback-icon').innerHTML = ICONS[view.feedback.tone === 'info' ? 'info' : 'alert'];
-    } else {
-      feedback.hidden = true;
-    }
+    primary.classList.toggle('is-highlighted', view.highlight === 'primary');
+    secondary.classList.toggle('is-highlighted', view.highlight === 'secondary' && !secondaryHidden);
+    el('saveStatus').classList.toggle('is-highlighted', view.highlight === 'save');
 
-    el('finishButton').hidden = !view.showFinish;
+    el('finishButton').classList.toggle('is-invisible', !view.showFinish);
+    el('finishButton').tabIndex = view.showFinish ? 0 : -1;
   }
 
-  // Keep the sentence area tall enough for the longest sentence so the card never jumps.
+  // Save status under the camera preview (folder or device).
+  function setSaveStatus({ text, tone, actionable }) {
+    const node = el('saveStatus');
+    node.className = `save-status${tone ? ` is-${tone}` : ''}${node.classList.contains('is-highlighted') ? ' is-highlighted' : ''}`;
+    node.innerHTML = (tone === 'ok' ? `<span class="btn-icon">${ICONS.check}</span>` : '') + '<span></span>';
+    node.lastElementChild.textContent = text || '';
+    node.disabled = !actionable;
+    node.setAttribute('aria-disabled', actionable ? 'false' : 'true');
+  }
+
+  // Keep the sentence area tall enough for the longest sentence so nothing jumps.
   let fitList = [];
   let fitTimer = null;
 
   function fitSentences(list) {
     if (list) fitList = list;
-    const wrap = el('sentenceWrap');
     const sample = el('sentenceText');
-    if (!fitList.length || !wrap || el('screen-record').hidden) return;
-    const width = sample.getBoundingClientRect().width || wrap.clientWidth;
-    if (!width) return;
+    if (!fitList.length || el('screen-record').hidden) return;
+    const stageWidth = sample.parentElement.clientWidth;
+    if (!stageWidth) return;
+    // Lines wrap at the smaller of the sentence's max-width and the stage width.
+    const lineWidth = Math.min(parseFloat(getComputedStyle(sample).maxWidth) || stageWidth, stageWidth);
     const meter = sample.cloneNode(false);
     meter.removeAttribute('id');
-    Object.assign(meter.style, { position: 'absolute', visibility: 'hidden', left: '-9999px', top: '0', width: `${wrap.clientWidth}px` });
-    wrap.appendChild(meter);
+    Object.assign(meter.style, { position: 'absolute', visibility: 'hidden', left: '-9999px', top: '0', width: 'auto', maxWidth: `${lineWidth}px`, minHeight: '0' });
+    sample.parentElement.appendChild(meter);
     let tallest = 0;
     fitList.forEach(sentence => {
       meter.textContent = sentence;
       tallest = Math.max(tallest, meter.getBoundingClientRect().height);
     });
     meter.remove();
-    el('sentenceCard').style.setProperty('--sentence-min', `${Math.ceil(tallest)}px`);
+    sample.style.setProperty('--sentence-min', `${Math.ceil(tallest)}px`);
   }
 
   window.addEventListener('resize', () => {
@@ -162,11 +160,11 @@ V2S.ui = (() => {
       });
       actionsEl.replaceChildren();
       let defaultButton = null;
-      const state = { resolve, dismissValue, armed: false, previousFocus: document.activeElement };
+      const state = { resolve, dismissValue, armed: false };
       actions.forEach(action => {
         const button = document.createElement('button');
         button.type = 'button';
-        const variant = action.variant === 'primary' ? 'btn-primary' : action.variant === 'danger' ? 'btn-danger' : 'btn-secondary';
+        const variant = action.variant === 'primary' ? 'btn-primary' : action.variant === 'danger' ? 'btn-danger' : 'btn-quiet';
         button.className = `btn btn-lg btn-block ${variant}`;
         button.textContent = action.label;
         button.addEventListener('click', () => {
@@ -189,7 +187,7 @@ V2S.ui = (() => {
     if (!state) return;
     dialogState = null;
     el('dialog').hidden = true;
-    if (state.previousFocus && typeof state.previousFocus.blur === 'function') state.previousFocus.blur();
+    if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
     state.resolve(value);
   }
 
@@ -233,8 +231,9 @@ V2S.ui = (() => {
     show,
     screen,
     setText,
-    setLabel,
+    setRecordingFrame,
     renderRecord,
+    setSaveStatus,
     fitSentences,
     watchPreviewShape,
     dialog,
