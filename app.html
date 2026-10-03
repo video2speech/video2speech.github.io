@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Video Recording Tool</title>
 <script>
-  const APP_URL_VERSION = '111';
+  const APP_URL_VERSION = '113';
   async function getLatestAppUrlVersion() {
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
@@ -33,7 +33,7 @@
     window.location.replace('/index.html?next=' + encodeURIComponent(nextPath));
   })();
 </script>
-<script src="vendor/jszip.min.js?v=111"></script>
+<script src="vendor/jszip.min.js?v=113"></script>
 <style>
   html{width:100%;height:100%;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;width:100%;margin:0;padding:16px;line-height:1.5;background-color:#1a1a1a;color:#e0e0e0;box-sizing:border-box;min-height:100vh}
@@ -97,7 +97,16 @@
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7), 0 0 14px rgba(124, 255, 133, 0.25);
     animation: none;
   }
-  
+
+  #currentText:focus {
+    outline: none;
+  }
+
+  #currentText.is-recording {
+    border-color: #ff3b30 !important;
+    box-shadow: 0 0 0 4px #ff3b30, 0 0 34px rgba(255, 59, 48, 0.45);
+  }
+
   .button-active {
     transform: scale(0.95);
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
@@ -378,7 +387,7 @@
     </div>
     <span class="muted" id="resolutionInfo" style="font-size: 0.8rem; color: #888;"></span>
     <div class="row" style="margin-top: 8px;">
-      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 111</span>
+      <span class="muted" style="font-size: 0.8rem; color: #888;">Version 113</span>
     </div>
   </div>
 
@@ -455,7 +464,7 @@ function appendModalMessageContent(parent, content) {
   parent.appendChild(messageBlock);
 }
 
-function showModal({ title = 'Notice', message = '', confirm = false, okText = 'OK', cancelText = 'Cancel', checklist = [] }) {
+function showModal({ title = 'Notice', message = '', confirm = false, okText = 'OK', cancelText = 'Cancel', checklist = [], defaultFocus = 'ok' }) {
   return new Promise(resolve => {
     const modal = el('appModal');
     const titleEl = el('modalTitle');
@@ -551,6 +560,17 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
         event.target.dispatchEvent(new Event('change', { bubbles: true }));
         return;
       }
+      // Enter activates the focused modal button (or OK). Space stays blocked so the
+      // record key can never dismiss a dialog by accident.
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.repeat) return;
+        const useCancel = confirm && document.activeElement === cancelButton;
+        if (useCancel) close(false);
+        else if (!okButton.disabled) close(true);
+        return;
+      }
       if (event.key !== 'Tab') {
         event.preventDefault();
         event.stopPropagation();
@@ -571,7 +591,8 @@ function showModal({ title = 'Notice', message = '', confirm = false, okText = '
     if (typeof refreshControlLockState === 'function') refreshControlLockState();
     setTimeout(() => {
       const firstCheckbox = checklistItems.length ? messageEl.querySelector('input[type="checkbox"]') : null;
-      (firstCheckbox || okButton).focus();
+      const defaultButton = confirm && defaultFocus === 'cancel' ? cancelButton : okButton;
+      (firstCheckbox || defaultButton).focus();
     }, 0);
   });
 }
@@ -650,8 +671,8 @@ let videoLastSignature = null;
 let videoMonitorStartedAt = 0;
 let videoSignatureCanvas = null;
 let streamIssueAlertShown = false;
-const APP_VERSION = '111';
-const MATERIAL_CACHE_VERSION = 'materials_v111';
+const APP_VERSION = '113';
+const MATERIAL_CACHE_VERSION = 'materials_v113';
 const EXPECTED_WARMUP_SENTENCE_COUNT = 5;
 const SENTENCE_SET_FILES = {
   '50words_350sentences': { filename: 'newset/350_nonrepeating_sentences.txt', count: 350, legacyProgressKey: '350_with_warmup_sentences' },
@@ -674,6 +695,15 @@ const AUDIO_QC_LOW_RMS_THRESHOLD = 0.0025;
 const AUDIO_QC_LOW_PEAK_THRESHOLD = 0.02;
 const AUDIO_QC_CLIPPING_SAMPLE_THRESHOLD = 0.995;
 const AUDIO_QC_CLIPPING_RATE_THRESHOLD = 0.01;
+// Speech presence rule (Q1): a frame is speech when its RMS is at least
+// max(SPEECH_MIN_RMS, SPEECH_NOISE_MULTIPLIER x noise floor), where the noise floor is the
+// 20th percentile of frame RMS in the take. Under SPEECH_MIN_MS of speech = no speech.
+const AUDIO_QC_SPEECH_MIN_RMS = 0.004;
+const AUDIO_QC_SPEECH_NOISE_MULTIPLIER = 3;
+const AUDIO_QC_NOISE_FLOOR_PERCENTILE = 0.2;
+const AUDIO_QC_SPEECH_MIN_MS = 300;
+// After this many failed checks in a row on one sentence, offer "Keep it and continue".
+const QC_OVERRIDE_AFTER_FAILURES = 2;
 const VIDEO_STUCK_MS = 9000;
 const VIDEO_NO_CHANGE_MS = 12000;
 const VIDEO_MONITOR_GRACE_MS = 3000;
@@ -1238,11 +1268,14 @@ function createAudioLevelStats() {
     sampleCount: 0,
     sumSquares: 0,
     peak: 0,
-    clippingSamples: 0
+    clippingSamples: 0,
+    frameRms: [],
+    firstFrameAt: null,
+    lastFrameAt: null
   };
 }
 
-function updateAudioLevelStats(sampleCount, frameSumSquares, framePeak, frameClippingSamples) {
+function updateAudioLevelStats(sampleCount, frameSumSquares, framePeak, frameClippingSamples, frameTime = performance.now()) {
   const stats = currentRecordingContext?.audioLevelStats;
   if (!stats || !sampleCount) return;
 
@@ -1251,7 +1284,38 @@ function updateAudioLevelStats(sampleCount, frameSumSquares, framePeak, frameCli
   stats.sumSquares += frameSumSquares;
   stats.peak = Math.max(stats.peak, framePeak);
   stats.clippingSamples += frameClippingSamples;
+  stats.frameRms.push(Math.sqrt(frameSumSquares / sampleCount));
+  if (stats.firstFrameAt === null) stats.firstFrameAt = frameTime;
+  stats.lastFrameAt = frameTime;
   stats.lastUpdatedAt = new Date().toISOString();
+}
+
+function getPercentile(values, fraction) {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const position = Math.min(sorted.length - 1, Math.max(0, Math.floor(fraction * (sorted.length - 1))));
+  return sorted[position];
+}
+
+function getSpeechActivitySummary(stats) {
+  const frameRms = stats?.frameRms || [];
+  if (!frameRms.length) {
+    return { noiseFloor: null, speechThreshold: null, speechFrames: 0, frameIntervalMs: null, speechMs: 0 };
+  }
+  const noiseFloor = getPercentile(frameRms, AUDIO_QC_NOISE_FLOOR_PERCENTILE);
+  const speechThreshold = Math.max(AUDIO_QC_SPEECH_MIN_RMS, AUDIO_QC_SPEECH_NOISE_MULTIPLIER * noiseFloor);
+  const speechFrames = frameRms.filter(value => value >= speechThreshold).length;
+  const spanMs = frameRms.length > 1 ? stats.lastFrameAt - stats.firstFrameAt : 0;
+  const frameIntervalMs = frameRms.length > 1 && spanMs > 0
+    ? spanMs / (frameRms.length - 1)
+    : 1000 / WAVEFORM_POINTS_PER_SECOND;
+  return {
+    noiseFloor: Number(noiseFloor.toFixed(6)),
+    speechThreshold: Number(speechThreshold.toFixed(6)),
+    speechFrames,
+    frameIntervalMs: Number(frameIntervalMs.toFixed(2)),
+    speechMs: Math.round(speechFrames * frameIntervalMs)
+  };
 }
 
 function getAudioLevelSummary(stats) {
@@ -1263,6 +1327,7 @@ function getAudioLevelSummary(stats) {
       clippingSamples: 0,
       sampleCount: 0,
       frames: 0,
+      ...getSpeechActivitySummary(null),
       visualGain: WAVEFORM_VISUAL_GAIN,
       thresholds: getAudioQualityThresholds()
     };
@@ -1277,6 +1342,7 @@ function getAudioLevelSummary(stats) {
     clippingSamples: stats.clippingSamples,
     sampleCount: stats.sampleCount,
     frames: stats.frames,
+    ...getSpeechActivitySummary(stats),
     startedAt: stats.startedAt,
     lastUpdatedAt: stats.lastUpdatedAt,
     visualGain: WAVEFORM_VISUAL_GAIN,
@@ -1289,19 +1355,31 @@ function getAudioQualityThresholds() {
     lowRms: AUDIO_QC_LOW_RMS_THRESHOLD,
     lowPeak: AUDIO_QC_LOW_PEAK_THRESHOLD,
     clippingSample: AUDIO_QC_CLIPPING_SAMPLE_THRESHOLD,
-    clippingRate: AUDIO_QC_CLIPPING_RATE_THRESHOLD
+    clippingRate: AUDIO_QC_CLIPPING_RATE_THRESHOLD,
+    speechMinRms: AUDIO_QC_SPEECH_MIN_RMS,
+    speechNoiseMultiplier: AUDIO_QC_SPEECH_NOISE_MULTIPLIER,
+    noiseFloorPercentile: AUDIO_QC_NOISE_FLOOR_PERCENTILE,
+    speechMinMs: AUDIO_QC_SPEECH_MIN_MS
   };
 }
 
-function getAudioQualityWarning(audioQuality) {
-  if (!audioQuality || audioQuality.rms === null || audioQuality.peak === null) return null;
+// Returns { code, message } for the first failed check, or null when the take passes.
+// A take with no analysed audio at all counts as "no speech": it cannot be verified.
+function getAudioQualityIssue(audioQuality) {
+  if (!audioQuality || audioQuality.rms === null || audioQuality.peak === null) {
+    return { code: 'no_speech', message: "We didn't hear you. Please read the sentence again." };
+  }
 
   if (audioQuality.clippingRate >= AUDIO_QC_CLIPPING_RATE_THRESHOLD) {
-    return 'Audio level is too high. Please move slightly farther away.';
+    return { code: 'too_loud', message: 'Audio level is too high. Please move slightly farther away.' };
   }
 
   if (audioQuality.rms < AUDIO_QC_LOW_RMS_THRESHOLD && audioQuality.peak < AUDIO_QC_LOW_PEAK_THRESHOLD) {
-    return 'Microphone level is very low. Please move closer or check microphone.';
+    return { code: 'too_quiet', message: 'Microphone level is very low. Please move closer or check microphone.' };
+  }
+
+  if ((audioQuality.speechMs || 0) < AUDIO_QC_SPEECH_MIN_MS) {
+    return { code: 'no_speech', message: "We didn't hear you. Please read the sentence again." };
   }
 
   return null;
@@ -1370,7 +1448,7 @@ function buildRecordingMetadata(context, fileName, blob, mimeInfo) {
       platform: navigator.platform || '',
       language: navigator.language || ''
     },
-    downloadClearPolicy: 'auto_clear_unverified_fallback'
+    downloadClearPolicy: 'confirm_before_clear_when_unverified'
   };
 }
 
@@ -2091,7 +2169,7 @@ function startWaveformVisualization() {
           waveformLastChangeAt = timestamp;
           waveformLastSignature = signature;
         }
-        updateAudioLevelStats(waveformFrameArray.length, frameSumSquares, peak, frameClippingSamples);
+        updateAudioLevelStats(waveformFrameArray.length, frameSumSquares, peak, frameClippingSamples, timestamp);
         waveformHistory.push({ time: timestamp, peak: visualPeak });
         waveformHistory = waveformHistory.filter(point => timestamp - point.time <= windowMs);
       }
@@ -2931,21 +3009,41 @@ async function downloadAllStoredVideos({ skipConfirm = false, allowRecordingSave
     const currentDate = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     const zipFileName = `video-recordings-${currentDate}.zip`;
     const downloadResult = await downloadZipWithBestEffortStreaming(zip, zipFileName);
-    if (!downloadResult?.verified) {
-      console.warn('ZIP download uses an unverified fallback; cached videos will still be cleared by current policy.', {
+    let downloadConfirmed = Boolean(downloadResult?.verified);
+    if (!downloadConfirmed) {
+      // Browser downloads (iPad/iPhone Safari, Android, Firefox) cannot be verified,
+      // so the cache is only cleared after the person confirms the file exists.
+      console.warn('ZIP download used an unverified fallback; asking before clearing cached videos.', {
         method: downloadResult?.method || 'unknown',
         zipFileName
       });
-      el('storageInfo').textContent = `Saved ${zipFileName} with unverified browser download fallback; clearing cache by policy`;
+      downloadConfirmed = await showModal({
+        title: 'Did the file save?',
+        message: [
+          'Check that ',
+          modalEmphasis(zipFileName),
+          ' is in your Downloads.\n\nRecordings are removed from this browser only after you choose ',
+          modalAction('Yes, it saved'),
+          '.'
+        ],
+        confirm: true,
+        okText: 'Yes, it saved',
+        cancelText: 'No, keep them',
+        defaultFocus: 'cancel'
+      });
     }
-    
+
     console.log(`Downloaded ZIP file: ${zipFileName}`);
-    
+
     // Return focus to the page so keyboard shortcuts work after saving.
     focusShortcutSurface();
-    
-    // Delete all videos from storage
-    await clearAllStoredVideos();
+
+    if (downloadConfirmed) {
+      // Delete all videos from storage
+      await clearAllStoredVideos();
+    } else {
+      console.warn(`Kept ${count} cached videos because the ZIP download was not confirmed.`);
+    }
     
     // Update storage info and restart video stream
     try {
@@ -3139,7 +3237,7 @@ async function startRecording() {
     // Update recording status and sentence appearance
     el('recordingStatus').textContent = '🔴 REC 0:00';
     el('recordingStatus').style.color = '#f44336';
-    el('currentText').className = 'big sentence-recording';
+    el('currentText').className = 'big sentence-recording is-recording';
     el('preview').classList.remove('video-preparing');
     startVideoMonitor();
     startWaveformVisualization();
@@ -3217,6 +3315,12 @@ el('startStop').onclick = () => {
 document.addEventListener('keydown', (event) => {
   const isSpaceShortcut = event.code === 'Space' || event.key === ' ';
   const isLeftArrowShortcut = event.code === 'ArrowLeft' || event.key === 'ArrowLeft' || event.key === 'Left';
+  // A held key auto-repeats; only the first keydown may act, otherwise holding
+  // Space toggles recording on and off and skips sentences.
+  if (event.repeat && (isSpaceShortcut || isLeftArrowShortcut)) {
+    event.preventDefault();
+    return;
+  }
   const isStopShortcut = isSpaceShortcut && recording;
   if (isInteractionBlocked({ allowRecording: isStopShortcut })) {
     event.preventDefault();
@@ -3248,6 +3352,26 @@ function ts(){
   const d = new Date();
   const pad = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+
+let qcFailureState = { sentenceSet: null, sentenceIndex: null, count: 0 };
+
+// Counts consecutive failed checks on the same sentence (reset on pass, override or a different sentence).
+function registerQcFailure(sentenceIndex) {
+  if (qcFailureState.sentenceIndex !== sentenceIndex || qcFailureState.sentenceSet !== currentSentenceSet) {
+    qcFailureState = { sentenceSet: currentSentenceSet, sentenceIndex, count: 0 };
+  }
+  qcFailureState.count += 1;
+  return qcFailureState.count;
+}
+
+function clearQcFailures() {
+  qcFailureState = { sentenceSet: null, sentenceIndex: null, count: 0 };
+}
+
+function getQcRetryMessage(issue) {
+  if (!issue) return '';
+  return issue.code === 'no_speech' ? issue.message : `${issue.message} Let's record this sentence again.`;
 }
 
 async function stayOnSentenceForRetry(saveIndex, reason) {
@@ -3324,11 +3448,37 @@ async function saveBlob(){
     
     const fileName = `${sentence}${progressInfo}_${timestamp}${redoSuffix}.${mimeInfo.fileExt}`;
     const metadata = buildRecordingMetadata(context, fileName, blob, mimeInfo);
-    const audioQualityWarning = getAudioQualityWarning(metadata.audioQuality);
-    metadata.audioQualityWarning = audioQualityWarning;
-    metadata.requiresRetry = Boolean(audioQualityWarning);
+    const qcIssue = getAudioQualityIssue(metadata.audioQuality);
+    let qcFailures = 0;
+    let qcOverride = false;
+    if (qcIssue) {
+      qcFailures = registerQcFailure(saveIndex);
+      if (qcFailures >= QC_OVERRIDE_AFTER_FAILURES) {
+        qcOverride = await showModal({
+          title: 'Recording Check',
+          message: [
+            qcIssue.message,
+            '\n\nThis sentence did not pass ',
+            modalWarning(`${qcFailures} times in a row`),
+            '. Record it again, or keep this recording and continue.'
+          ],
+          confirm: true,
+          okText: 'Keep it and continue',
+          cancelText: 'Record again',
+          defaultFocus: 'cancel'
+        });
+      }
+    }
+    if (!qcIssue || qcOverride) clearQcFailures();
+    metadata.audioQualityWarning = qcIssue ? qcIssue.message : null;
+    metadata.qcIssue = qcIssue ? qcIssue.code : null;
+    metadata.qcFailuresInARow = qcFailures;
+    metadata.qcOverride = qcOverride;
+    metadata.requiresRetry = Boolean(qcIssue) && !qcOverride;
+    // The first failure gets a short notice; from the second on, the choice dialog above was the notice.
+    const showRetryNotice = metadata.requiresRetry && qcFailures < QC_OVERRIDE_AFTER_FAILURES;
     let shouldPromptSaveAllCheckpoint = false;
-    
+
     if (storageMode) {
       // iPad mode: Store to IndexedDB
       try {
@@ -3338,9 +3488,9 @@ async function saveBlob(){
           await showAlert(blockedMessage);
           // Keep the current recording by downloading it directly, but block further cached recording.
           directDownload(blob, fileName, metadata);
-          if (audioQualityWarning) {
-            await showAlert(audioQualityWarning, 'Audio Level Warning');
-            await stayOnSentenceForRetry(saveIndex, 'Audio quality warning');
+          if (metadata.requiresRetry) {
+            if (showRetryNotice) await showAlert(getQcRetryMessage(qcIssue), 'Recording Check');
+            await stayOnSentenceForRetry(saveIndex, 'Audio quality check failed');
           }
           chunks = [];
           return;
@@ -3361,9 +3511,9 @@ async function saveBlob(){
       directDownload(blob, fileName, metadata);
     }
 
-    if (audioQualityWarning) {
-      await showAlert(audioQualityWarning, 'Audio Level Warning');
-      await stayOnSentenceForRetry(saveIndex, 'Audio quality warning');
+    if (metadata.requiresRetry) {
+      if (showRetryNotice) await showAlert(getQcRetryMessage(qcIssue), 'Recording Check');
+      await stayOnSentenceForRetry(saveIndex, 'Audio quality check failed');
       chunks = [];
       return;
     }
