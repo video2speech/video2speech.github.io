@@ -211,6 +211,8 @@ V2S.session = (() => {
       return;
     }
     state = 'recording';
+    // The press is a user gesture: wake the audio analysis if iOS suspended it.
+    V2S.meter.resume();
     const i = index();
     const current = {
       id: uid(),

@@ -40,6 +40,8 @@ Warm-up (5 sentences) happens only at the start of the sentence list.
 - A frame counts as speech when its RMS is at least `max(0.004, 3 × noise floor)`,
   where the noise floor is the take's 20th-percentile frame RMS.
 - **no_speech**: under 300 ms of speech frames. **too_loud**: 1% or more of samples clip.
+  **no_audio**: the audio analysis delivered nothing (e.g. iOS paused it); the page says
+  the microphone did not respond instead of blaming the speaker.
 - After two failures in a row on one sentence the participant may choose
   *Keep it and continue* (`status: qc_overridden`).
 - Recorded but not used to decide: RMS, peak, clipping rate, noise floor, speech ms,

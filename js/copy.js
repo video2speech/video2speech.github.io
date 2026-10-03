@@ -71,6 +71,7 @@ V2S.copy = {
 
   feedback: {
     no_speech: "We didn't hear you. Please read the sentence again.",
+    no_audio: 'The microphone did not respond. Let’s try this sentence again.',
     too_loud: 'Too loud. Move the device a little farther away, then try again.',
     hold: "Please tap, don't hold. Let's start this sentence again.",
     timeout: 'Recording stopped after 1 minute. Let’s try this sentence again.',

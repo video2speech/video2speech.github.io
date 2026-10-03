@@ -400,6 +400,8 @@ V2S.app = (() => {
     ui.setText('breakLead', lead);
     el('breakSaveBox').hidden = false;
     el('breakSaveProgress').hidden = true;
+    setSaveBox(copy.record.statusSaving);
+    setBreakButtons(null, null, null);
     const summary = sessionSummary();
     if (V2S.exporter.isFolderActive()) {
       await V2S.exporter.flushFolderWrites();
@@ -504,12 +506,13 @@ V2S.app = (() => {
       await V2S.exporter.flushFolderWrites();
       await V2S.exporter.writeSessionLog(app.participantId, sessionSummary());
     }
-    ui.show('done');
     ui.setText('doneTitle', allDone ? copy.done.allTitle : copy.done.finishTitle);
     ui.setText('doneBody', allDone ? copy.done.allBody : copy.done.finishBody);
     ui.setText('doneAgain', copy.done.again);
     el('doneAgain').hidden = Boolean(allDone);
     await refreshDoneSave();
+    ui.show('done');
+    if (!el('doneSave').hidden) el('doneSave').focus({ preventScroll: true });
     releaseWakeLock();
     V2S.media.stopHealth();
     V2S.meter.detach();
@@ -525,7 +528,6 @@ V2S.app = (() => {
     if (cached > 0) {
       ui.setText('doneUnsavedText', copy.done.unsaved(cached));
       ui.setText('doneSave', copy.done.save);
-      el('doneSave').focus({ preventScroll: true });
     }
   }
 

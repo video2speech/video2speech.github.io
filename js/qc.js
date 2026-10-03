@@ -7,8 +7,10 @@ V2S.qc = (() => {
   const Q = V2S.config.QC;
 
   function evaluate(frames) {
+    // No analysed audio at all means the analysis was not running (not the speaker's
+    // fault); it still cannot be accepted.
     if (!frames.length) {
-      return { pass: false, code: 'no_speech', metrics: { frames: 0, speechMs: 0 } };
+      return { pass: false, code: 'no_audio', metrics: { frames: 0, speechMs: 0 } };
     }
     let sumSquares = 0;
     let samples = 0;

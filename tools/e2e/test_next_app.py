@@ -150,6 +150,14 @@ async def s_normal(pw, base):
     c.check(s['index'] == 1 and s['card'] == 'ready', 'moved to warm-up 2', s)
     c.check(len(t) == 1 and t[0]['status'] == 'accepted', 'one accepted take', t)
     c.check(t and '_warmup1-5_repeat1_' in t[0]['fileName'], 'legacy-compatible file name', t and t[0]['fileName'])
+    meta = await page.evaluate("async () => { let m = null; await V2S.storage.forEachTake(r => { m = r.metadata; }); return m; }")
+    mk = meta['markers']
+    ordered = mk['sentenceShown'] <= mk['startPress'] <= mk['recorderStart'] <= mk['stopPress'] <= mk['recorderStop']
+    c.check(ordered, 'time markers in order (shown ≤ press ≤ recorder start ≤ stop press ≤ recorder stop)', mk)
+    c.check(120 <= mk['recorderStart'] - mk['startPress'] <= 400, 'recorder starts after the start sound', mk['recorderStart'] - mk['startPress'])
+    c.check(950 <= mk['recorderStop'] - mk['stopPress'] <= 2500, 'about 1 s is kept after Stop', mk['recorderStop'] - mk['stopPress'])
+    c.check(meta['participantId'] == 'P017' and meta['status'] == 'accepted' and meta['qc']['speechMs'] > 300,
+            'sidecar has participant, status and check metrics', {k: meta[k] for k in ('participantId', 'status')})
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
@@ -585,7 +593,22 @@ async def s_finish_and_admin(pw, base):
     return c.done()
 
 
+async def s_no_audio(pw, base):
+    c = Checks('No audio analysis at all: device message, same sentence')
+    browser, _, page, errors = await boot(pw, base)
+    await page.evaluate('() => V2S.meter.detach()')
+    await record(page)
+    s = await state(page)
+    t = await takes(page)
+    c.check(s['index'] == 0 and 'microphone did not respond' in (s['feedback'] or ''), 'blames the microphone, not the speaker', s['feedback'])
+    c.check([x['status'] for x in t] == ['qc_failed'], 'take kept as qc_failed', t)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
 SCENARIOS = {
+    'no_audio': s_no_audio,
     'storage_full': s_storage_full,
     'finish_admin': s_finish_and_admin,
     'normal': s_normal,
