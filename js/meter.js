@@ -205,16 +205,6 @@ V2S.meter = (() => {
     if (listener) idleListener = listener;
   }
 
-  // Is the person still speaking right now? Used to keep the tail open a little longer.
-  function speakingRecently(windowMs) {
-    const frames = collector || [];
-    if (frames.length < 4) return false;
-    const floor = V2S.util.percentile(frames.map(f => f.rms), Q.NOISE_FLOOR_PERCENTILE);
-    const threshold = Math.max(Q.SPEECH_MIN_RMS, Q.SPEECH_NOISE_MULTIPLIER * floor);
-    const last = frames[frames.length - 1].t;
-    return frames.some(f => last - f.t <= windowMs && f.rms >= threshold);
-  }
-
   function beginCollect() {
     collector = [];
   }
@@ -236,7 +226,6 @@ V2S.meter = (() => {
     setLive,
     refreshColors,
     setIdleDetection,
-    speakingRecently,
     beginCollect,
     endCollect,
     isRunning

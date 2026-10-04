@@ -201,7 +201,7 @@ async def s_normal(pw, base):
     t_ready = await page.evaluate('performance.now()')
     meta = await page.evaluate(LAST_META_JS)
     tail = meta['timing']['tailMs']
-    c.check(700 <= tail <= 1600, 'kept recording 0.7–1.5 s after Stop', tail)
+    c.check(700 <= tail <= 900, 'kept recording 0.7 s after Stop', tail)
     c.check((t_ready - t_stop) - tail < 450, 'next sentence appears right after the tail (no waiting for storage)',
             round(t_ready - t_stop - tail))
     s = await state(page)
@@ -382,7 +382,7 @@ async def s_speech_before_start(pw, base):
 
 
 async def s_tail(pw, base):
-    c = Checks('After Stop: 0.7 s tail, longer while still speaking (max 1.5 s)')
+    c = Checks('After Stop: a fixed 0.7 s tail, also while still speaking')
     browser, _, page, errors = await boot(pw, base, audio='continuous', media='shim')
     await page.keyboard.press('Space')
     await page.wait_for_timeout(1500)
@@ -391,14 +391,14 @@ async def s_tail(pw, base):
     await page.keyboard.press('Space')
     await wait_ready(page)
     tail = (await page.evaluate(LAST_META_JS))['timing']['tailMs']
-    c.check(700 <= tail <= 850, 'silent at Stop: tail stays at 0.7 s', tail)
+    c.check(700 <= tail <= 900, 'silent at Stop: tail is 0.7 s', tail)
     await page.evaluate("window.__v2sAudio.set('continuous')")
     await page.keyboard.press('Space')
     await page.wait_for_timeout(1500)
     await page.keyboard.press('Space')
     await wait_ready(page)
     tail = (await page.evaluate(LAST_META_JS))['timing']['tailMs']
-    c.check(1350 <= tail <= 1650, 'still speaking at Stop: tail extends to 1.5 s', tail)
+    c.check(700 <= tail <= 900, 'still speaking at Stop: tail is still 0.7 s (no speech detection)', tail)
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()

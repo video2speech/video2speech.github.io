@@ -310,15 +310,10 @@ V2S.session = (() => {
     finishTail(current);
   }
 
-  // Keep recording after Stop (people often press while saying the last word), and a
-  // little longer while they are clearly still speaking.
+  // Keep recording a moment after Stop (people often press while saying the last word).
+  // A fixed delay: no speech detection, so it is the same for every take.
   async function finishTail(current) {
     await sleep(cfg.TAIL_MS);
-    while (!current.closed && take === current
-      && performance.now() - current.stopAt < cfg.TAIL_MAX_MS
-      && V2S.meter.speakingRecently(cfg.TAIL_SPEECH_WINDOW_MS)) {
-      await sleep(100);
-    }
     current.tailMs = Math.round(performance.now() - current.stopAt);
     finalize(current);
   }

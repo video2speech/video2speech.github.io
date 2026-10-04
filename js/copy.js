@@ -10,7 +10,7 @@ V2S.copy = {
     title: 'Set up this device',
     lead: 'For the research team or a helper. You only do this once.',
     idLabel: 'Participant ID',
-    idPlaceholder: 'e.g. P017',
+    idPlaceholder: 'e.g. SEMG1',
     idHint: 'Letters, numbers and dashes.',
     idInvalid: 'Please use letters, numbers or dashes.',
     next: 'Continue',

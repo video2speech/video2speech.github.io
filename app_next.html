@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '200';
+      var APP_VERSION = '202';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,7 +42,7 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/app.css?v=200">
+  <link rel="stylesheet" href="css/app.css?v=202">
 </head>
 <body>
   <div class="app" id="app">
@@ -269,20 +269,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=200"></script>
-  <script defer src="js/config.js?v=200"></script>
-  <script defer src="js/copy.js?v=200"></script>
-  <script defer src="js/util.js?v=200"></script>
-  <script defer src="js/storage.js?v=200"></script>
-  <script defer src="js/sentences.js?v=200"></script>
-  <script defer src="js/media.js?v=200"></script>
-  <script defer src="js/meter.js?v=200"></script>
-  <script defer src="js/qc.js?v=200"></script>
-  <script defer src="js/input.js?v=200"></script>
-  <script defer src="js/ui.js?v=200"></script>
-  <script defer src="js/export.js?v=200"></script>
-  <script defer src="js/session.js?v=200"></script>
-  <script defer src="js/admin.js?v=200"></script>
-  <script defer src="js/main.js?v=200"></script>
+  <script defer src="vendor/jszip.min.js?v=202"></script>
+  <script defer src="js/config.js?v=202"></script>
+  <script defer src="js/copy.js?v=202"></script>
+  <script defer src="js/util.js?v=202"></script>
+  <script defer src="js/storage.js?v=202"></script>
+  <script defer src="js/sentences.js?v=202"></script>
+  <script defer src="js/media.js?v=202"></script>
+  <script defer src="js/meter.js?v=202"></script>
+  <script defer src="js/qc.js?v=202"></script>
+  <script defer src="js/input.js?v=202"></script>
+  <script defer src="js/ui.js?v=202"></script>
+  <script defer src="js/export.js?v=202"></script>
+  <script defer src="js/session.js?v=202"></script>
+  <script defer src="js/admin.js?v=202"></script>
+  <script defer src="js/main.js?v=202"></script>
 </body>
 </html>

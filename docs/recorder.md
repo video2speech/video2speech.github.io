@@ -1,4 +1,4 @@
-# Speech recorder (v200)
+# Speech recorder (v202)
 
 The new patient recorder lives at `app_next.html` while it is being tested on real
 devices. The current page, `app.html` (v114, hotfixed), keeps running for participants
@@ -24,9 +24,9 @@ until the switch described at the end.
      Start shows "Not recording yet — press Start, then read."
    - *Recording*: the sentence turns **green**, a red frame surrounds the whole screen,
      "● Recording"; **■ Stop**.
-   - After Stop the page keeps recording for 0.7 s, and for up to 1.5 s while the
-     person is still speaking (the legacy page stopped after 0.3 s). The next sentence
-     then appears at once with "Saved"; checking and storing happen in the background.
+   - After Stop the page keeps recording for a fixed 0.7 s (the legacy page: 0.3 s),
+     whether or not the person is still speaking. The next sentence then appears at once
+     with "Saved"; checking and storing happen in the background.
    - Next to Start/Stop: the waveform (last 4 s, green while recording), a small
      camera view, and one line saying where recordings go
      (*Saved to “folder”* or *Kept on this device until the break*).
@@ -75,7 +75,7 @@ A problem message (for example "We didn't hear you…") always replaces the tip.
   microphone lost, page hidden, reload — returns to the **same** sentence.
   Progress only moves on an accepted take.
 
-## Recording check (approved 2026-10-03)
+## Recording check (approved 2026-10-03; no_audio approved 2026-10-04)
 
 - A frame counts as speech when its RMS is at least `max(0.004, 3 × noise floor)`,
   where the noise floor is the take's 20th-percentile frame RMS.
@@ -88,7 +88,7 @@ A problem message (for example "We didn't hear you…") always replaces the tip.
   silence before speech and `speechAtEnd` (speech in the last 150 ms of the take, i.e.
   possibly cut off). `timing.tailMs` says how long recording continued after Stop.
 
-Thresholds live in `js/config.js` (`QC`, `TAIL_MS`, `TAIL_MAX_MS`).
+Thresholds live in `js/config.js` (`QC`, `TAIL_MS`).
 
 ## Files
 
@@ -162,6 +162,6 @@ What the tests can and cannot show:
 - Bump the version in one step: `python3 tools/bump_version.py 201`.
 - **Switch** (after device testing): the `switch-to-v200` branch makes the new recorder
   `app.html`, keeps the legacy page as `app_legacy.html` (update prompt removed) and
-  sets `version.json` to `{"appVersion": "200"}`.
+  moves the recorder's version to the `appVersion` key of `version.json`.
 - Backups: git tags `legacy-v111` (before any change), `legacy-v113` (first hotfix)
   and `legacy-v114` (save dialog first).
