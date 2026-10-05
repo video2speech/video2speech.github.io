@@ -54,11 +54,9 @@ V2S.app = (() => {
       folderZip: copy.folder.zip,
       checkCameraStep: copy.check.cameraStep,
       checkCameraTitle: copy.check.cameraTitle,
-      checkCameraText: copy.check.cameraText,
       checkNext: copy.check.next,
       checkMicStep: copy.check.micStep,
       checkMicTitle: copy.check.micTitle,
-      checkMicText: copy.check.micText,
       testRecordLabel: copy.check.testRecord,
       testSayLabel: copy.check.testSayLabel,
       testSay: copy.check.testSay,
@@ -66,9 +64,13 @@ V2S.app = (() => {
       testYes: copy.check.testYes,
       testAgain: copy.check.testAgain,
       testReplay: copy.check.testReplay,
+      testHint: copy.check.testHint,
       checkHelp: copy.check.help
     };
     Object.entries(text).forEach(([id, value]) => ui.setText(id, value));
+    // Two sentences each: the second one starts its own line.
+    ui.setSentences('checkCameraText', copy.check.cameraText(platform.device));
+    ui.setSentences('checkMicText', copy.check.micText);
     el('setupId').placeholder = copy.setup.idPlaceholder;
   }
 
@@ -181,7 +183,10 @@ V2S.app = (() => {
   }
 
   // ---------- setup ----------
+  let setupStep = null;
   function showSetupStep(step) {
+    if (step !== setupStep) ui.pauseClicks();
+    setupStep = step;
     el('setupStepId').hidden = step !== 'id';
     el('setupStepConfirm').hidden = step !== 'confirm';
     el('setupStepFolder').hidden = step !== 'folder';
@@ -410,6 +415,7 @@ V2S.app = (() => {
   // ---------- camera and microphone check ----------
   // One step at a time: 1 place the camera (Next), 2 record a test and watch it back.
   function showCheckStep(step) {
+    if (step !== app.checkStep) ui.pauseClicks();
     el('checkStepCamera').hidden = step !== 'camera';
     el('checkStepMic').hidden = step !== 'mic';
     document.querySelector('#screen-check .check').classList.toggle('is-camera-step', step === 'camera');
@@ -544,6 +550,7 @@ V2S.app = (() => {
     V2S.meter.resume();
     el('testRecord').hidden = true;
     el('checkMicText').hidden = true;
+    el('checkHelp').hidden = true;
     el('testLive').hidden = false;
     el('testBar').style.transition = 'none';
     el('testBar').style.transform = 'scaleX(0)';
@@ -680,7 +687,7 @@ V2S.app = (() => {
 
   function onSettingsClosed() {
     if (ui.screen() === 'record') {
-      V2S.input.setEnabled(true);
+      V2S.input.setEnabled(true, { guard: true });
       if (['ready', 'partEnd'].includes(V2S.session.getState())) V2S.session.resume();
     }
   }
@@ -688,20 +695,22 @@ V2S.app = (() => {
   // ---------- practice done, breaks and saving ----------
   const breakState = { mode: 'block', block: 0 };
 
-  function setBreakButtons(primary, secondary, tertiary) {
+  function setBreakButtons(primary, secondary, tertiary, { focus = true } = {}) {
     const set = (id, config) => {
       const button = el(id);
       button.hidden = !config;
       if (config) {
         button.textContent = config.label;
-        button.onclick = config.action;
+        button.setAttribute('aria-disabled', 'false');
+        button.onclick = () => { if (button.getAttribute('aria-disabled') !== 'true') config.action(); };
       }
     };
     set('breakPrimary', primary);
     set('breakSecondary', secondary);
     set('breakTertiary', tertiary);
     // On a computer Space / Enter / a clicker press the main button: keep it focused.
-    if (primary && document.documentElement.classList.contains('has-keyboard') && ui.screen() === 'break' && !ui.isDialogOpen()) {
+    // Never a confirmation that removes something ("It is saved — make room").
+    if (primary && focus && document.documentElement.classList.contains('has-keyboard') && ui.screen() === 'break' && !ui.isDialogOpen()) {
       el('breakPrimary').focus({ preventScroll: true });
     }
   }
@@ -734,7 +743,7 @@ V2S.app = (() => {
     breakState.mode = 'storage';
     breakState.next = null;
     V2S.session.stop();
-    await showBreak(copy.breakScreen.savePromptTitle, copy.breakScreen.storageSaved);
+    await showBreak(copy.breakScreen.savePromptTitle, copy.feedbackShort.storageFull);
   }
 
   // Parts done, as one row of segments (breaks), or one line about the parts (practice).
@@ -761,14 +770,18 @@ V2S.app = (() => {
     warn: ['symbol-warn', '<svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.4v.2"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>']
   };
 
+  function setBreakSymbol(kind) {
+    const [symbolClass, symbolIcon] = SYMBOLS[kind];
+    el('breakSymbol').className = `symbol ${symbolClass}`;
+    el('breakSymbol').innerHTML = symbolIcon;
+  }
+
   async function showBreak(title, lead, parts) {
     V2S.input.setEnabled(false);
     breakState.savedNow = 0;
     breakState.lead = lead;
     const folder = exporter.getSaveMode() === 'folder';
-    const [symbolClass, symbolIcon] = SYMBOLS[breakState.mode === 'storage' ? 'warn' : 'done'];
-    el('breakSymbol').className = `symbol ${symbolClass}`;
-    el('breakSymbol').innerHTML = symbolIcon;
+    setBreakSymbol(breakState.mode === 'storage' ? 'warn' : 'done');
     ui.setText('breakTitle', title);
     // ZIP mode: what to do (save first, or go on) appears once the recordings are counted.
     ui.setSentences('breakLead', folder ? lead : '');
@@ -782,7 +795,6 @@ V2S.app = (() => {
     ui.show('break');
     await settleWrites();
     await refreshBreakSave();
-    el('breakPrimary').focus({ preventScroll: true });
   }
 
   // Waits for every take of the session to be stored, then (folder mode) writes anything
@@ -812,11 +824,20 @@ V2S.app = (() => {
     if (release && release.ids.length) {
       // The device is full and only the last saved ZIP's copies could make room: they
       // are removed only after the participant has checked that file is saved.
-      setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.makeRoom(saveHint(release.fileName || '')), 'warn');
+      const hint = saveHint(release.fileName || '', { find: true });
+      const [before, after] = copy.breakScreen.makeRoom('\u0001').split('\u0001');
+      // The title says what is wrong; the panel what to check and what will be removed.
+      ui.setText('breakTitle', copy.breakScreen.makeRoomTitle);
+      setBreakSymbol('warn');
+      ui.setSentences('breakLead', '');
+      el('breakSave').hidden = false;
+      setSavePanel('breakSave', 'breakSaveText', '', 'warn');
+      el('breakSaveText').replaceChildren(before, ...(typeof hint === 'string' ? [hint] : [...hint.childNodes]), after || '');
       setBreakButtons(
         { label: copy.breakScreen.makeRoomYes, action: makeRoom },
         null,
-        { label: copy.breakScreen.saveAgain, action: async () => { await runZipSave('backup', null, { backups: true }); await refreshBreakSave(); } }
+        { label: copy.breakScreen.saveAgain, action: async () => { await runZipSave('backup', null, { backups: true }); await refreshBreakSave(); } },
+        { focus: false }
       );
       return;
     }
@@ -845,22 +866,28 @@ V2S.app = (() => {
       return;
     }
     if (exporter.getSaveMode() === 'folder') {
+      const storage = breakState.mode === 'storage';
+      if (storage) ui.setSentences('breakLead', pending === 0 ? copy.breakScreen.storageSaved : copy.feedbackShort.storageFull);
       if (pending > 0 && exporter.status().saving) {
-        // Still writing (a slow folder): carrying on is safe, the writes continue.
+        // Still writing (a slow folder): carrying on is safe, the writes continue — except
+        // on a full device, where Continue would only come back here.
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.stillSaving(pending));
-        setBreakButtons(cont, finish, null);
+        setBreakButtons(storage ? null : cont, finish, null);
         setTimeout(() => { if (ui.screen() === 'break') refreshBreakSave(); }, 1500);
       } else if (pending === 0) {
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.savedFolder(folderLabel()), 'ok');
         setBreakButtons(cont, finish, null);
       } else {
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.folderProblem(pending), 'warn');
-        setBreakButtons({ label: copy.breakScreen.allowFolder, action: fixFolderFromBreak }, cont, null);
+        setBreakButtons({ label: copy.breakScreen.allowFolder, action: fixFolderFromBreak }, storage ? finish : cont, null);
       }
       return;
     }
     if (breakState.mode === 'storage') {
-      ui.setSentences('breakLead', pending === 0 ? copy.breakScreen.storageSaved : copy.feedback.storageFull);
+      // Saved and room again: say so (no more "Save your recordings" above "saved").
+      ui.setText('breakTitle', pending === 0 ? copy.breakScreen.roomTitle : copy.breakScreen.savePromptTitle);
+      setBreakSymbol(pending === 0 ? 'done' : 'warn');
+      ui.setSentences('breakLead', pending === 0 ? copy.breakScreen.roomLead : copy.feedback.storageFull);
       el('breakSave').hidden = !(pending > 0 && breakState.savedNow);
       if (pending > 0 && breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.moreToSave(breakState.savedNow, pending));
       setBreakButtons(pending === 0 ? { label: copy.breakScreen.continue, action: () => showRecord() } : { label: copy.breakScreen.saveButton, action: saveZipFromBreak }, finish, null);
@@ -896,14 +923,25 @@ V2S.app = (() => {
     await refreshBreakSave();
   }
 
+  function setBreakBusy(busy) {
+    ['breakPrimary', 'breakSecondary', 'breakTertiary'].forEach(id => el(id).setAttribute('aria-disabled', busy ? 'true' : 'false'));
+  }
+
   async function saveZipFromBreak() {
+    if (zipSaving) return;
     const label = breakState.mode === 'block' ? `part${String(breakState.block).padStart(2, '0')}` : breakState.mode === 'practice' ? 'practice' : 'saved';
+    setBreakBusy(true);
     const result = await runZipSave(label, (done, total) => {
+      if (done === null) {
+        el('breakSaveProgress').hidden = true;
+        el('breakSave').hidden = true;
+        return;
+      }
       el('breakSave').hidden = false;
       el('breakSaveProgress').hidden = false;
       el('breakSaveBar').style.transform = `scaleX(${(done / total).toFixed(3)})`;
       ui.setText('breakSaveLabel', copy.breakScreen.saving(done, total));
-    });
+    }).finally(() => setBreakBusy(false));
     el('breakSaveProgress').hidden = true;
     if (result === 'saved') breakState.savedNow = (breakState.savedNow || 0) + app.lastSavedCount;
     if (result === 'saved' || result === 'nothing') {
@@ -918,16 +956,40 @@ V2S.app = (() => {
   }
 
   // The file to look for, without its time: "SEMG1_part01".
-  function saveHint(fileName) {
+  // `find`: only where to look (the file is already downloaded).
+  function saveHint(fileName, { find = false } = {}) {
     const name = String(fileName || '').replace(/_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.zip$/, '').replace(/\.zip$/, '');
-    if (platform.ios) return copy.saveConfirm.ios(name);
+    if (platform.ios) {
+      const [before, after] = (find ? copy.saveConfirm.iosFind(name) : copy.saveConfirm.ios(name)).split('⬇');
+      const text = document.createElement('p');
+      const icon = document.createElement('span');
+      icon.className = 'inline-icon';
+      icon.setAttribute('role', 'img');
+      icon.setAttribute('aria-label', 'downloads');
+      icon.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.25"/><path d="M12 7.5v8M8.5 12.5 12 16l3.5-3.5"/></svg>';
+      text.append(before, icon, after || '');
+      return text;
+    }
     if (platform.android) return copy.saveConfirm.android(name);
     return copy.saveConfirm.desktop(name);
   }
 
   // ZIP save. The save dialog (Chrome/Edge) opens FIRST, while the click still counts;
   // a plain download is only cleared after the participant confirms the file exists.
-  async function runZipSave(label, onProgress, { backups = false } = {}) {
+  // One save at a time: a second press while the ZIP is built or the question is open
+  // does nothing (it would download the same file twice).
+  let zipSaving = false;
+  async function runZipSave(label, onProgress, options = {}) {
+    if (zipSaving) return 'busy';
+    zipSaving = true;
+    try {
+      return await saveZipOnce(label, onProgress, options);
+    } finally {
+      zipSaving = false;
+    }
+  }
+
+  async function saveZipOnce(label, onProgress, { backups = false } = {}) {
     const stamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     const suggested = `${app.participantId || 'recordings'}_${label}_${stamp}.zip`;
     const target = await exporter.pickZipTarget(suggested);
@@ -938,6 +1000,7 @@ V2S.app = (() => {
       await V2S.session.flush();
       await app.flushEvents();
       result = await exporter.saveZip({ participantId: app.participantId, label, summary: sessionSummary(), target, onProgress, backups });
+      if (onProgress) onProgress(null, null);   // the file is with the browser: no more "Preparing…"
     } catch (error) {
       logEvent('zip_failed', { error: String(error && error.message || error) });
       await ui.alert(copy.error.loadTitle, String(error && error.message || error));
@@ -958,7 +1021,7 @@ V2S.app = (() => {
         focus: false
       });
       logEvent('zip_confirm', { answer, fileName: result.fileName, count: result.count });
-      if (answer === 'no') return runZipSave(label, onProgress, { backups });
+      if (answer === 'no') return saveZipOnce(label, onProgress, { backups });
       confirmed = answer === 'yes';
     }
     if (!confirmed) return 'unsure';
@@ -1086,6 +1149,7 @@ V2S.app = (() => {
   }
 
   async function reconnectAndResume() {
+    if (el('errorAction').getAttribute('aria-disabled') === 'true') return;   // already reconnecting
     V2S.meter.resume();
     el('errorAction').setAttribute('aria-disabled', 'true');
     try {
@@ -1096,7 +1160,7 @@ V2S.app = (() => {
     }
     el('errorAction').setAttribute('aria-disabled', 'false');
     ui.show('record');
-    V2S.input.setEnabled(true);
+    V2S.input.setEnabled(true, { guard: true });
     V2S.session.resumeAfterReconnect();
   }
 
@@ -1217,7 +1281,7 @@ V2S.app = (() => {
     el('checkNext').addEventListener('click', onCheckNext);
     el('testRecord').addEventListener('click', onTestRecord);
     el('testYes').addEventListener('click', onTestYes);
-    el('testAgain').addEventListener('click', onTestRecord);
+    el('testAgain').addEventListener('click', () => { resetTest(); showCheckStep('camera'); });
     el('testReplay').addEventListener('click', () => {
       const playback = el('checkPlayback');
       if (!app.test.url || playback.hidden) return;

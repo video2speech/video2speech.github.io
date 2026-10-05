@@ -20,6 +20,7 @@
        recording; the camera picture small in the corner */
 
 /* ---------- shell ---------- */
+:root { --main-w: 340px; }
 .app { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 body[data-screen="record"] .app { height: 100vh; height: 100dvh; overflow: hidden; }
 .screens { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -70,7 +71,7 @@ body[data-screen="loading"] .topbar-end { visibility: hidden; }
 .where { display: grid; justify-items: stretch; gap: 7px; text-align: center; }
 .where-text { font-size: 16px; font-weight: 600; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .where-short { display: none; }
-.where .bar { width: 100%; }
+.where .bar { width: 200px; justify-self: center; }
 
 .bar { width: 100%; height: 4px; border-radius: 999px; background: var(--fill); overflow: hidden; }
 .bar-strong { height: 6px; }
@@ -82,7 +83,10 @@ body[data-screen="loading"] .topbar-end { visibility: hidden; }
    and tablets the column sits in the middle of the screen; on phones the actions sit at
    the bottom, within thumb reach. */
 .screen-flow { padding-top: var(--s2); }
-#screen-break .flow { justify-content: flex-start; padding-top: clamp(16px, 12vh, 140px); }
+#screen-break .flow, #screen-done .flow { justify-content: flex-start; padding-top: clamp(16px, calc(20vh - 48px), 200px); }
+@media (orientation: portrait) and (min-height: 1000px) {
+  #screen-break .flow, #screen-done .flow { padding-top: 21vh; }
+}
 .flow { flex: 1; width: min(500px, 100%); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; justify-content: safe center; padding-bottom: 6vh; }
 .flow-step { display: flex; flex-direction: column; }
 .flow-body { padding: var(--s5) 0 0; }
@@ -129,11 +133,11 @@ body[data-screen="loading"] .topbar-end { visibility: hidden; }
 .notice-stack .btn { justify-self: start; }
 
 /* Breaks: how many parts are done, as one row of segments. */
-.parts { width: min(320px, 100%); margin-top: var(--s5); display: grid; gap: var(--s2); }
+.parts { width: min(400px, 100%); margin-top: var(--s5); display: grid; gap: var(--s2); }
 .parts-bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
 .parts-bar span { height: 6px; border-radius: 999px; background: var(--fill-strong); }
-.parts-bar span.is-done { background: var(--blue); }
-.parts-bar span.is-current { background: var(--blue-tint); box-shadow: inset 0 0 0 1.5px var(--blue); }
+.parts-bar span.is-done { background: var(--ink-3); }
+.parts-bar span.is-current { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-3); }
 .journey .parts-bar { margin: var(--s1) 0; }
 .parts-label { font-size: var(--t-label); font-weight: 500; color: var(--ink-3); text-wrap: balance; }
 
@@ -166,6 +170,7 @@ body[data-screen="loading"] .topbar-end { visibility: hidden; }
   grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
   gap: var(--s7);
   align-items: start;
+  align-content: center;
   padding: var(--s3) 0 6vh;
 }
 .check-media { display: grid; gap: var(--s3); min-width: 0; }
@@ -217,7 +222,9 @@ video.is-mirrored { transform: scaleX(-1); }
 /* The question reads in line with the step's title (left on wide screens, centred where
    the whole panel is centred). */
 .test-links { display: flex; justify-content: flex-start; gap: var(--s5); }
-.test-question { font-size: 19px; font-weight: 500; line-height: 1.4; color: var(--ink); text-align: left; justify-self: stretch; margin-bottom: var(--s3); text-wrap: balance; }
+.test-links .btn-text:first-child { padding-left: 0; }
+.test-hint { font-size: var(--t-small); line-height: 1.4; color: var(--ink-3); }
+.test-question { font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--ink); text-align: left; justify-self: stretch; margin-bottom: var(--s3); text-wrap: balance; }
 .check-help { align-self: flex-start; margin-top: var(--s4); padding-left: 0; font-size: var(--t-small); }
 
 /* ---------- recording screen ---------- */
@@ -263,7 +270,7 @@ video.is-mirrored { transform: scaleX(-1); }
   height: 34px;
   padding: 0 14px 0 12px;
   border-radius: 999px;
-  background: var(--fill);
+  background: transparent;
   color: var(--ink-3);
   font-size: 16px;
   font-weight: 600;
@@ -284,7 +291,7 @@ video.is-mirrored { transform: scaleX(-1); }
 .screen-record.is-saved .status-check { display: inline-grid; }
 
 /* The dock: the guide, then Start/Stop, then Redo, centred. */
-.dock { flex: none; width: min(600px, 100%); margin: var(--s6) auto 0; display: flex; flex-direction: column; align-items: center; gap: var(--s3); }
+.dock { flex: none; width: min(600px, 100%); margin: var(--s6) auto 0; display: flex; flex-direction: column; align-items: center; gap: var(--s4); }
 
 /* Guide: the practice coach, or a message. One height in practice and in the real
    recording, so nothing above or below it ever moves. */
@@ -308,18 +315,20 @@ video.is-mirrored { transform: scaleX(-1); }
 .message { margin: 0; display: flex; justify-content: center; }
 .message.is-empty { visibility: hidden; }
 .screen-record.is-coaching .message { display: none; }
-.message-body { display: inline-flex; align-items: baseline; gap: .4em; max-width: min(340px, 100%); padding: 10px 16px; border-radius: var(--radius-m); font-size: 18px; font-weight: 500; line-height: 1.35; color: var(--ink-3); text-align: left; text-wrap: pretty; }
+.message-body { display: inline-flex; align-items: baseline; gap: .4em; max-width: min(var(--main-w), 100%); padding: 10px 16px; border-radius: var(--radius-m); font-size: 18px; font-weight: 500; line-height: 1.35; color: var(--ink-3); text-align: left; text-wrap: balance; }
 .message-icon { flex: none; align-self: flex-start; margin-top: .17em; }
 .message-icon:empty { display: none; }
 .message-icon svg { display: block; width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
 .message.tone-warn .message-body { color: var(--warn-text); background: var(--warn-tint); }
 .message.tone-info .message-body { color: var(--ink); font-weight: 600; font-size: 20px; text-align: center; }
 .message.tone-info .message-icon { display: none; }
-/* "✓ Recorded" for a moment after a take: quiet. */
+/* "✓ Recorded" for a moment after a take, and what just happened ("That was the last
+   sentence of part 2."): quiet grey, like the coach's first line. */
 .message.tone-ok .message-body { padding: 6px 12px; font-size: 16px; color: var(--ink-3); }
+.message.tone-note .message-body { padding: 6px 12px; font-size: 17px; color: var(--ink-3); text-align: center; }
 
 /* Start (green) becomes Stop (red) while recording; at a part's end it moves you on (blue). */
-.btn-main { width: min(340px, 100%); min-height: 68px; padding: 0 28px; border-radius: 999px; font-size: 23px; }
+.btn-main { width: min(var(--main-w), 100%); min-height: 68px; padding: 0 28px; border-radius: 999px; font-size: 23px; }
 .btn-start { background: var(--go-tint); color: var(--go-text); }
 @media (hover: hover) { .btn-start:hover { background: var(--go-tint-hover); } }
 .btn-main.is-stop { background: var(--rec-tint); color: var(--rec-text); }
@@ -330,18 +339,22 @@ video.is-mirrored { transform: scaleX(-1); }
 .btn-main.is-quiet .dot-go { background: var(--ink-4); }
 .btn-main .btn-icon svg { width: .9em; height: .9em; }
 
-/* Redo: a quiet pill under Start, naming the sentence it would record again. */
-.redo { max-width: 100%; min-height: 44px; padding: 0 18px; border-radius: 999px; background: var(--fill); color: var(--ink-2); gap: 8px; overflow: hidden; }
-.redo-label { flex: none; }
+/* Redo: a quiet grey button under Start. Line 1 says what it does, line 2 which sentence
+   it records again — the shape of the Redo lesson, so the two never differ in size.
+   Its place keeps the lesson's height all the time: nothing moves when Redo appears,
+   grows for the lesson or hides while recording. */
+.redo-slot { width: 100%; min-height: 68px; margin-top: var(--s2); display: flex; justify-content: center; align-items: flex-start; }
+.redo { width: min(var(--main-w), 100%); min-height: 60px; padding: 7px 24px; border-radius: 999px; background: var(--fill); color: var(--ink-2); flex-direction: column; justify-content: center; gap: 1px; overflow: hidden; }
+.redo.is-cancel { min-height: 44px; }
 @media (hover: hover) { .redo:hover { background: var(--fill); } }
-.redo-label { display: inline-flex; align-items: center; gap: 7px; font-size: 18px; font-weight: 600; }
-.redo-caption { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px; font-weight: 400; color: var(--ink-3); }
+.redo-label { flex: none; display: inline-flex; align-items: center; gap: 7px; font-size: 18px; font-weight: 600; }
+.redo-caption { flex: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 400; color: var(--ink-3); }
 .redo-caption [hidden] { display: none; }
 /* The Redo lesson: Redo is the one thing to press — the only filled button, as large as
    Start, its sentence on a second line, set a little apart (neutral: it is not "move on"). */
-.redo.is-lesson { width: min(340px, 100%); min-height: 68px; margin-top: var(--s2); padding: 8px 24px; flex-direction: column; justify-content: center; gap: 2px; background: var(--ink); color: var(--bg); }
+.redo.is-lesson { width: min(var(--main-w), 100%); min-height: 68px; padding: 8px 24px; gap: 2px; background: var(--ink); color: var(--bg); }
 .redo.is-lesson .redo-label { font-size: 21px; }
-.redo.is-lesson .redo-caption { flex: none; max-width: 100%; font-size: 16px; color: inherit; opacity: .75; }
+.redo.is-lesson .redo-caption { color: inherit; opacity: .75; }
 .redo.is-lesson.is-pulsing { animation-name: pulse-ring-ink; }
 @keyframes pulse-ring-ink { 0%, 100% { box-shadow: 0 0 0 0 rgba(29, 29, 31, .22); } 50% { box-shadow: 0 0 0 8px rgba(29, 29, 31, .22); } }
 [data-theme="dark"] .redo.is-lesson.is-pulsing { animation-name: pulse-ring-ink-dark; }
@@ -372,6 +385,9 @@ video.is-mirrored { transform: scaleX(-1); }
 .dialog { width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow: auto; padding: 28px 24px 20px; border-radius: 22px; background: var(--surface); box-shadow: var(--shadow-pop); animation: pop-in .2s var(--ease); text-align: center; }
 @keyframes pop-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
 .dialog:focus { outline: none; }
+body.has-dialog .screens, body.has-dialog .topbar { filter: saturate(0); opacity: .2; }
+.inline-icon { display: inline-block; vertical-align: -.2em; margin: 0 .15em; }
+.inline-icon svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .dialog h2 { font-size: 21px; margin-bottom: var(--s2); }
 .dialog-body { font-size: 17px; line-height: 1.45; color: var(--ink-2); text-wrap: balance; }
 .dialog-body p + p, .dialog-body p + .field, .dialog-body .field + p { margin-top: var(--s3); }
@@ -437,6 +453,7 @@ button.row:active { background: var(--fill-strong); }
 .row input[type="number"] { width: 90px; border-radius: 8px; background: var(--fill); padding: 6px 10px; text-align: center; color: var(--ink); }
 .row input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--blue); }
 .row .btn { flex: none; }
+.row-go { flex: none; min-height: 44px; padding: 0 0 0 12px; font-weight: 600; }
 .row-warn { color: var(--warn-text); background: var(--warn-tint); font-size: 15px; }
 .segmented { display: inline-grid; grid-auto-flow: column; gap: 2px; padding: 2px; border-radius: 9px; background: var(--fill); }
 .segmented button { min-height: 32px; padding: 0 16px; border: 0; border-radius: 7px; background: transparent; font: inherit; font-size: 15px; font-weight: 500; color: var(--ink-2); cursor: pointer; }
@@ -460,7 +477,6 @@ button.row:active { background: var(--fill-strong); }
   .check-actions { width: min(400px, 100%); margin-top: var(--s5); }
 
   .guide { min-height: 112px; }
-  .btn-main { width: min(320px, 100%); min-height: 68px; font-size: 23px; }
   .cam-thumb { width: 104px; }
 }
 
@@ -490,7 +506,8 @@ button.row:active { background: var(--fill-strong); }
   .coach-detail { font-size: 16px; }
   .message-body { font-size: 17px; }
   .dock { gap: var(--s4); }
-  .btn-main { width: 100%; min-height: 64px; font-size: 22px; }
+  :root { --main-w: 100%; }
+  .btn-main { min-height: 64px; font-size: 22px; }
   .key-hint { display: none !important; }
   .redo-caption { font-size: 16px; }
   .cam-thumb { width: 84px; border-radius: 10px; }
@@ -533,7 +550,8 @@ button.row:active { background: var(--fill-strong); }
   /* Recording: the sentence on the left, the guide and the buttons on the right. */
   .screen-record { display: grid; grid-template-columns: minmax(0, 1fr) 280px; grid-template-rows: minmax(0, 1fr); column-gap: var(--s5); padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
   .stage { grid-column: 1; padding: 0 0 4px; }
-  .dock { grid-column: 2; width: 100%; margin-top: 0; justify-content: center; gap: var(--s2); }
+  :root { --main-w: 100%; }
+  .dock { grid-column: 2; width: 100%; margin-top: 0; justify-content: center; }
   .monitor { top: 2px; right: auto; left: var(--gutter); }
   .guide { min-height: 92px; }
   .coach-ack { font-size: 14px; }
@@ -541,8 +559,11 @@ button.row:active { background: var(--fill-strong); }
   .coach-detail { font-size: 14px; }
   .message-body { font-size: 15px; padding: 6px 10px; }
   .status { margin-top: var(--s3); height: 28px; font-size: 14px; }
-  .btn-main { width: 100%; min-height: 54px; font-size: 20px; }
-  .redo { min-height: 44px; padding: 0 12px; }
+  .btn-main { min-height: 54px; font-size: 20px; }
+  .redo { min-height: 54px; padding: 5px 16px; }
+  .redo-slot { min-height: 78px; }
+  .redo-caption { white-space: normal; text-wrap: balance; text-align: center; }
+  .redo.is-lesson { min-height: 62px; }
   /* How to record, sideways: fits without scrolling. */
   .dialog { padding: 16px 20px 14px; }
   .dialog h2 { font-size: 18px; margin-bottom: 4px; }

@@ -41,6 +41,24 @@ V2S.media = (() => {
   const getAudioConstraintMode = () => audioConstraintMode;
   const isBluetooth = label => BLUETOOTH.test(String(label || ''));
 
+  // The sound output in use, where the browser lists it (Chrome, Edge): Bluetooth
+  // headphones or speakers add a delay the browser may not report (meter.startCue).
+  let outputBluetooth = false;
+  async function checkOutput() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const outputs = devices.filter(device => device.kind === 'audiooutput');
+      const output = outputs.find(device => device.deviceId === 'default') || outputs[0];
+      outputBluetooth = Boolean(output && isBluetooth(output.label));
+      if (outputBluetooth) logEvent('output_bluetooth', { output: output.label });
+    } catch (error) {
+      outputBluetooth = false;
+    }
+  }
+  if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === 'function') {
+    navigator.mediaDevices.addEventListener('devicechange', () => { checkOutput(); });
+  }
+
   function videoConstraints(useDevice = true) {
     const constraints = { frameRate: { ideal: Number(settings.fps) || 30 } };
     if (useDevice && settings.videoDeviceId) constraints.deviceId = { exact: settings.videoDeviceId };
@@ -67,9 +85,13 @@ V2S.media = (() => {
     return Boolean(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && typeof MediaRecorder !== 'undefined');
   }
 
+  // Always a new Error: a DOMException's `code` cannot be changed (it stayed 0, so a
+  // refused permission was reported as a disconnected device).
   function failure(code, error) {
-    const wrapped = error instanceof Error ? error : new Error(String(error || code));
+    const wrapped = new Error(error && error.message ? error.message : String(error || code));
+    wrapped.name = (error && error.name) || 'Error';
     wrapped.code = code;
+    wrapped.cause = error;
     return wrapped;
   }
 
@@ -96,7 +118,16 @@ V2S.media = (() => {
     }
   }
 
-  async function open() {
+  // One camera at a time: an open waits for the one before it (a second Reconnect or a
+  // settings change), so two streams are never live together.
+  let openChain = Promise.resolve();
+  function open() {
+    const run = openChain.then(openNow, openNow);
+    openChain = run.catch(() => {});
+    return run;
+  }
+
+  async function openNow() {
     close();
     if (!isSupported()) throw failure('unsupported', 'MediaRecorder or getUserMedia is not available');
     try {
@@ -113,6 +144,7 @@ V2S.media = (() => {
     }
     watchTracks();
     previews.forEach(attachPreview);
+    checkOutput();   // names are readable once the camera is allowed
     logEvent('media_open', { audioConstraintMode, settings: snapshot() });
     return stream;
   }
@@ -478,6 +510,7 @@ V2S.media = (() => {
   return {
     isSupported,
     isBluetooth,
+    outputIsBluetooth: () => outputBluetooth,
     setSettings,
     getSettings,
     getStream,

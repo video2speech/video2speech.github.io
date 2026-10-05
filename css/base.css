@@ -139,6 +139,9 @@ body {
 .is-invisible { visibility: hidden !important; }
 p { margin: 0; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+/* A soft ring like the platform's; the transparent outline still shows in high-contrast modes. */
+.btn:focus-visible, .icon-btn:focus-visible, .nav-btn:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 4px rgba(0, 122, 255, .5); }
+[data-theme="dark"] .btn:focus-visible, [data-theme="dark"] .icon-btn:focus-visible, [data-theme="dark"] .nav-btn:focus-visible { box-shadow: 0 0 0 4px rgba(10, 132, 255, .6); }
 
 h1, .title { font-size: var(--t-title); line-height: 1.15; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 var(--s3); }
 h2 { font-size: 22px; line-height: 1.25; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 var(--s2); }

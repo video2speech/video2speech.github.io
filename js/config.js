@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '209',
-  MATERIAL_VERSION: 'materials_v209',
+  APP_VERSION: '210',
+  MATERIAL_VERSION: 'materials_v210',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -28,7 +28,8 @@ V2S.config = Object.freeze({
 
   // Interaction (two presses: Start, then Stop).
   HOLD_MS: 1000,               // a press held this long aborts the take
-  DEBOUNCE_MS: 300,            // presses closer than this are ignored (switch bounce)
+  DEBOUNCE_MS: 300,            // presses closer than this are ignored (switch bounce, tremor)
+  REVERSE_GUARD_MS: 1000,      // a press that would undo the one just made (Stop right after Start, cancelling a Redo just made) counts only after this: a double press acts once
   START_CUE_MAX_MS: 160,       // the start cue plays only if it is over this soon after the press (else no cue)
   START_SETTLE_MS: 80,         // green once the recorder has run this long without an error (instant failures are retried)
   START_TIMEOUT_MS: 600,       // the sentence turns green when the recorder reports it started; this is the fallback
@@ -111,7 +112,6 @@ V2S.config = Object.freeze({
 
   STORAGE_BLOCK_RATIO: 0.78,
   ZIP_MAX_TAKES: 60,            // per ZIP file (about one part), so phones and tablets cope
-  BACKUP_MAX_TAKES: 100,        // ZIP mode: recordings kept after a confirmed save (about two parts)
   SETTLE_TIMEOUT_MS: 20000,     // break/done screens stop waiting for the folder after this
   TIMER_SHOW_AFTER_MS: 20000,   // the recording timer appears only on long takes
   DB_NAME: 'VideoRecorderDB',   // shared with the legacy recorder; do not bump the version

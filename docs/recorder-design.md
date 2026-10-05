@@ -71,6 +71,15 @@ checked against all of them before it is shown.
     is slow), and continues a fixed 0.7 s after Stop. Presses in the first 0.4 s after the
     recording screen appears are ignored (a double press on Continue must not start a
     recording).
+12. **A press acts once.** On every screen, clicks in the first 0.4 s after it (or a step
+    on it) appears are ignored, so the second tap of a double tap never presses the button
+    that has just appeared under the finger. A key or finger still held from the press
+    that brought a screen does nothing there: auto-repeat never presses a button, and its
+    release is ignored, so holding Space or Enter never runs on through screens. A press
+    that would undo the one just made counts only after 1 s (a double press on Start
+    never stops the take; a double ← never cancels the Redo). Closing a dialog counts as
+    a screen change. A button that removes something is never pre-selected for the keyboard, and a
+    save or a reconnection that is running ignores further presses.
 
 ## Flow
 
@@ -130,11 +139,11 @@ on upright screens) shows one step at a time.
 
 | Moment | Focus | Panel |
 |---|---|---|
-| 1 Camera | the picture and the oval | "Step 1 of 2" · **Position the camera** · "Put it below your chin and tilt it up, so your mouth, cheeks and throat are visible." · **Next** (blue). No sound level yet. |
-| 2 Microphone | Record a 5-second test | "Step 2 of 2" · **Test the microphone** · "Record 5 seconds, then watch and listen." · a quiet line "Microphone: …" (for a helper) · **● Record a 5-second test** (green, like Start). Bluetooth headphones: an amber note with a button for the built-in microphone. |
+| 1 Camera | the picture and the oval | "Step 1 of 2" · **Position the camera** · "Put the iPad below your chin and tilt it up, so your mouth, cheeks and throat are visible." (it names the thing to move: the iPad, the phone, the tablet, or on a computer the camera) · **Next** (blue). No sound level yet. |
+| 2 Microphone | Record a 5-second test | "Step 2 of 2" · **Test the microphone** · "Press Record and say “Hello, this is my voice.” Then watch it back." (the phrase is known before the 5 seconds start) · a quiet line "Microphone: …" (for a helper) · **● Record a 5-second test** (green, like Start). Bluetooth headphones: an amber note with a button for the built-in microphone. |
 | Test recording | what to say | "Say:" in grey, then “Hello, this is my voice.” green on the highlight, like a sentence being recorded, and a grey 5-second bar; the picture says "● Recording · 4 s left" (the only red dot on this screen). |
 | Playback | the playback | the recording plays with sound and picture ("Playing your test"). |
-| Question | the answer | Can you see your mouth, cheeks and throat, and hear yourself clearly? (19 px, not a second title) · **Yes, continue** (blue) · Play it again · Record again (text). The help link goes once the test has played. |
+| Question | the answer | Can you see your mouth, cheeks and throat, and hear yourself clearly? (19 px, not a second title) · **Yes, continue** (blue) · Play it again · No, try again (text; back to step 1, where the usual fix is). The help link goes once the test has played. |
 | Nothing heard | the fix | "We couldn’t hear anything. Check the microphone, then record the test again." |
 
 The live picture has no badge (red means recording). The picture never moves between
@@ -150,16 +159,22 @@ right). The camera picture is small in the top corner, its edge level with the g
 guide keeps one height all through the practice (104 px) and a smaller one all through
 the real sentences (80 px; messages are two short lines at most, never wider than
 Start), and Redo keeps its place when hidden, so nothing moves within the practice or
-within a part. Start and Redo are at least 16 px apart. Lines break between phrases,
-never right after "the", "a", "to"…
+within a part (Redo's place always keeps the height of the Redo lesson). Start and Redo
+are 24 px apart on every device (two bars of one width: a slightly low tap must not land
+on Redo); Start, Redo, the Redo lesson and messages share one width (340 px; the full
+width on phones). Redo has two lines, "↶ Redo" over the sentence it would record again;
+a long sentence shrinks to fit (16 → 13 px), and on a sideways phone it may take a second
+line. While waiting, "○ Not recording" is plain grey
+text; only "● Recording" is a (red) capsule. Lines break between phrases, never right
+after "the", "a", "to"…
 
 | State | Focus | Sentence | Under it | Camera, level | Main button | Redo | Guide |
 |---|---|---|---|---|---|---|---|
-| Waiting | the sentence, then Start | grey | ○ Not recording | grey, still | **● Start** (soft green) | "↶ Redo “last sentence”" (after the first take) | practice only, or a problem |
+| Waiting | the sentence, then Start | grey | ○ Not recording | grey, still | **● Start** (soft green) | "↶ Redo" over “the last sentence” on a grey capsule (after the first take) | practice only, or a problem |
 | Starting (~0.1 s) | — | grey | Starting… | grey | Starting… (inactive) | hidden | unchanged |
 | Recording | the sentence | dark green on a clear green highlight, with room around the letters (more contrast than the grey) | **● Recording** (red, steady) | live | **■ Stop** (soft red; after 20 s it pulses and shows the time, "Stop · 0:21" — nothing changes near the sentence) | hidden | practice: "Read the green sentence out loud, then press Stop."; real sentences: nothing |
 | After Stop (0.7 s + check) | — | grey | Finishing… | grey | Finishing… (inactive) | hidden | unchanged |
-| Next sentence | the new sentence | grey | ○ Not recording | grey | Start | "↶ Redo “the sentence just recorded”" (a faint capsule) | "✓ Recorded" in quiet grey for 2.5 s |
+| Next sentence | the new sentence | grey | ○ Not recording | grey | Start | "↶ Redo" over “the sentence just recorded” (two lines on a grey bar as wide as Start, the Redo lesson's shape) | "✓ Recorded" in quiet grey for 2.5 s |
 | A part's last sentence | Finish part 2 | grey (stays) | ✓ Recorded | grey | **→ Finish part 2** (blue) | Redo — Record this sentence again | "That was the last sentence of part 2." |
 
 "Recorded" is used for a take; "save" only for the file or folder step, so a participant
@@ -178,7 +193,7 @@ elsewhere the buttons.
 | After pressing Redo | Back to the last sentence. | Press Start and read it again. | — | Start |
 | After that recording | ✓ Recorded again. The old recording is replaced. | Now go on: press Start. | — | Start |
 | Practice 4 / 5, waiting | ✓ Recorded. | 2 more to practise / Last practice sentence: press Start. | — | Start |
-| After practice 5 | That was the last practice sentence. (the pill already says ✓ Recorded) | Press Continue. | — | Continue (blue) |
+| After practice 5 | That was the last practice sentence. (the status line already says ✓ Recorded) | Press Continue. | — | Continue (blue) |
 | A problem | ⚠ the reason ("We couldn’t hear you. Sit a little closer.") | Press Start and read it again. | — | Start |
 | Speaking before Start | ⚠ Not recording yet. | (unchanged) | — | — |
 
@@ -205,10 +220,10 @@ neutral grey, so the blue button is the only blue):
 
 | Moment | Focus | Shows | Buttons |
 |---|---|---|---|
-| Folder mode | Continue | blue ✓ · **Part 2 done** · "Take a rest. Carry on when you are ready." · seven segments, two filled: "2 of 7 parts done" · "✓ Your recordings are saved in “…”." | **Continue to part 3** (blue) · End for today (text) |
-| ZIP mode, before saving | Save recordings | blue ✓ · **Part 2 done** · "Save your recordings, then take a rest." (one instruction) · the segments | **Save recordings** (blue) · End for today (text) |
-| ZIP mode, the question | the answer | **Did the file save?** iPhone/iPad: "If Safari asks, tap Download. Then tap ⬇ next to the web address and look for “SEMG1_part02”." (Android: the download notification; computers: the browser's downloads) | **Yes, I see it** (blue) · Save it again · Not sure (text). Nothing is pre-chosen, not even on a computer: the answer is given after looking. |
-| ZIP mode, saved | Continue | "Take a rest. Carry on when you are ready." · "✓ Your recordings are saved." | **Continue to part 3** · End for today |
+| Folder mode | Continue | grey ✓ · **Part 2 done** · "✓ Your recordings are saved in “…”." (what happened first) · "Take a rest. Carry on when you are ready." · seven grey segments, two filled: "2 of 7 parts done" | **Continue to part 3** (blue) · End for today (text) |
+| ZIP mode, before saving | Save recordings | grey ✓ · **Part 2 done** · "Save your recordings, then take a rest." (one instruction) · the segments | **Save recordings** (blue) · End for today (text) |
+| ZIP mode, the question | the answer | **Did the file save?** iPhone/iPad: "If Safari asks, tap Download. Then tap ⬇ next to the web address and look for “SEMG1_part02”." (Android: the download notification; computers: the browser's downloads) | **Yes, I see it** (blue) · Save it again · Not sure (text). Nothing is pre-chosen, not even on a computer: the answer is given after looking. On a computer the first press of Space, Enter or a clicker highlights **Yes, I see it**; the next one chooses it. |
+| ZIP mode, saved | Continue | "✓ Your recordings are saved." · "Take a rest. Carry on when you are ready." · the segments | **Continue to part 3** · End for today |
 | ZIP mode, not saved | Save recordings | "Not saved yet. Your recordings are still on this device." (amber) | **Save recordings** · Continue without saving · End for today |
 
 The ZIP files are named after the participant and the part, then the time
@@ -267,7 +282,7 @@ buttons under them.
 
 | Situation | Message |
 |---|---|
-| Speaking before Start (not in the first 2 s after a take: people often say a word after Stop) | Not recording yet. Press Start first, then read. |
+| Speaking before Start (not in the first 1.5 s after a take: people often say a word after Stop) | Not recording yet. Press Start first, then read. |
 | Start held ≥ 1 s (push-to-talk habit) | Dialog "Press once, then let go": Press Start once and let go. It records until you press Stop. (take not used) |
 | Stop held ≥ 1 s | Take kept; next sentence says: Recorded. Tip: let go of the button right after pressing it. |
 | No speech | We couldn’t hear you. Sit a little closer, press Start and read it again. |
@@ -298,7 +313,8 @@ buttons under them.
   does not report it), the microphone's input delay and 30 ms for the room: about
   0.13–0.16 s after the press, before anyone can start speaking. If that would be longer
   than 0.16 s, if the browser cannot report its output delay (Safari before 18.4), or if
-  the microphone is Bluetooth, there is no cue and recording starts at the press. The sentence turns green once the recorder reports that it runs and has run
+  the microphone or the sound output is Bluetooth (the output where the browser lists it:
+  Chrome, Edge), there is no cue and recording starts at the press. The sentence turns green once the recorder reports that it runs and has run
   0.08 s without an error (about 0.22 s after the press), so green always means "being
   recorded". An encoder that cannot start fails at once: it is rebuilt and restarted
   silently, up to twice, before anything turns green; the participant only sees a

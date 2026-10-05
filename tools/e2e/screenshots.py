@@ -12,6 +12,7 @@ from playwright.async_api import async_playwright
 
 from common import NEXT_PAGE, launch, next_url, static_server
 import test_next_app as t
+from test_next_app import click
 
 VIEWPORTS = {
     'phone': ({'width': 390, 'height': 844}, True),
@@ -73,13 +74,16 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
 
     # Phones and tablets are driven by taps (their instructions name the buttons);
     # computers by the keyboard (their instructions name Space and ←).
+    # Like a person: never within the page's double-press window.
     async def press_main():
+        await t.ready_for_press(page)
         if mobile:
             await page.tap('#mainButton')
         else:
             await page.keyboard.press('Space')
 
     async def press_redo():
+        await t.ready_for_press(page)
         if mobile:
             await page.tap('#redoButton')
         else:
@@ -109,29 +113,29 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await shot('01-setup')
     await page.fill('#setupId', 'semg1')
-    await page.click('#setupNext')
+    await click(page, '#setupNext')
     await page.wait_for_selector('#setupStepConfirm:not([hidden])')
     await shot('02-setup-confirm')
-    await page.click('#setupConfirmYes')
+    await click(page, '#setupConfirmYes')
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
     await shot('03-welcome')
-    await page.click('#welcomeStart')
+    await click(page, '#welcomeStart')
     await page.wait_for_selector('#screen-check:not([hidden])')
     await t.wait_for(page, "() => V2S.media.getStream() && document.getElementById('checkBadge').textContent === ''")
     await shot('04-check')
-    await page.click('#checkNext')
+    await click(page, '#checkNext')
     await page.wait_for_selector('#checkStepMic:not([hidden])')
     await shot('04b-check-mic')
-    await page.click('#testRecord')
+    await click(page, '#testRecord')
     await page.wait_for_timeout(600)
     await shot('05-check-recording')
     await t.wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=15000)
     await shot('06-check-ask')
-    await page.click('#testYes')
+    await click(page, '#testYes')
     await t.wait_for(page, "() => V2S.session.getState() === 'ready'")
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('08-practice-ready')
-    await page.click('#helpButton')
+    await click(page, '#helpButton')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await shot('07-help')
     await page.wait_for_timeout(400)
@@ -160,13 +164,13 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await shot('12-practice-done')
     # Saving is learnt here: the practice recordings are saved once (ZIP mode).
     async with page.expect_download():
-        await page.click('#breakPrimary')
+        await click(page, '#breakPrimary')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
     await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(500)
     await shot('12b-practice-saved')
-    await page.click('#breakPrimary')  # Continue to part 1
+    await click(page, '#breakPrimary')  # Continue to part 1
     await t.wait_ready(page)
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('13-ready')
@@ -176,6 +180,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await finish_take()
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('15-saved-redo')
+    await t.ready_for_press(page)
     if mobile:
         box = await page.locator('#mainButton').bounding_box()
         await page.mouse.move(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2)
@@ -203,18 +208,18 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await press_redo()  # Cancel redo
     await page.wait_for_timeout(400)
     await page.evaluate("window.__v2sAudio.set('speech')")
-    await page.click('#settingsButton')
+    await click(page, '#settingsButton')
     await page.wait_for_selector('#settingsPanel:not([hidden])')
     await shot('19-settings')
     await page.get_by_role('button', name='Saving').click()
     await page.wait_for_timeout(300)
     await shot('19b-settings-saving')
-    await page.click('#settingsBack')
+    await click(page, '#settingsBack')
     await page.get_by_role('button', name='Sentences & progress').click()
     await page.wait_for_timeout(300)
     await shot('19c-settings-progress')
-    await page.click('#settingsClose')
-    await page.click('#finishButton')
+    await click(page, '#settingsClose')
+    await click(page, '#finishButton')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await shot('20-end-dialog')
     await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
@@ -230,18 +235,18 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await t.wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
     await shot('22-break')
     async with page.expect_download():
-        await page.click('#breakPrimary')
+        await click(page, '#breakPrimary')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await shot('23-save-confirm')
     await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
     await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(500)
     await shot('24-saved')
-    await page.click('#breakSecondary')
+    await click(page, '#breakSecondary')
     await page.wait_for_selector('#screen-done:not([hidden])')
     await page.wait_for_timeout(600)
     await shot('25-done')
-    await page.click('#doneAgain')  # Record more → Welcome back
+    await click(page, '#doneAgain')  # Record more → Welcome back
     await page.wait_for_selector('#screen-welcome:not([hidden])')
     await page.wait_for_timeout(300)
     await shot('26-welcome-back')

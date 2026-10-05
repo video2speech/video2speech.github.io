@@ -4,6 +4,10 @@
 //      throws the take away and restarts the same sentence);
 //   3. presses closer together than DEBOUNCE_MS are ignored.
 // Presses act immediately on key-down / pointer-down, never on release.
+//
+// On every screen: when a screen (or a step on it) changes, clicks are ignored for
+// ENTER_GUARD_MS, and a key or finger still down from the press that changed it does
+// nothing on the new screen (see screenChanged).
 window.V2S = window.V2S || {};
 
 V2S.input = (() => {
@@ -109,9 +113,78 @@ V2S.input = (() => {
 
   const isPressed = () => Boolean(press);
 
+  // ---------- every screen: a press carried over to the next screen ----------
+  // The second tap of a double tap, or a tremor's bounce, must not press the button that
+  // has just appeared under the finger: clicks are ignored for a moment after a change.
+  // A key or finger still down from the press that changed the screen does nothing
+  // there: auto-repeat never presses a button, and that key's or finger's release is
+  // ignored, so holding Space or Enter cannot run on through the next screens.
+  const ACTIVATING_KEYS = new Set(['Space', 'Enter', 'NumpadEnter']);
+  const keysDown = new Set();
+  const pointersDown = new Set();
+  let carriedKeys = new Set();
+  let carriedPointers = new Set();
+  let clicksFrom = 0;
+
+  const holdClicks = ms => { clicksFrom = Math.max(clicksFrom, performance.now() + ms); };
+  const clicksPaused = () => performance.now() < clicksFrom;
+
+  function screenChanged() {
+    holdClicks(cfg.ENTER_GUARD_MS);
+    carriedKeys = new Set(keysDown);
+    carriedPointers = new Set(pointersDown);
+  }
+
+  function forgetHeld() {
+    keysDown.clear();
+    pointersDown.clear();
+    carriedKeys.clear();
+    carriedPointers.clear();
+  }
+
+  function trackKeyDown(event) {
+    const key = event.code || event.key;
+    if (!ACTIVATING_KEYS.has(key)) return;
+    if (event.repeat) {
+      event.preventDefault();
+      return;
+    }
+    carriedKeys.delete(key);   // released unnoticed and pressed again: a new press
+    keysDown.add(key);
+  }
+
+  function trackKeyUp(event) {
+    const key = event.code || event.key;
+    keysDown.delete(key);
+    if (!carriedKeys.delete(key) || isEditable(event.target)) return;
+    event.preventDefault();    // Space presses the focused button on release
+    holdClicks(150);
+  }
+
+  function trackPointerUp(event) {
+    pointersDown.delete(event.pointerId);
+    if (carriedPointers.delete(event.pointerId)) holdClicks(cfg.ENTER_GUARD_MS);   // the click this release makes
+  }
+
+  document.addEventListener('click', event => {
+    if (!clicksPaused()) return;
+    const target = event.target && event.target.closest && event.target.closest('button');
+    if (!target || target.closest('#dialog') || target.closest('#settingsPanel')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+
+  // A top-bar button reached with Tab (End for today, ?, Settings) keeps Space and Enter.
+  function ownKeys(event) {
+    const button = event.target && event.target.closest && event.target.closest('button');
+    if (!button || button.id === 'mainButton' || button.id === 'redoButton') return false;
+    if (event.code !== 'Space' && event.key !== 'Enter') return false;
+    try { return button.matches(':focus-visible'); } catch (error) { return false; }
+  }
+
   function onKeyDown(event) {
     const kind = keyKind(event);
-    if (!kind || blocked() || isEditable(event.target)) return;
+    if (!kind || blocked() || isEditable(event.target) || ownKeys(event)) return;
     event.preventDefault();
     event.stopPropagation();
     document.documentElement.classList.add('has-keyboard');
@@ -157,10 +230,20 @@ V2S.input = (() => {
     button.addEventListener('contextmenu', event => event.preventDefault());
   }
 
+  // The carried-press listeners come first: they must see a key before the press it
+  // makes changes the screen.
+  window.addEventListener('keydown', trackKeyDown, true);
+  window.addEventListener('keyup', trackKeyUp, true);
+  window.addEventListener('pointerdown', event => pointersDown.add(event.pointerId), true);
+  window.addEventListener('pointerup', trackPointerUp, true);
+  window.addEventListener('pointercancel', trackPointerUp, true);
   window.addEventListener('keydown', onKeyDown, true);
   window.addEventListener('keyup', onKeyUp, true);
-  window.addEventListener('blur', cancelPress);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) cancelPress(); });
+  window.addEventListener('blur', () => { cancelPress(); forgetHeld(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelPress(); forgetHeld(); } });
 
-  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed };
+  // For tests: a press now would count (not within DEBOUNCE_MS of the last, nor guarded).
+  const pressReady = () => performance.now() - lastPressAt >= cfg.DEBOUNCE_MS;
+
+  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed, screenChanged, clicksPaused, pressReady };
 })();

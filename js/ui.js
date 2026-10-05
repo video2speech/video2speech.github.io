@@ -15,7 +15,12 @@ V2S.ui = (() => {
   const SCREENS = ['loading', 'setup', 'welcome', 'folder', 'check', 'record', 'break', 'done', 'error'];
   let currentScreen = 'loading';
 
+  // A screen (or a step on it) changed: a press carried over from the last one does
+  // nothing here (input.js).
+  const pauseClicks = () => V2S.input.screenChanged();
+
   function show(name) {
+    if (name !== currentScreen) pauseClicks();
     SCREENS.forEach(screen => { el(`screen-${screen}`).hidden = screen !== name; });
     currentScreen = name;
     document.body.dataset.screen = name;
@@ -162,12 +167,13 @@ V2S.ui = (() => {
     el('redoCaption').hidden = !(redoVisible && redoView.caption);
     // The Redo lesson: Redo is the one thing to press, as large as Start.
     redo.classList.toggle('is-lesson', view.pulse === 'redo' && redoVisible);
+    fitRedoCaption();
 
     const message = el('message');
     const hasMessage = Boolean(view.message && view.message.text);
     message.className = `message${hasMessage ? ` tone-${view.message.tone}` : ' is-empty'}`;
     setSentences('messageText', hasMessage ? view.message.text : '');
-    el('messageIcon').innerHTML = hasMessage ? ({ ok: ICONS.check, warn: ICONS.warn, info: ICONS.info }[view.message.tone] || '') : '';
+    el('messageIcon').innerHTML = hasMessage ? ({ ok: ICONS.check, warn: ICONS.warn }[view.message.tone] || '') : '';
 
     setTimer(view.state === 'recording' ? view.liveSince : null);
     renderCoach(view.coach);
@@ -213,6 +219,20 @@ V2S.ui = (() => {
     if (matches('(max-width: 600px)')) return 'phone';
     if (matches('(max-width: 1000px) and (orientation: portrait)')) return 'tall';
     return 'wide';
+  }
+
+  // Redo has Start's width; a long sentence on it shrinks to fit (down to 13 px, as iOS
+  // shrinks a label) before it would be cut off.
+  const REDO_CAPTION_MIN_PX = 13;
+  function fitRedoCaption() {
+    const caption = el('redoCaption');
+    caption.style.fontSize = '';
+    if (caption.hidden || !caption.textContent) return;
+    let size = parseFloat(getComputedStyle(caption).fontSize) || 16;
+    while (caption.scrollWidth > caption.clientWidth + 1 && size > REDO_CAPTION_MIN_PX) {
+      size -= 0.5;
+      caption.style.fontSize = `${size}px`;
+    }
   }
 
   function fitSentences(list) {
@@ -280,7 +300,7 @@ V2S.ui = (() => {
 
   window.addEventListener('resize', () => {
     clearTimeout(fitTimer);
-    fitTimer = setTimeout(() => fitSentences(), 120);
+    fitTimer = setTimeout(() => { fitSentences(); fitRedoCaption(); }, 120);
   });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitSentences());
 
@@ -375,6 +395,7 @@ V2S.ui = (() => {
       });
       dialogState = state;
       overlay.hidden = false;
+      document.body.classList.add('has-dialog');
       setTimeout(() => { state.armed = true; }, 350);
       // Keyboard users get the default answer focused; on touch screens no button is
       // singled out by a focus ring.
@@ -393,9 +414,12 @@ V2S.ui = (() => {
     if (!state) return;
     dialogState = null;
     el('dialog').hidden = true;
+    document.body.classList.remove('has-dialog');
     if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
-    // A double tap on the answer must not reach the screen behind (e.g. start a recording).
+    // A double tap on the answer must not reach the screen behind (start a recording, or
+    // press the button that was under the dialog): closing it counts as a screen change.
     if (V2S.input && V2S.input.guard) V2S.input.guard();
+    if (V2S.input && V2S.input.screenChanged) V2S.input.screenChanged();
     state.resolve(state.field ? { action: value, value: state.field.value } : value);
   }
 
@@ -405,7 +429,7 @@ V2S.ui = (() => {
       event.preventDefault();
       event.stopImmediatePropagation(); // Esc closes only the dialog, not Settings behind it
       finishDialog(dialogState.dismissValue);
-    } else if (event.key === 'Enter' && dialogState.field && document.activeElement === dialogState.field) {
+    } else if (event.key === 'Enter' && dialogState.field && document.activeElement === dialogState.field && !event.repeat) {
       event.preventDefault();
       const first = el('dialogActions').querySelector('button');
       if (first && dialogState.armed) first.click();
@@ -417,6 +441,25 @@ V2S.ui = (() => {
       focusable[next].focus();
     } else if (event.repeat) {
       event.preventDefault();
+    } else if (['Enter', 'PageDown', 'ArrowRight'].includes(event.key) || event.code === 'Space') {
+      // Nothing is pre-chosen (some answers must follow a look, e.g. "Did the file
+      // save?"): the first press (a key or a clicker) highlights the first answer, the
+      // next one chooses it.
+      if (document.activeElement !== el('dialog').querySelector('.dialog')) {
+        // The choosing press is not the second half of a double press (a tremor).
+        if (dialogState.highlightedAt && performance.now() - dialogState.highlightedAt < V2S.config.REVERSE_GUARD_MS) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const first = el('dialogActions').querySelector('button');
+      if (first) {
+        first.focus();
+        dialogState.highlightedAt = performance.now();
+      }
     }
   }, true);
 
@@ -492,6 +535,8 @@ V2S.ui = (() => {
 
   return {
     show,
+    pauseClicks,
+    clicksPaused: () => V2S.input.clicksPaused(),
     screen,
     setText,
     setSentences,

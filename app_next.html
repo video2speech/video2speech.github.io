@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '209';
+      var APP_VERSION = '210';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=209">
-  <link rel="stylesheet" href="css/app.css?v=209">
+  <link rel="stylesheet" href="css/base.css?v=210">
+  <link rel="stylesheet" href="css/app.css?v=210">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -219,6 +219,7 @@
                     <button class="btn-text" id="testReplay" type="button"></button>
                     <button class="btn-text" id="testAgain" type="button"></button>
                   </div>
+                  <p class="test-hint" id="testHint"></p>
                 </div>
                 <p class="field-error" id="testError" role="alert" hidden></p>
               </div>
@@ -267,10 +268,12 @@
             <span class="btn-time" id="cardTimer"></span>
             <kbd class="key-hint" aria-hidden="true">Space</kbd>
           </button>
-          <button class="btn redo" id="redoButton" type="button">
-            <span class="redo-label"><span class="btn-icon" id="redoIcon" aria-hidden="true"></span><span id="redoLabel"></span><kbd class="key-hint" aria-hidden="true">←</kbd></span>
-            <span class="redo-caption" id="redoCaption"></span>
-          </button>
+          <div class="redo-slot">
+            <button class="btn redo" id="redoButton" type="button">
+              <span class="redo-label"><span class="btn-icon" id="redoIcon" aria-hidden="true"></span><span id="redoLabel"></span><kbd class="key-hint" aria-hidden="true">←</kbd></span>
+              <span class="redo-caption" id="redoCaption"></span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -308,8 +311,8 @@
           <div class="flow-body flow-center">
             <div class="symbol symbol-neutral" id="doneBadge" aria-hidden="true"></div>
             <h1 id="doneTitle"></h1>
-            <p class="lead" id="doneBody"></p>
             <div class="save-panel" id="doneSavePanel" hidden><p class="save-panel-text" id="doneSaveText"></p></div>
+            <p class="lead" id="doneBody"></p>
           </div>
           <div class="flow-actions">
             <button class="btn btn-go btn-xl btn-block" id="doneSave" type="button" hidden></button>
@@ -359,20 +362,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=209"></script>
-  <script defer src="js/config.js?v=209"></script>
-  <script defer src="js/copy.js?v=209"></script>
-  <script defer src="js/util.js?v=209"></script>
-  <script defer src="js/storage.js?v=209"></script>
-  <script defer src="js/sentences.js?v=209"></script>
-  <script defer src="js/media.js?v=209"></script>
-  <script defer src="js/meter.js?v=209"></script>
-  <script defer src="js/qc.js?v=209"></script>
-  <script defer src="js/input.js?v=209"></script>
-  <script defer src="js/ui.js?v=209"></script>
-  <script defer src="js/export.js?v=209"></script>
-  <script defer src="js/session.js?v=209"></script>
-  <script defer src="js/settings.js?v=209"></script>
-  <script defer src="js/main.js?v=209"></script>
+  <script defer src="vendor/jszip.min.js?v=210"></script>
+  <script defer src="js/config.js?v=210"></script>
+  <script defer src="js/copy.js?v=210"></script>
+  <script defer src="js/util.js?v=210"></script>
+  <script defer src="js/storage.js?v=210"></script>
+  <script defer src="js/sentences.js?v=210"></script>
+  <script defer src="js/media.js?v=210"></script>
+  <script defer src="js/meter.js?v=210"></script>
+  <script defer src="js/qc.js?v=210"></script>
+  <script defer src="js/input.js?v=210"></script>
+  <script defer src="js/ui.js?v=210"></script>
+  <script defer src="js/export.js?v=210"></script>
+  <script defer src="js/session.js?v=210"></script>
+  <script defer src="js/settings.js?v=210"></script>
+  <script defer src="js/main.js?v=210"></script>
 </body>
 </html>

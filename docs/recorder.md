@@ -1,4 +1,4 @@
-# Speech recorder (v209)
+# Speech recorder (v210)
 
 The new patient recorder lives at `app_next.html` while it is being tested on real
 devices. The current page, `app.html` (v114, hotfixed), keeps running for participants
@@ -29,12 +29,15 @@ conventions: the system font, white (or black) screens, a filled blue button to 
      files instead**. Nothing is ever saved anywhere else without asking.
 4. **Camera and microphone check** (every session), two steps beside the same live
    picture:
-   1. **Position the camera**: one head oval in the middle; "Put it below your chin and
-      tilt it up, so your mouth, cheeks and throat are visible." **Next**.
-   2. **Test the microphone**: **Record a 5-second test**; the clip plays back (picture
-      and sound), then "Can you see your mouth, cheeks and throat, and hear yourself
-      clearly?" **Yes, continue** / Record again. A Bluetooth microphone gets a warning
-      and a one-tap switch to the built-in one. The test is never saved.
+   1. **Position the camera**: one head oval in the middle; "Put the iPad below your
+      chin and tilt it up, so your mouth, cheeks and throat are visible." (the iPad, the
+      phone, the tablet or, on a computer, the camera). **Next**.
+   2. **Test the microphone**: "Press Record and say “Hello, this is my voice.” Then
+      watch it back." **Record a 5-second test**; the clip plays back (picture and
+      sound), then "Can you see your mouth, cheeks and throat, and hear yourself
+      clearly?" **Yes, continue** / Play it again / No, try again (back to step 1). A
+      Bluetooth microphone gets a warning and a one-tap switch to the built-in one. The
+      test is never saved.
 5. **Practice** (the 5 warm-up sentences, first time only). How to record is taught
    here, one step at a time, just above Start: first what just happened ("✓
    Recorded."), then the one next action ("Next sentence: press Start."). The control it
@@ -82,13 +85,23 @@ with **Use this tab instead**; the first copy then stops and says so.
 - Two presses per sentence: Start, then Stop. Both act on press, not on release.
 - Keys: Space, Enter, → and PageDown are the main button (presentation clickers and
   accessibility switches send these); ← and PageUp are **Redo**.
-- Keyboard auto-repeat is ignored. Presses less than 300 ms apart are ignored (tremor
-  double taps, switch bounce).
+- Keyboard auto-repeat is ignored. Presses less than 0.3 s apart are ignored (switch
+  bounce, tremor). A press that would undo the one just made counts only after 1 s:
+  a double press on Start never stops the take, and a double ← never cancels the Redo
+  it has just made. Start right after a take, or right after Redo, counts at once.
+- On every screen, a press acts once: clicks in the 0.4 s after a screen (or a step on
+  it) appears are ignored, and a key or finger still down from the press that brought a
+  screen does nothing there (holding Space or Enter never runs on through screens).
+  Closing a dialog counts as a screen change (a double tap on its answer never presses
+  the button behind it). Save recordings and Reconnect do nothing while they are
+  already running.
 - **Start held for 1 s** (the push-to-talk habit) throws the take away. A dialog then
   explains: "Press Start once and let go. It records until you press Stop." The same
   sentence comes back.
 - **Stop held** is not push-to-talk (people let go slowly): the take is kept and the next
-  sentence shows a gentle tip. The limit is 1 s, or 2 or 3 s in Settings.
+  sentence shows a gentle tip. The limit is 1 s, or 2 or 3 s in Settings. A second press
+  less than 1 s after Start is not a Stop (a double press); held, it is the push-to-talk
+  habit (a tap, then a hold) and is treated like a held Start.
 - **Redo** records the previous sentence again, within the same part only (also the
   part's last sentence, before the break), and then returns. While it is under way the
   button reads **Cancel redo**. A Redo survives a reload or End for today. The
@@ -171,13 +184,16 @@ The folder and the ZIP use the same layout:
   folder as soon as it is checked, then read back to verify its size. It leaves browser
   storage only after that. Folder mode never downloads files.
 - **ZIP mode** (iPad, phones, Safari, Firefox, or when chosen at setup): one ZIP per
-  part, at most 60 recordings per file, named
-  `<participant>_video-recordings-<time>_blockNN.zip`.
+  part, at most 60 recordings per file, named `<participant>_<what>_<time>.zip`, where
+  `<what>` is `part01` … `part07`, `practice`, `saved` (the end or a full device),
+  `manual` (Settings → Save all recordings now) or `backup` (Settings → Save backup
+  copies again).
   - Where the browser has a save dialog (Chrome/Edge), it opens first.
-  - Elsewhere the ZIP is a normal download followed by *Did the file save?*.
-  - After **Yes, it saved** the recordings stay on the device as backup copies: left
-    out of later ZIPs, at most 100, removed first when the device needs space. Settings
-    → **Save backup copies again** recovers from a mistaken "Yes".
+  - Elsewhere the ZIP is a normal download followed by *Did the file save?*
+    (**Yes, I see it** / **Save it again** / **Not sure**).
+  - After **Yes, I see it** the recordings stay on the device as backup copies: left
+    out of later ZIPs and removed only when the device needs space (oldest first).
+    Settings → **Save backup copies again** recovers from a mistaken "Yes".
 - If a take cannot be stored (for example a full device), the participant goes back to
   that sentence; a nearly full device leads to the save screen. When the only thing left
   to remove is the copy of the most recent ZIP, the save screen first asks the
@@ -271,8 +287,8 @@ Styles: `css/base.css` (shared with the sign-in page) and `css/app.css`.
 See `tools/e2e/README.md` for setup. Every test run is silent: browsers are muted.
 
 ```bash
-python tools/e2e/test_next_app.py                   # 47 scenarios (Chrome)
-python tools/e2e/test_next_app.py --engine webkit   # 36 scenarios in Safari's engine
+python tools/e2e/test_next_app.py                   # 51 scenarios (Chrome)
+python tools/e2e/test_next_app.py --engine webkit   # 40 scenarios in Safari's engine
 python tools/e2e/test_next_app.py --engine firefox
 python tools/e2e/test_legacy_hotfix.py              # app.html v114
 python tools/e2e/screenshots.py --engine webkit OUT_DIR --only phone ipad

@@ -32,7 +32,7 @@ V2S.settings = (() => {
     el('settingsClose').textContent = t.done;
     el('settingsBackLabel').textContent = t.back;
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && !el('settingsPanel').hidden && !V2S.ui.isDialogOpen()) close();
+      if (event.key === 'Escape' && !event.repeat && !el('settingsPanel').hidden && !V2S.ui.isDialogOpen()) close();
     });
   }
 
@@ -51,6 +51,8 @@ V2S.settings = (() => {
 
   function close() {
     if (el('settingsPanel').hidden) return;
+    // Space and Enter go back to Start, not to a button left focused in the sheet.
+    if (el('settingsPanel').contains(document.activeElement)) document.activeElement.blur();
     el('settingsPanel').hidden = true;
     if (api) api.onSettingsClosed();
   }
@@ -354,7 +356,7 @@ V2S.settings = (() => {
         await api.jumpTo(target, extra);
       };
       const jump = node('input', { type: 'number', min: '1', max: String(total), id: 'setJump', inputMode: 'numeric', placeholder: `1–${total}` });
-      const jumpGo = node('button', { type: 'button', className: 'btn btn-go btn-md', text: t.jump, on: { click: async () => {
+      const jumpGo = node('button', { type: 'button', className: 'btn-text row-go', text: t.jump, on: { click: async () => {
         const n = Number(jump.value);
         if (!Number.isInteger(n) || n < 1 || n > total) return V2S.ui.alert(t.jump, t.jumpInvalid(total));
         await go(warmup + n - 1);

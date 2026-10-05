@@ -42,7 +42,7 @@ V2S.copy = {
     titleFirst: 'Welcome',
     titleBack: 'Welcome back',
     leadFirst: 'You will read short sentences out loud. The camera records your face and voice.',
-    leadBack: 'We’ll keep your place.',
+    leadBack: 'Carry on where you left off.',
     stage1: 'Check your camera and microphone',
     stage2: 'Practise with 5 sentences',
     stage3: 'Read the sentences, with breaks',
@@ -75,11 +75,15 @@ V2S.copy = {
     cameraStep: 'Step 1 of 2',
     // The study's camera position (from the earlier page's checklist).
     cameraTitle: 'Position the camera',
-    cameraText: 'Put it below your chin and tilt it up, so your mouth, cheeks and throat are visible.',
+    // Name the thing to move: on a tablet or phone the camera is the device itself.
+    // A computer's camera sits in the screen: tilting the screen back points it up.
+    cameraText: device => (device === 'computer'
+      ? 'Tilt the screen back until the camera sees your mouth, cheeks\u00a0and\u00a0throat. With a separate camera, put\u00a0it below your chin, tilted up.'
+      : `Put the ${{ ipad: 'iPad', phone: 'phone', tablet: 'tablet' }[device] || 'camera'} below your chin and tilt it up, so your mouth, cheeks\u00a0and\u00a0throat are visible.`),
     next: 'Next',
     micStep: 'Step 2 of 2',
     micTitle: 'Test the microphone',
-    micText: 'Record 5 seconds, then watch and listen.',
+    micText: 'Press Record and say “Hello,\u00a0this\u00a0is\u00a0my\u00a0voice.” Then watch it back.',
     starting: 'Starting camera…',
     live: 'Live',
     defaultDevice: 'Default device',
@@ -91,10 +95,11 @@ V2S.copy = {
     testSay: '“Hello, this is my voice.”',
     testRecording: seconds => `Recording · ${seconds} s left`,
     testPlaying: 'Playing your test',
-    testQuestion: 'Can you see your mouth, cheeks and throat, and hear yourself clearly?',
+    testQuestion: 'Can you see your mouth, cheeks\u00a0and\u00a0throat, and hear yourself clearly?',
     testYes: 'Yes, continue',
-    testAgain: 'Record again',
+    testAgain: 'No, try again',
     testReplay: 'Play it again',
+    testHint: 'Can’t hear it? Turn the volume up and play it again.',
     testSilent: "We couldn’t hear anything. Check the microphone, then record the test again.",
     testFailed: 'The test could not be recorded. Please try again.',
     help: 'Camera or microphone not working?'
@@ -106,8 +111,8 @@ V2S.copy = {
   howto: {
     title: 'How to record',
     steps: k => (k
-      ? ['Press **Space** once.', 'When the sentence turns **green**, read it out loud.', 'Press **Space** again when you finish.']
-      : ['Press **Start** once.', 'When the sentence turns **green**, read it out loud.', 'Press **Stop** when you finish.']),
+      ? ['Press **Space** once.', 'When the sentence turns\u00a0**green**, read it out loud.', 'Press **Space** again when you finish.']
+      : ['Press **Start** once.', 'When the sentence turns\u00a0**green**, read it out loud.', 'Press **Stop** when you finish.']),
     fix: k => (k ? 'Read a word wrong? After you stop, press **←** (Redo) to record that sentence again.'
       : 'Read a word wrong? After **Stop**, press **Redo** to record that sentence again.'),
     close: 'Close'
@@ -131,7 +136,7 @@ V2S.copy = {
     toBreak: n => `Finish part ${n}`,
     toPracticeDone: 'Continue',
     toAllDone: 'Finish',
-    partEndPart: n => `That was the last sentence of part ${n}.`,
+    partEndPart: n => `That was the\u00a0last\u00a0sentence of part\u00a0${n}.`,
     partEndAll: 'That was the very last sentence.',
     practiceOf: (n, total) => `Practice ${n} of ${total}`,
     partOf: (n, total) => `Part ${n} of ${total}`,
@@ -148,10 +153,10 @@ V2S.copy = {
     noHold: 'No need to hold it.',
     readNow: k => `Read the green sentence out loud, then press ${k ? 'Space' : 'Stop'}.`,
     recordedFirst: 'Recorded. Every sentence works like this.',
-    recorded: 'Recorded.',
+    recorded: 'Recorded',
     nextSentence: k => `Next sentence: press ${k ? 'Space' : 'Start'}.`,
     tryRedo: k => (k ? 'Now press ← (Redo).' : 'Now press Redo, under Start.'),
-    redoWhat: () => 'It records the last sentence again.',
+    redoWhat: () => 'It records the sentence before this one again.',
     backToLast: 'Back to the last sentence.',
     startAgain: k => `Press ${k ? 'Space' : 'Start'} and read it again.`,
     redoDone: 'Recorded again. The old recording is replaced.',
@@ -159,7 +164,7 @@ V2S.copy = {
     more: (n, k) => `${n} more to practise: press ${k ? 'Space' : 'Start'}.`,
     lastOne: k => `Last practice sentence: press ${k ? 'Space' : 'Start'}.`,
     practiceDone: 'Recorded.',
-    lastPractice: 'That was the last practice sentence.',
+    lastPractice: 'That was the last practice\u00a0sentence.',
     pressContinue: k => (k ? 'Press Space to continue.' : 'Press Continue.')
   },
 
@@ -187,8 +192,8 @@ V2S.copy = {
     speechBeforeRedo: k => `Not recording yet. Press ${k ? '← (Redo)' : 'Redo'} first.`,
     afterHold: k => `Press ${k ? 'Space' : 'Start'} once, then read.`,
     holdTip: k => `Recorded. Tip: let go of the ${k ? 'key' : 'button'} right away.`,
-    no_speech: k => `We couldn’t hear you. Sit closer and press ${k ? 'Space' : 'Start'} again.`,
-    too_loud: k => `Too loud. Move back a little and press ${k ? 'Space' : 'Start'} again.`,
+    no_speech: k => `We couldn’t hear you. Sit closer, then press ${k ? 'Space' : 'Start'}.`,
+    too_loud: k => `Too loud. Move back a little, then press ${k ? 'Space' : 'Start'}.`,
     no_audio: k => `The microphone sent no sound. Press ${k ? 'Space' : 'Start'} again.`,
     startFailed: k => `The recording didn’t start. Press ${k ? 'Space' : 'Start'} again.`,
     stoppedEarly: k => `Recording stopped unexpectedly. Press ${k ? 'Space' : 'Start'} again.`,
@@ -233,7 +238,7 @@ V2S.copy = {
     saveFirst: 'Now save your practice recordings. You will do the same after each part.',
     saved: 'Your practice recordings are saved.',
     savedFolder: name => `Every recording is saved by itself in “${name}”.`,
-    parts: (parts, size) => `${parts} parts of ${size} sentences, with a rest after each part.`,
+    parts: (parts, size) => `${parts} parts of ${size} sentences. Rest\u00a0after\u00a0each\u00a0part, or stop and carry on another day.`,
     next: 'Continue to part 1'
   },
 
@@ -255,11 +260,15 @@ V2S.copy = {
     notConfirmed: 'Not saved yet. Your recordings are still on this device.',
     savePromptTitle: 'Save your recordings',
     storageSaved: 'Your recordings are saved. You can go on.',
+    // A full device: save, then (if still full) make room, then go on.
+    makeRoomTitle: 'This device is full',
+    roomTitle: 'Recordings saved',
+    roomLead: 'You can go on.',
     continueTo: n => `Continue to part ${n}`,
     continue: 'Continue',
     finish: 'End for today',
     later: 'Continue without saving',
-    makeRoom: hint => `This device is full. Check that the last saved file is there: ${hint} Then make room by removing its copy from this device.`,
+    makeRoom: hint => `Check that the last saved file is there: ${hint} Then make room by removing its copy from this device.`,
     makeRoomYes: 'It is saved — make room',
     saveAgain: 'Save it again'
   },
@@ -268,6 +277,7 @@ V2S.copy = {
   saveConfirm: {
     title: 'Did the file save?',
     ios: name => `If Safari asks, tap Download. Then tap ⬇ next to the web address and look for “${name}”.`,
+    iosFind: name => `Tap ⬇ next to the web address and look for “${name}”.`,
     android: name => `Open the download notification and look for “${name}”.`,
     desktop: name => `Open the browser’s downloads and look for “${name}”.`,
     yes: 'Yes, I see it',
@@ -277,7 +287,7 @@ V2S.copy = {
 
   done: {
     finishTitle: 'Great work today',
-    finishBody: 'We’ll keep your place. You can close this page.',
+    finishBody: 'We’ll keep your place on this device. You can close this page.',
     allTitle: 'All sentences done',
     allBody: 'Thank you so much!',
     pending: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet.`,

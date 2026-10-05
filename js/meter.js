@@ -274,9 +274,9 @@ V2S.sounds = (() => {
   function startCue() {
     const ctx = V2S.meter.context();
     if (!ctx || ctx.state !== 'running') return 0;
-    // Without a reported output delay (Safari before 18.4), or with a Bluetooth
-    // microphone (its headphones add a long delay), the cue could be recorded: none.
-    if (!('outputLatency' in ctx) || V2S.media.current().bluetooth) return 0;
+    // Without a reported output delay (Safari before 18.4), or with Bluetooth headphones
+    // or speakers (a long delay, not always reported), the cue could be recorded: none.
+    if (!('outputLatency' in ctx) || V2S.media.current().bluetooth || V2S.media.outputIsBluetooth()) return 0;
     const outputMs = (Number(ctx.outputLatency) || 0.04) * 1000 + (Number(ctx.baseLatency) || 0) * 1000;
     const inputMs = V2S.media.inputLatencyMs();
     const [[, , seconds]] = patterns.start;

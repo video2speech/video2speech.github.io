@@ -191,10 +191,10 @@ V2S.session = (() => {
       saved: true,
       status: copy.record.statusSaved,
       sentence: lastAccepted.sentence,
-      where: whereView(lastAccepted.index),
+      where: { ...whereView(lastAccepted.index), progress: 1 },
       main: { label: kind === 'practice' ? copy.record.toPracticeDone : kind === 'all' ? copy.record.toAllDone : copy.record.toBreak(partEnd.block), icon: 'next', disabled: false },
       redo: { visible: true, label: copy.record.redo, caption: copy.record.redoThis },
-      message: coach ? null : { text: kind === 'part' ? copy.record.partEndPart(partEnd.block) : copy.record.partEndAll, tone: 'info' },
+      message: coach ? null : { text: kind === 'part' ? copy.record.partEndPart(partEnd.block) : copy.record.partEndAll, tone: 'note' },
       coach,
       pulse: pulseFor(coach, true)
     };
@@ -324,6 +324,7 @@ V2S.session = (() => {
     state = 'partEnd';
     partEnd = info;
     take = null;
+    V2S.input.guard();   // Start has just become Continue: not the second press of Stop
     V2S.meter.setIdleDetection(false);
     render(partEndView());
     logEvent('part_end', { kind: info.kind, index: lastAccepted && lastAccepted.index });
@@ -389,15 +390,32 @@ V2S.session = (() => {
   }
 
   // ---- presses ----
+  // A double press acts once: the press that would undo the one just made (Stop right
+  // after Start, cancelling a Redo just made) counts only after REVERSE_GUARD_MS. Other
+  // presses (Start after Stop, Start after Redo) count at once.
+  const tooSoon = since => Number.isFinite(since) && performance.now() - since < cfg.REVERSE_GUARD_MS;
+
   function onPrimary({ source }) {
     if (state === 'ready') startTake(source);
-    else if (state === 'recording') stopTake(source);
+    else if (state === 'recording') {
+      if (take && tooSoon(take.pressAt)) {
+        logEvent('press_ignored', { reason: 'stop_too_soon', index: take.index });
+        return;
+      }
+      stopTake(source);
+    }
     else if (state === 'partEnd') leavePartEnd();
     // starting / finishing / checking: the press is ignored (the button shows it is busy).
   }
 
   function onSecondary() {
-    if (state === 'ready' && redoPending()) cancelRedo();
+    if (state === 'ready' && redoPending()) {
+      if (tooSoon(redo.pressedAt)) {
+        logEvent('press_ignored', { reason: 'cancel_too_soon' });
+        return;
+      }
+      cancelRedo();
+    }
     else if (state === 'ready' || state === 'partEnd') redoLast();
   }
 
@@ -680,7 +698,7 @@ V2S.session = (() => {
   function redoLast() {
     if (!canRedo()) return;
     const fromPartEnd = state === 'partEnd';
-    redo = { targetIndex: lastAccepted.index, returnIndex: index(), partEnd: fromPartEnd ? partEnd : null };
+    redo = { targetIndex: lastAccepted.index, returnIndex: index(), partEnd: fromPartEnd ? partEnd : null, pressedAt: performance.now() };
     // After the very last sentence: not "all done" while its Redo is pending, so a reload
     // or End for today comes back to it.
     if (fromPartEnd && partEnd.kind === 'all') Object.assign(ctx.progress, { completed: false, completedAt: null });
