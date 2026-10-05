@@ -205,8 +205,8 @@ V2S.meter = (() => {
     }
   }
 
-  function setIdleDetection(enabled, listener) {
-    if (enabled && !idleEnabled) idleSince = performance.now();
+  function setIdleDetection(enabled, listener, graceMs = 0) {
+    if (enabled && !idleEnabled) idleSince = performance.now() + graceMs;
     idleEnabled = enabled;
     if (listener) idleListener = listener;
   }
@@ -241,12 +241,12 @@ V2S.meter = (() => {
 // Short cue sounds through the shared AudioContext.
 V2S.sounds = (() => {
   const patterns = {
-    start: [[660, 0, 0.07], [880, 0.075, 0.07]],
+    start: [[880, 0, 0.04]],
     saved: [[988, 0, 0.09]],
     retry: [[440, 0, 0.1], [370, 0.13, 0.13]]
   };
 
-  function play(kind) {
+  function play(kind, level = 0.22) {
     const ctx = V2S.meter.context();
     if (!ctx || ctx.state !== 'running' || !patterns[kind]) return;
     const now = ctx.currentTime + 0.01;
@@ -256,7 +256,7 @@ V2S.sounds = (() => {
       oscillator.type = 'sine';
       oscillator.frequency.value = frequency;
       gain.gain.setValueAtTime(0, now + offset);
-      gain.gain.linearRampToValueAtTime(0.22, now + offset + 0.012);
+      gain.gain.linearRampToValueAtTime(level, now + offset + 0.008);
       gain.gain.exponentialRampToValueAtTime(0.001, now + offset + duration);
       oscillator.connect(gain);
       gain.connect(ctx.destination);
@@ -265,5 +265,26 @@ V2S.sounds = (() => {
     });
   }
 
-  return { play };
+  // The start cue at the press: a short, soft tick. It must be over before recording
+  // starts (so it is not in the recording), and recording must start almost at once (so
+  // no word is missed). The wait counts the device's sound output delay (40 ms where the
+  // browser does not report it), the microphone's input delay and 30 ms for the room;
+  // if that is longer than START_CUE_MAX_MS there is no cue and recording starts at the
+  // press. Returns the wait before recording starts.
+  function startCue() {
+    const ctx = V2S.meter.context();
+    if (!ctx || ctx.state !== 'running') return 0;
+    // Without a reported output delay (Safari before 18.4), or with a Bluetooth
+    // microphone (its headphones add a long delay), the cue could be recorded: none.
+    if (!('outputLatency' in ctx) || V2S.media.current().bluetooth) return 0;
+    const outputMs = (Number(ctx.outputLatency) || 0.04) * 1000 + (Number(ctx.baseLatency) || 0) * 1000;
+    const inputMs = V2S.media.inputLatencyMs();
+    const [[, , seconds]] = patterns.start;
+    const lead = Math.ceil(10 + seconds * 1000 + outputMs + inputMs + 30);
+    if (lead > V2S.config.START_CUE_MAX_MS) return 0;
+    play('start', 0.16);
+    return lead;
+  }
+
+  return { play, startCue };
 })();

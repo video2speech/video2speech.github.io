@@ -1,7 +1,7 @@
 // Start-up and screen flow:
 //   setup (first time on a device) → welcome → [folder permission] → camera & microphone
-//   check (test recording + playback) → [How to record, first time] → recording
-//   (practice with coaching the first time) ⇄ breaks → done.
+//   check (1 place the camera, 2 test recording + playback) → recording (the first time:
+//   practice, coached one step at a time) ⇄ breaks → done.
 // Rule for every click that needs the browser's permission or file dialogs: call the
 // browser API FIRST in the click handler, before any other waiting, or the browser
 // refuses (and a silent fallback would put recordings somewhere else).
@@ -22,7 +22,6 @@ V2S.app = (() => {
     sessionStarted: false,
     wakeLock: null,
     checkReturn: null,     // 'record' when the check was opened from Settings mid-session
-    howtoReturn: null,     // screen to go back to from How to record (the ? button)
     test: { running: false, url: null },
     flushEvents: () => Promise.resolve()
   };
@@ -53,26 +52,21 @@ V2S.app = (() => {
       folderAllow: copy.folder.allow,
       folderChoose: copy.folder.choose,
       folderZip: copy.folder.zip,
-      checkTitle: copy.check.title,
+      checkCameraStep: copy.check.cameraStep,
       checkCameraTitle: copy.check.cameraTitle,
       checkCameraText: copy.check.cameraText,
+      checkNext: copy.check.next,
+      checkMicStep: copy.check.micStep,
       checkMicTitle: copy.check.micTitle,
       checkMicText: copy.check.micText,
-      changeCamera: copy.check.change,
-      changeMic: copy.check.change,
       testRecordLabel: copy.check.testRecord,
+      testSayLabel: copy.check.testSayLabel,
       testSay: copy.check.testSay,
       testQuestion: copy.check.testQuestion,
       testYes: copy.check.testYes,
       testAgain: copy.check.testAgain,
-      checkHelp: copy.check.help,
-      howtoTitle: copy.howto.title,
-      howtoMockStart: copy.howto.mockStart,
-      howtoMockStop: copy.howto.mockStop,
-      howtoMockRedo: copy.howto.mockRedo,
-      howtoMockSentence: copy.howto.mockSentence,
-      howtoKeys: copy.howto.keys,
-      redoSavedText: copy.record.saved
+      testReplay: copy.check.testReplay,
+      checkHelp: copy.check.help
     };
     Object.entries(text).forEach(([id, value]) => ui.setText(id, value));
     el('setupId').placeholder = copy.setup.idPlaceholder;
@@ -93,20 +87,14 @@ V2S.app = (() => {
     document.documentElement.setAttribute('data-theme', value);
     try { localStorage.setItem('v2s_theme', value); } catch (error) { /* ignore */ }
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = value === 'dark' ? '#111316' : '#F2F1EC';
+    if (meta) meta.content = value === 'dark' ? '#000000' : '#FFFFFF';
     V2S.meter.refreshColors();
-    ui.labelTopbar(value);
   }
 
   async function setTheme(theme) {
     applyTheme(theme);
     await V2S.storage.setSetting('theme', theme === 'dark' ? 'dark' : 'light');
     logEvent('theme', { theme });
-  }
-
-  function toggleTheme() {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    setTheme(next);
   }
 
   // ---------- event log persistence ----------
@@ -314,23 +302,32 @@ V2S.app = (() => {
     const firstVisit = !progress.howtoSeen && !progress.coachDone && progress.currentIndex === 0;
     ui.setText('welcomeId', copy.welcome.participant(app.participantId));
     ui.setText('welcomeTitle', firstVisit ? copy.welcome.titleFirst : copy.welcome.titleBack);
-    ui.setText('welcomeLead', firstVisit ? copy.welcome.leadFirst : copy.welcome.leadBack);
+    ui.setSentences('welcomeLead', firstVisit ? copy.welcome.leadFirst : copy.welcome.leadBack);
     el('welcomeStages').hidden = !firstVisit;
     el('welcomeJourney').hidden = firstVisit;
 
+    // Where they are, as the parts (or practice sentences) done, one segment each.
     const p = positionFor(progress.currentIndex);
+    const segments = (total, done, current) => {
+      el('welcomeParts').replaceChildren(...Array.from({ length: total }, (_, i) => {
+        const segment = document.createElement('span');
+        if (i < done) segment.className = 'is-done';
+        else if (i === current) segment.className = 'is-current';
+        return segment;
+      }));
+    };
     if (progress.completed) {
       ui.setText('welcomePart', copy.welcome.allDone);
       ui.setText('welcomeCount', '');
-      el('welcomeBar').style.transform = 'scaleX(1)';
+      segments(partCount(), partCount(), -1);
     } else if (p.warmup) {
       ui.setText('welcomePart', copy.welcome.practice);
       ui.setText('welcomeCount', copy.welcome.practiceCount(p.pos - 1, p.total));
-      el('welcomeBar').style.transform = `scaleX(${((p.pos - 1) / p.total).toFixed(3)})`;
+      segments(p.total, p.pos - 1, p.pos - 1);
     } else {
       ui.setText('welcomePart', copy.welcome.part(p.block, p.blocks));
-      ui.setText('welcomeCount', copy.welcome.partCount(p.inBlock - 1, p.blockSize));
-      el('welcomeBar').style.transform = `scaleX(${((p.inBlock - 1) / p.blockSize).toFixed(3)})`;
+      ui.setText('welcomeCount', p.inBlock > 1 ? copy.welcome.partCount(p.inBlock - 1, p.blockSize) : copy.welcome.startsAt);
+      segments(p.blocks, p.block - 1, p.block - 1);
     }
     ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : copy.welcome.continue);
     el('welcomeStart').hidden = Boolean(progress.completed);
@@ -411,12 +408,29 @@ V2S.app = (() => {
   }
 
   // ---------- camera and microphone check ----------
+  // One step at a time: 1 place the camera (Next), 2 record a test and watch it back.
+  function showCheckStep(step) {
+    el('checkStepCamera').hidden = step !== 'camera';
+    el('checkStepMic').hidden = step !== 'mic';
+    document.querySelector('#screen-check .check').classList.toggle('is-camera-step', step === 'camera');
+    app.checkStep = step;
+    const focus = step === 'camera' ? el('checkNext') : el('testRecord');
+    if (focus && !focus.hidden) focus.focus({ preventScroll: true });
+  }
+
+  function onCheckNext() {
+    if (ui.screen() !== 'check') return;
+    logEvent('check_camera_ok', {});
+    showCheckStep('mic');
+  }
+
   async function showCheck({ returnTo = null } = {}) {
     app.checkReturn = returnTo || (app.sessionStarted ? 'record' : null);
     if (['ready', 'partEnd'].includes(V2S.session.getState())) V2S.session.stop();
     V2S.input.setEnabled(false);
     ui.show('check');
     resetTest();
+    showCheckStep('camera');
     ui.setText('checkBadge', copy.check.starting);
     if (!V2S.media.getStream()) {
       try {
@@ -428,7 +442,7 @@ V2S.app = (() => {
     requestWakeLock();
     renderDevices();
     setBadge('live');
-    el('testRecord').focus({ preventScroll: true });
+    showCheckStep(app.checkStep || 'camera');
   }
 
   async function openMedia() {
@@ -454,11 +468,13 @@ V2S.app = (() => {
     return true;
   }
 
+  // A badge on the picture only while something happens to it: the test recording (red,
+  // it records) or its playback. The live picture needs no label.
   function setBadge(kind, extra) {
     const badge = el('checkBadge');
     badge.replaceChildren();
-    if (!kind) return;
-    if (kind === 'live' || kind === 'recording') {
+    if (!kind || kind === 'live') return;
+    if (kind === 'recording') {
       const dot = document.createElement('span');
       dot.className = 'rec-dot';
       badge.append(dot);
@@ -467,10 +483,11 @@ V2S.app = (() => {
     badge.append(document.createTextNode(label));
   }
 
+  // The microphone in use, quietly, and a warning for Bluetooth headphones; devices are
+  // changed in Settings → Camera and microphone.
   async function renderDevices() {
     const now = V2S.media.current();
-    ui.setText('cameraName', now.camera || copy.check.defaultDevice);
-    ui.setText('micName', now.microphone || copy.check.defaultDevice);
+    ui.setText('micName', copy.check.micInUse(now.microphone || copy.check.defaultDevice));
     el('micWarning').hidden = !now.bluetooth;
     el('micSwitch').hidden = true;
     if (!now.bluetooth) return;
@@ -503,11 +520,13 @@ V2S.app = (() => {
     el('checkPreview').hidden = false;
     el('checkFrame').classList.remove('is-playing');
     el('testRecord').hidden = false;
+    el('checkMicText').hidden = false;
     el('testRecord').setAttribute('aria-disabled', 'false');
     el('testLive').hidden = true;
     el('testStatus').hidden = true;
     el('testAsk').hidden = true;
     el('testError').hidden = true;
+    el('checkHelp').hidden = false;
   }
 
   function showTestError(text) {
@@ -524,6 +543,7 @@ V2S.app = (() => {
     app.test.running = true;
     V2S.meter.resume();
     el('testRecord').hidden = true;
+    el('checkMicText').hidden = true;
     el('testLive').hidden = false;
     el('testBar').style.transition = 'none';
     el('testBar').style.transform = 'scaleX(0)';
@@ -584,6 +604,7 @@ V2S.app = (() => {
     const ask = () => {
       app.test.running = false;
       el('testAsk').hidden = false;
+      el('checkHelp').hidden = true;
       el('testBox').scrollIntoView({ block: 'nearest' });
       el('testYes').focus({ preventScroll: true });
     };
@@ -605,57 +626,31 @@ V2S.app = (() => {
     if (ui.screen() !== 'check') return;
     resetTest();
     logEvent('mic_test_ok', V2S.media.current());
-    if (app.checkReturn === 'record' && app.sessionStarted) return showRecord();
-    if (!app.progress.howtoSeen || needsPractice()) return showHowto({ next: 'record' });
-    return showRecord();
-  }
-
-  // ---------- how to record ----------
-  function showHowto({ next }) {
-    app.howtoReturn = next;
-    V2S.input.setEnabled(false);
-    const backToSession = next === 'back-record' || next === 'back-check';
-    ui.setText('howtoGo', backToSession ? copy.howto.back : (needsPractice() ? copy.howto.practice : copy.welcome.continue));
-    // On a computer the keys are taught as the controls (Space, ←); on touch, the buttons.
-    const keys = document.documentElement.classList.contains('has-keyboard');
-    ui.setRich('howtoStep1', copy.howto.step1(keys));
-    ui.setRich('howtoStep2', copy.howto.step2(keys));
-    ui.setRich('howtoStep3', copy.howto.step3(keys));
-    ui.setRich('howtoRedo', copy.howto.redo(keys));
-    const green = el('howtoStep2').querySelector('b'); // "green" is shown in green
-    if (green) green.className = 'go-word';
-    ui.show('howto');
-    el('howtoGo').focus({ preventScroll: true });
-  }
-
-  async function onHowtoGo() {
-    const next = app.howtoReturn;
-    app.howtoReturn = null;
-    if (next === 'back-check') {
-      ui.show('check');
-      return;
-    }
+    // How to record is taught inside the practice, one step at a time.
     if (!app.progress.howtoSeen) {
       app.progress.howtoSeen = true;
       await V2S.storage.saveParticipantProgress(app.progress);
     }
-    await showRecord();
+    return showRecord();
   }
 
-  function onHelp() {
-    if (ui.screen() === 'record' && ['ready', 'partEnd'].includes(V2S.session.getState())) {
-      V2S.session.stop();
-      showHowto({ next: 'back-record' });
-    } else if (ui.screen() === 'check' && !app.test.running) {
-      showHowto({ next: 'back-check' });
-    }
+  // ---------- how to record (the ? button) ----------
+  // On a computer the keys are named as the controls (Space, ←); on touch, the buttons.
+  async function onHelp() {
+    const onRecord = ui.screen() === 'record' && ['ready', 'partEnd'].includes(V2S.session.getState());
+    const onCheck = ui.screen() === 'check' && !app.test.running;
+    if (!onRecord && !onCheck) return;
+    if (onRecord) V2S.session.stop();
+    logEvent('help_opened', { screen: ui.screen() });
+    await ui.showHowto(document.documentElement.classList.contains('has-keyboard'));
+    if (onRecord && ui.screen() === 'record') V2S.session.resume();
   }
 
   // ---------- recording ----------
   async function showRecord() {
     ui.show('record');
     requestWakeLock();
-    V2S.input.setEnabled(true);
+    V2S.input.setEnabled(true, { guard: true });
     if (!app.sessionStarted) {
       app.sessionStarted = true;
       V2S.session.begin({ participantId: app.participantId, setKey: app.setKey, material: app.material, progress: app.progress });
@@ -705,6 +700,10 @@ V2S.app = (() => {
     set('breakPrimary', primary);
     set('breakSecondary', secondary);
     set('breakTertiary', tertiary);
+    // On a computer Space / Enter / a clicker press the main button: keep it focused.
+    if (primary && document.documentElement.classList.contains('has-keyboard') && ui.screen() === 'break' && !ui.isDialogOpen()) {
+      el('breakPrimary').focus({ preventScroll: true });
+    }
   }
 
   function setSavePanel(panelId, textId, text, tone) {
@@ -721,31 +720,64 @@ V2S.app = (() => {
     const p = positionFor(app.progress.currentIndex);
     const first = p.warmup || (p.block === 1 && p.inBlock === 1);
     breakState.continueLabel = first ? copy.practiceDone.next : copy.breakScreen.continueTo(p.block);
-    await showBreak(copy.practiceDone.title, copy.practiceDone.body(partCount(), cfg.BLOCK_SIZE));
+    await showBreak(copy.practiceDone.title, copy.practiceDone.body, { parts: copy.practiceDone.parts(partCount(), cfg.BLOCK_SIZE) });
   }
 
   async function onBlockDone({ block, blocks }) {
     breakState.mode = 'block';
     breakState.block = block;
     breakState.next = block < blocks ? block + 1 : null;
-    await showBreak(copy.breakScreen.title(block), copy.breakScreen.lead);
+    await showBreak(copy.breakScreen.title(block), copy.breakScreen.lead, { done: block, total: blocks });
   }
 
   async function onStorageFull() {
     breakState.mode = 'storage';
     breakState.next = null;
     V2S.session.stop();
-    await showBreak(copy.breakScreen.savePromptTitle, copy.feedback.storageFull);
+    await showBreak(copy.breakScreen.savePromptTitle, copy.breakScreen.storageSaved);
   }
 
-  async function showBreak(title, lead) {
+  // Parts done, as one row of segments (breaks), or one line about the parts (practice).
+  function setParts({ done, total, parts } = {}) {
+    const box = el('breakParts');
+    const bar = el('breakPartsBar');
+    bar.replaceChildren();
+    box.hidden = !total && !parts;
+    if (total) {
+      for (let i = 0; i < total; i++) {
+        const segment = document.createElement('span');
+        if (i < done) segment.className = 'is-done';
+        bar.appendChild(segment);
+      }
+      ui.setText('breakPartsLabel', copy.breakScreen.partsDone(done, total));
+    } else {
+      ui.setText('breakPartsLabel', parts || '');
+    }
+    bar.hidden = !total;
+  }
+
+  const SYMBOLS = {
+    done: ['symbol-done', '<svg viewBox="0 0 24 24"><path d="m6.5 12.5 3.6 3.6 7.4-8"/></svg>'],
+    warn: ['symbol-warn', '<svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.4v.2"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>']
+  };
+
+  async function showBreak(title, lead, parts) {
     V2S.input.setEnabled(false);
     breakState.savedNow = 0;
+    breakState.lead = lead;
+    const folder = exporter.getSaveMode() === 'folder';
+    const [symbolClass, symbolIcon] = SYMBOLS[breakState.mode === 'storage' ? 'warn' : 'done'];
+    el('breakSymbol').className = `symbol ${symbolClass}`;
+    el('breakSymbol').innerHTML = symbolIcon;
     ui.setText('breakTitle', title);
-    ui.setText('breakLead', lead);
-    el('breakSave').hidden = false;
+    // ZIP mode: what to do (save first, or go on) appears once the recordings are counted.
+    ui.setSentences('breakLead', folder ? lead : '');
+    setParts(parts);
+    // ZIP mode, practice: the parts are introduced after the practice recordings are saved.
+    if (!folder && breakState.mode === 'practice') el('breakParts').hidden = true;
+    el('breakSave').hidden = !folder;
     el('breakSaveProgress').hidden = true;
-    setSavePanel('breakSave', 'breakSaveText', exporter.getSaveMode() === 'folder' ? copy.breakScreen.savingFolder : copy.record.saving);
+    setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.savingFolder);
     setBreakButtons(null, null, null);
     ui.show('break');
     await settleWrites();
@@ -791,6 +823,27 @@ V2S.app = (() => {
     const contLabel = practice ? breakState.continueLabel : (breakState.next ? copy.breakScreen.continueTo(breakState.next) : copy.breakScreen.continue);
     const cont = { label: contLabel, action: () => showRecord() };
     const finish = { label: copy.breakScreen.finish, action: () => showDone({ allDone: false }) };
+    // Practice done. ZIP mode: saving is learnt here by doing it once (the same steps as
+    // after every part), and only then the real sentences are introduced. Folder mode: the
+    // screen says where every recording goes.
+    if (practice) {
+      const folder = exporter.getSaveMode() === 'folder';
+      if (!folder && pending > 0) {
+        ui.setSentences('breakLead', copy.practiceDone.saveFirst);
+        el('breakParts').hidden = true;
+        el('breakSave').hidden = !breakState.savedNow;
+        if (breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.moreToSave(breakState.savedNow, pending));
+        setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, finish, null);
+        return;
+      }
+      ui.setSentences('breakLead', copy.practiceDone.body);
+      el('breakParts').hidden = false;
+      el('breakSave').hidden = !(folder || breakState.savedNow);
+      if (folder) setSavePanel('breakSave', 'breakSaveText', copy.practiceDone.savedFolder(folderLabel()), 'ok');
+      else if (breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.practiceDone.saved, 'ok');
+      setBreakButtons(cont, finish, null);
+      return;
+    }
     if (exporter.getSaveMode() === 'folder') {
       if (pending > 0 && exporter.status().saving) {
         // Still writing (a slow folder): carrying on is safe, the writes continue.
@@ -798,7 +851,7 @@ V2S.app = (() => {
         setBreakButtons(cont, finish, null);
         setTimeout(() => { if (ui.screen() === 'break') refreshBreakSave(); }, 1500);
       } else if (pending === 0) {
-        setSavePanel('breakSave', 'breakSaveText', practice ? copy.practiceDone.savedFolder(folderLabel()) : copy.done.savedFolder(folderLabel()), 'ok');
+        setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.savedFolder(folderLabel()), 'ok');
         setBreakButtons(cont, finish, null);
       } else {
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.folderProblem(pending), 'warn');
@@ -806,13 +859,22 @@ V2S.app = (() => {
       }
       return;
     }
-    if (pending === 0) {
+    if (breakState.mode === 'storage') {
+      ui.setSentences('breakLead', pending === 0 ? copy.breakScreen.storageSaved : copy.feedback.storageFull);
+      el('breakSave').hidden = !(pending > 0 && breakState.savedNow);
+      if (pending > 0 && breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.moreToSave(breakState.savedNow, pending));
+      setBreakButtons(pending === 0 ? { label: copy.breakScreen.continue, action: () => showRecord() } : { label: copy.breakScreen.saveButton, action: saveZipFromBreak }, finish, null);
+    } else if (pending === 0) {
+      ui.setSentences('breakLead', breakState.lead);
+      el('breakSave').hidden = false;
       setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.savedZip, 'ok');
       setBreakButtons(cont, finish, null);
     } else {
-      const prompt = practice ? copy.practiceDone.zipPrompt : copy.breakScreen.zipPrompt;
-      setSavePanel('breakSave', 'breakSaveText', breakState.savedNow ? copy.breakScreen.moreToSave(breakState.savedNow, pending) : prompt);
-      setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, null, { label: copy.breakScreen.later, action: () => showRecord() });
+      // One instruction: save, then rest.
+      ui.setSentences('breakLead', copy.breakScreen.leadSave);
+      el('breakSave').hidden = !breakState.savedNow;
+      if (breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.moreToSave(breakState.savedNow, pending));
+      setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, finish, null);
     }
   }
 
@@ -835,8 +897,9 @@ V2S.app = (() => {
   }
 
   async function saveZipFromBreak() {
-    const label = breakState.mode === 'block' ? `block${String(breakState.block).padStart(2, '0')}` : breakState.mode === 'practice' ? 'practice' : 'saved';
+    const label = breakState.mode === 'block' ? `part${String(breakState.block).padStart(2, '0')}` : breakState.mode === 'practice' ? 'practice' : 'saved';
     const result = await runZipSave(label, (done, total) => {
+      el('breakSave').hidden = false;
       el('breakSaveProgress').hidden = false;
       el('breakSaveBar').style.transform = `scaleX(${(done / total).toFixed(3)})`;
       ui.setText('breakSaveLabel', copy.breakScreen.saving(done, total));
@@ -846,22 +909,27 @@ V2S.app = (() => {
     if (result === 'saved' || result === 'nothing') {
       await refreshBreakSave();
     } else if (result !== 'cancelled') {
+      el('breakSave').hidden = false;
       setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.notConfirmed, 'warn');
-      setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, null, { label: copy.breakScreen.later, action: () => showRecord() });
+      setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak },
+        { label: copy.breakScreen.later, action: () => showRecord() },
+        { label: copy.breakScreen.finish, action: () => showDone({ allDone: false }) });
     }
   }
 
+  // The file to look for, without its time: "SEMG1_part01".
   function saveHint(fileName) {
-    if (platform.ios) return copy.saveConfirm.ios(fileName);
-    if (platform.android) return copy.saveConfirm.android(fileName);
-    return copy.saveConfirm.desktop(fileName);
+    const name = String(fileName || '').replace(/_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.zip$/, '').replace(/\.zip$/, '');
+    if (platform.ios) return copy.saveConfirm.ios(name);
+    if (platform.android) return copy.saveConfirm.android(name);
+    return copy.saveConfirm.desktop(name);
   }
 
   // ZIP save. The save dialog (Chrome/Edge) opens FIRST, while the click still counts;
   // a plain download is only cleared after the participant confirms the file exists.
   async function runZipSave(label, onProgress, { backups = false } = {}) {
     const stamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-    const suggested = `${app.participantId || 'recordings'}_video-recordings-${stamp}_${label}.zip`;
+    const suggested = `${app.participantId || 'recordings'}_${label}_${stamp}.zip`;
     const target = await exporter.pickZipTarget(suggested);
     if (target === undefined) return 'cancelled';
     let result;
@@ -882,11 +950,12 @@ V2S.app = (() => {
         title: copy.saveConfirm.title,
         body: saveHint(result.fileName),
         actions: [
-          { label: copy.saveConfirm.yes, value: 'yes', variant: 'plain' },
+          { label: copy.saveConfirm.yes, value: 'yes', variant: 'go', default: true },
           { label: copy.saveConfirm.no, value: 'no', variant: 'plain' },
-          { label: copy.saveConfirm.unsure, value: 'unsure', variant: 'plain', default: true }
+          { label: copy.saveConfirm.unsure, value: 'unsure', variant: 'text' }
         ],
-        dismissValue: 'unsure'
+        dismissValue: 'unsure',
+        focus: false
       });
       logEvent('zip_confirm', { answer, fileName: result.fileName, count: result.count });
       if (answer === 'no') return runZipSave(label, onProgress, { backups });
@@ -895,10 +964,9 @@ V2S.app = (() => {
     if (!confirmed) return 'unsure';
     app.lastSavedCount = result.count;
     if (!backups) {
-      // Kept as backup copies (left out of later ZIPs) until space is needed.
+      // Kept as backup copies (left out of later ZIPs) until space is needed: a mistaken
+      // "Yes" must not lose a part.
       await V2S.storage.markExported(result.ids, result.fileName);
-      const extra = (await V2S.storage.exportedIds()).length - cfg.BACKUP_MAX_TAKES;
-      if (extra > 0) logEvent('backups_pruned', { count: await V2S.storage.pruneExported(extra, { keepLatest: true }), reason: 'limit' });
     }
     await V2S.session.refreshStorage().catch(() => {});
     return 'saved';
@@ -928,7 +996,7 @@ V2S.app = (() => {
     setDoneBadge('wait');
     ui.setText('doneAgain', copy.done.again);
     el('doneAgain').hidden = Boolean(allDone);
-    setSavePanel('doneSavePanel', 'doneSaveText', exporter.getSaveMode() === 'folder' ? copy.breakScreen.savingFolder : copy.record.saving);
+    setSavePanel('doneSavePanel', 'doneSaveText', copy.breakScreen.savingFolder);
     el('doneSavePanel').hidden = false;
     el('doneSave').hidden = true;
     ui.show('done');
@@ -943,13 +1011,13 @@ V2S.app = (() => {
   }
 
   const BADGES = {
-    ok: ['badge-go', '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'],
-    wait: ['badge-neutral', '<svg viewBox="0 0 24 24"><path d="M12 4v10M7.5 9.5 12 14l4.5-4.5M5 19h14"/></svg>']
+    ok: ['symbol-done', '<svg viewBox="0 0 24 24"><path d="m6.5 12.5 3.6 3.6 7.4-8"/></svg>'],
+    wait: ['symbol-neutral', '<svg viewBox="0 0 24 24"><path d="M12 4.5v10M7.5 10 12 14.5l4.5-4.5M5.5 19h13"/></svg>']
   };
 
   function setDoneBadge(kind) {
     const [className, icon] = BADGES[kind];
-    el('doneBadge').className = `badge ${className}`;
+    el('doneBadge').className = `symbol ${className}`;
     el('doneBadge').innerHTML = icon;
   }
 
@@ -958,7 +1026,7 @@ V2S.app = (() => {
     const folder = exporter.getSaveMode() === 'folder';
     if (pending === 0) {
       setDoneBadge('ok');
-      ui.setText('doneBody', app.doneAll ? copy.done.allBody : copy.done.finishBody);
+      ui.setSentences('doneBody', app.doneAll ? copy.done.allBody : copy.done.finishBody);
       setSavePanel('doneSavePanel', 'doneSaveText', folder ? copy.done.savedFolder(folderLabel()) : copy.done.savedZip, 'ok');
       el('doneSave').hidden = true;
       return;
@@ -1146,16 +1214,21 @@ V2S.app = (() => {
     });
     el('welcomeStart').addEventListener('click', onWelcomeStart);
     el('welcomeNoticeAction').addEventListener('click', onWelcomeSaveNow);
+    el('checkNext').addEventListener('click', onCheckNext);
     el('testRecord').addEventListener('click', onTestRecord);
     el('testYes').addEventListener('click', onTestYes);
     el('testAgain').addEventListener('click', onTestRecord);
-    el('changeCamera').addEventListener('click', () => V2S.settings.open('settingsDevices'));
-    el('changeMic').addEventListener('click', () => V2S.settings.open('settingsDevices'));
+    el('testReplay').addEventListener('click', () => {
+      const playback = el('checkPlayback');
+      if (!app.test.url || playback.hidden) return;
+      playback.currentTime = 0;
+      setBadge('playing');
+      playback.play().catch(() => {});
+      logEvent('mic_test_replay', {});
+    });
     el('checkHelp').addEventListener('click', () => ui.showCameraHelp());
-    el('howtoGo').addEventListener('click', onHowtoGo);
     el('finishButton').addEventListener('click', onFinishToday);
     el('helpButton').addEventListener('click', onHelp);
-    el('themeButton').addEventListener('click', toggleTheme);
     el('doneSave').addEventListener('click', onDoneSave);
     el('doneAgain').addEventListener('click', () => showWelcome());
 
@@ -1202,7 +1275,7 @@ V2S.app = (() => {
     await window.__v2sGate;
     fillStaticCopy();
     wire();
-    ui.labelTopbar(document.documentElement.getAttribute('data-theme'));
+    ui.labelTopbar();
     // On a reload the previous copy of this page may take a moment to let go.
     let locked = await holdTabLock();
     for (let i = 0; !locked && i < 5; i++) {
@@ -1260,7 +1333,7 @@ V2S.app = (() => {
       app.setKey = setKey;
       await V2S.storage.setSetting('setKey', setKey);
     },
-    // Settings → Clear progress: back to the very start (Welcome, How to record, practice),
+    // Settings → Clear progress: back to the very start (Welcome, the check, practice),
     // after every pending write, so nothing older can overwrite it.
     clearProgress: async () => {
       V2S.session.stop();

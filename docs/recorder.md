@@ -1,4 +1,4 @@
-# Speech recorder (v208)
+# Speech recorder (v209)
 
 The new patient recorder lives at `app_next.html` while it is being tested on real
 devices. The current page, `app.html` (v114, hotfixed), keeps running for participants
@@ -10,69 +10,69 @@ item: [recorder-checklist.md](recorder-checklist.md).
 
 ## What a participant sees
 
+Every screen has one purpose and one main button; information comes one step at a time
+(the moment-by-moment design is in recorder-design.md). The look follows Apple's
+conventions: the system font, white (or black) screens, a filled blue button to move on.
+
 1. **Sign in** (`index.html`), in the same style, with a light/dark switch.
-2. **First-time setup** (research team or helper, once per device):
-   - The participant ID (example "SEMG1", saved in capitals), confirmed in large type.
-   - On Chrome/Edge computers, the folder where recordings are saved.
-   - If the device holds progress from the earlier page, the setup asks whether to
-     continue from it.
+2. **First-time setup** (research team or helper, once per device), one question per
+   step: the participant ID (example "SEMG1", saved in capitals), confirmed in large
+   type; on Chrome/Edge computers, the folder where recordings are saved. If the device
+   holds progress from the earlier page, the setup asks whether to continue from it.
 3. **Welcome**:
-   - First time: what will happen, in three stages.
-   - Later visits: where they are ("Part 2 of 7 — 14 of 50 done").
+   - First time: what will happen, as three plain rows, and **Begin**.
+   - Later visits: where they are ("Part 2 of 7", "14 of 50 sentences done") and
+     **Continue**.
    - In folder mode the browser must be allowed to write to the folder again in each
-     new browser session; **Begin** / **Continue** asks for it.
-   - If permission is not given, a screen offers **Allow**, **Choose a different
-     folder** or **Save as ZIP files instead**. Nothing is ever saved anywhere else
-     without asking.
-4. **Camera and microphone check** (every session):
-   - A large preview with a head-and-neck outline and the study's camera position:
-     below the chin, tilted up, mouth, cheeks and throat visible. The names of the
-     camera and microphone in use, each with **Change**.
-   - A Bluetooth or headset microphone gets a warning and a one-tap switch to the
-     built-in one.
-   - **Record a 5-second test** plays the clip back (picture and sound) and asks "Can
-     you see your mouth, cheeks and throat, and hear yourself clearly?". Continue only
-     after **Yes**.
-5. **How to record** (once per participant, and from the **?** button). On a computer
-   the steps name the keys and show them as keycaps; on touch screens, the buttons:
-   1. Press **Space** / **Start** once — no need to hold it.
-   2. When the sentence turns green, read it out loud.
-   3. Press **Space** again / **Stop**.
-
-   Plus: read a word wrong → **Space** then **←** / **Stop** then **Redo**.
-6. **Practice** (the 5 warm-up sentences, first time only). A coach panel above the card
-   says one thing at a time: first what just happened ("✓ Recorded."), then the one next
-   action ("Next sentence: press Start."). The control it names pulses. Practice 3
-   teaches Redo by doing it (see recorder-design.md for every line).
-7. **Recording**, one sentence at a time. The sentence is the one thing to look at:
-   - *Not recording*: grey pill "Not recording", the sentence in grey, a soft green
-     **Start** button, **Redo** (with the previous sentence under it). In the card's
-     corner the camera picture and sound level are grey and still.
-   - *Starting…* (about 0.35 s): the start sound plays, then the recorder must run 0.2 s
-     without an error.
+     new browser session; **Begin** / **Continue** asks for it. If permission is not
+     given, a screen offers **Allow**, **Choose a different folder** or **Save as ZIP
+     files instead**. Nothing is ever saved anywhere else without asking.
+4. **Camera and microphone check** (every session), two steps beside the same live
+   picture:
+   1. **Position the camera**: one head oval in the middle; "Put it below your chin and
+      tilt it up, so your mouth, cheeks and throat are visible." **Next**.
+   2. **Test the microphone**: **Record a 5-second test**; the clip plays back (picture
+      and sound), then "Can you see your mouth, cheeks and throat, and hear yourself
+      clearly?" **Yes, continue** / Record again. A Bluetooth microphone gets a warning
+      and a one-tap switch to the built-in one. The test is never saved.
+5. **Practice** (the 5 warm-up sentences, first time only). How to record is taught
+   here, one step at a time, just above Start: first what just happened ("✓
+   Recorded."), then the one next action ("Next sentence: press Start."). The control it
+   names pulses. Practice 3 teaches Redo by doing it.
+6. **Recording**, one sentence at a time. The sentence is the one thing on the screen:
+   - *Not recording*: the sentence in grey, "○ Not recording" under it, a soft green
+     **Start**, and **Redo** with the previous sentence. The camera picture and sound
+     level, small in the corner, are grey and still.
+   - *Starting…* (about 0.2 s): a short, soft start cue (0.04 s), then recording starts
+     (at most 0.16 s after the press); the sentence turns green once the recorder has run
+     0.08 s without an error.
+     Where the device's sound output is too slow for that, there is no cue and recording
+     starts at the press.
    - *Recording*: the sentence turns vivid green on a soft highlight. Around it only
-     quiet signs change: the pill shows a red dot ("● Recording"), the camera picture
-     and sound level in the corner come alive, and Start becomes a soft red **Stop**.
-     No text appears. After 20 s a clock appears in the pill and Stop pulses.
+     quiet signs change: a red "● Recording" under it, the camera picture and sound
+     level come alive, and Start becomes a soft red **Stop**. No text appears. After
+     20 s Stop pulses and shows the time ("Stop · 0:21").
    - After Stop, recording continues a fixed 0.7 s (the legacy page: 0.3 s). The next
-     sentence then appears; "✓ Saved" shows briefly on the Redo button, next to the
-     sentence just saved. Checking and storing happen in the background.
-   - The last sentence of a part stays on screen ("Saved", Redo still possible) until
-     **Take a break**.
-8. **Practice done**: in ZIP mode the practice recordings are saved once, with the same
-   steps as after every part (so saving is learnt by doing it); in folder mode the screen
-   names the folder.
-9. **Break** after every 50 sentences ("Part 2 done"); in ZIP mode, save first.
-   **Continue to part 3** or **Finish for today**.
-10. **Done**: "You can close this page" only when everything is saved; otherwise "Please
-    save your recordings before you close this page." with **Save recordings**.
+     sentence then appears; "✓ Recorded" shows quietly above Start for 2.5 s, and Redo
+     names the sentence just recorded. Checking and storing happen in the background. ("Save" is only ever
+     used for the file or folder step.)
+   - The last sentence of a part stays on screen ("Recorded", Redo still possible) until
+     **Finish part 2** (blue).
+7. **Practice done**: in ZIP mode the practice recordings are saved once, with the same
+   steps as after every part (saving is learnt by doing it); then "Now the real
+   sentences. They work the same way." and **Continue to part 1**. In folder mode the
+   screen names the folder.
+8. **Break** after every 50 sentences ("Part 2 done", seven segments for the parts); in
+   ZIP mode "Save your recordings, then take a rest." and **Save recordings** first
+   (the file is `SEMG1_part02_<time>.zip`; "Did the file save?" → **Yes, I see it**, nothing
+   pre-chosen). Then
+   **Continue to part 3** or End for today.
+9. **Done**: "You can close this page" only when everything is saved; otherwise "Please
+   save your recordings before you close this page." with **Save recordings**.
 
-The top bar shows where you are ("Part 2 of 7 · Sentence 14 of 50 · 37 to go before
-the break"), with **End for today** (asks first), **?**, the light/dark switch and
-**Settings**. Its buttons are hidden while recording.
-
-On small screens the next action stays visible at the bottom edge while the rest
-scrolls.
+The top bar shows where you are ("Part 2 of 7 · Sentence 14 of 50", a thin bar), **End
+for today** (asks first), **?** (How to record, as a short dialog) and **Settings**. Its
+buttons are hidden while recording. Light/dark is in Settings.
 
 The page runs in one tab at a time. A second copy shows "Already open in another tab"
 with **Use this tab instead**; the first copy then stops and says so.
@@ -227,8 +227,8 @@ cameras sit at the top edge of the screen, so:
   a webcam placed below the chin, pointing up, and choose it in Settings → Camera.
   Prefer the built-in microphone over Bluetooth headphones.
 
-The camera check shows a head-and-neck outline, and the test playback asks whether the
-mouth, cheeks and throat can be seen.
+The camera check shows one head oval in the middle, and the test playback asks whether
+the mouth, cheeks and throat can be seen.
 
 The layout is checked on all five shapes: phone upright and sideways, tablet upright
 and sideways, computer.
@@ -240,8 +240,8 @@ and sideways, computer.
 - Progress is stored per participant and mirrored to the legacy key, so the legacy page
   continues from the same sentence on that device.
 - The first participant set up on a device that already has legacy progress is asked
-  whether to continue from it. Such participants see How to record once; there is no
-  practice.
+  whether to continue from it. Such participants go straight on after the check; there
+  is no practice (the ? button shows How to record).
 
 ## Code
 

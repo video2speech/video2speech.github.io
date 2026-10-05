@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="theme-color" content="#F2F1EC">
+<meta name="theme-color" content="#FFFFFF">
 <title>Speech Recording · Sign in</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23D9F0E1'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%231E9E52'/%3E%3C/svg%3E">
 <script>
@@ -16,7 +16,7 @@
     if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.setAttribute('data-theme', savedTheme);
   } catch (error) { /* storage unavailable */ }
 </script>
-<link rel="stylesheet" href="css/base.css?v=208">
+<link rel="stylesheet" href="css/base.css?v=209">
 <style>
   body {
     display: grid;
@@ -24,25 +24,21 @@
     padding: calc(64px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
   }
   .corner { position: fixed; top: calc(12px + env(safe-area-inset-top)); right: 12px; }
+  /* One centred column on a plain page, like the recorder's own screens. */
   .signin {
-    width: min(480px, 100%);
-    padding: clamp(24px, 5vw, 40px);
-    border-radius: var(--radius-l);
-    background: var(--surface);
-    border: 1.5px solid var(--line);
-    box-shadow: var(--shadow-card);
+    width: min(400px, 100%);
     animation: rise .35s var(--ease) both;
   }
-  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: var(--s5); }
-  .brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--go-fill); display: grid; place-items: center; flex: none; }
-  .brand-mark span { width: 16px; height: 16px; border-radius: 50%; background: var(--go-dot); }
-  .brand-name { font-size: 17px; font-weight: 800; color: var(--ink-2); }
-  .signin h1 { margin-bottom: var(--s2); }
-  .signin .lead { margin-bottom: var(--s5); }
+  .brand { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: var(--s5); text-align: center; }
+  .brand-mark { width: 56px; height: 56px; border-radius: 14px; background: var(--go-tint); display: grid; place-items: center; flex: none; }
+  .brand-mark span { width: 20px; height: 20px; border-radius: 50%; background: var(--go-dot); }
+  .brand-name { font-size: 15px; font-weight: 600; color: var(--ink-3); }
+  .signin h1 { margin-bottom: var(--s2); text-align: center; }
+  .signin .lead { margin-bottom: var(--s5); text-align: center; }
   .signin form { display: grid; gap: var(--s4); }
   .signin .check-row { margin-top: 2px; }
   .signin .field-error { min-height: 1.45em; }
-  .notes { margin-top: var(--s5); display: grid; gap: var(--s2); }
+  .notes { margin-top: var(--s5); display: grid; gap: var(--s2); text-align: center; }
   @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 </style>
 </head>

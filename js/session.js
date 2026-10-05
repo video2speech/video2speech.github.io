@@ -72,11 +72,10 @@ V2S.session = (() => {
 
   function whereView(i) {
     const p = position(i);
-    if (p.warmup) return { main: copy.record.practiceOf(p.pos, p.total), sub: '', progress: (p.pos - 1) / p.total };
+    if (p.warmup) return { main: copy.record.practiceOf(p.pos, p.total), progress: (p.pos - 1) / p.total };
     return {
       main: `${copy.record.partOf(p.block, p.blocks)} · ${copy.record.sentenceOf(p.inBlock, p.blockSize)}`,
       short: copy.record.whereShort(p.block, p.inBlock, p.blockSize),
-      sub: copy.record.restIn(p.blockSize - p.inBlock + 1),
       progress: (p.inBlock - 1) / p.blockSize
     };
   }
@@ -109,7 +108,7 @@ V2S.session = (() => {
     if (!coaching()) return null;
     const k = usesKeys();
     const c = copy.coach;
-    if (phase === 'partEnd') return { ack: { text: c.practiceDone, tone: 'ok' }, action: c.pressContinue(k), target: 'main' };
+    if (phase === 'partEnd') return { ack: { text: c.lastPractice, tone: 'plain' }, action: c.pressContinue(k), target: 'main' };
     // Starting, recording, finishing: the same line all through, so nothing flickers; no
     // control pulses while someone reads.
     if (phase !== 'ready') return { ack: null, action: c.readNow(k), target: null };
@@ -123,7 +122,7 @@ V2S.session = (() => {
     } else if ((p === 2 || p === 3) && redoLesson !== 'done' && canRedo()) {
       view = { ack: recorded, action: c.tryRedo(k), detail: c.redoWhat(lastAccepted.sentence), target: 'redo', quietMain: true };
     } else if (p === 0) {
-      view = { ack: null, action: c.pressStart(k), target: 'main' };
+      view = { ack: null, action: c.pressStart(k), detail: c.noHold, target: 'main' };
     } else if (p === 1) {
       view = { ack: justRecorded ? { text: c.recordedFirst, tone: 'ok' } : null, action: c.nextSentence(k), target: 'main' };
     } else {
@@ -145,8 +144,11 @@ V2S.session = (() => {
   // Formal recording is quiet: the message line is only for something that needs fixing
   // (in practice the coach says it instead).
   function messageView() {
-    if (!feedback || coaching()) return null;
-    return { text: feedback.text, tone: feedback.tone };
+    if (coaching()) return null;
+    if (feedback) return { text: feedback.text, tone: feedback.tone };
+    // After a take: a moment of "✓ Recorded" just above Start, then nothing.
+    if (justSaved && state === 'ready') return { text: copy.record.saved, tone: 'ok' };
+    return null;
   }
 
   function pulseFor(coach, redoVisible) {
@@ -189,8 +191,8 @@ V2S.session = (() => {
       saved: true,
       status: copy.record.statusSaved,
       sentence: lastAccepted.sentence,
-      where: { ...whereView(lastAccepted.index), sub: '' },
-      main: { label: kind === 'practice' ? copy.record.toPracticeDone : kind === 'all' ? copy.record.toAllDone : copy.record.toBreak, icon: 'next', disabled: false },
+      where: whereView(lastAccepted.index),
+      main: { label: kind === 'practice' ? copy.record.toPracticeDone : kind === 'all' ? copy.record.toAllDone : copy.record.toBreak(partEnd.block), icon: 'next', disabled: false },
       redo: { visible: true, label: copy.record.redo, caption: copy.record.redoThis },
       message: coach ? null : { text: kind === 'part' ? copy.record.partEndPart(partEnd.block) : copy.record.partEndAll, tone: 'info' },
       coach,
@@ -255,9 +257,15 @@ V2S.session = (() => {
   }
 
   // key: a message in copy.feedback (or copy.record); null clears.
+  // A message's words; on a computer they name the keys (Space, ←) instead of the buttons.
+  function feedbackText(key) {
+    const entry = key ? copy.feedback[key] || copy.record[key] || '' : '';
+    return typeof entry === 'function' ? entry(usesKeys()) : entry;
+  }
+
   function setFeedback(key, tone = 'warn', transient = false) {
     clearTimeout(idleHintTimer);
-    const text = key ? copy.feedback[key] || copy.record[key] || '' : '';
+    const text = feedbackText(key);
     feedback = key ? { key, text, tone, transient, setAt: performance.now() } : null;
   }
 
@@ -346,7 +354,9 @@ V2S.session = (() => {
     state = 'ready';
     take = null;
     sentenceShownAt = performance.now();
-    V2S.meter.setIdleDetection(true, onIdleSpeech);
+    // People often say a word after Stop ("oops", or the end of the sentence): only speech
+    // that starts a moment later counts as reading before Start.
+    V2S.meter.setIdleDetection(true, onIdleSpeech, cfg.IDLE_SPEECH_GRACE_MS);
     render(readyView());
     logEvent('ready', { index: index() });
     refreshStorageGuard().catch(() => {});
@@ -363,7 +373,7 @@ V2S.session = (() => {
 
   // Speaking before Start: a gentle reminder that nothing is being recorded.
   function onIdleSpeech() {
-    if (state !== 'ready') return;
+    if (state !== 'ready' || V2S.ui.isOverlayOpen()) return;
     // Leave a fresh message (e.g. the hold message) up long enough to be read.
     if (feedback && !feedback.transient && performance.now() - feedback.setAt < 4000) return;
     const lesson = coachView('ready');
@@ -399,9 +409,9 @@ V2S.session = (() => {
     if (press.kind === 'secondary') return;
     if (state === 'starting' || state === 'recording') {
       await abortTake('aborted_hold', null);
-      explainHold(copy.holdDialog.bodyDiscarded);
+      explainHold(copy.holdDialog.bodyDiscarded(usesKeys()));
     } else if (state === 'ready') {
-      explainHold(copy.holdDialog.body);
+      explainHold(copy.holdDialog.body(usesKeys()));
     }
   }
 
@@ -454,10 +464,13 @@ V2S.session = (() => {
     setFeedback(null);
     V2S.meter.setIdleDetection(false);
     render(startingView());
-    V2S.sounds.play('start');
-    logEvent('take_start', { index: i, source, takeId: current.id });
-    // The start sound plays first so it is not in the recording.
-    current.startTimer = setTimeout(() => launchRecorder(current), cfg.START_CUE_LEAD_MS);
+    // A short cue, then recording at once (about 0.1 s after the press, before anyone can
+    // start speaking); no cue where the device's sound output is too slow for that. The
+    // sentence turns green as soon as the recorder runs.
+    current.cueLeadMs = V2S.sounds.startCue();
+    logEvent('take_start', { index: i, source, takeId: current.id, cueLeadMs: current.cueLeadMs });
+    if (current.cueLeadMs) current.startTimer = setTimeout(() => launchRecorder(current), current.cueLeadMs);
+    else launchRecorder(current);
   }
 
   // Starts the recorder and waits until it has proven it runs. Start failures are retried
@@ -815,7 +828,7 @@ V2S.session = (() => {
       requiresRetry: !usable,
       qcIssue: qc.pass ? null : qc.code,
       qcFailuresInARow: failuresInARow,
-      audioQualityWarning: qc.pass ? null : copy.feedback[qc.code] || null,
+      audioQualityWarning: qc.pass ? null : feedbackText(qc.code) || null,
       qc: { pass: qc.pass, code: qc.code, ...qc.metrics, rules: V2S.qc.rules() },
       audioQuality: {
         rms: qc.metrics.rms ?? null,
@@ -833,8 +846,8 @@ V2S.session = (() => {
         recorderStop: relative(current.recorderStoppedAt)
       },
       timing: {
-        startCueLeadMs: cfg.START_CUE_LEAD_MS,
-        startGuardMs: cfg.START_GUARD_MS,
+        startCueLeadMs: current.cueLeadMs || 0,
+        startGuardMs: 0,
         startAttempts: current.attempts,
         startErrors: current.startErrors,
         tailMs: current.tailMs ?? null,

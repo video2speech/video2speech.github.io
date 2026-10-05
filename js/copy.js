@@ -12,8 +12,6 @@ V2S.copy = {
     finish: 'End for today',
     finishShort: 'End',
     help: 'How to record',
-    toDark: 'Switch to dark mode',
-    toLight: 'Switch to light mode',
     settings: 'Settings'
   },
 
@@ -27,7 +25,7 @@ V2S.copy = {
     idInvalid: 'Please use only letters, numbers or dashes.',
     next: 'Continue',
     confirmTitle: 'Is this ID correct?',
-    confirmYes: "Yes, it's correct",
+    confirmYes: "Yes, it’s correct",
     confirmChange: 'Change',
     legacyContinue: place => `Continue from ${place}`,
     legacyContinueDetail: 'This device already has progress from the earlier recording page.',
@@ -44,20 +42,22 @@ V2S.copy = {
     titleFirst: 'Welcome',
     titleBack: 'Welcome back',
     leadFirst: 'You will read short sentences out loud. The camera records your face and voice.',
-    leadBack: 'Your place is saved. Carry on whenever you are ready.',
+    leadBack: 'We’ll keep your place.',
     stage1: 'Check your camera and microphone',
-    stage2: 'Learn how it works and practise',
-    stage3: 'Read the sentences, with rests between parts',
+    stage2: 'Practise with 5 sentences',
+    stage3: 'Read the sentences, with breaks',
     begin: 'Begin',
     continue: 'Continue',
     participant: id => `Participant ${id}`,
     practice: 'Practice',
     practiceCount: (done, total) => `${done} of ${total} done`,
     part: (n, total) => `Part ${n} of ${total}`,
-    partCount: (done, size) => `${done} of ${size} done`,
+    partCount: (done, size) => `${done} of ${size} sentences done`,
     allDone: 'All sentences are done',
     pending: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet.`,
-    saveNow: 'Save now'
+    saveNow: 'Save now',
+    partsDone: (n, total) => `${n} of ${total} parts done`,
+    startsAt: 'Starts with sentence 1'
   },
 
   folder: {
@@ -70,47 +70,46 @@ V2S.copy = {
     failed: 'That folder cannot be used. Please choose another one.'
   },
 
+  // Two steps, one at a time: place the camera, then a test recording that plays back.
   check: {
-    title: 'Check your camera and microphone',
-    cameraTitle: 'Camera',
+    cameraStep: 'Step 1 of 2',
     // The study's camera position (from the earlier page's checklist).
-    cameraText: 'Place the camera below your chin and tilt it up, so your mouth, cheeks and throat are visible.',
-    micTitle: 'Microphone',
-    micText: 'Record a short test, then watch and listen to it.',
-    change: 'Change',
+    cameraTitle: 'Position the camera',
+    cameraText: 'Put it below your chin and tilt it up, so your mouth, cheeks and throat are visible.',
+    next: 'Next',
+    micStep: 'Step 2 of 2',
+    micTitle: 'Test the microphone',
+    micText: 'Record 5 seconds, then watch and listen.',
     starting: 'Starting camera…',
     live: 'Live',
     defaultDevice: 'Default device',
     bluetooth: 'These look like Bluetooth headphones. They record lower-quality sound. Please use the built-in microphone.',
     useDevice: name => `Use ${name}`,
+    micInUse: name => `Microphone: ${name}`,
     testRecord: 'Record a 5-second test',
-    testSay: 'Say: “Hello, this is my voice.”',
-    testRecording: seconds => `Recording… ${seconds}`,
+    testSayLabel: 'Say:',
+    testSay: '“Hello, this is my voice.”',
+    testRecording: seconds => `Recording · ${seconds} s left`,
     testPlaying: 'Playing your test',
     testQuestion: 'Can you see your mouth, cheeks and throat, and hear yourself clearly?',
     testYes: 'Yes, continue',
     testAgain: 'Record again',
-    testSilent: "We couldn't hear anything. Check the microphone, then record the test again.",
+    testReplay: 'Play it again',
+    testSilent: "We couldn’t hear anything. Check the microphone, then record the test again.",
     testFailed: 'The test could not be recorded. Please try again.',
     help: 'Camera or microphone not working?'
   },
 
-  // On computers (keyboard) the keys are taught as the controls; on touch screens, the
-  // buttons. k = true on a computer.
+  // How to record (the ? button): three steps in order, then how to fix a mistake.
+  // On computers (keyboard) the keys are named; on touch screens, the buttons. k = true
+  // on a computer.
   howto: {
     title: 'How to record',
-    step1: k => (k ? 'Press **Space** once — no need to hold it.' : 'Press **Start** once — no need to hold it.'),
-    step2: () => 'When the sentence turns **green**, read it out loud.',
-    step3: k => (k ? 'Press **Space** again when you finish.' : 'Press **Stop** when you finish.'),
-    redo: k => (k ? 'Read a word wrong? Press **Space** to stop, then **←** to record that sentence again.'
-      : 'Read a word wrong? Press **Stop**, then **Redo** to record that sentence again.'),
-    keys: 'You can also click the buttons on the screen.',
-    mockStart: 'Start',
-    mockStop: 'Stop',
-    mockRedo: 'Redo',
-    mockSentence: 'Read me out loud.',
-    practice: 'Practice now',
-    back: 'Back to recording',
+    steps: k => (k
+      ? ['Press **Space** once.', 'When the sentence turns **green**, read it out loud.', 'Press **Space** again when you finish.']
+      : ['Press **Start** once.', 'When the sentence turns **green**, read it out loud.', 'Press **Stop** when you finish.']),
+    fix: k => (k ? 'Read a word wrong? After you stop, press **←** (Redo) to record that sentence again.'
+      : 'Read a word wrong? After **Stop**, press **Redo** to record that sentence again.'),
     close: 'Close'
   },
 
@@ -118,18 +117,18 @@ V2S.copy = {
     statusReady: 'Not recording',
     statusStarting: 'Starting…',
     statusRecording: 'Recording',
-    statusSaving: 'Saving…',
-    statusSaved: 'Saved',
+    statusSaving: 'Finishing…',
+    statusSaved: 'Recorded',
     start: 'Start',
     stop: 'Stop',
     starting: 'Starting…',
-    saving: 'Saving…',
+    saving: 'Finishing…',
     redo: 'Redo',
     redoCaption: sentence => `“${sentence}”`,
     redoThis: 'Record this sentence again',
-    saved: 'Saved',
+    saved: 'Recorded',
     cancelRedo: 'Cancel redo',
-    toBreak: 'Take a break',
+    toBreak: n => `Finish part ${n}`,
     toPracticeDone: 'Continue',
     toAllDone: 'Finish',
     partEndPart: n => `That was the last sentence of part ${n}.`,
@@ -137,29 +136,30 @@ V2S.copy = {
     practiceOf: (n, total) => `Practice ${n} of ${total}`,
     partOf: (n, total) => `Part ${n} of ${total}`,
     sentenceOf: (n, total) => `Sentence ${n} of ${total}`,
-    restIn: n => (n === 1 ? 'Break after this one' : `${n} to go before the break`),
     whereShort: (part, n, total) => `Part ${part} · ${n} of ${total}`,
-    redoing: 'Press Start, then read this sentence again.'
+    redoing: k => `Press ${k ? 'Space' : 'Start'}, then read this sentence again.`
   },
 
-  // Practice coaching (first session only), above the sentence. One instruction at a
-  // time: `ack` says what just happened, `action` is the one thing to do now, `detail`
-  // (rarely) says why. k = true on a computer (keys named instead of buttons).
+  // Practice coaching (first session only), just above Start. One instruction at a time:
+  // `ack` says what just happened (small), `action` is the one thing to do now (large),
+  // `detail` (rarely) says why. k = true on a computer (keys named instead of buttons).
   coach: {
-    pressStart: k => `Press ${k ? 'Space' : 'Start'} once — no need to hold it.`,
-    readNow: k => `Read the green sentence out loud. Then press ${k ? 'Space' : 'Stop'}.`,
-    recordedFirst: 'Recorded. That is how every sentence works.',
+    pressStart: k => `Press ${k ? 'Space' : 'Start'} once.`,
+    noHold: 'No need to hold it.',
+    readNow: k => `Read the green sentence out loud, then press ${k ? 'Space' : 'Stop'}.`,
+    recordedFirst: 'Recorded. Every sentence works like this.',
     recorded: 'Recorded.',
     nextSentence: k => `Next sentence: press ${k ? 'Space' : 'Start'}.`,
-    tryRedo: k => `Now practise fixing a mistake: press ${k ? '← (Redo)' : 'Redo'}.`,
-    redoWhat: () => 'Redo records the last sentence again.',
-    backToLast: 'Redo: back to the last sentence.',
+    tryRedo: k => (k ? 'Now press ← (Redo).' : 'Now press Redo, under Start.'),
+    redoWhat: () => 'It records the last sentence again.',
+    backToLast: 'Back to the last sentence.',
     startAgain: k => `Press ${k ? 'Space' : 'Start'} and read it again.`,
-    redoDone: 'Recorded again. The new recording replaces the old one: that is how you fix a mistake.',
-    carryOn: k => `Now carry on with this sentence: press ${k ? 'Space' : 'Start'}.`,
+    redoDone: 'Recorded again. The old recording is replaced.',
+    carryOn: k => `Now go on: press ${k ? 'Space' : 'Start'}.`,
     more: (n, k) => `${n} more to practise: press ${k ? 'Space' : 'Start'}.`,
     lastOne: k => `Last practice sentence: press ${k ? 'Space' : 'Start'}.`,
-    practiceDone: 'Practice done.',
+    practiceDone: 'Recorded.',
+    lastPractice: 'That was the last practice sentence.',
     pressContinue: k => (k ? 'Press Space to continue.' : 'Press Continue.')
   },
 
@@ -168,53 +168,57 @@ V2S.copy = {
     speechBeforeStart: 'Not recording yet.',
     speechBeforeRedo: 'Not recording yet.',
     afterHold: 'Press once, then let go.',
-    no_speech: "We couldn't hear you. Sit a little closer.",
+    no_speech: "We couldn’t hear you. Sit a little closer.",
     too_loud: 'Too loud. Move back a little.',
     no_audio: 'The microphone sent no sound.',
-    startFailed: "The recording didn't start.",
+    startFailed: "The recording didn’t start.",
     stoppedEarly: 'Recording stopped unexpectedly.',
     hidden: 'Recording stopped because you left the page.',
     timeout: 'That recording was over 1 minute.',
-    storeFailed: 'That recording could not be saved.',
+    storeFailed: 'That recording could not be stored.',
     storageFull: 'This device is almost full.',
-    holdTip: 'Saved. Let go of the button right after pressing it.'
+    holdTip: 'Recorded. Let go right after pressing.'
   },
 
+  // Messages in the real recording (k = true on a computer: the keys are named). Two
+  // short lines at most: what happened, then what to press.
   feedback: {
-    speechBeforeStart: 'Not recording yet. Press Start first, then read.',
-    speechBeforeRedo: 'Not recording yet. Press Redo first.',
-    afterHold: 'Press Start once, then read.',
-    holdTip: 'Saved. Tip: let go of the button right after pressing it.',
-    no_speech: "We couldn't hear you. Sit a little closer, press Start and read it again.",
-    too_loud: 'Too loud. Move back a little, press Start and read it again.',
-    no_audio: 'The microphone sent no sound. Press Start and read it again.',
-    startFailed: "The recording didn't start. Please press Start again.",
-    stoppedEarly: 'Recording stopped unexpectedly. Press Start and read it again.',
-    hidden: 'Recording stopped because you left the page. Press Start and read it again.',
-    timeout: 'That recording was over 1 minute. Press Start and read it again.',
-    storeFailed: 'That recording could not be saved. Press Start and read it again.',
+    speechBeforeStart: k => `Not recording yet. Press ${k ? 'Space' : 'Start'} first, then read.`,
+    speechBeforeRedo: k => `Not recording yet. Press ${k ? '← (Redo)' : 'Redo'} first.`,
+    afterHold: k => `Press ${k ? 'Space' : 'Start'} once, then read.`,
+    holdTip: k => `Recorded. Tip: let go of the ${k ? 'key' : 'button'} right away.`,
+    no_speech: k => `We couldn’t hear you. Sit closer and press ${k ? 'Space' : 'Start'} again.`,
+    too_loud: k => `Too loud. Move back a little and press ${k ? 'Space' : 'Start'} again.`,
+    no_audio: k => `The microphone sent no sound. Press ${k ? 'Space' : 'Start'} again.`,
+    startFailed: k => `The recording didn’t start. Press ${k ? 'Space' : 'Start'} again.`,
+    stoppedEarly: k => `Recording stopped unexpectedly. Press ${k ? 'Space' : 'Start'} again.`,
+    hidden: k => `Recording stopped: you left the page. Press ${k ? 'Space' : 'Start'} again.`,
+    timeout: k => `That recording was over a minute. Press ${k ? 'Space' : 'Start'} again.`,
+    storeFailed: k => `That recording could not be stored. Press ${k ? 'Space' : 'Start'} again.`,
     storageFull: 'This device is almost full. Please save your recordings to go on.'
   },
 
   holdDialog: {
     title: 'Press once, then let go',
-    body: 'Press Start once and let go. It records until you press Stop.',
-    bodyDiscarded: 'That recording was not kept. Press Start once and let go — it records until you press Stop.',
+    body: k => (k ? 'Press Space once and let go. It records until you press Space again.'
+      : 'Press Start once and let go. It records until you press Stop.'),
+    bodyDiscarded: k => (k ? 'That recording was not kept. Press Space once and let go — it records until you press Space again.'
+      : 'That recording was not kept. Press Start once and let go — it records until you press Stop.'),
     ok: 'OK'
   },
 
   endDialog: {
     title: 'End for today?',
-    body: 'Your place is saved. You can carry on later.',
+    body: 'We’ll keep your place. You can carry on later.',
     keep: 'Keep going',
     end: 'End for today'
   },
 
   keepDialog: {
-    title: "This sentence didn't work twice",
+    title: "This sentence didn’t work twice",
     body: reason => `${reason} You can try again, or keep this recording and go on.`,
     reasons: {
-      no_speech: "We couldn't hear you.",
+      no_speech: "We couldn’t hear you.",
       too_loud: 'It was too loud.',
       no_audio: 'The microphone sent no sound.'
     },
@@ -222,51 +226,59 @@ V2S.copy = {
     keep: 'Keep it and go on'
   },
 
+  // Saving is learnt here by doing it once (ZIP mode): the same steps as after every part.
   practiceDone: {
     title: 'Practice done',
-    body: (parts, size) => `The real sentences work the same way. There are ${parts} parts of ${size} sentences, and you can rest between parts.`,
-    zipPrompt: 'After each part you save your recordings. Try it now with your practice recordings.',
-    savedFolder: name => `Every recording is saved by itself in “${name}”. Nothing to do.`,
-    next: 'Start part 1'
+    body: 'Now the real sentences. They work the same way.',
+    saveFirst: 'Now save your practice recordings. You will do the same after each part.',
+    saved: 'Your practice recordings are saved.',
+    savedFolder: name => `Every recording is saved by itself in “${name}”.`,
+    parts: (parts, size) => `${parts} parts of ${size} sentences, with a rest after each part.`,
+    next: 'Continue to part 1'
   },
 
   breakScreen: {
     title: n => `Part ${n} done`,
-    lead: 'Well done. Take a rest.',
-    savingFolder: 'Saving to the folder…',
+    lead: 'Take a rest. Carry on when you are ready.',
+    leadSave: 'Save your recordings, then take a rest.',
+    partsDone: (n, total) => `${n} of ${total} parts done`,
+    savingFolder: 'Saving…',
     stillSaving: n => `Still saving ${n} recording${n === 1 ? '' : 's'} to the folder. You can go on; saving continues.`,
     folderProblem: n => `${n} recording${n === 1 ? ' is' : 's are'} not in the folder yet.`,
     allowFolder: 'Allow saving to the folder',
     zipPrompt: 'Save your recordings before you go on.',
     saveButton: 'Save recordings',
     saving: (i, n) => `Preparing file… ${i} of ${n}`,
-    savedZip: 'Saved. You can go on.',
+    savedZip: 'Your recordings are saved.',
+    savedFolder: name => `Your recordings are saved in “${name}”.`,
     moreToSave: (saved, left) => `${saved} saved. Save the other ${left} too.`,
     notConfirmed: 'Not saved yet. Your recordings are still on this device.',
     savePromptTitle: 'Save your recordings',
+    storageSaved: 'Your recordings are saved. You can go on.',
     continueTo: n => `Continue to part ${n}`,
     continue: 'Continue',
-    finish: 'Finish for today',
-    later: 'Save later and continue',
+    finish: 'End for today',
+    later: 'Continue without saving',
     makeRoom: hint => `This device is full. Check that the last saved file is there: ${hint} Then make room by removing its copy from this device.`,
     makeRoomYes: 'It is saved — make room',
     saveAgain: 'Save it again'
   },
 
+  // `name` is the start of the file name ("SEMG1_part01"); the time after it is left out.
   saveConfirm: {
     title: 'Did the file save?',
-    ios: file => `In Safari, tap the ⬇ (downloads) button next to the web address. You should see “${file}”.`,
-    android: file => `Check the download notification for “${file}”.`,
-    desktop: file => `Check the browser’s downloads for “${file}”.`,
-    yes: 'Yes, it saved',
-    no: 'No, try again',
+    ios: name => `If Safari asks, tap Download. Then tap ⬇ next to the web address and look for “${name}”.`,
+    android: name => `Open the download notification and look for “${name}”.`,
+    desktop: name => `Open the browser’s downloads and look for “${name}”.`,
+    yes: 'Yes, I see it',
+    no: 'Save it again',
     unsure: 'Not sure'
   },
 
   done: {
     finishTitle: 'Great work today',
-    finishBody: 'Your place is saved. You can close this page.',
-    allTitle: 'All sentences are done',
+    finishBody: 'We’ll keep your place. You can close this page.',
+    allTitle: 'All sentences done',
     allBody: 'Thank you so much!',
     pending: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet.`,
     saveFirst: 'Please save your recordings before you close this page.',
@@ -278,7 +290,7 @@ V2S.copy = {
 
   error: {
     deviceTitle: 'Camera or microphone disconnected',
-    deviceBody: 'Check that they are connected, then press Reconnect. Your progress is saved.',
+    deviceBody: 'Check that they are connected, then press Reconnect. We’ll keep your place.',
     reconnect: 'Reconnect',
     startTitle: 'Recording cannot start',
     startBody: 'This often happens with Bluetooth headphones. Choose the built-in microphone, then try again.',
@@ -289,10 +301,10 @@ V2S.copy = {
     unsupportedTitle: 'This browser cannot record',
     unsupportedBody: 'Please open this page in Safari, Chrome or Edge.',
     loadTitle: 'Something went wrong',
-    loadBody: 'Please reload this page. Your progress is saved.',
+    loadBody: 'Please reload this page. We’ll keep your place.',
     reload: 'Reload',
     storeTitle: 'Recordings cannot be saved on this device',
-    storeBody: 'The device may be full. Free up some space, then try again. Your progress is saved.'
+    storeBody: 'The device may be full. Free up some space, then try again. We’ll keep your place.'
   },
 
   // A second copy of the page (another tab or window) on the same device.
@@ -315,7 +327,14 @@ V2S.copy = {
 
   settings: {
     title: 'Settings',
+    done: 'Done',
+    back: 'Settings',
     research: 'Research team',
+    allSaved: 'All saved',
+    moveTitle: 'Go to a sentence',
+    practiceTitle: 'Practice',
+    holdTitle: 'Holding the button',
+    notSaved: n => `${n} not saved`,
     devices: 'Camera and microphone',
     camera: 'Camera',
     microphone: 'Microphone',
@@ -323,7 +342,7 @@ V2S.copy = {
     testAgain: 'Record a new test',
     actual: 'In use',
     display: 'Display',
-    theme: 'Theme',
+    theme: 'Appearance',
     light: 'Light',
     dark: 'Dark',
     quality: 'Recording quality',
@@ -336,7 +355,7 @@ V2S.copy = {
     audioBrowser: 'Fallback - Browser Default',
     mirror: 'Mirror video display',
     applyQuality: 'Apply and restart camera',
-    participant: 'Sentences and progress',
+    participant: 'Sentences & progress',
     participantId: 'Participant',
     set: 'Sentence set',
     previous: '← Previous sentence',
@@ -354,14 +373,14 @@ V2S.copy = {
     switchInvalid: 'That ID is not valid.',
     useSet: 'Use this set',
     setConfirm: 'Switch the sentence set? Progress is kept separately for each set.',
-    jumpLabel: total => `Go to sentence (1–${total})`,
+    jumpLabel: () => 'Go to sentence',
     jump: 'Go',
     jumpInvalid: total => `Enter a number from 1 to ${total}.`,
     practiceAgain: 'Practise again',
     practiceConfirm: 'Go back to practice sentence 1 and show the coaching again? Afterwards recording continues from this sentence. Recordings are not deleted.',
     reset: 'Reset progress…',
-    resetConfirm: 'Go back to the very first sentence (practice 1) and show How to record again? Recordings are not deleted. A sentence recorded again replaces its earlier recording, which moves to not_used.',
-    resetConfirmNewRound: round => `Start again from the very first sentence (practice 1) and show How to record again? Recordings are not deleted. New recordings are round ${round} ("repeat${round}" in file names).`,
+    resetConfirm: 'Go back to the very first sentence (practice 1) and coach the practice again? Recordings are not deleted. A sentence recorded again replaces its earlier recording, which moves to not_used.',
+    resetConfirmNewRound: round => `Start again from the very first sentence (practice 1) and coach the practice again? Recordings are not deleted. New recordings are round ${round} ("repeat${round}" in file names).`,
     roundNote: round => `Round ${round} ("repeat${round}" in file names). Within a round, a sentence recorded again replaces its earlier recording (moved to not_used). After the last sentence, anything recorded starts the next round.`,
     saving: 'Saving',
     mode: 'Saved to',
@@ -374,13 +393,15 @@ V2S.copy = {
     cached: 'Not saved yet',
     cachedValue: n => `${n} recording${n === 1 ? '' : 's'}`,
     backups: 'Backup copies',
-    backupsValue: n => `${n} recording${n === 1 ? '' : 's'} already saved in ZIP files`,
-    backupNote: 'After a ZIP file is saved, its recordings stay on this device as backup copies (at most 100, removed first when space is needed).',
+    backupsValue: n => String(n),
+    backupNote: 'After a ZIP file is saved, its recordings stay on this device as backup copies until space is needed.',
     saveBackups: 'Save backup copies again',
     deleteBackups: 'Delete backup copies…',
     deleteBackupsConfirm: n => `Delete ${n} backup copies from this device? They were saved in ZIP files.`,
     storage: 'Storage used',
-    deleteCached: 'Clear storage (delete recordings on this device)…',
+    deleteCached: 'Clear storage…',
+    deleteCachedNote: 'Clear storage deletes the recordings kept on this device. Recordings that are not saved yet cannot be deleted: save them first.',
+    deleteUnsaved: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet. Save them first (Save all recordings now), then clear storage.`,
     nothingStored: 'There are no recordings on this device.',
     nothingToSave: 'All recordings are already saved.',
     deleteConfirm: (n, unsaved) => (unsaved

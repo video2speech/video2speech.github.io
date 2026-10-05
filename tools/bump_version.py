@@ -4,8 +4,8 @@
     python3 tools/bump_version.py 201
 
 Updates js/config.js, the recorder page (app_next.html while it is being tested,
-app.html after the switch), every ?v= cache-buster in that page, in css/base.css and
-for base.css in the sign-in page, and the matching key in version.json. The legacy
+app.html after the switch), every ?v= cache-buster in that page, any in css/base.css,
+the one for base.css in the sign-in page, and the matching key in version.json. The legacy
 recorder page is never touched.
 """
 import json
@@ -53,7 +53,8 @@ def main():
     replace('js/config.js', r"MATERIAL_VERSION: 'materials_v\d+'", f"MATERIAL_VERSION: 'materials_v{version}'")
     replace(page, r'\?v=\d+', f'?v={version}', expect_at_least=10)
     replace(page, r"var APP_VERSION = '\d+'", f"var APP_VERSION = '{version}'")
-    replace('css/base.css', r'\?v=\d+', f'?v={version}')
+    # base.css has no cache-busters of its own since it uses the system font (v209).
+    replace('css/base.css', r'\?v=\d+', f'?v={version}', expect_at_least=0)
     # The sign-in page shares base.css with the recorder.
     replace('index.html', r'css/base\.css\?v=\d+', f'css/base.css?v={version}')
     if page == 'app.html':

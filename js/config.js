@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '208',
-  MATERIAL_VERSION: 'materials_v208',
+  APP_VERSION: '209',
+  MATERIAL_VERSION: 'materials_v209',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -29,14 +29,17 @@ V2S.config = Object.freeze({
   // Interaction (two presses: Start, then Stop).
   HOLD_MS: 1000,               // a press held this long aborts the take
   DEBOUNCE_MS: 300,            // presses closer than this are ignored (switch bounce)
-  START_CUE_LEAD_MS: 150,      // start sound plays first so it is not recorded
-  START_GUARD_MS: 200,         // the recorder must run this long without an error before the sentence turns green
+  START_CUE_MAX_MS: 160,       // the start cue plays only if it is over this soon after the press (else no cue)
+  START_SETTLE_MS: 80,         // green once the recorder has run this long without an error (instant failures are retried)
+  START_TIMEOUT_MS: 600,       // the sentence turns green when the recorder reports it started; this is the fallback
   START_ATTEMPTS: 3,           // silent recorder restarts before the participant is told
   TAIL_MS: 700,                // keep recording this long after Stop (fixed; legacy page: 300 ms)
   MAX_TAKE_MS: 60000,          // a take this long is aborted and the sentence restarts
-  SAVED_LABEL_MS: 1400,        // "Saved" shows on the next sentence without making anyone wait
+  SAVED_LABEL_MS: 2500,        // "✓ Recorded" shows above Start on the next sentence for this long
   IDLE_SPEECH_HINT_MS: 500,    // speaking this long before Start shows a hint
   IDLE_SPEECH_HINT_COOLDOWN_MS: 6000,
+  IDLE_SPEECH_GRACE_MS: 1500,  // after a take, speech in the first 1.5 s is not "reading before Start"
+  ENTER_GUARD_MS: 400,         // presses this soon after the recording screen appears are ignored (a double press)
   // The camera and microphone test (automated browser tests shorten it via window.__V2S_TEST).
   TEST_RECORD_MS: (window.__V2S_TEST && window.__V2S_TEST.testRecordMs) || 5000,
 
@@ -48,7 +51,7 @@ V2S.config = Object.freeze({
   SENTENCE_SIZE: Object.freeze({
     wide: Object.freeze({ min: 40, max: 56, lines: 2 }),   // computers, tablets sideways
     tall: Object.freeze({ min: 36, max: 52, lines: 2 }),   // tablets upright
-    phone: Object.freeze({ min: 28, max: 36, lines: 2 }),  // phones upright
+    phone: Object.freeze({ min: 28, max: 32, lines: 2 }),  // phones upright (longer lines: phrases, not halves)
     flat: Object.freeze({ min: 26, max: 34, lines: 2 })    // phones sideways
   }),
   SENTENCE_ONE_LINE_SHARE: 0.9,

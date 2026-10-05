@@ -29,9 +29,18 @@ V2S.input = (() => {
     holdMs = Number(ms) >= 1000 ? Number(ms) : cfg.HOLD_MS;
   }
 
-  function setEnabled(value) {
+  // `guard`: the press that opened the recording screen (Continue, Continue to part 2…)
+  // may be followed by a second one, so presses in the first ENTER_GUARD_MS are ignored.
+  function setEnabled(value, { guard = false } = {}) {
     enabled = Boolean(value);
     if (!enabled) cancelPress();
+    else if (guard) lastPressAt = Math.max(lastPressAt, performance.now() + cfg.ENTER_GUARD_MS - cfg.DEBOUNCE_MS);
+  }
+
+  // Ignore presses for the next ENTER_GUARD_MS (after a dialog closes: a double tap on OK
+  // must not start a recording).
+  function guard() {
+    lastPressAt = Math.max(lastPressAt, performance.now() + cfg.ENTER_GUARD_MS - cfg.DEBOUNCE_MS);
   }
 
   function keyKind(event) {
@@ -153,5 +162,5 @@ V2S.input = (() => {
   window.addEventListener('blur', cancelPress);
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancelPress(); });
 
-  return { configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed };
+  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed };
 })();

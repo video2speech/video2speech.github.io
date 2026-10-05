@@ -43,10 +43,18 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     # Anything wider than the screen (or the settings panel) is printed as a problem.
     overflow_js = """() => {
       const limit = window.innerWidth + 1;
+      // Text cut off with an ellipsis inside a box that fits is not an overflow.
+      const clippedInside = n => {
+        for (let p = n.parentElement; p && p !== document.body; p = p.parentElement) {
+          const o = getComputedStyle(p).overflowX;
+          if ((o === 'hidden' || o === 'clip') && p.getBoundingClientRect().right <= limit) return true;
+        }
+        return false;
+      };
       const wide = [...document.querySelectorAll('body *')].filter(n => {
         if (!n.getClientRects().length || n.closest('svg')) return false;  // SVG shapes are clipped by their frame
         const r = n.getBoundingClientRect();
-        return r.width > 0 && r.right > limit && getComputedStyle(n).visibility !== 'hidden';
+        return r.width > 0 && r.right > limit && getComputedStyle(n).visibility !== 'hidden' && !clippedInside(n);
       });
       const sheet = document.querySelector('#settingsPanel:not([hidden]) .sheet');
       // Buttons whose content does not fit inside them (a label spilling over the edge).
@@ -109,20 +117,27 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await shot('03-welcome')
     await page.click('#welcomeStart')
     await page.wait_for_selector('#screen-check:not([hidden])')
-    await t.wait_for(page, "() => V2S.media.getStream() && document.getElementById('checkBadge').textContent.includes('Live')")
+    await t.wait_for(page, "() => V2S.media.getStream() && document.getElementById('checkBadge').textContent === ''")
     await shot('04-check')
+    await page.click('#checkNext')
+    await page.wait_for_selector('#checkStepMic:not([hidden])')
+    await shot('04b-check-mic')
     await page.click('#testRecord')
     await page.wait_for_timeout(600)
     await shot('05-check-recording')
     await t.wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=15000)
     await shot('06-check-ask')
     await page.click('#testYes')
-    await page.wait_for_selector('#screen-howto:not([hidden])')
-    await shot('07-howto')
-    await page.click('#howtoGo')
     await t.wait_for(page, "() => V2S.session.getState() === 'ready'")
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('08-practice-ready')
+    await page.click('#helpButton')
+    await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await shot('07-help')
+    await page.wait_for_timeout(400)
+    await page.locator('#dialogActions button').first.click()
+    await t.wait_for(page, "() => V2S.session.getState() === 'ready'")
+    await page.wait_for_timeout(500)  # presses right after a dialog closes are ignored (double tap)
     await page.evaluate("window.__v2sAudio.set('speech')")
     await take(stop=False)
     await shot('09-practice-recording')
@@ -148,10 +163,10 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         await page.click('#breakPrimary')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
-    await page.get_by_role('button', name='Yes, it saved').click()
+    await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(500)
     await shot('12b-practice-saved')
-    await page.click('#breakPrimary')  # Start part 1
+    await page.click('#breakPrimary')  # Continue to part 1
     await t.wait_ready(page)
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('13-ready')
@@ -176,6 +191,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.wait_for_timeout(500)
     await page.locator('#dialogActions button').first.click()
     await t.wait_ready(page)
+    await page.wait_for_timeout(200)
     await page.evaluate("window.__v2sAudio.set('fan')")
     await take()
     await shot('17-no-speech')
@@ -190,12 +206,20 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.click('#settingsButton')
     await page.wait_for_selector('#settingsPanel:not([hidden])')
     await shot('19-settings')
+    await page.get_by_role('button', name='Saving').click()
+    await page.wait_for_timeout(300)
+    await shot('19b-settings-saving')
+    await page.click('#settingsBack')
+    await page.get_by_role('button', name='Sentences & progress').click()
+    await page.wait_for_timeout(300)
+    await shot('19c-settings-progress')
     await page.click('#settingsClose')
     await page.click('#finishButton')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await shot('20-end-dialog')
-    await page.keyboard.press('Enter')  # Keep going
-    await page.wait_for_timeout(400)
+    await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
+    await page.get_by_role('button', name='Keep going').click()
+    await page.wait_for_timeout(600)
     await t.set_index(page, 5 + 49)
     await take()
     await page.evaluate("window.__v2sAudio.set('silence')")
@@ -209,13 +233,18 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         await page.click('#breakPrimary')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await shot('23-save-confirm')
-    await page.get_by_role('button', name='Yes, it saved').click()
+    await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
+    await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(500)
     await shot('24-saved')
     await page.click('#breakSecondary')
     await page.wait_for_selector('#screen-done:not([hidden])')
     await page.wait_for_timeout(600)
     await shot('25-done')
+    await page.click('#doneAgain')  # Record more → Welcome back
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    await page.wait_for_timeout(300)
+    await shot('26-welcome-back')
     print(name, theme, 'errors:', errors)
     await browser.close()
 

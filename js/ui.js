@@ -12,7 +12,7 @@ V2S.ui = (() => {
     check: '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'
   };
 
-  const SCREENS = ['loading', 'setup', 'welcome', 'folder', 'check', 'howto', 'record', 'break', 'done', 'error'];
+  const SCREENS = ['loading', 'setup', 'welcome', 'folder', 'check', 'record', 'break', 'done', 'error'];
   let currentScreen = 'loading';
 
   function show(name) {
@@ -24,7 +24,7 @@ V2S.ui = (() => {
       setWhere(null);
       setFinishVisible(false);
     }
-    el('helpButton').hidden = !['record', 'check'].includes(name);
+    el('helpButton').hidden = name !== 'record';
     window.scrollTo(0, 0);
     if (name === 'record') requestAnimationFrame(() => fitSentences());
   }
@@ -48,6 +48,10 @@ V2S.ui = (() => {
     const group = document.createElement('span');
     group.className = 'sent-group';
     const parts = String(text || '').replace(/([.!?]["”’)]?)\s+(?=[A-Z“"‘(])/g, '$1\u0000').split('\u0000').filter(Boolean);
+    if (parts.length === 1) {
+      node.textContent = parts[0];
+      return;
+    }
     parts.forEach((part, index) => {
       if (index) group.appendChild(document.createTextNode(' '));
       const span = document.createElement('span');
@@ -88,7 +92,6 @@ V2S.ui = (() => {
     if (!where) return;
     setText('whereMain', where.main);
     setText('whereShort', where.short || where.main);
-    setText('whereSub', where.sub || '');
     el('whereBar').style.transform = `scaleX(${Math.max(0, Math.min(1, where.progress || 0)).toFixed(4)})`;
   }
 
@@ -96,10 +99,7 @@ V2S.ui = (() => {
     el('finishButton').hidden = !visible;
   }
 
-  function labelTopbar(theme) {
-    const label = theme === 'dark' ? copy.top.toLight : copy.top.toDark;
-    el('themeButton').setAttribute('aria-label', label);
-    el('themeButton').title = label;
+  function labelTopbar() {
     el('finishButton').setAttribute('aria-label', copy.top.finish);
     el('settingsButton').setAttribute('aria-label', copy.top.settings);
     el('settingsButton').title = copy.top.settings;
@@ -137,12 +137,13 @@ V2S.ui = (() => {
       line.className = 'sentence-line';
       sentence.replaceChildren(line);
     }
-    line.textContent = view.sentence;
+    line.textContent = phrased(view.sentence);
 
     const main = el('mainButton');
     el('mainIcon').innerHTML = iconMarkup(view.main.icon);
     setText('mainLabel', view.main.label);
     main.classList.toggle('is-stop', view.main.icon === 'stop');
+    main.classList.toggle('is-next', view.main.icon === 'next');
     main.classList.toggle('is-quiet', Boolean(view.main.quiet));
     main.setAttribute('aria-disabled', view.main.disabled ? 'true' : 'false');
 
@@ -159,14 +160,14 @@ V2S.ui = (() => {
     setText('redoLabel', redoView.label || copy.record.redo);
     setText('redoCaption', redoVisible ? redoView.caption || '' : '');
     el('redoCaption').hidden = !(redoVisible && redoView.caption);
-    // "Saved" belongs to the sentence just recorded: it is shown here, next to it.
-    el('redoSaved').hidden = !(redoVisible && redoView.saved);
+    // The Redo lesson: Redo is the one thing to press, as large as Start.
+    redo.classList.toggle('is-lesson', view.pulse === 'redo' && redoVisible);
 
     const message = el('message');
     const hasMessage = Boolean(view.message && view.message.text);
     message.className = `message${hasMessage ? ` tone-${view.message.tone}` : ' is-empty'}`;
     setSentences('messageText', hasMessage ? view.message.text : '');
-    el('messageIcon').innerHTML = hasMessage ? (ICONS[view.message.tone] || '') : '';
+    el('messageIcon').innerHTML = hasMessage ? ({ ok: ICONS.check, warn: ICONS.warn, info: ICONS.info }[view.message.tone] || '') : '';
 
     setTimer(view.state === 'recording' ? view.liveSince : null);
     renderCoach(view.coach);
@@ -174,7 +175,7 @@ V2S.ui = (() => {
     redo.classList.toggle('is-pulsing', view.pulse === 'redo' && redoVisible);
   }
 
-  // The coach box keeps one size (CSS), so the card below never moves while practising.
+  // The guide keeps one height (CSS), so nothing moves while practising.
   function renderCoach(coach) {
     const box = el('coach');
     const visible = Boolean(coach);
@@ -183,17 +184,22 @@ V2S.ui = (() => {
     if (visible) {
       const ack = coach.ack;
       el('coachAck').className = `coach-ack${ack ? ` tone-${ack.tone}` : ' is-empty'}`;
-      el('coachAckIcon').innerHTML = ack ? ({ ok: ICONS.check, warn: ICONS.warn }[ack.tone] || ICONS.info) : '';
+      el('coachAckIcon').innerHTML = ack ? ({ ok: ICONS.check, warn: ICONS.warn, info: ICONS.info }[ack.tone] || '') : '';
       setText('coachAckText', ack ? ack.text : '');
       setSentences('coachAction', coach.action || '');
       setText('coachDetail', coach.detail || '');
     }
-    // The card changes size when the coach appears or goes: fit the sentence again.
+    // Fit the sentence again when the coach appears or goes (practice ↔ real sentences).
     if (visible !== lastCoachVisible) {
       lastCoachVisible = visible;
       requestAnimationFrame(() => fitSentences());
     }
   }
+
+  // Lines break between phrases: a short word that leads into the next one (the, a, to,
+  // my…) is kept with it, so a sentence never splits as "Please put the / water".
+  const LEADING_WORDS = /\b(a|an|the|to|of|in|on|at|for|with|my|your|our|his|her|their|its|this|that|some|no)\s+/gi;
+  const phrased = text => String(text || '').replace(LEADING_WORDS, (match, word) => `${word}\u00a0`);
 
   // ---- sentence size ----
   // One size per screen and sentence set (see config.SENTENCE_SIZE), so the size never
@@ -218,8 +224,8 @@ V2S.ui = (() => {
     const style = getComputedStyle(box);
     const width = Math.floor(box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
     if (width < 120) return;
-    // The highlight while recording pads each line by 0.1em on both sides.
-    const pad = 0.2;
+    // The highlight while recording pads each line by 0.22em on both sides.
+    const pad = 0.44;
     const kind = deviceClass();
     const rule = cfg.SENTENCE_SIZE[kind];
     const probe = el('sentenceText').cloneNode(false);
@@ -228,7 +234,7 @@ V2S.ui = (() => {
     document.body.appendChild(probe);
     // Each sentence on one line at 100 px.
     const widths = fitList.map(text => {
-      probe.textContent = text;
+      probe.textContent = phrased(text);
       return probe.getBoundingClientRect().width;
     });
     const totalChars = fitList.reduce((sum, text) => sum + text.length, 0) || 1;
@@ -249,7 +255,7 @@ V2S.ui = (() => {
       probe.style.fontSize = `${px}px`;
       probe.style.width = probe.style.maxWidth = `${width - pad * px}px`;
       return Math.max(...longest.map(text => {
-        probe.textContent = text;
+        probe.textContent = phrased(text);
         return Math.round(probe.getBoundingClientRect().height / (px * 1.2));
       }));
     };
@@ -294,7 +300,7 @@ V2S.ui = (() => {
     const tick = () => {
       const ms = performance.now() - since;
       const seconds = Math.max(0, Math.floor(ms / 1000));
-      node.textContent = ms < cfg.TIMER_SHOW_AFTER_MS ? '' : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+      node.textContent = ms < cfg.TIMER_SHOW_AFTER_MS ? '' : `· ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
     };
     tick();
     timerId = setInterval(tick, 250);
@@ -314,10 +320,10 @@ V2S.ui = (() => {
   // ---- dialog ----
   let dialogState = null;
 
-  // actions: [{ label, value, variant: 'go' | 'plain' | 'ghost' | 'caution', default }]
+  // actions: [{ label, value, variant: 'go' | 'plain' | 'ghost' | 'caution' | 'text', default }]
   // input: { label, placeholder, value } adds a text field; the result is then
   // { action, value }.
-  function dialog({ title, body, actions, dismissValue, input }) {
+  function dialog({ title, body, actions, dismissValue, input, focus = true }) {
     if (dialogState) finishDialog(dialogState.dismissValue);
     return new Promise(resolve => {
       const overlay = el('dialog');
@@ -357,7 +363,7 @@ V2S.ui = (() => {
       actions.forEach(action => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `btn btn-lg btn-block btn-${action.variant || 'ghost'}`;
+        button.className = action.variant === 'text' ? 'btn-text dialog-link' : `btn btn-lg btn-block btn-${action.variant || 'ghost'}`;
         button.textContent = action.label;
         button.addEventListener('click', () => {
           // Ignore presses that started before the dialog appeared.
@@ -370,7 +376,15 @@ V2S.ui = (() => {
       dialogState = state;
       overlay.hidden = false;
       setTimeout(() => { state.armed = true; }, 350);
-      requestAnimationFrame(() => (field || defaultButton) && (field || defaultButton).focus());
+      // Keyboard users get the default answer focused; on touch screens no button is
+      // singled out by a focus ring.
+      const keys = document.documentElement.classList.contains('has-keyboard');
+      // Without a pre-chosen answer the dialog itself takes the focus, so no key reaches
+      // the screen behind it.
+      requestAnimationFrame(() => {
+        const target = field || (keys && focus ? defaultButton : overlay.querySelector('.dialog'));
+        if (target) target.focus();
+      });
     });
   }
 
@@ -380,6 +394,8 @@ V2S.ui = (() => {
     dialogState = null;
     el('dialog').hidden = true;
     if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+    // A double tap on the answer must not reach the screen behind (e.g. start a recording).
+    if (V2S.input && V2S.input.guard) V2S.input.guard();
     state.resolve(state.field ? { action: value, value: state.field.value } : value);
   }
 
@@ -430,6 +446,41 @@ V2S.ui = (() => {
     return copy.help.desktop;
   }
 
+  // How to record (the ? button): the steps in order, then the fix for a mistake.
+  function showHowto(keys) {
+    const list = document.createElement('ol');
+    list.className = 'steps';
+    copy.howto.steps(keys).forEach(text => {
+      const item = document.createElement('li');
+      item.appendChild(richText(text));
+      list.appendChild(item);
+    });
+    const fix = document.createElement('p');
+    fix.className = 'steps-fix';
+    fix.appendChild(richText(copy.howto.fix(keys)));
+    return dialog({
+      title: copy.howto.title,
+      body: [list, fix],
+      actions: [{ label: copy.howto.close, value: true, variant: 'go', default: true }],
+      dismissValue: true
+    });
+  }
+
+  function richText(text) {
+    const span = document.createElement('span');
+    String(text || '').split('**').forEach((part, index) => {
+      if (!part) return;
+      if (index % 2) {
+        const bold = document.createElement('b');
+        bold.textContent = part;
+        span.appendChild(bold);
+      } else {
+        span.appendChild(document.createTextNode(part));
+      }
+    });
+    return span;
+  }
+
   function showCameraHelp() {
     return dialog({
       title: copy.help.title,
@@ -457,6 +508,7 @@ V2S.ui = (() => {
     isDialogOpen,
     isOverlayOpen,
     helpText,
+    showHowto,
     showCameraHelp,
     ICONS
   };

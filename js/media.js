@@ -265,8 +265,8 @@ V2S.media = (() => {
   }
 
   // Starts one recording. Returns
-  //   ready   — resolves { ok: true } once the encoder has run START_GUARD_MS without an
-  //             error, or { ok: false, error } if it failed to start;
+  //   ready   — resolves { ok: true } once the recorder reports that it started and has
+  //             run START_SETTLE_MS without an error, or { ok: false, error } if it failed;
   //   stop()  — resolves with { blob, mimeType, ext, recorderConfig, … };
   //   onError — set by the caller for errors after the start.
   // `skip` tries the next recording format (used after repeated start failures).
@@ -342,12 +342,29 @@ V2S.media = (() => {
       return handle;
     }
     handle.startedAt = performance.now();
-    setTimeout(() => {
-      if (handle.error) return;
+    const markStarted = () => {
+      if (handle.error || started) return;
       started = true;
       settleReady({ ok: true });
-    }, cfg.START_GUARD_MS);
+    };
+    // Ready once the recorder reports that it started and has run START_SETTLE_MS without
+    // an error (an encoder that cannot start fails at once): such a failure is retried
+    // before the sentence turns green.
+    recorder.onstart = () => {
+      const wait = cfg.START_SETTLE_MS - (performance.now() - handle.startedAt);
+      if (wait > 0) setTimeout(markStarted, wait);
+      else markStarted();
+    };
+    // Every current browser fires "start"; if one does not, go on once no error came.
+    setTimeout(markStarted, cfg.START_TIMEOUT_MS);
     return handle;
+  }
+
+  // The microphone's own input delay (ms), where the browser reports it; else 10 ms.
+  function inputLatencyMs() {
+    const track = stream && stream.getAudioTracks()[0];
+    const latency = track && track.getSettings ? Number(track.getSettings().latency) : NaN;
+    return Number.isFinite(latency) && latency > 0 ? Math.round(latency * 1000) : 10;
   }
 
   // ---- health ----
@@ -472,6 +489,7 @@ V2S.media = (() => {
     onFailure,
     registerPreview,
     snapshot,
+    inputLatencyMs,
     requestedConstraints,
     startRecorder,
     startHealth,

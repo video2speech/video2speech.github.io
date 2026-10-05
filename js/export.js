@@ -381,7 +381,7 @@ V2S.exporter = (() => {
     const onlyEarlierPage = owners.size === 1 && owners.has(null);
     if (onlyEarlierPage) return `${LEGACY_FOLDER}-${stamp}.zip`;
     const owner = participantId ? `${safeName(participantId)}_` : '';
-    return `${owner}video-recordings-${stamp}${label ? `_${label}` : ''}.zip`;
+    return `${owner}${label ? `${label}_` : ''}${stamp}.zip`;
   }
 
   // Call as the FIRST thing in a click handler. Returns a file handle where the browser
