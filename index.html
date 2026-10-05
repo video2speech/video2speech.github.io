@@ -1,265 +1,96 @@
 <!doctype html>
-<html>
+<html lang="en" data-theme="light">
+<head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Video Recording Tool - Login</title>
+<meta name="theme-color" content="#F2F1EC">
+<title>Speech Recording · Sign in</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23D9F0E1'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%231E9E52'/%3E%3C/svg%3E">
+<script>
+  // Same light/dark choice as the recorder (no flash).
+  try {
+    var savedTheme = localStorage.getItem('v2s_theme');
+    if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.setAttribute('data-theme', savedTheme);
+  } catch (error) { /* storage unavailable */ }
+</script>
+<link rel="stylesheet" href="css/base.css?v=204">
 <style>
-  :root {
-    --bg-main: #0a0d13;
-    --panel-bg: rgba(15, 19, 28, 0.88);
-    --panel-border: rgba(255, 255, 255, 0.12);
-    --input-bg: #101624;
-    --input-border: rgba(255, 255, 255, 0.18);
-    --text-main: #f5f7fb;
-    --text-secondary: #b5bfd4;
-    --text-tertiary: #8894ac;
-    --accent: #2f9bff;
-    --accent-strong: #1586f2;
-    --accent-ring: rgba(47, 155, 255, 0.34);
-    --error: #ff7c7c;
-    --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.52);
-  }
-
-  * { box-sizing: border-box; }
-
-  html,
   body {
-    width: 100%;
-    height: 100%;
-    min-height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  html {
-    background: var(--bg-main);
-  }
-
-  body {
-    font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--text-main);
-    color-scheme: dark;
-    background:
-      radial-gradient(980px 420px at 12% -10%, rgba(47, 155, 255, 0.22), transparent 62%),
-      radial-gradient(1100px 520px at 90% 116%, rgba(62, 207, 142, 0.12), transparent 66%),
-      radial-gradient(760px 420px at 50% 112%, rgba(124, 211, 255, 0.08), transparent 70%),
-      var(--bg-main);
     display: grid;
     place-items: center;
-    padding: 20px;
-    line-height: 1.45;
+    padding: calc(64px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
   }
-
-  .shell {
-    width: min(560px, 100%);
-    border-radius: 24px;
-    border: 1px solid var(--panel-border);
-    background: var(--panel-bg);
-    backdrop-filter: blur(14px);
-    box-shadow: var(--shadow-lg);
-    padding: 28px 26px;
-    animation: rise 420ms ease-out both;
+  .corner { position: fixed; top: calc(12px + env(safe-area-inset-top)); right: 12px; }
+  .signin {
+    width: min(480px, 100%);
+    padding: clamp(24px, 5vw, 40px);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    box-shadow: var(--shadow-card);
+    animation: rise .35s var(--ease) both;
   }
-
-  .eyebrow {
-    margin: 0;
-    font-size: 0.88rem;
-    color: #9ec9ff;
-    letter-spacing: 0.03em;
-    font-weight: 620;
-  }
-
-  h1 {
-    margin: 10px 0 0;
-    font-size: clamp(1.68rem, 3.2vw, 2rem);
-    letter-spacing: -0.02em;
-    font-weight: 650;
-  }
-
-  .helper {
-    margin: 10px 0 0;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-  }
-
-  .divider {
-    margin: 18px 0 16px;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.12);
-  }
-
-  .form {
-    margin-top: 0;
-    display: grid;
-    gap: 14px;
-  }
-
-  .field {
-    display: grid;
-    gap: 8px;
-  }
-
-  label {
-    font-size: 0.9rem;
-    color: #d6dbe8;
-    font-weight: 560;
-  }
-
-  input {
-    width: 100%;
-    background: var(--input-bg);
-    color: var(--text-main);
-    border: 1px solid var(--input-border);
-    border-radius: 13px;
-    padding: 12px 13px;
-    font-size: 0.98rem;
-    transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
-  }
-
-  input:focus {
-    outline: none;
-    border-color: rgba(47, 155, 255, 0.86);
-    box-shadow: 0 0 0 4px var(--accent-ring);
-    transform: translateY(-1px);
-  }
-
-  .password-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    width: fit-content;
-    color: var(--text-secondary);
-    font-size: 0.88rem;
-    font-weight: 500;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .password-toggle input {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-    accent-color: var(--accent);
-    transform: none;
-  }
-
-  .password-toggle input:focus {
-    transform: none;
-  }
-
-  button {
-    width: 100%;
-    border: none;
-    border-radius: 13px;
-    padding: 12px 14px;
-    background: linear-gradient(180deg, var(--accent), var(--accent-strong));
-    color: #ffffff;
-    font-size: 0.99rem;
-    font-weight: 630;
-    letter-spacing: 0.01em;
-    cursor: pointer;
-    box-shadow: 0 10px 28px rgba(32, 135, 235, 0.34);
-    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
-  }
-
-  button:hover {
-    transform: translateY(-1px);
-    filter: saturate(1.06);
-    box-shadow: 0 12px 30px rgba(32, 135, 235, 0.4);
-  }
-
-  button:active {
-    transform: translateY(0);
-    box-shadow: 0 8px 18px rgba(32, 135, 235, 0.3);
-  }
-
-  .error {
-    min-height: 1.18rem;
-    color: var(--error);
-    font-size: 0.88rem;
-    margin-top: -2px;
-  }
-
-  .footnote {
-    margin: 14px 0 0;
-    color: #9aa6bf;
-    font-size: 0.82rem;
-    line-height: 1.45;
-  }
-
-  .privacy-note {
-    margin: 8px 0 0;
-    color: var(--text-tertiary);
-    font-size: 0.8rem;
-    line-height: 1.5;
-  }
-
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @media (max-width: 560px) {
-    .shell {
-      padding: 22px 18px;
-      border-radius: 18px;
-    }
-
-    h1 {
-      font-size: clamp(1.5rem, 8vw, 1.75rem);
-    }
-
-    .helper {
-      font-size: 0.92rem;
-    }
-  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: var(--s5); }
+  .brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--go-fill); display: grid; place-items: center; flex: none; }
+  .brand-mark span { width: 16px; height: 16px; border-radius: 50%; background: var(--go-dot); }
+  .brand-name { font-size: 17px; font-weight: 800; color: var(--ink-2); }
+  .signin h1 { margin-bottom: var(--s2); }
+  .signin .lead { margin-bottom: var(--s5); }
+  .signin form { display: grid; gap: var(--s4); }
+  .signin .check-row { margin-top: 2px; }
+  .signin .field-error { min-height: 1.45em; }
+  .notes { margin-top: var(--s5); display: grid; gap: var(--s2); }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 </style>
+</head>
 <body>
-  <main class="shell">
-    <p class="eyebrow">Video2Speech</p>
+  <button class="icon-btn corner" id="themeButton" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
+    <svg class="theme-to-dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+    <svg class="theme-to-light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+  </button>
+
+  <main class="signin">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"><span></span></span><span class="brand-name">Speech Recording</span></div>
     <h1>Sign in</h1>
-    <p class="helper">Please sign in with your assigned credentials to continue to the recording page.</p>
+    <p class="lead">Use the username and password you were given.</p>
 
-    <div class="divider"></div>
-
-    <form id="loginForm" class="form" novalidate>
+    <form id="loginForm" novalidate>
       <div class="field">
-        <label for="username">Username</label>
-        <input id="username" name="username" type="text" autocomplete="username" required>
+        <label class="field-label" for="username">Username</label>
+        <input class="input" id="username" name="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
       </div>
       <div class="field">
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
-        <label class="password-toggle" for="showPassword">
+        <label class="field-label" for="password">Password</label>
+        <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+        <label class="check-row" for="showPassword">
           <input id="showPassword" type="checkbox">
           <span>Show password</span>
         </label>
       </div>
-      <div id="error" class="error" aria-live="polite"></div>
-      <button type="submit">Log in</button>
+      <p id="error" class="field-error" aria-live="polite"></p>
+      <button class="btn btn-go btn-xl btn-block" type="submit">Sign in</button>
     </form>
 
-    <p class="footnote">Access is limited to authorized participants.</p>
-    <p class="privacy-note">This website is solely for displaying reading materials. All of your recorded data stays on your local device; we do not collect or store it.</p>
+    <div class="notes">
+      <p class="meta">Access is limited to authorized participants.</p>
+      <p class="meta">This website is solely for displaying reading materials. All of your recorded data stays on your local device; we do not collect or store it.</p>
+    </div>
   </main>
 
 <script>
 const APP_VERSION = '114';
+
+let nextAppVersion = null;
 
 async function getLatestAppVersion() {
   try {
     const response = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
+    nextAppVersion = data.nextAppVersion || null;
     return data.appVersion || APP_VERSION;
   } catch (error) {
     console.warn('Failed to check latest app version:', error);
@@ -271,6 +102,8 @@ function addAppVersion(path, appVersion) {
   const url = new URL(path, window.location.origin);
   if (url.pathname === '/app.html' || url.pathname.endsWith('/app.html')) {
     url.searchParams.set('v', appVersion);
+  } else if (nextAppVersion && url.pathname.endsWith('/app_next.html')) {
+    url.searchParams.set('v', nextAppVersion);
   }
   return url.pathname + url.search + url.hash;
 }
@@ -297,6 +130,22 @@ const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
 const showPasswordInput = document.getElementById('showPassword');
 const errorEl = document.getElementById('error');
+const themeButton = document.getElementById('themeButton');
+
+function labelThemeButton() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const label = dark ? 'Switch to light mode' : 'Switch to dark mode';
+  themeButton.setAttribute('aria-label', label);
+  themeButton.title = label;
+}
+
+themeButton.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('v2s_theme', next); } catch (error) { /* ignore */ }
+  labelThemeButton();
+});
+labelThemeButton();
 
 usernameInput.addEventListener('input', () => {
   errorEl.textContent = '';

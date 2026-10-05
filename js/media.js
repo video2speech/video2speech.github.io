@@ -1,11 +1,16 @@
 // Camera/microphone stream, one MediaRecorder per take, and hardware health checks.
-// Only real device failures (track ended, microphone muted, frozen picture) are
-// reported; silence is never treated as a failure.
+// - Recording settings are the legacy page's: 1080p, 30 fps, 15 Mbps, raw mono audio.
+// - The audio bitrate follows the microphone's real sample rate (see config).
+// - startRecorder() reports through `ready` whether the encoder really started, so the
+//   sentence only turns green once something is being recorded.
+// - Only real device failures (track ended, microphone muted, frozen picture) are
+//   reported; silence is never treated as a failure.
 window.V2S = window.V2S || {};
 
 V2S.media = (() => {
   const cfg = V2S.config;
   const { logEvent } = V2S.util;
+  const BLUETOOTH = /bluetooth|airpods|hands-?free|headset|buds|beats|bose|jabra|\bbt\b/i;
 
   let stream = null;
   let audioConstraintMode = 'none';
@@ -34,9 +39,12 @@ V2S.media = (() => {
   const getSettings = () => ({ ...settings });
   const getStream = () => stream;
   const getAudioConstraintMode = () => audioConstraintMode;
+  const isBluetooth = label => BLUETOOTH.test(String(label || ''));
 
-  function videoConstraints() {
-    const constraints = { facingMode: 'user', frameRate: { ideal: Number(settings.fps) || 30 } };
+  function videoConstraints(useDevice = true) {
+    const constraints = { frameRate: { ideal: Number(settings.fps) || 30 } };
+    if (useDevice && settings.videoDeviceId) constraints.deviceId = { exact: settings.videoDeviceId };
+    else constraints.facingMode = 'user';
     const size = cfg.RESOLUTIONS[settings.resolution];
     if (size) {
       constraints.width = { ideal: size.width };
@@ -45,8 +53,14 @@ V2S.media = (() => {
     return constraints;
   }
 
-  function rawAudioConstraints() {
-    return { echoCancellation: false, noiseSuppression: false, autoGainControl: false, sampleRate: 48000, channelCount: 1 };
+  function rawAudioConstraints(useDevice = true) {
+    const constraints = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, sampleRate: 48000, channelCount: 1 };
+    if (useDevice && settings.audioDeviceId) constraints.deviceId = { exact: settings.audioDeviceId };
+    return constraints;
+  }
+
+  function browserAudioConstraints(useDevice = true) {
+    return useDevice && settings.audioDeviceId ? { deviceId: { exact: settings.audioDeviceId } } : true;
   }
 
   function isSupported() {
@@ -59,30 +73,43 @@ V2S.media = (() => {
     return wrapped;
   }
 
+  const isDenied = error => Boolean(error && (error.name === 'NotAllowedError' || error.name === 'SecurityError'));
+  const isMissingDevice = error => Boolean(error && (error.name === 'OverconstrainedError' || error.name === 'NotFoundError'));
+
+  async function request(useDevice) {
+    const video = videoConstraints(useDevice);
+    if (settings.audioMode === 'fallback') {
+      audioConstraintMode = 'fallback';
+      return navigator.mediaDevices.getUserMedia({ video, audio: browserAudioConstraints(useDevice) });
+    }
+    try {
+      const opened = await navigator.mediaDevices.getUserMedia({ video, audio: rawAudioConstraints(useDevice) });
+      audioConstraintMode = 'raw';
+      return opened;
+    } catch (rawError) {
+      if (isDenied(rawError) || isMissingDevice(rawError)) throw rawError;
+      // Some devices refuse the raw-audio constraints. Keep going with the browser
+      // defaults (recorded in every sidecar) instead of stopping the participant.
+      logEvent('raw_audio_failed', { error: String(rawError && rawError.name || rawError) });
+      audioConstraintMode = 'fallback_auto';
+      return navigator.mediaDevices.getUserMedia({ video, audio: browserAudioConstraints(useDevice) });
+    }
+  }
+
   async function open() {
     close();
     if (!isSupported()) throw failure('unsupported', 'MediaRecorder or getUserMedia is not available');
-    const video = videoConstraints();
     try {
-      if (settings.audioMode === 'fallback') {
-        stream = await navigator.mediaDevices.getUserMedia({ video, audio: true });
-        audioConstraintMode = 'fallback';
-      } else {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ video, audio: rawAudioConstraints() });
-          audioConstraintMode = 'raw';
-        } catch (rawError) {
-          if (rawError && (rawError.name === 'NotAllowedError' || rawError.name === 'SecurityError')) throw rawError;
-          // Some devices refuse the raw-audio constraints. Keep going with the browser
-          // defaults instead of asking the participant to change a setting.
-          logEvent('raw_audio_failed', { error: String(rawError && rawError.name || rawError) });
-          stream = await navigator.mediaDevices.getUserMedia({ video, audio: true });
-          audioConstraintMode = 'fallback_auto';
-        }
+      try {
+        stream = await request(true);
+      } catch (error) {
+        // A chosen camera or microphone that is no longer connected: use the defaults.
+        if (!isMissingDevice(error) || !(settings.videoDeviceId || settings.audioDeviceId)) throw error;
+        logEvent('chosen_device_missing', { error: String(error.name || error) });
+        stream = await request(false);
       }
     } catch (error) {
-      const denied = error && (error.name === 'NotAllowedError' || error.name === 'SecurityError');
-      throw failure(denied ? 'permission' : 'device', error);
+      throw failure(isDenied(error) ? 'permission' : 'device', error);
     }
     watchTracks();
     previews.forEach(attachPreview);
@@ -104,6 +131,30 @@ V2S.media = (() => {
     stream = null;
     audioConstraintMode = 'none';
     previews.forEach(video => { video.srcObject = null; });
+  }
+
+  // Cameras and microphones with readable names (names need camera permission first).
+  async function listDevices() {
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.enumerateDevices !== 'function') return { cameras: [], microphones: [] };
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const pick = kind => devices.filter(device => device.kind === kind && device.deviceId && device.deviceId !== 'default' && device.deviceId !== 'communications')
+      .map((device, index) => ({ id: device.deviceId, label: device.label || `${kind === 'videoinput' ? 'Camera' : 'Microphone'} ${index + 1}` }));
+    return { cameras: pick('videoinput'), microphones: pick('audioinput') };
+  }
+
+  // What is in use right now: { camera, microphone, cameraId, microphoneId, bluetooth }.
+  function current() {
+    const videoTrack = stream && stream.getVideoTracks()[0];
+    const audioTrack = stream && stream.getAudioTracks()[0];
+    const audioSettings = trackSettings(audioTrack);
+    return {
+      camera: videoTrack ? videoTrack.label : '',
+      microphone: audioTrack ? audioTrack.label : '',
+      cameraId: trackSettings(videoTrack).deviceId || null,
+      microphoneId: audioSettings.deviceId || null,
+      sampleRate: audioSettings.sampleRate || null,
+      bluetooth: audioTrack ? isBluetooth(audioTrack.label) : false
+    };
   }
 
   function onFailure(handler) {
@@ -173,13 +224,20 @@ V2S.media = (() => {
   function requestedConstraints() {
     return {
       video: videoConstraints(),
-      audio: audioConstraintMode === 'raw' ? rawAudioConstraints() : true
+      audio: audioConstraintMode === 'raw' ? rawAudioConstraints() : browserAudioConstraints()
     };
   }
 
   // ---- recorder ----
+  function audioBitrate() {
+    const audioTrack = stream && stream.getAudioTracks()[0];
+    const rate = Number(trackSettings(audioTrack).sampleRate) || 0;
+    // Unknown rate: assume a full-rate microphone (the legacy page's 192 kbps).
+    return rate && rate < cfg.AUDIO_FULL_RATE_HZ ? cfg.AUDIO_BITRATE_LOW_RATE : cfg.AUDIO_BITRATE;
+  }
+
   function recorderCandidates() {
-    const base = { videoBitsPerSecond: Number(settings.bitrate) || cfg.MEDIA_DEFAULTS.bitrate, audioBitsPerSecond: cfg.AUDIO_BITRATE };
+    const base = { videoBitsPerSecond: Number(settings.bitrate) || cfg.MEDIA_DEFAULTS.bitrate, audioBitsPerSecond: audioBitrate() };
     const types = [
       'video/mp4;codecs=h264,aac',
       'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
@@ -206,15 +264,26 @@ V2S.media = (() => {
     return { mimeType, ext };
   }
 
-  // Starts recording one take. stop() resolves with the recorded blob.
-  function startRecorder() {
+  // Starts one recording. Returns
+  //   ready   — resolves { ok: true } once the encoder has run START_GUARD_MS without an
+  //             error, or { ok: false, error } if it failed to start;
+  //   stop()  — resolves with { blob, mimeType, ext, recorderConfig, … };
+  //   onError — set by the caller for errors after the start.
+  // `skip` tries the next recording format (used after repeated start failures).
+  function startRecorder({ skip = 0 } = {}) {
     if (!stream) throw failure('device', 'No camera stream');
     const attempts = [];
     let recorder = null;
     let config = null;
+    let skipped = 0;
     for (const candidate of recorderCandidates()) {
       try {
-        recorder = new MediaRecorder(stream, candidate.options);
+        const made = new MediaRecorder(stream, candidate.options);
+        if (skipped < skip) {
+          skipped += 1;
+          continue;
+        }
+        recorder = made;
         config = candidate;
         break;
       } catch (error) {
@@ -224,21 +293,17 @@ V2S.media = (() => {
     if (!recorder) throw failure('device', `No supported recording format (${attempts.join('; ')})`);
 
     const chunks = [];
-    let settle;
-    const stopped = new Promise(resolve => { settle = resolve; });
-    const finish = extra => {
-      const info = mimeInfo(recorder, chunks, config.requestedMimeType);
-      settle({ blob: new Blob(chunks, { type: info.mimeType }), ...info, recorderConfig: config, stoppedAt: performance.now(), ...extra });
-    };
-    recorder.ondataavailable = event => { if (event.data && event.data.size > 0) chunks.push(event.data); };
-    recorder.onstop = () => finish({});
-    recorder.onerror = event => logEvent('recorder_error', { error: String(event.error || event.name || 'unknown') });
-    recorder.start(1000);
-    const startedAt = performance.now();
-
-    return {
-      startedAt,
+    let settleStop;
+    let settleReady;
+    let started = false;
+    const stopped = new Promise(resolve => { settleStop = resolve; });
+    const ready = new Promise(resolve => { settleReady = resolve; });
+    const handle = {
+      startedAt: 0,
       recorderConfig: config,
+      error: null,
+      onError: null,
+      ready,
       stop() {
         if (recorder.state !== 'inactive') {
           try {
@@ -246,10 +311,43 @@ V2S.media = (() => {
           } catch (error) {
             finish({ stopError: String(error) });
           }
+        } else {
+          finish({});
         }
         return stopped;
       }
     };
+    let finished = false;
+    function finish(extra) {
+      if (finished) return;
+      finished = true;
+      const info = mimeInfo(recorder, chunks, config.requestedMimeType);
+      settleStop({ blob: new Blob(chunks, { type: info.mimeType }), ...info, recorderConfig: config, stoppedAt: performance.now(), error: handle.error, ...extra });
+    }
+    recorder.ondataavailable = event => { if (event.data && event.data.size > 0) chunks.push(event.data); };
+    recorder.onstop = () => finish({});
+    recorder.onerror = event => {
+      const message = String(event.error || event.name || 'unknown');
+      handle.error = message;
+      logEvent('recorder_error', { error: message, started, mimeType: config.requestedMimeType, audioBitsPerSecond: config.options.audioBitsPerSecond });
+      if (!started) settleReady({ ok: false, error: message });
+      else if (handle.onError) handle.onError(message);
+    };
+    try {
+      recorder.start(1000);
+    } catch (error) {
+      handle.error = String(error);
+      settleReady({ ok: false, error: handle.error });
+      finish({ startError: handle.error });
+      return handle;
+    }
+    handle.startedAt = performance.now();
+    setTimeout(() => {
+      if (handle.error) return;
+      started = true;
+      settleReady({ ok: true });
+    }, cfg.START_GUARD_MS);
+    return handle;
   }
 
   // ---- health ----
@@ -362,12 +460,15 @@ V2S.media = (() => {
 
   return {
     isSupported,
+    isBluetooth,
     setSettings,
     getSettings,
     getStream,
     getAudioConstraintMode,
     open,
     close,
+    listDevices,
+    current,
     onFailure,
     registerPreview,
     snapshot,

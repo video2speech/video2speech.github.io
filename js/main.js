@@ -1,6 +1,7 @@
 // Start-up and screen flow:
-// setup (first time) → welcome → [folder permission] → camera check → recording
-//   ⇄ block break → done.
+//   setup (first time on a device) → welcome → [folder permission] → camera & microphone
+//   check (test recording + playback) → [How to record, first time] → recording
+//   (practice with coaching the first time) ⇄ breaks → done.
 // Rule for every click that needs the browser's permission or file dialogs: call the
 // browser API FIRST in the click handler, before any other waiting, or the browser
 // refuses (and a silent fallback would put recordings somewhere else).
@@ -11,7 +12,7 @@ V2S.app = (() => {
   const copy = V2S.copy;
   const ui = V2S.ui;
   const exporter = V2S.exporter;
-  const { el, logEvent, platform } = V2S.util;
+  const { el, logEvent, platform, sleep } = V2S.util;
 
   const app = {
     participantId: null,
@@ -19,13 +20,19 @@ V2S.app = (() => {
     material: null,
     progress: null,
     sessionStarted: false,
-    wakeLock: null
+    wakeLock: null,
+    checkReturn: null,     // 'record' when the check was opened from Settings mid-session
+    howtoReturn: null,     // screen to go back to from How to record (the ? button)
+    test: { running: false, url: null },
+    flushEvents: () => Promise.resolve()
   };
 
   // ---------- static text ----------
   function fillStaticCopy() {
     const text = {
       loadingText: copy.loading,
+      finishLong: copy.top.finish,
+      finishShort: copy.top.finishShort,
       setupEyebrow: copy.setup.eyebrow,
       setupTitle: copy.setup.title,
       setupLead: copy.setup.lead,
@@ -39,30 +46,56 @@ V2S.app = (() => {
       setupFolderLead: copy.setup.folderLead,
       setupFolderChoose: copy.setup.folderChoose,
       setupFolderZip: copy.setup.folderZip,
-      welcomeLead: copy.welcome.lead,
-      welcomeStart: copy.welcome.start,
+      welcomeStage1: copy.welcome.stage1,
+      welcomeStage2: copy.welcome.stage2,
+      welcomeStage3: copy.welcome.stage3,
       folderTitle: copy.folder.title,
       folderAllow: copy.folder.allow,
       folderChoose: copy.folder.choose,
       folderZip: copy.folder.zip,
       checkTitle: copy.check.title,
-      checkFace: copy.check.face,
-      checkVoice: copy.check.voice,
-      checkOk: copy.check.ok,
+      checkCameraTitle: copy.check.cameraTitle,
+      checkCameraText: copy.check.cameraText,
+      checkMicTitle: copy.check.micTitle,
+      checkMicText: copy.check.micText,
+      changeCamera: copy.check.change,
+      changeMic: copy.check.change,
+      testRecordLabel: copy.check.testRecord,
+      testSay: copy.check.testSay,
+      testQuestion: copy.check.testQuestion,
+      testYes: copy.check.testYes,
+      testAgain: copy.check.testAgain,
       checkHelp: copy.check.help,
-      finishButton: copy.record.finish
+      howtoTitle: copy.howto.title,
+      howtoMockStart: copy.howto.mockStart,
+      howtoMockStop: copy.howto.mockStop,
+      howtoMockRedo: copy.howto.mockRedo,
+      howtoMockSentence: copy.howto.mockSentence,
+      howtoKeys: copy.howto.keys,
+      coachStep1: copy.coach.step1,
+      coachStep2: copy.coach.step2,
+      coachStep3: copy.coach.step3,
+      redoSavedText: copy.record.saved
     };
     Object.entries(text).forEach(([id, value]) => ui.setText(id, value));
+    ui.setRich('howtoStep1', copy.howto.step1);
+    ui.setRich('howtoStep2', copy.howto.step2);
+    ui.setRich('howtoStep3', copy.howto.step3);
+    ui.setRich('howtoRedo', copy.howto.redo);
+    // "green" in step 2 is shown in green.
+    const green = el('howtoStep2').querySelector('b');
+    if (green) green.className = 'go-word';
     el('setupId').placeholder = copy.setup.idPlaceholder;
   }
 
-  // ---------- settings ----------
+  // ---------- settings and theme ----------
   async function loadSettings() {
     const media = await V2S.storage.getSetting('mediaSettings', null);
     V2S.media.setSettings(media || cfg.MEDIA_DEFAULTS);
     const setKey = await V2S.storage.getSetting('setKey', cfg.DEFAULT_SET);
     app.setKey = cfg.SETS[setKey] ? setKey : cfg.DEFAULT_SET;
     applyTheme(await V2S.storage.getSetting('theme', document.documentElement.getAttribute('data-theme') || 'light'));
+    V2S.input.setHoldMs(await V2S.storage.getSetting('holdMs', cfg.HOLD_MS));
   }
 
   function applyTheme(theme) {
@@ -70,8 +103,20 @@ V2S.app = (() => {
     document.documentElement.setAttribute('data-theme', value);
     try { localStorage.setItem('v2s_theme', value); } catch (error) { /* ignore */ }
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = value === 'dark' ? '#0F1115' : '#F4F3EF';
+    if (meta) meta.content = value === 'dark' ? '#111316' : '#F2F1EC';
     V2S.meter.refreshColors();
+    ui.labelTopbar(value);
+  }
+
+  async function setTheme(theme) {
+    applyTheme(theme);
+    await V2S.storage.setSetting('theme', theme === 'dark' ? 'dark' : 'light');
+    logEvent('theme', { theme });
+  }
+
+  function toggleTheme() {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    setTheme(next);
   }
 
   // ---------- event log persistence ----------
@@ -83,8 +128,9 @@ V2S.app = (() => {
       timer = null;
       const batch = queue;
       queue = [];
-      V2S.storage.appendEvents(batch).catch(error => console.warn('Event log write failed', error));
+      return V2S.storage.appendEvents(batch).catch(error => console.warn('Event log write failed', error));
     };
+    app.flushEvents = flush;
     V2S.util.onEvent(entry => {
       queue.push(entry);
       if (queue.length >= 25) flush();
@@ -112,7 +158,7 @@ V2S.app = (() => {
   }
 
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && ui.screen() === 'record') requestWakeLock();
+    if (!document.hidden && ['record', 'check'].includes(ui.screen())) requestWakeLock();
   });
 
   // ---------- participant and material ----------
@@ -130,7 +176,8 @@ V2S.app = (() => {
     return record;
   }
 
-  const pendingCount = () => V2S.storage.countTakes();
+  // Recordings not saved anywhere yet (ZIP backup copies do not count).
+  const pendingCount = () => V2S.storage.countUnsaved();
 
   function positionFor(index) {
     const { warmupCount, formalCount } = app.material;
@@ -146,6 +193,9 @@ V2S.app = (() => {
       blockSize: Math.min(cfg.BLOCK_SIZE, formalCount - blockStart)
     };
   }
+
+  const partCount = () => Math.ceil(app.material.formalCount / cfg.BLOCK_SIZE);
+  const needsPractice = () => !app.progress.coachDone && app.progress.currentIndex < app.material.warmupCount;
 
   function folderLabel() {
     const name = exporter.folderName() || '';
@@ -189,7 +239,7 @@ V2S.app = (() => {
       await loadMaterial();
       const index = Math.min(Number(legacy.currentIndex) || 0, app.material.all.length - 1);
       const place = index < app.material.warmupCount
-        ? `warm-up sentence ${index + 1}`
+        ? `practice sentence ${index + 1}`
         : `sentence ${index - app.material.warmupCount + 1} of ${app.material.formalCount}`;
       options.append(
         optionRow('legacyChoice', 'continue', true, copy.setup.legacyContinue(place), copy.setup.legacyContinueDetail),
@@ -271,24 +321,28 @@ V2S.app = (() => {
       return showLoadError(error);
     }
     const progress = app.progress;
-    const firstVisit = (progress.tutorialStep || progress.tutorialTakes || 0) === 0 && progress.currentIndex === 0;
+    const firstVisit = !progress.howtoSeen && !progress.coachDone && progress.currentIndex === 0;
+    ui.setText('welcomeId', copy.welcome.participant(app.participantId));
     ui.setText('welcomeTitle', firstVisit ? copy.welcome.titleFirst : copy.welcome.titleBack);
-    ui.setText('welcomeParticipant', copy.welcome.participant(app.participantId));
+    ui.setText('welcomeLead', firstVisit ? copy.welcome.leadFirst : copy.welcome.leadBack);
+    el('welcomeStages').hidden = !firstVisit;
+    el('welcomeJourney').hidden = firstVisit;
 
     const p = positionFor(progress.currentIndex);
     if (progress.completed) {
-      ui.setText('welcomeBlock', copy.welcome.allDone);
+      ui.setText('welcomePart', copy.welcome.allDone);
       ui.setText('welcomeCount', '');
       el('welcomeBar').style.transform = 'scaleX(1)';
     } else if (p.warmup) {
-      ui.setText('welcomeBlock', copy.welcome.warmup);
-      ui.setText('welcomeCount', copy.welcome.warmupCount(p.pos - 1, p.total));
+      ui.setText('welcomePart', copy.welcome.practice);
+      ui.setText('welcomeCount', copy.welcome.practiceCount(p.pos - 1, p.total));
       el('welcomeBar').style.transform = `scaleX(${((p.pos - 1) / p.total).toFixed(3)})`;
     } else {
-      ui.setText('welcomeBlock', copy.welcome.block(p.block, p.blocks));
-      ui.setText('welcomeCount', copy.welcome.blockCount(p.inBlock - 1, p.blockSize));
+      ui.setText('welcomePart', copy.welcome.part(p.block, p.blocks));
+      ui.setText('welcomeCount', copy.welcome.partCount(p.inBlock - 1, p.blockSize));
       el('welcomeBar').style.transform = `scaleX(${((p.inBlock - 1) / p.blockSize).toFixed(3)})`;
     }
+    ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : copy.welcome.continue);
     el('welcomeStart').hidden = Boolean(progress.completed);
     await refreshWelcomeNotice();
     ui.show('welcome');
@@ -297,25 +351,17 @@ V2S.app = (() => {
 
   async function refreshWelcomeNotice() {
     const pending = await pendingCount();
-    el('welcomeNotice').hidden = pending === 0;
-    if (pending > 0) {
+    // In folder mode cached recordings are written automatically after Begin.
+    const show = pending > 0 && exporter.getSaveMode() !== 'folder';
+    el('welcomeNotice').hidden = !show;
+    if (show) {
       ui.setText('welcomeNoticeText', copy.welcome.pending(pending));
       ui.setText('welcomeNoticeAction', copy.welcome.saveNow);
     }
   }
 
   async function onWelcomeSaveNow() {
-    if (exporter.getSaveMode() === 'folder') {
-      const permission = exporter.isFolderActive() ? 'granted' : await exporter.requestFolderPermission();
-      if (permission !== 'granted') {
-        const result = await askForFolder();
-        ui.show('welcome');
-        if (result === 'zip') await runZipSave('saved');
-      }
-      await flushPendingToFolder();
-    } else {
-      await runZipSave('saved');
-    }
+    await runZipSave('saved');
     await refreshWelcomeNotice();
   }
 
@@ -342,7 +388,7 @@ V2S.app = (() => {
 
   // ---------- folder permission screen ----------
   // Resolves 'granted' (same or new folder) or 'zip'. Where recordings go never changes
-  // silently: the person decides here.
+  // silently: the participant or helper decides here.
   function askForFolder() {
     return new Promise(resolve => {
       V2S.input.setEnabled(false);
@@ -374,20 +420,25 @@ V2S.app = (() => {
     });
   }
 
-  // ---------- camera check ----------
-  async function showCheck() {
+  // ---------- camera and microphone check ----------
+  async function showCheck({ returnTo = null } = {}) {
+    app.checkReturn = returnTo || (app.sessionStarted ? 'record' : null);
+    if (['ready', 'partEnd'].includes(V2S.session.getState())) V2S.session.stop();
     V2S.input.setEnabled(false);
     ui.show('check');
-    ui.setText('checkStatus', copy.check.starting);
-    el('checkOk').setAttribute('aria-disabled', 'true');
-    try {
-      await openMedia();
-    } catch (error) {
-      return showMediaError(error);
+    resetTest();
+    ui.setText('checkBadge', copy.check.starting);
+    if (!V2S.media.getStream()) {
+      try {
+        await openMedia();
+      } catch (error) {
+        return showMediaError(error);
+      }
     }
-    ui.setText('checkStatus', '');
-    el('checkOk').setAttribute('aria-disabled', 'false');
-    el('checkOk').focus({ preventScroll: true });
+    requestWakeLock();
+    renderDevices();
+    setBadge('live');
+    el('testRecord').focus({ preventScroll: true });
   }
 
   async function openMedia() {
@@ -397,54 +448,252 @@ V2S.app = (() => {
     return stream;
   }
 
-  async function onCheckOk() {
-    if (el('checkOk').getAttribute('aria-disabled') === 'true' || ui.screen() !== 'check') return;
+  // Settings changed the camera, microphone or quality: open the stream again.
+  async function reopenMedia() {
+    V2S.media.stopHealth();
+    try {
+      await openMedia();
+    } catch (error) {
+      return showMediaError(error);
+    }
+    if (ui.screen() === 'check') {
+      renderDevices();
+      resetTest();
+      setBadge('live');
+    }
+    return true;
+  }
+
+  function setBadge(kind, extra) {
+    const badge = el('checkBadge');
+    badge.replaceChildren();
+    if (!kind) return;
+    if (kind === 'live' || kind === 'recording') {
+      const dot = document.createElement('span');
+      dot.className = 'rec-dot';
+      badge.append(dot);
+    }
+    const label = { live: copy.check.live, recording: copy.check.testRecording(extra), playing: copy.check.testPlaying }[kind] || '';
+    badge.append(document.createTextNode(label));
+  }
+
+  async function renderDevices() {
+    const now = V2S.media.current();
+    ui.setText('cameraName', now.camera || copy.check.defaultDevice);
+    ui.setText('micName', now.microphone || copy.check.defaultDevice);
+    el('micWarning').hidden = !now.bluetooth;
+    el('micSwitch').hidden = true;
+    if (!now.bluetooth) return;
+    ui.setText('micWarningText', copy.check.bluetooth);
+    // Offer the device's own microphone if there is one.
+    const { microphones } = await V2S.media.listDevices().catch(() => ({ microphones: [] }));
+    const builtIn = microphones.find(mic => !V2S.media.isBluetooth(mic.label));
+    if (!builtIn) return;
+    ui.setText('micSwitch', copy.check.useDevice(builtIn.label));
+    el('micSwitch').hidden = false;
+    el('micSwitch').onclick = async () => {
+      const next = { ...V2S.media.getSettings(), audioDeviceId: builtIn.id };
+      await V2S.storage.setSetting('mediaSettings', next);
+      V2S.media.setSettings(next);
+      logEvent('mic_switched', { to: builtIn.label });
+      await reopenMedia();
+    };
+  }
+
+  function resetTest() {
+    const playback = el('checkPlayback');
+    playback.pause();
+    playback.hidden = true;
+    playback.removeAttribute('src');
+    playback.controls = false;
+    playback.load();
+    if (app.test.url) URL.revokeObjectURL(app.test.url);
+    app.test.url = null;
+    app.test.running = false;
+    el('checkPreview').hidden = false;
+    el('checkFrame').classList.remove('is-playing');
+    el('testRecord').hidden = false;
+    el('testRecord').setAttribute('aria-disabled', 'false');
+    el('testLive').hidden = true;
+    el('testStatus').hidden = true;
+    el('testAsk').hidden = true;
+    el('testError').hidden = true;
+  }
+
+  function showTestError(text) {
+    resetTest();
+    ui.setText('testError', text);
+    el('testError').hidden = false;
+    setBadge('live');
+  }
+
+  // Records TEST_RECORD_MS with the real recording settings, then plays it back.
+  async function onTestRecord() {
+    if (app.test.running || ui.screen() !== 'check') return;
+    resetTest();
+    app.test.running = true;
     V2S.meter.resume();
+    el('testRecord').hidden = true;
+    el('testLive').hidden = false;
+    el('testBar').style.transition = 'none';
+    el('testBar').style.transform = 'scaleX(0)';
+    let handle = null;
+    let ready = { ok: false };
+    for (let attempt = 0; attempt < cfg.START_ATTEMPTS && !ready.ok; attempt++) {
+      if (handle) await handle.stop().catch(() => {});
+      V2S.meter.beginCollect();
+      try {
+        handle = V2S.media.startRecorder({ skip: attempt >= cfg.START_ATTEMPTS - 1 ? 1 : 0 });
+      } catch (error) {
+        V2S.meter.endCollect();
+        return showTestError(copy.check.testFailed);
+      }
+      ready = await handle.ready;
+      if (!ready.ok) V2S.meter.endCollect();
+    }
+    if (!ready.ok) {
+      logEvent('mic_test_failed', { error: ready.error });
+      return showTestError(copy.check.testFailed);
+    }
+    const startedAt = performance.now();
+    requestAnimationFrame(() => {
+      el('testBar').style.transition = `transform ${cfg.TEST_RECORD_MS}ms linear`;
+      el('testBar').style.transform = 'scaleX(1)';
+    });
+    while (performance.now() - startedAt < cfg.TEST_RECORD_MS) {
+      if (ui.screen() !== 'check') {
+        await handle.stop().catch(() => {});
+        V2S.meter.endCollect();
+        app.test.running = false;
+        return;
+      }
+      setBadge('recording', Math.max(1, Math.ceil((cfg.TEST_RECORD_MS - (performance.now() - startedAt)) / 1000)));
+      await sleep(200);
+    }
+    const recording = await handle.stop();
+    const frames = V2S.meter.endCollect();
+    const qc = V2S.qc.evaluate(frames);
+    const now = V2S.media.current();
+    logEvent('mic_test', { pass: qc.pass, code: qc.code, speechMs: qc.metrics.speechMs, rms: qc.metrics.rms, microphone: now.microphone, sampleRate: now.sampleRate, size: recording.blob.size });
+    if (!recording.blob.size) return showTestError(copy.check.testFailed);
+    if (qc.code === 'no_speech' || qc.code === 'no_audio') return showTestError(copy.check.testSilent);
+    await playTest(recording.blob);
+  }
+
+  async function playTest(blob) {
+    const playback = el('checkPlayback');
+    app.test.url = URL.createObjectURL(blob);
+    playback.src = app.test.url;
+    playback.muted = false;
+    playback.classList.toggle('is-mirrored', Boolean(V2S.media.getSettings().mirror));
+    el('checkPreview').hidden = true;
+    playback.hidden = false;
+    el('checkFrame').classList.add('is-playing');
+    el('testLive').hidden = true;
+    setBadge('playing');
+    const ask = () => {
+      app.test.running = false;
+      el('testAsk').hidden = false;
+      el('testBox').scrollIntoView({ block: 'nearest' });
+      el('testYes').focus({ preventScroll: true });
+    };
+    playback.onended = () => {
+      setBadge(null);
+      ask();
+    };
+    try {
+      await playback.play();
+    } catch (error) {
+      // Autoplay with sound was blocked: let the participant press play.
+      playback.controls = true;
+      setBadge(null);
+      ask();
+    }
+  }
+
+  async function onTestYes() {
+    if (ui.screen() !== 'check') return;
+    resetTest();
+    logEvent('mic_test_ok', V2S.media.current());
+    if (app.checkReturn === 'record' && app.sessionStarted) return showRecord();
+    if (!app.progress.howtoSeen || needsPractice()) return showHowto({ next: 'record' });
+    return showRecord();
+  }
+
+  // ---------- how to record ----------
+  function showHowto({ next }) {
+    app.howtoReturn = next;
+    V2S.input.setEnabled(false);
+    const backToSession = next === 'back-record' || next === 'back-check';
+    ui.setText('howtoGo', backToSession ? copy.howto.back : (needsPractice() ? copy.howto.practice : copy.welcome.continue));
+    el('howtoKeys').hidden = !document.documentElement.classList.contains('has-keyboard');
+    ui.show('howto');
+    el('howtoGo').focus({ preventScroll: true });
+  }
+
+  async function onHowtoGo() {
+    const next = app.howtoReturn;
+    app.howtoReturn = null;
+    if (next === 'back-check') {
+      ui.show('check');
+      return;
+    }
+    if (!app.progress.howtoSeen) {
+      app.progress.howtoSeen = true;
+      await V2S.storage.saveParticipantProgress(app.progress);
+    }
     await showRecord();
+  }
+
+  function onHelp() {
+    if (ui.screen() === 'record' && ['ready', 'partEnd'].includes(V2S.session.getState())) {
+      V2S.session.stop();
+      showHowto({ next: 'back-record' });
+    } else if (ui.screen() === 'check' && !app.test.running) {
+      showHowto({ next: 'back-check' });
+    }
   }
 
   // ---------- recording ----------
   async function showRecord() {
     ui.show('record');
-    renderSaveStatus(exporter.status());
     requestWakeLock();
     V2S.input.setEnabled(true);
     if (!app.sessionStarted) {
       app.sessionStarted = true;
       V2S.session.begin({ participantId: app.participantId, setKey: app.setKey, material: app.material, progress: app.progress });
     } else {
-      V2S.ui.fitSentences(app.material.all);
-      V2S.session.enterReady();
+      ui.fitSentences(app.material.all);
+      V2S.session.resume();
     }
   }
 
-  function renderSaveStatus(status) {
-    if (status.mode === 'folder') {
-      if (status.problem) ui.setSaveStatus({ text: copy.saveStatus.folderProblem, tone: 'warn', actionable: true });
-      else if (status.saving) ui.setSaveStatus({ text: copy.saveStatus.folderSaving });
-      else ui.setSaveStatus({ text: copy.saveStatus.folder(folderLabel()), tone: 'ok' });
-    } else {
-      ui.setSaveStatus({ text: copy.saveStatus.device });
-    }
-  }
-
-  async function onSaveStatusClick() {
-    const status = exporter.status();
-    if (!status.problem || V2S.session.getState() !== 'ready') return;
-    V2S.session.stop();
-    const permission = await exporter.requestFolderPermission(); // first: browser asks
-    if (permission !== 'granted') await askForFolder();
-    await flushPendingToFolder();
-    await showRecord();
-  }
-
+  // Ending asks first: a stray tap must not end the session.
   async function onFinishToday() {
-    if (V2S.session.getState() !== 'ready') return;
+    if (ui.screen() !== 'record' || !['ready', 'partEnd'].includes(V2S.session.getState())) return;
+    const end = await ui.dialog({
+      title: copy.endDialog.title,
+      body: copy.endDialog.body,
+      actions: [
+        { label: copy.endDialog.keep, value: false, variant: 'go', default: true },
+        { label: copy.endDialog.end, value: true, variant: 'ghost' }
+      ],
+      dismissValue: false
+    });
+    logEvent('end_for_today', { confirmed: end });
+    if (!end) return;
     V2S.session.stop();
     await showDone({ allDone: false });
   }
 
-  // ---------- breaks and saving ----------
+  function onSettingsClosed() {
+    if (ui.screen() === 'record') {
+      V2S.input.setEnabled(true);
+      if (['ready', 'partEnd'].includes(V2S.session.getState())) V2S.session.resume();
+    }
+  }
+
+  // ---------- practice done, breaks and saving ----------
   const breakState = { mode: 'block', block: 0 };
 
   function setBreakButtons(primary, secondary, tertiary) {
@@ -466,30 +715,35 @@ V2S.app = (() => {
     ui.setText(textId, text);
   }
 
-  function onWarmupDone() {
-    V2S.input.setEnabled(false);
-    ui.setText('breakTitle', copy.warmupDone.title);
-    ui.setText('breakLead', copy.warmupDone.body);
-    el('breakSave').hidden = true;
-    setBreakButtons({ label: copy.warmupDone.next, action: () => showRecord() }, null, null);
-    ui.show('break');
-    el('breakPrimary').focus({ preventScroll: true });
+  // Practice done. Saving is learnt here by doing it once: in ZIP mode the practice
+  // recordings are saved with the same steps as after every part; in folder mode the
+  // screen says where every recording goes.
+  async function onWarmupDone() {
+    breakState.mode = 'practice';
+    breakState.next = null;
+    const p = positionFor(app.progress.currentIndex);
+    const first = p.warmup || (p.block === 1 && p.inBlock === 1);
+    breakState.continueLabel = first ? copy.practiceDone.next : copy.breakScreen.continueTo(p.block);
+    await showBreak(copy.practiceDone.title, copy.practiceDone.body(partCount(), cfg.BLOCK_SIZE));
   }
 
-  async function onBlockDone({ block }) {
+  async function onBlockDone({ block, blocks }) {
     breakState.mode = 'block';
     breakState.block = block;
+    breakState.next = block < blocks ? block + 1 : null;
     await showBreak(copy.breakScreen.title(block), copy.breakScreen.lead);
   }
 
   async function onStorageFull() {
     breakState.mode = 'storage';
+    breakState.next = null;
     V2S.session.stop();
     await showBreak(copy.breakScreen.savePromptTitle, copy.feedback.storageFull);
   }
 
   async function showBreak(title, lead) {
     V2S.input.setEnabled(false);
+    breakState.savedNow = 0;
     ui.setText('breakTitle', title);
     ui.setText('breakLead', lead);
     el('breakSave').hidden = false;
@@ -502,24 +756,52 @@ V2S.app = (() => {
     el('breakPrimary').focus({ preventScroll: true });
   }
 
-  // Waits for every take of the session to be stored, then (folder mode) writes
-  // anything still cached into the folder.
+  // Waits for every take of the session to be stored, then (folder mode) writes anything
+  // still cached into the folder. Gives up waiting after SETTLE_TIMEOUT_MS (a slow or
+  // stuck folder): the writes go on in the background and the screen says so.
   async function settleWrites() {
-    await V2S.session.flush();
-    if (exporter.getSaveMode() === 'folder') {
-      await exporter.flushFolderWrites();
-      await flushPendingToFolder();
-      await exporter.writeSessionLog(app.participantId, sessionSummary());
-    }
+    const settle = async () => {
+      await V2S.session.flush();
+      if (exporter.getSaveMode() === 'folder') {
+        await exporter.flushFolderWrites();
+        await flushPendingToFolder();
+        await exporter.writeSessionLog(app.participantId, sessionSummary());
+      }
+    };
+    const settled = settle().then(() => true, error => {
+      logEvent('settle_failed', { error: String(error && error.message || error) });
+      return true;
+    });
+    const done = await Promise.race([settled, sleep(cfg.SETTLE_TIMEOUT_MS).then(() => false)]);
+    if (!done) logEvent('settle_timeout', {});
   }
 
   async function refreshBreakSave() {
     const pending = await pendingCount();
-    const cont = { label: copy.breakScreen.continue, action: () => showRecord() };
+    const practice = breakState.mode === 'practice';
+    const release = pending === 0 && V2S.session.needsRoom() ? await V2S.storage.latestBackup() : null;
+    if (release && release.ids.length) {
+      // The device is full and only the last saved ZIP's copies could make room: they
+      // are removed only after the participant has checked that file is saved.
+      setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.makeRoom(saveHint(release.fileName || '')), 'warn');
+      setBreakButtons(
+        { label: copy.breakScreen.makeRoomYes, action: makeRoom },
+        null,
+        { label: copy.breakScreen.saveAgain, action: async () => { await runZipSave('backup', null, { backups: true }); await refreshBreakSave(); } }
+      );
+      return;
+    }
+    const contLabel = practice ? breakState.continueLabel : (breakState.next ? copy.breakScreen.continueTo(breakState.next) : copy.breakScreen.continue);
+    const cont = { label: contLabel, action: () => showRecord() };
     const finish = { label: copy.breakScreen.finish, action: () => showDone({ allDone: false }) };
     if (exporter.getSaveMode() === 'folder') {
-      if (pending === 0) {
-        setSavePanel('breakSave', 'breakSaveText', copy.done.savedFolder(folderLabel()), 'ok');
+      if (pending > 0 && exporter.status().saving) {
+        // Still writing (a slow folder): carrying on is safe, the writes continue.
+        setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.stillSaving(pending));
+        setBreakButtons(cont, finish, null);
+        setTimeout(() => { if (ui.screen() === 'break') refreshBreakSave(); }, 1500);
+      } else if (pending === 0) {
+        setSavePanel('breakSave', 'breakSaveText', practice ? copy.practiceDone.savedFolder(folderLabel()) : copy.done.savedFolder(folderLabel()), 'ok');
         setBreakButtons(cont, finish, null);
       } else {
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.folderProblem(pending), 'warn');
@@ -531,9 +813,17 @@ V2S.app = (() => {
       setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.savedZip, 'ok');
       setBreakButtons(cont, finish, null);
     } else {
-      setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.zipPrompt);
+      const prompt = practice ? copy.practiceDone.zipPrompt : copy.breakScreen.zipPrompt;
+      setSavePanel('breakSave', 'breakSaveText', breakState.savedNow ? copy.breakScreen.moreToSave(breakState.savedNow, pending) : prompt);
       setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, null, { label: copy.breakScreen.later, action: () => showRecord() });
     }
+  }
+
+  async function makeRoom() {
+    const removed = await V2S.storage.releaseLatestBackup();
+    logEvent('backups_released', { count: removed });
+    await V2S.session.refreshStorage().catch(() => {});
+    await refreshBreakSave();
   }
 
   async function fixFolderFromBreak() {
@@ -548,13 +838,14 @@ V2S.app = (() => {
   }
 
   async function saveZipFromBreak() {
-    const label = breakState.mode === 'block' ? `block${String(breakState.block).padStart(2, '0')}` : 'saved';
+    const label = breakState.mode === 'block' ? `block${String(breakState.block).padStart(2, '0')}` : breakState.mode === 'practice' ? 'practice' : 'saved';
     const result = await runZipSave(label, (done, total) => {
       el('breakSaveProgress').hidden = false;
       el('breakSaveBar').style.transform = `scaleX(${(done / total).toFixed(3)})`;
       ui.setText('breakSaveLabel', copy.breakScreen.saving(done, total));
     });
     el('breakSaveProgress').hidden = true;
+    if (result === 'saved') breakState.savedNow = (breakState.savedNow || 0) + app.lastSavedCount;
     if (result === 'saved' || result === 'nothing') {
       await refreshBreakSave();
     } else if (result !== 'cancelled') {
@@ -570,18 +861,21 @@ V2S.app = (() => {
   }
 
   // ZIP save. The save dialog (Chrome/Edge) opens FIRST, while the click still counts;
-  // a plain download is only cleared after the person confirms the file exists.
-  async function runZipSave(label, onProgress) {
+  // a plain download is only cleared after the participant confirms the file exists.
+  async function runZipSave(label, onProgress, { backups = false } = {}) {
     const stamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     const suggested = `${app.participantId || 'recordings'}_video-recordings-${stamp}_${label}.zip`;
     const target = await exporter.pickZipTarget(suggested);
     if (target === undefined) return 'cancelled';
     let result;
     try {
-      result = await exporter.saveZip({ participantId: app.participantId, label, summary: sessionSummary(), target, onProgress });
+      // Every take recorded so far is in storage before the ZIP is built.
+      await V2S.session.flush();
+      await app.flushEvents();
+      result = await exporter.saveZip({ participantId: app.participantId, label, summary: sessionSummary(), target, onProgress, backups });
     } catch (error) {
       logEvent('zip_failed', { error: String(error && error.message || error) });
-      await ui.dialog({ title: copy.error.loadTitle, body: String(error && error.message || error), actions: [{ label: copy.common.ok, value: true, variant: 'primary' }], dismissValue: true });
+      await ui.alert(copy.error.loadTitle, String(error && error.message || error));
       return 'failed';
     }
     if (!result.count) return 'nothing';
@@ -591,18 +885,24 @@ V2S.app = (() => {
         title: copy.saveConfirm.title,
         body: saveHint(result.fileName),
         actions: [
-          { label: copy.saveConfirm.yes, value: 'yes', variant: 'primary' },
-          { label: copy.saveConfirm.no, value: 'no', variant: 'secondary' },
-          { label: copy.saveConfirm.unsure, value: 'unsure', variant: 'secondary', default: true }
+          { label: copy.saveConfirm.yes, value: 'yes', variant: 'plain' },
+          { label: copy.saveConfirm.no, value: 'no', variant: 'plain' },
+          { label: copy.saveConfirm.unsure, value: 'unsure', variant: 'plain', default: true }
         ],
         dismissValue: 'unsure'
       });
       logEvent('zip_confirm', { answer, fileName: result.fileName, count: result.count });
-      if (answer === 'no') return runZipSave(label, onProgress);
+      if (answer === 'no') return runZipSave(label, onProgress, { backups });
       confirmed = answer === 'yes';
     }
     if (!confirmed) return 'unsure';
-    await V2S.storage.deleteTakes(result.ids);
+    app.lastSavedCount = result.count;
+    if (!backups) {
+      // Kept as backup copies (left out of later ZIPs) until space is needed.
+      await V2S.storage.markExported(result.ids, result.fileName);
+      const extra = (await V2S.storage.exportedIds()).length - cfg.BACKUP_MAX_TAKES;
+      if (extra > 0) logEvent('backups_pruned', { count: await V2S.storage.pruneExported(extra, { keepLatest: true }), reason: 'limit' });
+    }
     await V2S.session.refreshStorage().catch(() => {});
     return 'saved';
   }
@@ -625,8 +925,10 @@ V2S.app = (() => {
   async function showDone({ allDone }) {
     V2S.input.setEnabled(false);
     V2S.session.stop();
+    app.doneAll = Boolean(allDone);
     ui.setText('doneTitle', allDone ? copy.done.allTitle : copy.done.finishTitle);
-    ui.setText('doneBody', allDone ? copy.done.allBody : copy.done.finishBody);
+    ui.setText('doneBody', '');
+    setDoneBadge('wait');
     ui.setText('doneAgain', copy.done.again);
     el('doneAgain').hidden = Boolean(allDone);
     setSavePanel('doneSavePanel', 'doneSaveText', exporter.getSaveMode() === 'folder' ? copy.breakScreen.savingFolder : copy.record.saving);
@@ -643,14 +945,30 @@ V2S.app = (() => {
     logEvent('session_end', { allDone, index: app.progress && app.progress.currentIndex });
   }
 
+  const BADGES = {
+    ok: ['badge-go', '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'],
+    wait: ['badge-neutral', '<svg viewBox="0 0 24 24"><path d="M12 4v10M7.5 9.5 12 14l4.5-4.5M5 19h14"/></svg>']
+  };
+
+  function setDoneBadge(kind) {
+    const [className, icon] = BADGES[kind];
+    el('doneBadge').className = `badge ${className}`;
+    el('doneBadge').innerHTML = icon;
+  }
+
   async function refreshDoneSave() {
     const pending = await pendingCount();
     const folder = exporter.getSaveMode() === 'folder';
     if (pending === 0) {
-      setSavePanel('doneSavePanel', 'doneSaveText', folder ? copy.done.savedFolder(folderLabel()) : copy.breakScreen.savedZip, 'ok');
+      setDoneBadge('ok');
+      ui.setText('doneBody', app.doneAll ? copy.done.allBody : copy.done.finishBody);
+      setSavePanel('doneSavePanel', 'doneSaveText', folder ? copy.done.savedFolder(folderLabel()) : copy.done.savedZip, 'ok');
       el('doneSave').hidden = true;
       return;
     }
+    // Recordings still only in the browser: the page must not say "you can close this page".
+    setDoneBadge('wait');
+    ui.setText('doneBody', copy.done.saveFirst);
     setSavePanel('doneSavePanel', 'doneSaveText', copy.done.pending(pending), 'warn');
     ui.setText('doneSave', folder ? copy.breakScreen.allowFolder : copy.done.save);
     el('doneSave').hidden = false;
@@ -673,7 +991,7 @@ V2S.app = (() => {
   }
 
   // ---------- errors ----------
-  function showError({ title, body, help, action, actionLabel }) {
+  function showError({ title, body, help, action, actionLabel, secondary }) {
     V2S.input.setEnabled(false);
     ui.setText('errorTitle', title);
     ui.setText('errorBody', body);
@@ -681,6 +999,11 @@ V2S.app = (() => {
     ui.setText('errorHelp', help || '');
     ui.setText('errorAction', actionLabel);
     el('errorAction').onclick = action;
+    el('errorSecondary').hidden = !secondary;
+    if (secondary) {
+      ui.setText('errorSecondary', secondary.label);
+      el('errorSecondary').onclick = secondary.action;
+    }
     ui.show('error');
     el('errorAction').focus({ preventScroll: true });
   }
@@ -697,29 +1020,51 @@ V2S.app = (() => {
     return showError({ title: copy.error.deviceTitle, body: copy.error.deviceBody, help: ui.helpText(), actionLabel: copy.error.tryAgain, action: () => showCheck() });
   }
 
+  async function reconnectAndResume() {
+    V2S.meter.resume();
+    el('errorAction').setAttribute('aria-disabled', 'true');
+    try {
+      await openMedia();
+    } catch (error) {
+      el('errorAction').setAttribute('aria-disabled', 'false');
+      return showMediaError(error);
+    }
+    el('errorAction').setAttribute('aria-disabled', 'false');
+    ui.show('record');
+    V2S.input.setEnabled(true);
+    V2S.session.resumeAfterReconnect();
+  }
+
   function onDeviceError(code) {
     V2S.media.stopHealth();
-    showError({
-      title: copy.error.deviceTitle,
-      body: copy.error.deviceBody,
-      actionLabel: copy.error.reconnect,
-      action: async () => {
-        V2S.meter.resume();
-        el('errorAction').setAttribute('aria-disabled', 'true');
-        try {
-          await openMedia();
-        } catch (error) {
-          el('errorAction').setAttribute('aria-disabled', 'false');
-          return showMediaError(error);
-        }
-        el('errorAction').setAttribute('aria-disabled', 'false');
-        ui.show('record');
-        renderSaveStatus(exporter.status());
-        V2S.input.setEnabled(true);
-        V2S.session.resumeAfterReconnect();
-      }
-    });
+    showError({ title: copy.error.deviceTitle, body: copy.error.deviceBody, actionLabel: copy.error.reconnect, action: reconnectAndResume });
     logEvent('device_error_screen', { code });
+  }
+
+  // Takes could not be stored twice in a row, and saving would not help.
+  function onStoreFailure() {
+    V2S.session.stop();
+    showError({
+      title: copy.error.storeTitle,
+      body: copy.error.storeBody,
+      actionLabel: copy.error.tryAgain,
+      action: () => showRecord(),
+      secondary: { label: copy.error.reload, action: () => window.location.reload() }
+    });
+    logEvent('store_failure_screen', {});
+  }
+
+  // The recorder failed to start twice in a row (after silent retries each time).
+  function onStartFailure() {
+    V2S.session.stop();
+    showError({
+      title: copy.error.startTitle,
+      body: copy.error.startBody,
+      actionLabel: copy.error.chooseMic,
+      action: () => showCheck({ returnTo: 'record' }).then(() => V2S.settings.open('settingsDevices')),
+      secondary: { label: copy.error.tryAgain, action: () => showRecord() }
+    });
+    logEvent('start_failure_screen', {});
   }
 
   function showLoadError(error) {
@@ -731,6 +1076,65 @@ V2S.app = (() => {
       actionLabel: copy.error.reload,
       action: () => window.location.reload()
     });
+  }
+
+  async function signOut() {
+    logEvent('sign_out', {});
+    V2S.session.stop();
+    await V2S.session.flush();
+    if (exporter.getSaveMode() === 'folder') await exporter.flushFolderWrites();
+    try {
+      sessionStorage.removeItem('v2s_auth_ok');
+      sessionStorage.removeItem('v2s_auth_user');
+    } catch (error) { /* ignore */ }
+    // Back to this page after signing in again.
+    window.location.replace('/index.html?next=' + encodeURIComponent(window.location.pathname));
+  }
+
+  // ---------- one tab at a time ----------
+  // Two open copies would record into the same storage and progress. The page holds a
+  // lock while open; a second copy asks first and can take over (the first one stops).
+  function holdTabLock(steal = false) {
+    if (!navigator.locks || typeof navigator.locks.request !== 'function') return Promise.resolve(true);
+    return new Promise(resolve => {
+      const options = steal ? { steal: true } : { ifAvailable: true };
+      navigator.locks.request('v2s-recorder', options, lock => {
+        if (!lock) {
+          resolve(false);
+          return null;
+        }
+        resolve(true);
+        return new Promise(() => {}); // held until the page closes
+      }).catch(error => {
+        // Taken over by another tab.
+        if (error && error.name === 'AbortError') onTabTakenOver();
+      });
+    });
+  }
+
+  function showOtherTab(title, body) {
+    showError({
+      title,
+      body,
+      actionLabel: copy.tab.useHere,
+      action: async () => {
+        logEvent('tab_take_over', {});
+        await holdTabLock(true);
+        window.location.reload();
+      }
+    });
+  }
+
+  async function onTabTakenOver() {
+    logEvent('tab_taken_over', {});
+    await V2S.session.abortCurrent('aborted_hidden');
+    V2S.session.stop();
+    V2S.input.setEnabled(false);
+    V2S.media.stopHealth();
+    V2S.meter.detach();
+    V2S.media.close();
+    app.sessionStarted = false;
+    showOtherTab(copy.tab.movedTitle, copy.tab.movedBody);
   }
 
   // ---------- boot ----------
@@ -745,10 +1149,16 @@ V2S.app = (() => {
     });
     el('welcomeStart').addEventListener('click', onWelcomeStart);
     el('welcomeNoticeAction').addEventListener('click', onWelcomeSaveNow);
-    el('checkOk').addEventListener('click', onCheckOk);
+    el('testRecord').addEventListener('click', onTestRecord);
+    el('testYes').addEventListener('click', onTestYes);
+    el('testAgain').addEventListener('click', onTestRecord);
+    el('changeCamera').addEventListener('click', () => V2S.settings.open('settingsDevices'));
+    el('changeMic').addEventListener('click', () => V2S.settings.open('settingsDevices'));
     el('checkHelp').addEventListener('click', () => ui.showCameraHelp());
+    el('howtoGo').addEventListener('click', onHowtoGo);
     el('finishButton').addEventListener('click', onFinishToday);
-    el('saveStatus').addEventListener('click', onSaveStatusClick);
+    el('helpButton').addEventListener('click', onHelp);
+    el('themeButton').addEventListener('click', toggleTheme);
     el('doneSave').addEventListener('click', onDoneSave);
     el('doneAgain').addEventListener('click', () => showWelcome());
 
@@ -757,32 +1167,55 @@ V2S.app = (() => {
       secondary: press => V2S.session.onSecondary(press),
       hold: press => V2S.session.onHold(press)
     });
-    V2S.input.bindButton(el('primaryButton'), 'primary');
-    V2S.input.bindButton(el('secondaryButton'), 'secondary');
+    V2S.input.bindButton(el('mainButton'), 'primary');
+    V2S.input.bindButton(el('redoButton'), 'secondary');
     V2S.media.onFailure(code => {
       if (ui.screen() === 'record') V2S.session.onDeviceFailure(code);
       else if (ui.screen() === 'check') showMediaError(Object.assign(new Error(code), { code: 'device' }));
     });
-    V2S.session.configure({ onWarmupDone, onBlockDone, onAllDone: () => showDone({ allDone: true }), onDeviceError, onStorageFull });
-    exporter.onStatus(status => { if (ui.screen() === 'record') renderSaveStatus(status); });
+    V2S.session.configure({ onWarmupDone, onBlockDone, onAllDone: () => showDone({ allDone: true }), onDeviceError, onStorageFull, onStartFailure, onStoreFailure });
 
     V2S.media.registerPreview(el('checkPreview'));
     V2S.media.registerPreview(el('recordPreview'));
-    V2S.media.setMonitorVideo(el('recordPreview'));
+    V2S.media.registerPreview(el('monitorVideo'));
+    V2S.media.setMonitorVideo(el('monitorVideo'));
     V2S.meter.registerWave(el('checkWave'));
-    V2S.meter.registerWave(el('recordWave'));
+    V2S.meter.registerWave(el('recordWave'), { idleFlat: true });
     ui.watchPreviewShape('checkFrame', 'checkPreview');
     ui.watchPreviewShape('recordFrame', 'recordPreview');
 
     if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       document.documentElement.classList.add('has-keyboard');
     }
+
+    // Presentation clickers and switches send PageDown / →. Outside the recording screen
+    // (where input.js handles them) they press the highlighted button, so a clicker alone
+    // gets through every screen; each screen highlights its main button.
+    document.addEventListener('keydown', event => {
+      if (event.repeat || !['PageDown', 'ArrowRight'].includes(event.key)) return;
+      if (ui.screen() === 'record' && !ui.isDialogOpen()) return;
+      const target = document.activeElement;
+      if (!target || target.tagName !== 'BUTTON' || target.disabled || target.getAttribute('aria-disabled') === 'true') return;
+      event.preventDefault();
+      target.click();
+    });
   }
 
   async function boot() {
     await window.__v2sGate;
     fillStaticCopy();
     wire();
+    ui.labelTopbar(document.documentElement.getAttribute('data-theme'));
+    // On a reload the previous copy of this page may take a moment to let go.
+    let locked = await holdTabLock();
+    for (let i = 0; !locked && i < 5; i++) {
+      await sleep(300);
+      locked = await holdTabLock();
+    }
+    if (!locked) {
+      logEvent('tab_already_open', {});
+      return showOtherTab(copy.tab.title, copy.tab.body);
+    }
     try {
       await V2S.storage.init();
       await exporter.init();
@@ -793,19 +1226,25 @@ V2S.app = (() => {
     persistEvents();
     V2S.util.startSession();
     V2S.storage.trimEvents().catch(() => {});
-    if (V2S.admin) V2S.admin.init(api);
+    V2S.settings.init(api);
     app.participantId = await V2S.storage.getSetting('participantId', null);
     if (!app.participantId) showSetup();
     else await showWelcome();
   }
 
-  // Used by the researcher panel and tests.
+  // Used by Settings and tests.
   const api = {
     state: () => app,
     applyTheme,
+    setTheme,
     showWelcome,
     showSetup,
+    showCheck,
     runZipSave,
+    pendingCount,
+    reopenMedia,
+    onSettingsClosed,
+    signOut,
     restartSession: async () => {
       V2S.session.stop();
       V2S.input.setEnabled(false);
@@ -823,6 +1262,30 @@ V2S.app = (() => {
     setSetKey: async setKey => {
       app.setKey = setKey;
       await V2S.storage.setSetting('setKey', setKey);
+    },
+    // Settings → Clear progress: back to the very start (Welcome, How to record, practice),
+    // after every pending write, so nothing older can overwrite it.
+    clearProgress: async () => {
+      V2S.session.stop();
+      await V2S.session.flush();
+      V2S.session.startNewRoundIfCompleted(app.progress);
+      Object.assign(app.progress, { currentIndex: 0, completed: false, completedAt: null, coachDone: false, howtoSeen: false, resumeIndex: null });
+      delete app.progress.pendingRedo;
+      await V2S.storage.saveParticipantProgress(app.progress);
+      await api.restartSession();
+    },
+    // Settings → Previous / Next / Skip / Go to: during a session the screen just moves to
+    // that sentence (no camera restart); otherwise the welcome screen shows the new place.
+    jumpTo: async (index, extra = {}) => {
+      V2S.session.startNewRoundIfCompleted(app.progress);
+      Object.assign(app.progress, extra);
+      if (app.sessionStarted && V2S.session.jumpTo(index)) {
+        if (ui.screen() !== 'record') await showRecord();
+        return;
+      }
+      Object.assign(app.progress, { currentIndex: index, completed: false, completedAt: null });
+      await V2S.storage.saveParticipantProgress(app.progress);
+      await showWelcome();
     }
   };
 

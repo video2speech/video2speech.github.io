@@ -6,9 +6,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="theme-color" content="#F4F3EF">
+  <meta name="theme-color" content="#F2F1EC">
   <title>Speech Recording</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2315181E'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23E03A2F'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23D9F0E1'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%231E9E52'/%3E%3C/svg%3E">
   <script>
     // Theme first (no flash), then the sign-in and version gate. main.js waits for
     // window.__v2sGate before starting anything.
@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '202';
+      var APP_VERSION = '204';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,19 +42,39 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/app.css?v=202">
+  <link rel="stylesheet" href="css/base.css?v=204">
+  <link rel="stylesheet" href="css/app.css?v=204">
 </head>
-<body>
+<body data-screen="loading" data-rec="off">
   <div class="app" id="app">
-    <button class="corner-button" id="adminButton" type="button" hidden aria-label="Research settings">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
-    </button>
+    <!-- Top bar: where you are (recording screen) and the always-available actions -->
+    <header class="topbar" id="topbar">
+      <div class="topbar-left">
+        <div class="where" id="where" hidden>
+          <p class="where-text"><span class="where-long" id="whereMain"></span><span class="where-short" id="whereShort"></span><span class="where-sub" id="whereSub"></span></p>
+          <div class="bar" aria-hidden="true"><div class="bar-fill" id="whereBar"></div></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-finish" id="finishButton" type="button" hidden><span class="label-long" id="finishLong"></span><span class="label-short" id="finishShort"></span></button>
+        <button class="icon-btn" id="helpButton" type="button" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4.2M12 17.6v.2"/></svg>
+        </button>
+        <button class="icon-btn" id="themeButton" type="button">
+          <svg class="theme-to-dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+          <svg class="theme-to-light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+        </button>
+        <button class="icon-btn" id="settingsButton" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        </button>
+      </div>
+    </header>
 
     <main class="screens">
       <!-- Loading -->
       <section class="screen screen-center" id="screen-loading">
         <div class="spinner" aria-hidden="true"></div>
-        <p class="quiet" id="loadingText"></p>
+        <p class="meta" id="loadingText"></p>
       </section>
 
       <!-- First-time setup: research team or helper, once per device -->
@@ -70,7 +90,7 @@
                      autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="24">
               <p class="field-hint" id="setupHint"></p>
               <p class="field-error" id="setupError" role="alert" hidden></p>
-              <button class="btn btn-primary btn-xl btn-block" id="setupNext" type="submit"></button>
+              <button class="btn btn-go btn-xl btn-block" id="setupNext" type="submit"></button>
             </form>
           </div>
           <div id="setupStepConfirm" hidden>
@@ -78,8 +98,8 @@
             <p class="id-display" id="setupConfirmId"></p>
             <div class="options" id="setupLegacy" hidden></div>
             <div class="actions">
-              <button class="btn btn-primary btn-xl btn-block" id="setupConfirmYes" type="button"></button>
-              <button class="btn btn-quiet btn-lg btn-block" id="setupConfirmChange" type="button"></button>
+              <button class="btn btn-go btn-xl btn-block" id="setupConfirmYes" type="button"></button>
+              <button class="btn btn-ghost btn-lg btn-block" id="setupConfirmChange" type="button"></button>
             </div>
           </div>
           <div id="setupStepFolder" hidden>
@@ -87,8 +107,8 @@
             <p class="lead" id="setupFolderLead"></p>
             <p class="field-error" id="setupFolderError" role="alert" hidden></p>
             <div class="actions">
-              <button class="btn btn-primary btn-xl btn-block" id="setupFolderChoose" type="button"></button>
-              <button class="btn btn-quiet btn-lg btn-block" id="setupFolderZip" type="button"></button>
+              <button class="btn btn-go btn-xl btn-block" id="setupFolderChoose" type="button"></button>
+              <button class="btn btn-ghost btn-lg btn-block" id="setupFolderZip" type="button"></button>
             </div>
           </div>
         </div>
@@ -97,21 +117,26 @@
       <!-- Welcome -->
       <section class="screen screen-center" id="screen-welcome" hidden>
         <div class="column column-center">
-          <p class="eyebrow" id="welcomeParticipant"></p>
+          <p class="eyebrow" id="welcomeId"></p>
           <h1 id="welcomeTitle"></h1>
           <p class="lead" id="welcomeLead"></p>
-          <div class="journey" id="welcomeJourney">
+          <ol class="stages" id="welcomeStages" hidden>
+            <li><span class="num">1</span><span id="welcomeStage1"></span></li>
+            <li><span class="num">2</span><span id="welcomeStage2"></span></li>
+            <li><span class="num">3</span><span id="welcomeStage3"></span></li>
+          </ol>
+          <div class="journey" id="welcomeJourney" hidden>
             <div class="journey-row">
-              <span class="journey-label" id="welcomeBlock"></span>
+              <span class="journey-label" id="welcomePart"></span>
               <span class="journey-count" id="welcomeCount"></span>
             </div>
-            <div class="bar" aria-hidden="true"><div class="bar-fill" id="welcomeBar"></div></div>
+            <div class="bar bar-strong bar-go" aria-hidden="true"><div class="bar-fill" id="welcomeBar"></div></div>
           </div>
           <div class="notice" id="welcomeNotice" hidden>
             <p id="welcomeNoticeText"></p>
-            <button class="btn btn-quiet btn-md" id="welcomeNoticeAction" type="button"></button>
+            <button class="btn btn-ghost btn-md" id="welcomeNoticeAction" type="button"></button>
           </div>
-          <button class="btn btn-primary btn-xl btn-wide" id="welcomeStart" type="button"></button>
+          <div class="cta-sticky actions"><button class="btn btn-go btn-xl btn-block" id="welcomeStart" type="button"></button></div>
         </div>
       </section>
 
@@ -123,112 +148,182 @@
           <p class="lead" id="folderLead"></p>
           <p class="field-error" id="folderError" role="alert" hidden></p>
           <div class="actions">
-            <button class="btn btn-primary btn-xl btn-block" id="folderAllow" type="button"></button>
-            <button class="btn btn-quiet btn-lg btn-block" id="folderChoose" type="button"></button>
+            <button class="btn btn-go btn-xl btn-block" id="folderAllow" type="button"></button>
+            <button class="btn btn-ghost btn-lg btn-block" id="folderChoose" type="button"></button>
           </div>
-          <button class="btn-link" id="folderZip" type="button"></button>
+          <button class="btn-text" id="folderZip" type="button"></button>
         </div>
       </section>
 
-      <!-- Camera and microphone check -->
+      <!-- Camera and microphone check, with a test recording that plays back -->
       <section class="screen" id="screen-check" hidden>
         <div class="check">
-          <div class="preview-frame preview-large" id="checkFrame">
-            <video id="checkPreview" playsinline muted autoplay></video>
-            <div class="face-guide" aria-hidden="true"></div>
-            <div class="preview-status" id="checkStatus"></div>
+          <div class="check-media">
+            <div class="preview-frame" id="checkFrame">
+              <video id="checkPreview" playsinline muted autoplay></video>
+              <video id="checkPlayback" playsinline hidden></video>
+              <!-- Head and neck outline: the study needs the mouth, cheeks and throat in view
+                   (camera below the chin, tilted up), not just a centred face. -->
+              <svg class="face-guide" viewBox="0 0 100 100" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+                <path class="guide-shadow" d="M 8 100 C 12 88 30 84 41 80 L 42 64 C 33 59 32 48 33 38 C 34 25 42 18 50 18 C 58 18 66 25 67 38 C 68 48 67 59 58 64 L 59 80 C 70 84 88 88 92 100"/>
+                <path class="guide-line" d="M 8 100 C 12 88 30 84 41 80 L 42 64 C 33 59 32 48 33 38 C 34 25 42 18 50 18 C 58 18 66 25 67 38 C 68 48 67 59 58 64 L 59 80 C 70 84 88 88 92 100"/>
+              </svg>
+              <p class="preview-badge" id="checkBadge"></p>
+            </div>
+            <canvas class="wave wave-check" id="checkWave" aria-hidden="true"></canvas>
           </div>
-          <div class="check-side">
+          <div class="check-panel">
             <h1 id="checkTitle"></h1>
-            <ul class="hints">
-              <li><span class="hint-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6.5"/><path d="M8.5 21h7"/></svg></span><span id="checkFace"></span></li>
-              <li><span class="hint-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h0"/></svg></span><span id="checkVoice"></span></li>
-            </ul>
-            <canvas class="wave wave-large" id="checkWave" aria-hidden="true"></canvas>
-            <button class="btn btn-primary btn-xl btn-block" id="checkOk" type="button"></button>
-            <button class="btn-link" id="checkHelp" type="button"></button>
+            <ol class="check-steps">
+              <li>
+                <span class="num">1</span>
+                <div>
+                  <strong id="checkCameraTitle"></strong>
+                  <p id="checkCameraText"></p>
+                  <p class="device"><span class="device-name" id="cameraName"></span><button class="btn-text" id="changeCamera" type="button"></button></p>
+                </div>
+              </li>
+              <li>
+                <span class="num">2</span>
+                <div>
+                  <strong id="checkMicTitle"></strong>
+                  <p id="checkMicText"></p>
+                  <p class="device"><span class="device-name" id="micName"></span><button class="btn-text" id="changeMic" type="button"></button></p>
+                  <div class="notice notice-stack" id="micWarning" hidden>
+                    <p id="micWarningText"></p>
+                    <button class="btn btn-ghost btn-md" id="micSwitch" type="button" hidden></button>
+                  </div>
+                </div>
+              </li>
+            </ol>
+            <div class="test cta-sticky" id="testBox">
+              <button class="btn btn-go btn-lg btn-block" id="testRecord" type="button"><span class="btn-icon"><span class="dot-go"></span></span><span id="testRecordLabel"></span></button>
+              <div id="testLive" hidden>
+                <p class="test-say" id="testSay"></p>
+                <div class="bar bar-strong bar-go" aria-hidden="true"><div class="bar-fill" id="testBar"></div></div>
+              </div>
+              <p class="test-status" id="testStatus" hidden></p>
+              <div id="testAsk" hidden>
+                <p class="test-question" id="testQuestion"></p>
+                <div class="actions">
+                  <button class="btn btn-go btn-lg btn-block" id="testYes" type="button"></button>
+                  <button class="btn btn-ghost btn-lg btn-block" id="testAgain" type="button"></button>
+                </div>
+              </div>
+              <p class="field-error" id="testError" role="alert" hidden></p>
+            </div>
+            <button class="btn-text" id="checkHelp" type="button"></button>
           </div>
         </div>
       </section>
 
-      <!-- Recording -->
-      <section class="screen screen-record" id="screen-record" hidden data-state="ready">
-        <header class="rec-top">
-          <div class="rec-progress">
-            <span class="rec-progress-main" id="progressMain"></span>
-            <span class="rec-progress-sub" id="progressSub"></span>
+      <!-- How to record (first time, and from the ? button) -->
+      <section class="screen screen-center" id="screen-howto" hidden>
+        <div class="howto">
+          <h1 id="howtoTitle"></h1>
+          <ol class="howto-steps">
+            <li>
+              <span class="num">1</span>
+              <span class="mock mock-start" aria-hidden="true"><span class="dot-go"></span><span id="howtoMockStart"></span></span>
+              <p id="howtoStep1"></p>
+            </li>
+            <li>
+              <span class="num">2</span>
+              <span class="mock mock-card" aria-hidden="true" id="howtoMockSentence"></span>
+              <p id="howtoStep2"></p>
+            </li>
+            <li>
+              <span class="num">3</span>
+              <span class="mock mock-stop" aria-hidden="true"><span class="square"></span><span id="howtoMockStop"></span></span>
+              <p id="howtoStep3"></p>
+            </li>
+          </ol>
+          <div class="howto-redo">
+            <span class="mock mock-redo" aria-hidden="true"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></span><span id="howtoMockRedo"></span></span>
+            <p id="howtoRedo"></p>
           </div>
-          <div class="bar bar-thin" aria-hidden="true"><div class="bar-fill" id="progressBar"></div></div>
-        </header>
+          <p class="meta howto-keys" id="howtoKeys" hidden></p>
+          <div class="cta-sticky howto-cta"><button class="btn btn-go btn-xl btn-block" id="howtoGo" type="button"></button></div>
+        </div>
+      </section>
 
-        <div class="rec-stage" id="recStage">
-          <p class="rec-state" id="recState" role="status" aria-live="polite">
-            <span class="rec-dot" aria-hidden="true"></span><span id="recStateText"></span>
-          </p>
-          <p class="sentence" id="sentenceText"></p>
-          <p class="rec-message" id="recMessage" aria-live="polite">
-            <span class="rec-message-body"><span class="rec-message-icon" id="recMessageIcon" aria-hidden="true"></span><span id="recMessageText"></span></span>
-          </p>
+      <!-- Recording (practice and real sentences) -->
+      <section class="screen screen-record" id="screen-record" hidden data-state="ready">
+        <div class="coach" id="coach" hidden>
+          <ol class="steps" id="coachSteps" aria-hidden="true">
+            <li data-step="1"><span class="step-num">1</span><span id="coachStep1"></span></li>
+            <li data-step="2"><span class="step-num">2</span><span id="coachStep2"></span></li>
+            <li data-step="3"><span class="step-num">3</span><span id="coachStep3"></span></li>
+          </ol>
+          <p class="coach-text" id="coachText" aria-live="polite"></p>
         </div>
 
-        <footer class="rec-controls">
-          <div class="rec-side rec-side-left">
-            <button class="btn btn-secondary btn-lg" id="secondaryButton" type="button">
-              <span class="btn-icon" id="secondaryIcon" aria-hidden="true"></span>
-              <span id="secondaryLabel"></span>
-              <kbd class="key-hint" aria-hidden="true">←</kbd>
+        <div class="card" id="card">
+          <div class="card-top">
+            <p class="status" id="cardStatus" role="status" aria-live="polite">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span class="status-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+              <span id="cardStatusText"></span>
+              <span class="status-time" id="cardTimer"></span>
+            </p>
+          </div>
+          <div class="card-text"><p class="sentence" id="sentenceText"></p></div>
+          <canvas class="wave" id="recordWave" aria-hidden="true"></canvas>
+        </div>
+
+        <p class="message is-empty" id="message" aria-live="polite">
+          <span class="message-body"><span class="message-icon" id="messageIcon" aria-hidden="true"></span><span id="messageText"></span></span>
+        </p>
+
+        <div class="controls">
+          <div class="controls-left">
+            <button class="btn btn-ghost redo" id="redoButton" type="button">
+              <span class="redo-label"><span class="btn-icon" id="redoIcon" aria-hidden="true"></span><span id="redoLabel"></span><kbd class="key-hint" aria-hidden="true">←</kbd></span>
+              <span class="redo-caption"><span class="redo-saved" id="redoSaved" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span id="redoSavedText"></span></span><span id="redoCaption"></span></span>
             </button>
           </div>
-          <button class="btn btn-primary btn-xxl" id="primaryButton" type="button">
-            <span class="btn-icon" id="primaryIcon" aria-hidden="true"></span>
-            <span id="primaryLabel"></span>
+          <button class="btn btn-go btn-main" id="mainButton" type="button">
+            <span class="btn-icon" id="mainIcon" aria-hidden="true"></span>
+            <span id="mainLabel"></span>
             <kbd class="key-hint" aria-hidden="true">Space</kbd>
           </button>
-          <div class="rec-side rec-side-right">
-            <div class="monitor">
-              <canvas class="wave" id="recordWave" aria-hidden="true"></canvas>
-              <div class="preview-frame preview-small" id="recordFrame"><video id="recordPreview" playsinline muted autoplay></video></div>
-            </div>
-            <button class="save-status" id="saveStatus" type="button"></button>
+          <div class="controls-right">
+            <div class="cam-thumb" id="recordFrame"><video id="recordPreview" playsinline muted autoplay></video></div>
           </div>
-        </footer>
-
-        <div class="rec-bottom">
-          <button class="btn-link" id="finishButton" type="button"></button>
         </div>
       </section>
 
-      <!-- Block break, warm-up done, and saving -->
+      <!-- Practice done, part breaks, and saving -->
       <section class="screen screen-center" id="screen-break" hidden>
         <div class="column column-center">
-          <div class="badge badge-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+          <div class="badge badge-go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
           <h1 id="breakTitle"></h1>
           <p class="lead" id="breakLead"></p>
           <div class="save-panel" id="breakSave">
             <p class="save-panel-text" id="breakSaveText"></p>
             <div class="save-progress" id="breakSaveProgress" hidden>
-              <div class="bar bar-thin" aria-hidden="true"><div class="bar-fill" id="breakSaveBar"></div></div>
-              <span class="quiet" id="breakSaveLabel"></span>
+              <div class="bar" aria-hidden="true"><div class="bar-fill" id="breakSaveBar"></div></div>
+              <span class="meta" id="breakSaveLabel"></span>
             </div>
           </div>
-          <div class="actions">
-            <button class="btn btn-primary btn-xl btn-block" id="breakPrimary" type="button"></button>
-            <button class="btn btn-quiet btn-lg btn-block" id="breakSecondary" type="button"></button>
+          <div class="actions cta-sticky">
+            <button class="btn btn-go btn-xl btn-block" id="breakPrimary" type="button"></button>
+            <button class="btn btn-ghost btn-lg btn-block" id="breakSecondary" type="button"></button>
           </div>
-          <button class="btn-link" id="breakTertiary" type="button" hidden></button>
+          <button class="btn-text" id="breakTertiary" type="button" hidden></button>
         </div>
       </section>
 
       <!-- Done -->
       <section class="screen screen-center" id="screen-done" hidden>
         <div class="column column-center">
-          <div class="badge badge-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+          <div class="badge badge-neutral" id="doneBadge" aria-hidden="true"></div>
           <h1 id="doneTitle"></h1>
           <p class="lead" id="doneBody"></p>
           <div class="save-panel" id="doneSavePanel" hidden><p class="save-panel-text" id="doneSaveText"></p></div>
-          <div class="actions">
-            <button class="btn btn-primary btn-xl btn-block" id="doneSave" type="button" hidden></button>
-            <button class="btn btn-quiet btn-lg btn-block" id="doneAgain" type="button"></button>
+          <div class="actions cta-sticky">
+            <button class="btn btn-go btn-xl btn-block" id="doneSave" type="button" hidden></button>
+            <button class="btn btn-ghost btn-lg btn-block" id="doneAgain" type="button"></button>
           </div>
         </div>
       </section>
@@ -240,14 +335,20 @@
           <h1 id="errorTitle"></h1>
           <p class="lead" id="errorBody"></p>
           <p class="help-text" id="errorHelp" hidden></p>
-          <button class="btn btn-primary btn-xl btn-wide" id="errorAction" type="button"></button>
+          <div class="actions cta-sticky">
+            <button class="btn btn-go btn-xl btn-block" id="errorAction" type="button"></button>
+            <button class="btn btn-ghost btn-lg btn-block" id="errorSecondary" type="button" hidden></button>
+          </div>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- Recording frame around the whole screen -->
-  <div class="rec-frame" aria-hidden="true"></div>
+  <!-- While recording, a green frame runs round the whole screen (a cue that does not depend on reading the card). -->
+  <div class="live-frame" aria-hidden="true"></div>
+  <!-- Watches the camera for a frozen picture. Always rendered (2 px, nearly transparent):
+       the preview is hidden while recording, and browsers stop updating hidden videos. -->
+  <video class="monitor-video" id="monitorVideo" playsinline muted autoplay aria-hidden="true" tabindex="-1"></video>
 
   <div class="overlay" id="dialog" hidden>
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogBody">
@@ -257,32 +358,32 @@
     </div>
   </div>
 
-  <div class="overlay overlay-side" id="adminPanel" hidden>
-    <aside class="admin" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
-      <header class="admin-head">
-        <h2 id="adminTitle">Research settings</h2>
-        <button class="corner-button corner-button-static" id="adminClose" type="button" aria-label="Close">
+  <div class="overlay overlay-sheet" id="settingsPanel" hidden>
+    <aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <header class="sheet-head">
+        <h2 id="settingsTitle"></h2>
+        <button class="icon-btn" id="settingsClose" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
       </header>
-      <div class="admin-body" id="adminBody"></div>
+      <div class="sheet-body" id="settingsBody"></div>
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=202"></script>
-  <script defer src="js/config.js?v=202"></script>
-  <script defer src="js/copy.js?v=202"></script>
-  <script defer src="js/util.js?v=202"></script>
-  <script defer src="js/storage.js?v=202"></script>
-  <script defer src="js/sentences.js?v=202"></script>
-  <script defer src="js/media.js?v=202"></script>
-  <script defer src="js/meter.js?v=202"></script>
-  <script defer src="js/qc.js?v=202"></script>
-  <script defer src="js/input.js?v=202"></script>
-  <script defer src="js/ui.js?v=202"></script>
-  <script defer src="js/export.js?v=202"></script>
-  <script defer src="js/session.js?v=202"></script>
-  <script defer src="js/admin.js?v=202"></script>
-  <script defer src="js/main.js?v=202"></script>
+  <script defer src="vendor/jszip.min.js?v=204"></script>
+  <script defer src="js/config.js?v=204"></script>
+  <script defer src="js/copy.js?v=204"></script>
+  <script defer src="js/util.js?v=204"></script>
+  <script defer src="js/storage.js?v=204"></script>
+  <script defer src="js/sentences.js?v=204"></script>
+  <script defer src="js/media.js?v=204"></script>
+  <script defer src="js/meter.js?v=204"></script>
+  <script defer src="js/qc.js?v=204"></script>
+  <script defer src="js/input.js?v=204"></script>
+  <script defer src="js/ui.js?v=204"></script>
+  <script defer src="js/export.js?v=204"></script>
+  <script defer src="js/session.js?v=204"></script>
+  <script defer src="js/settings.js?v=204"></script>
+  <script defer src="js/main.js?v=204"></script>
 </body>
 </html>

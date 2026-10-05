@@ -77,6 +77,37 @@ FSA_SHIM = r"""
 })();
 """
 
+# Tests must be silent on the machine running them: every AudioContext output goes through a
+# zero gain, and media elements always play muted. (Chrome is also launched with --mute-audio.)
+MUTE_SHIM = r"""
+(() => {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (AC) {
+    const owner = [AC.prototype, window.BaseAudioContext && BaseAudioContext.prototype].find(p => p && Object.getOwnPropertyDescriptor(p, 'destination'));
+    const real = owner && Object.getOwnPropertyDescriptor(owner, 'destination');
+    if (real && real.get) {
+      Object.defineProperty(AC.prototype, 'destination', {
+        configurable: true,
+        get() {
+          if (!this.__silent) {
+            this.__silent = this.createGain();
+            this.__silent.gain.value = 0;
+            this.__silent.connect(real.get.call(this));
+          }
+          return this.__silent;
+        }
+      });
+    }
+  }
+  const play = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function (...args) {
+    this.muted = true;
+    this.volume = 0;
+    return play.apply(this, args);
+  };
+})();
+"""
+
 MEDIA_SHIM = r"""
 (() => {
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -119,7 +150,9 @@ MEDIA_SHIM = r"""
   ['pointerdown', 'keydown', 'click'].forEach(type => window.addEventListener(type, wake, true));
 
   async function build() {
-    if (!ctx) ctx = new AC();
+    // sessionStorage __audio_rate imitates a low-rate (e.g. 16 kHz Bluetooth) microphone.
+    const rate = Number(sessionStorage.getItem('__audio_rate')) || 0;
+    if (!ctx) ctx = rate ? new AC({ sampleRate: rate }) : new AC();
     wake();
     const destination = ctx.createMediaStreamDestination();
     const generators = {

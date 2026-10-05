@@ -13,6 +13,7 @@ V2S.input = (() => {
   const SECONDARY_KEYS = new Set(['ArrowLeft', 'PageUp']);
 
   let handlers = { primary: null, secondary: null, hold: null };
+  let holdMs = cfg.HOLD_MS;   // Settings: 1, 2 or 3 s (people who release buttons slowly)
   let enabled = false;
   let press = null;
   let lastPressAt = -Infinity;
@@ -22,6 +23,10 @@ V2S.input = (() => {
 
   function configure(next) {
     handlers = { ...handlers, ...next };
+  }
+
+  function setHoldMs(ms) {
+    holdMs = Number(ms) >= 1000 ? Number(ms) : cfg.HOLD_MS;
   }
 
   function setEnabled(value) {
@@ -64,7 +69,7 @@ V2S.input = (() => {
       logEvent('press_held', { kind: press.kind, source: press.source });
       settleWaiters('hold');
       if (handlers.hold) handlers.hold({ kind: press.kind, source: press.source });
-    }, cfg.HOLD_MS);
+    }, holdMs);
     logEvent('press', { kind, source });
     const handler = kind === 'primary' ? handlers.primary : handlers.secondary;
     if (handler) handler({ source });
@@ -148,5 +153,5 @@ V2S.input = (() => {
   window.addEventListener('blur', cancelPress);
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancelPress(); });
 
-  return { configure, setEnabled, bindButton, waitForRelease, isPressed };
+  return { configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed };
 })();

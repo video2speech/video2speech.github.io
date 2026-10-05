@@ -6,13 +6,18 @@
 // permission for the folder, nothing is silently redirected: the screens ask for
 // permission again (see main.js) and recordings wait safely in the browser meanwhile.
 //
-// ZIP mode (iPad, phones, Safari, Firefox, or when chosen): a ZIP per block. Where the
-// browser offers a save dialog (Chrome/Edge), the person picks the location; elsewhere
-// it is a normal download and cached takes are deleted only after "Yes, it saved".
+// ZIP mode (iPad, phones, Safari, Firefox, or when chosen): a ZIP per part (at most
+// ZIP_MAX_TAKES recordings each). Where the browser offers a save dialog (Chrome/Edge),
+// the person picks the location; elsewhere it is a normal download followed by "Did the
+// file save?". After a confirmed save the recordings stay on the device as backup copies
+// (left out of later ZIPs) until space is needed, so a mistaken "Yes" loses nothing.
 //
 // Layout in the folder or ZIP:
-//   <participant>/                  usable takes (accepted, qc_overridden)
-//   <participant>/not_used/         failed or discarded takes
+//   <participant>/                  exactly one usable take per sentence and round
+//                                   (accepted, qc_overridden), each with a JSON sidecar
+//   <participant>/not_used/         failed or discarded takes, and takes replaced by a
+//                                   newer take of the same sentence (superseded)
+//   <participant>/logs/             session logs, superseded.json (every replaced take)
 //   previous-page-recordings/       takes the earlier recording page left unsaved
 window.V2S = window.V2S || {};
 
@@ -212,7 +217,7 @@ V2S.exporter = (() => {
   async function flushPendingToFolder(onProgress) {
     if (!isFolderActive()) return { written: 0, failed: await V2S.storage.countTakes() };
     await writeChain;
-    const ids = (await V2S.storage.listTakeSummaries()).map(take => take.id);
+    const ids = await V2S.storage.takeIds();
     let written = 0;
     let failed = 0;
     writing += 1;
@@ -238,16 +243,20 @@ V2S.exporter = (() => {
       emit();
     }
     logEvent('folder_flush', { written, failed });
+    const lists = await V2S.storage.allSupersedeLists().catch(() => []);
+    for (const { participantId, setKey, list } of lists) {
+      if (list.some(item => !item.done)) await applySuperseded(participantId, setKey);
+    }
     return { written, failed };
   }
 
-  // Writes the session log next to the recordings (folder mode only).
+  // Writes this session's log into <participant>/logs/ (folder mode only).
   async function writeSessionLog(participantId, summary) {
     if (!isFolderActive()) return false;
     try {
       await writeChain;
-      const directory = await directoryFor([safeName(participantId)]);
-      const events = await V2S.storage.getAllEvents();
+      const directory = await directoryFor([safeName(participantId), 'logs']);
+      const events = V2S.util.getEvents();
       const name = `session-${V2S.util.timestamp().slice(0, 8)}-${V2S.util.getSessionId() || 'unknown'}.json`;
       await writeFile(directory, name, new Blob([JSON.stringify({ ...summary, events }, null, 2)], { type: 'application/json' }));
       return true;
@@ -259,20 +268,111 @@ V2S.exporter = (() => {
 
   const flushFolderWrites = () => writeChain;
 
-  // Storage failed for a take: get it to safety some other way.
-  async function rescueTake(blob, fileName, metadata) {
-    if (isFolderActive()) {
-      try {
-        await writeRecordToFolder({ fileName, metadata, mimeType: blob.type, participantId: metadata.participantId, status: metadata.status }, blob);
-        logEvent('rescue_folder', { fileName });
-        return;
-      } catch (error) {
-        noteWriteFailure(error, fileName);
+  // A usable take that was replaced by a newer take of the same sentence (Redo, going
+  // back, practising again) must not stay among the usable recordings. Storage marks it
+  // "superseded" while it is cached (it is then written straight into not_used/) and
+  // lists it either way; here the folder copies are moved: copied into not_used/ with the
+  // sidecar updated, verified, then removed. Queued behind any write still in progress.
+  // Every job on the folder chain catches its own errors: one failed write must never stop
+  // the writes queued after it (the chain would stay rejected for the rest of the visit).
+  function chain(job, label) {
+    writeChain = writeChain.then(job).catch(error => {
+      noteWriteFailure(error, label);
+      return false;
+    });
+    return writeChain;
+  }
+
+  function applySuperseded(participantId, setKey) {
+    if (saveMode !== 'folder') return Promise.resolve(false);
+    return chain(async () => {
+      if (!isFolderActive()) return false;
+      const list = await V2S.storage.getSupersedeList(participantId, setKey);
+      const open = list.filter(item => !item.done);
+      if (!open.length) return true;
+      const cached = await V2S.storage.cachedNames(open.map(item => item.sentenceIndex));
+      const finished = [];
+      for (const item of open) {
+        if (cached.has(item.fileName)) continue; // still on the device: it will go to not_used/
+        try {
+          await moveToNotUsed(participantId, item.fileName, item.supersededBy);
+          finished.push(item.fileName);
+        } catch (error) {
+          noteWriteFailure(error, item.fileName);
+          if (!isFolderActive()) break;
+        }
       }
+      if (finished.length) await V2S.storage.markSupersedeDone(participantId, setKey, finished);
+      await writeSupersedeLog(participantId);
+      return true;
+    }, 'superseded.json');
+  }
+
+  // logs/superseded.json lists every replaced recording of the participant, all sentence
+  // sets together (each write replaces the whole file).
+  async function writeSupersedeLog(participantId) {
+    const lists = (await V2S.storage.allSupersedeLists()).filter(item => item.participantId === participantId && item.list.length);
+    if (!lists.length) return;
+    const directory = await directoryFor([safeName(participantId), 'logs']);
+    await writeFile(directory, 'superseded.json', new Blob([JSON.stringify(supersedeDocument(participantId, lists), null, 2)], { type: 'application/json' }));
+  }
+
+  function supersedeDocument(participantId, lists) {
+    return {
+      about: 'Recordings replaced by a newer recording of the same sentence (in the same round). Use the newer one; the replaced one is in not_used/ (or in an earlier ZIP file).',
+      participantId,
+      updatedAt: new Date().toISOString(),
+      replaced: lists.flatMap(({ setKey, list }) => list.map(item => ({
+        fileName: item.fileName,
+        supersededBy: item.supersededBy,
+        sentenceSet: setKey,
+        sentenceIndex: item.sentenceIndex,
+        sentence: item.sentence || null,
+        round: item.round || null,
+        at: item.at
+      })))
+    };
+  }
+
+  // Moves one file (and its sidecar) from <participant>/ to <participant>/not_used/.
+  // Nothing to do if it is not among the usable recordings (already moved, or never there).
+  async function moveToNotUsed(participantId, fileName, supersededBy) {
+    const base = participantId ? safeName(participantId) : LEGACY_FOLDER;
+    const source = await directoryFor([base]);
+    let fileHandle;
+    try {
+      fileHandle = await source.getFileHandle(fileName);
+    } catch (error) {
+      return false;
     }
-    downloadBlob(blob, fileName);
-    downloadBlob(new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }), sidecarName(fileName));
-    logEvent('rescue_download', { fileName });
+    const target = await directoryFor([base, 'not_used']);
+    await writeFile(target, fileName, await fileHandle.getFile());
+    const sideName = sidecarName(fileName);
+    let meta = {};
+    try {
+      meta = JSON.parse(await (await (await source.getFileHandle(sideName)).getFile()).text());
+    } catch (error) { /* no sidecar */ }
+    meta = { ...meta, status: 'superseded', usable: false, supersededBy };
+    await writeFile(target, sideName, new Blob([JSON.stringify(meta, null, 2)], { type: 'application/json' }));
+    await source.removeEntry(fileName);
+    try { await source.removeEntry(sideName); } catch (error) { /* no sidecar */ }
+    logEvent('superseded_moved', { fileName, supersededBy });
+    return true;
+  }
+
+  // The browser could not store a take (folder mode only): write it straight into the
+  // folder, with its full sidecar. Returns false if that is not possible either.
+  async function rescueTake(blob, info, replaced) {
+    if (!isFolderActive()) return false;
+    try {
+      await writeRecordToFolder({ ...info, mimeType: info.mimeType || blob.type }, blob);
+      logEvent('rescue_folder', { fileName: info.fileName });
+      if (replaced && replaced.fileName) chain(() => moveToNotUsed(info.participantId, replaced.fileName, info.fileName), replaced.fileName);
+      return true;
+    } catch (error) {
+      noteWriteFailure(error, info.fileName);
+      return false;
+    }
   }
 
   // ---- ZIP ----
@@ -301,24 +401,23 @@ V2S.exporter = (() => {
     }
   }
 
-  async function previewZipName(participantId, label) {
-    const owners = new Set();
-    (await V2S.storage.listTakeSummaries()).forEach(take => owners.add(take.participantId || null));
-    return zipFileName(participantId, owners, label);
-  }
-
-  // Builds the ZIP of every cached take and saves it to `target` (from pickZipTarget)
-  // or downloads it. Returns { count, ids, fileName, verified }.
-  async function saveZip({ participantId, label, summary, target, fileName, onProgress }) {
+  // Builds a ZIP of the recordings not saved yet (oldest first, at most ZIP_MAX_TAKES, so
+  // the file stays small enough for phones and tablets) — or of the backup copies when
+  // `backups` is set — and saves it to `target` (from pickZipTarget) or downloads it.
+  // Returns { count, ids, fileName, verified, remaining }.
+  async function saveZip({ participantId, label, summary, target, fileName, onProgress, backups = false }) {
     if (typeof JSZip !== 'function') throw new Error('The ZIP library did not load. Please reload the page.');
-    const total = await V2S.storage.countTakes();
-    if (!total) return { count: 0, ids: [] };
+    const exported = new Set(await V2S.storage.exportedIds());
+    const wanted = (await V2S.storage.takeIds()).filter(id => exported.has(id) === backups);
+    if (!wanted.length) return { count: 0, ids: [], remaining: 0 };
+    const chosen = wanted.slice(0, cfg.ZIP_MAX_TAKES);
     const zip = new JSZip();
     const ids = [];
     const records = [];
     const owners = new Set();
-    let done = 0;
-    await V2S.storage.forEachTake(record => {
+    for (const id of chosen) {
+      const record = await V2S.storage.getTake(id); // one video in memory at a time while reading
+      if (!record) continue;
       owners.add(record.participantId || null);
       const path = destination(record).join('/') + '/';
       const meta = sidecar(record);
@@ -326,8 +425,18 @@ V2S.exporter = (() => {
       zip.file(path + sidecarName(record.fileName), JSON.stringify(meta, null, 2));
       records.push({ path: path + record.fileName, ...meta });
       ids.push(record.id);
-      done += 1;
-      if (onProgress) onProgress(done, total);
+      if (onProgress) onProgress(ids.length, chosen.length);
+    }
+    // Every replaced take so far, for each participant in this ZIP: the latest ZIP always
+    // carries the full list, including takes that left the device in an earlier ZIP.
+    const superseded = {};
+    const lists = await V2S.storage.allSupersedeLists();
+    owners.forEach(owner => {
+      if (!owner) return;
+      const own = lists.filter(item => item.participantId === owner && item.list.length);
+      if (!own.length) return;
+      superseded[owner] = supersedeDocument(owner, own);
+      zip.file(`${safeName(owner)}/logs/superseded.json`, JSON.stringify(superseded[owner], null, 2));
     });
     const events = await V2S.storage.getAllEvents();
     zip.file('manifest.json', JSON.stringify({
@@ -335,8 +444,10 @@ V2S.exporter = (() => {
       exportedAt: new Date().toISOString(),
       participantId: participantId || null,
       recordCount: records.length,
+      backupCopies: backups,
       summary: summary || null,
       records,
+      superseded,
       events
     }, null, 2));
     const name = fileName || zipFileName(participantId, owners, label);
@@ -350,8 +461,8 @@ V2S.exporter = (() => {
     } else {
       downloadBlob(blob, name);
     }
-    logEvent('zip_saved', { fileName: target ? target.name : name, count: ids.length, size: blob.size, verified });
-    return { count: ids.length, ids, fileName: target ? target.name : name, verified };
+    logEvent('zip_saved', { fileName: target ? target.name : name, count: ids.length, size: blob.size, verified, backups });
+    return { count: ids.length, ids, fileName: target ? target.name : name, verified, remaining: wanted.length - ids.length };
   }
 
   return {
@@ -369,10 +480,10 @@ V2S.exporter = (() => {
     queueFolderWrite,
     flushPendingToFolder,
     flushFolderWrites,
+    applySuperseded,
     writeSessionLog,
     rescueTake,
     pickZipTarget,
-    previewZipName,
     saveZip,
     isUsable
   };

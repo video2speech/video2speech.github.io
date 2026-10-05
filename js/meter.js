@@ -24,7 +24,7 @@ V2S.meter = (() => {
   let lastIdleHintAt = -Infinity;
   const recent = [];          // frames of the last 5 s (noise floor for the idle hint)
   const history = [];         // { t, v } for the waveform, v in 0..1
-  const waves = new Set();
+  const waves = new Map();      // canvas → { idleFlat }
   let live = false;
   let colors = null;
 
@@ -78,8 +78,10 @@ V2S.meter = (() => {
   }
 
   // ---- waveform ----
-  function registerWave(canvas) {
-    waves.add(canvas);
+  // idleFlat: the recording screen's waveform only moves while recording, so a moving
+  // waveform never suggests "it is recording" when it is not. The check screen's always moves.
+  function registerWave(canvas, { idleFlat = false } = {}) {
+    waves.set(canvas, { idleFlat });
   }
 
   function setLive(value) {
@@ -94,8 +96,8 @@ V2S.meter = (() => {
   function resolveColors() {
     const style = getComputedStyle(document.documentElement);
     colors = {
-      idle: style.getPropertyValue('--wave-idle').trim() || '#A7A9AF',
-      live: style.getPropertyValue('--wave-live').trim() || '#13A150'
+      idle: style.getPropertyValue('--wave-wait').trim() || '#C9CCD1',
+      live: style.getPropertyValue('--wave-live').trim() || '#35A562'
     };
     return colors;
   }
@@ -110,8 +112,9 @@ V2S.meter = (() => {
   function drawWaves(now) {
     const palette = colors || resolveColors();
     const color = live ? palette.live : palette.idle;
-    waves.forEach(canvas => {
+    waves.forEach((options, canvas) => {
       if (!canvas.isConnected || canvas.offsetParent === null) return;
+      const flat = options.idleFlat && !live;
       const dpr = window.devicePixelRatio || 1;
       const width = Math.round(canvas.clientWidth * dpr);
       const height = Math.round(canvas.clientHeight * dpr);
@@ -139,7 +142,7 @@ V2S.meter = (() => {
           if (history[j].v > value) value = history[j].v;
           j--;
         }
-        const barHeight = Math.max(minHeight, value * (height - 2 * dpr));
+        const barHeight = flat ? minHeight : Math.max(minHeight, value * (height - 2 * dpr));
         const x = width - (b + 1) * (barWidth + gap) + gap;
         const y = (height - barHeight) / 2;
         if (typeof ctx.roundRect === 'function') {

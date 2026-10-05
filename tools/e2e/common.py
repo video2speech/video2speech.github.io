@@ -23,6 +23,15 @@ MEDIA_DIR = os.path.join(tempfile.gettempdir(), 'v2s_e2e_media')
 # Before the switch the new recorder is app_next.html and the legacy one app.html;
 # after it, the new recorder is app.html and the legacy one app_legacy.html.
 NEXT_PAGE = 'app_next.html' if os.path.exists(os.path.join(REPO, 'app_next.html')) else 'app.html'
+
+
+def next_url(base):
+    """The recorder with its current ?v= (otherwise it reloads itself once to add it)."""
+    import json
+    with open(os.path.join(REPO, 'version.json'), encoding='utf-8') as handle:
+        versions = json.load(handle)
+    key = 'nextAppVersion' if NEXT_PAGE == 'app_next.html' else 'appVersion'
+    return f"{base}/{NEXT_PAGE}?v={versions.get(key, versions.get('appVersion'))}"
 LEGACY_PAGE = 'app_legacy.html' if os.path.exists(os.path.join(REPO, 'app_legacy.html')) else 'app.html'
 
 
@@ -109,10 +118,10 @@ async def launch(playwright, audio='speech', viewport=None, init_scripts=(), aut
             Default: 'fake' on Chrome, 'shim' elsewhere.
     fsa:    inject shims.FSA_SHIM (Chrome's File System Access rules on a private folder).
     """
-    from shims import FSA_SHIM, MEDIA_SHIM
+    from shims import FSA_SHIM, MEDIA_SHIM, MUTE_SHIM
     media = media or ('fake' if engine == 'chrome' else 'shim')
     if engine == 'chrome':
-        args = ['--autoplay-policy=no-user-gesture-required']
+        args = ['--autoplay-policy=no-user-gesture-required', '--mute-audio']
         if media == 'fake':
             args += ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream',
                      '--use-file-for-fake-audio-capture=' + media_file(audio)]
@@ -121,7 +130,7 @@ async def launch(playwright, audio='speech', viewport=None, init_scripts=(), aut
         browser = await playwright.webkit.launch(headless=True)
     elif engine == 'firefox':
         browser = await playwright.firefox.launch(headless=True, firefox_user_prefs={
-            'media.autoplay.default': 0, 'media.autoplay.blocking_policy': 0})
+            'media.autoplay.default': 0, 'media.autoplay.blocking_policy': 0, 'media.volume_scale': '0.0'})
     else:
         raise ValueError(engine)
     options = dict(viewport=viewport or {'width': 1440, 'height': 900}, accept_downloads=True, has_touch=has_touch)
@@ -130,6 +139,7 @@ async def launch(playwright, audio='speech', viewport=None, init_scripts=(), aut
     if engine == 'chrome' and media == 'fake':
         options['permissions'] = ['camera', 'microphone']
     context = await browser.new_context(**options)
+    await context.add_init_script(MUTE_SHIM)
     if authed:
         await context.add_init_script("sessionStorage.setItem('v2s_auth_ok','1');")
     if media == 'shim':

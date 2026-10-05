@@ -1,12 +1,12 @@
 // The recording state machine.
-//   ready → recording → finishing (tail) → checking → next sentence (ready)
-//                                                  ↘ same sentence (ready)
-// Every failure path (held press, no speech, too loud, timeout, device problem,
-// page hidden, reload) returns to the SAME sentence: progress only moves forward
-// when a take is accepted or the person chooses "Keep it and continue".
-// A take and the progress it causes are written in ONE IndexedDB transaction, in
-// order, in the background — the screen never waits for storage, and a crash can
-// never record progress without the take.
+//   ready → starting (start sound, recorder proves it runs) → recording (sentence green)
+//         → finishing (fixed tail) → checking → next sentence (ready)
+//                                              ↘ same sentence (ready)
+// Every failure path (held press, no speech, too loud, recorder failure, timeout, device
+// problem, page hidden, reload) returns to the SAME sentence: progress only moves forward
+// when a take is accepted or the participant chooses "Keep it and go on".
+// A take and the progress it causes are written in ONE IndexedDB transaction, in order,
+// in the background — the screen never waits for storage.
 window.V2S = window.V2S || {};
 
 V2S.session = (() => {
@@ -18,9 +18,17 @@ V2S.session = (() => {
   let state = 'idle';
   let take = null;
   let feedback = null;       // { text, tone, transient, setAt }
-  let lastAccepted = null;   // { index, fileName } accepted during this session
-  let redo = null;           // { targetIndex, returnIndex, supersedes }
+  let lastAccepted = null;   // { index, fileName, sentence } — the sentence Redo would record again
+  let redo = null;           // { targetIndex, returnIndex, partEnd } — also kept in progress.pendingRedo
+  let redoLesson = 'pending';  // practice: 'pending' → 'redoing' → 'done'
+  let partEnd = null;          // { kind: 'practice' | 'part' | 'all', block, blocks } after a part's last sentence
+  let holdTipNext = false;     // a held Stop press: say so (gently) on the next sentence
+  let storeFailedAt = null;    // a take that could not be stored: go back to that sentence
+  let storeFailures = 0;       // in a row
+  let quotaHit = false;        // the last write failed because the device was full
+  let roomFromLatest = false;  // full, and only the most recent ZIP's copies could make room
   let qcFailures = { index: null, count: 0 };
+  let consecutiveStartFailures = 0;
   let sentenceShownAt = 0;
   let takesThisSession = 0;
   let idleHintTimer = null;
@@ -43,7 +51,7 @@ V2S.session = (() => {
   // ---- positions and labels ----
   function position(i) {
     const { warmupCount, formalCount } = ctx.material;
-    if (i < warmupCount) return { warmup: true, pos: i + 1, total: warmupCount };
+    if (i < warmupCount) return { warmup: true, pos: i + 1, total: warmupCount, part: 0 };
     const formal = i - warmupCount;
     const block = Math.floor(formal / cfg.BLOCK_SIZE);
     const blockStart = block * cfg.BLOCK_SIZE;
@@ -52,6 +60,7 @@ V2S.session = (() => {
       warmup: false,
       pos: formal + 1,
       total: formalCount,
+      part: block + 1,
       block: block + 1,
       blocks: Math.ceil(formalCount / cfg.BLOCK_SIZE),
       inBlock: formal - blockStart + 1,
@@ -59,95 +68,155 @@ V2S.session = (() => {
     };
   }
 
-  function progressView(i) {
+  function whereView(i) {
     const p = position(i);
-    if (p.warmup) {
-      return { progressMain: copy.record.warmupOf(p.pos, p.total), progressSub: '', progress: (p.pos - 1) / p.total };
-    }
+    if (p.warmup) return { main: copy.record.practiceOf(p.pos, p.total), sub: '', progress: (p.pos - 1) / p.total };
     return {
-      progressMain: copy.record.sentenceOf(p.inBlock, p.blockSize),
-      progressSub: copy.record.breakIn(p.blockSize - p.inBlock + 1),
+      main: `${copy.record.partOf(p.block, p.blocks)} · ${copy.record.sentenceOf(p.inBlock, p.blockSize)}`,
+      short: copy.record.whereShort(p.block, p.inBlock, p.blockSize),
+      sub: copy.record.restIn(p.blockSize - p.inBlock + 1),
       progress: (p.inBlock - 1) / p.blockSize
     };
   }
 
-  // ---- tutorial (first session only) ----
-  function tutorialStep() {
-    const progress = ctx.progress;
-    if (Number.isInteger(progress.tutorialStep)) return progress.tutorialStep;
-    return progress.tutorialTakes >= 2 ? 3 : (progress.tutorialTakes || 0);
+  // ---- practice coaching (first session only) ----
+  const coaching = () => Boolean(ctx) && !ctx.progress.coachDone
+    && (index() < ctx.material.warmupCount || (state === 'partEnd' && partEnd && partEnd.kind === 'practice'));
+
+  // Redo reaches only the sentence just recorded, within the same part (at a part's end,
+  // before the break, its last sentence can still be redone).
+  function canRedo() {
+    if (redo || !lastAccepted) return false;
+    if (state === 'partEnd') return true;
+    if (state !== 'ready' || lastAccepted.index !== index() - 1) return false;
+    return position(lastAccepted.index).part === position(index()).part;
   }
 
-  function tutorialTip(phase) {
-    const step = tutorialStep();
-    if (step === 0) {
-      return phase === 'ready'
-        ? { text: copy.tutorial.startFirst, tone: 'tip', highlight: 'primary' }
-        : { text: copy.tutorial.stopFirst, tone: 'tip', highlight: 'primary' };
-    }
-    if (step === 1) {
-      if (phase === 'ready') return canRedoLast() ? { text: copy.tutorial.redoLast, tone: 'tip', highlight: 'secondary' } : null;
-      return { text: copy.tutorial.startOver, tone: 'tip', highlight: 'secondary' };
-    }
-    if (step === 2 && phase === 'ready') {
-      const folder = V2S.exporter.getSaveMode() === 'folder';
-      return { text: folder ? copy.tutorial.saveFolder : copy.tutorial.saveDevice, tone: 'tip', highlight: 'save' };
-    }
-    return null;
-  }
+  const redoPending = () => Boolean(redo && redo.targetIndex === index());
 
-  function canRedoLast() {
-    return !redo && lastAccepted !== null && lastAccepted.index === index() - 1;
+
+  // The coach line stays up for every state of a practice sentence, so the card (and the
+  // sentence size) never changes while practising.
+  function coachView(phase) {
+    if (!coaching()) return null;
+    if (phase === 'partEnd') return { text: copy.coach.practiceEnd, step: 3, allDone: true };
+    const p = index();
+    const live = phase === 'recording' || phase === 'busy';
+    if (redoPending()) {
+      return live ? { text: copy.coach.redoRecording, step: 2 } : { text: copy.coach.redoReady, step: 1 };
+    }
+    if (live) return { text: copy.coach.readNow, step: phase === 'busy' ? 3 : 2 };
+    if (p === 0) return { text: copy.coach.pressStart, step: 1 };
+    if (p === 1) return { text: justSaved ? copy.coach.wellDone : copy.coach.again, step: 1 };
+    if (p === 2) {
+      if (redoLesson === 'done') return { text: copy.coach.redoDone, step: 1 };
+      if (canRedo()) return { text: copy.coach.tryRedo(lastAccepted.sentence), step: null, redo: true };
+      return { text: copy.coach.again, step: 1 };
+    }
+    if (p === 3) {
+      if (redoLesson !== 'done' && canRedo()) return { text: copy.coach.tryRedo(lastAccepted.sentence), step: null, redo: true };
+      return { text: copy.coach.reminder, step: 1 };
+    }
+    return { text: copy.coach.again, step: 1 };
   }
 
   // ---- views ----
-  function messageFor(phase) {
-    if (feedback) return { message: { text: feedback.text, tone: feedback.tone }, highlight: null };
-    const tip = tutorialTip(phase);
-    return tip ? { message: { text: tip.text, tone: 'tip' }, highlight: tip.highlight } : { message: null, highlight: null };
+  function messageView() {
+    return feedback ? { text: feedback.text, tone: feedback.tone } : null;
   }
 
+  // Waiting. The card always says "Not recording"; "Saved" belongs to the sentence just
+  // recorded, so it is shown on the Redo button, next to that sentence.
   function readyView() {
-    const redoAvailable = canRedoLast();
+    const coach = coachView('ready');
+    let redoView = { visible: false };
+    if (redoPending()) {
+      redoView = { visible: true, cancel: true, label: copy.record.cancelRedo, caption: '' };
+    } else if (canRedo()) {
+      redoView = { visible: true, label: copy.record.redo, caption: copy.record.redoCaption(lastAccepted.sentence), saved: justSaved };
+    }
     return {
-      ...progressView(index()),
-      ...messageFor('ready'),
       state: 'ready',
-      justSaved,
-      stateText: justSaved ? copy.record.stateSaved : copy.record.stateReady,
+      saved: false,
+      status: copy.record.statusReady,
       sentence: ctx.material.all[index()],
-      primary: { label: copy.record.start, icon: 'rec', disabled: false },
-      secondary: { label: copy.record.redoLast, icon: 'undo', hidden: !redoAvailable, disabled: !redoAvailable },
-      showFinish: true
+      where: whereView(index()),
+      main: { label: copy.record.start, icon: 'go', disabled: false },
+      redo: redoView,
+      showCamera: true,
+      message: messageView(),
+      coach,
+      pulse: coach ? (coach.redo ? 'redo' : 'main') : null
+    };
+  }
+
+  // After a part's last sentence: that sentence stays on screen ("Saved"), Redo is still
+  // possible, and one button goes on to the break (or practice done / the end).
+  function partEndView() {
+    const coach = coachView('partEnd');
+    const kind = partEnd.kind;
+    return {
+      state: 'ready',
+      saved: true,
+      status: copy.record.statusSaved,
+      sentence: lastAccepted.sentence,
+      where: { ...whereView(lastAccepted.index), sub: '' },
+      main: { label: kind === 'practice' ? copy.record.toPracticeDone : kind === 'all' ? copy.record.toAllDone : copy.record.toBreak, icon: 'next', disabled: false },
+      redo: { visible: true, label: copy.record.redo, caption: copy.record.redoThis },
+      showCamera: true,
+      message: coach ? null : { text: kind === 'part' ? copy.record.partEndPart(partEnd.block) : copy.record.partEndAll, tone: 'info' },
+      coach,
+      pulse: coach ? 'main' : null
+    };
+  }
+
+  function startingView() {
+    return {
+      state: 'starting',
+      saved: false,
+      status: copy.record.statusStarting,
+      sentence: ctx.material.all[index()],
+      where: whereView(index()),
+      main: { label: copy.record.starting, icon: 'busy', disabled: true },
+      redo: { visible: false },
+      showCamera: false,
+      message: null,
+      coach: coachView('starting'),
+      pulse: null
     };
   }
 
   function recordingView() {
+    const coach = coachView('recording');
     return {
-      ...progressView(index()),
-      ...messageFor('recording'),
       state: 'recording',
-      justSaved: false,
-      stateText: copy.record.stateRecording,
+      saved: false,
+      status: copy.record.statusRecording,
       sentence: ctx.material.all[index()],
-      primary: { label: copy.record.stop, icon: 'stop', disabled: false },
-      secondary: { label: copy.record.startOver, icon: 'restart', hidden: false, disabled: false },
-      showFinish: false
+      where: whereView(index()),
+      main: { label: copy.record.stop, icon: 'stop', disabled: false },
+      redo: { visible: false },
+      showCamera: false,
+      message: take && take.longTake ? { text: copy.record.stillRecording, tone: 'warn' } : (coach ? null : { text: copy.record.recordingHint, tone: 'quiet' }),
+      coach,
+      pulse: coach || (take && take.longTake) ? 'main' : null,
+      liveSince: take && take.readNowAt ? take.readNowAt : performance.now()
     };
   }
 
   function busyView(phase) {
     return {
-      ...progressView(index()),
       state: phase,
-      justSaved: false,
-      stateText: copy.record.stateSaving,
+      saved: false,
+      status: copy.record.statusSaving,
       sentence: ctx.material.all[index()],
-      primary: { label: copy.record.saving, icon: 'spinner', disabled: true },
-      secondary: { label: copy.record.startOver, icon: 'restart', hidden: true, disabled: true },
+      where: whereView(index()),
+      main: { label: copy.record.saving, icon: 'busy', disabled: true },
+      redo: { visible: false },
+      showCamera: false,
       message: null,
-      highlight: null,
-      showFinish: false
+      coach: coachView('busy'),
+      pulse: null
     };
   }
 
@@ -165,30 +234,82 @@ V2S.session = (() => {
   function begin({ participantId, setKey, material, progress }) {
     ctx = { participantId, setKey, material, progress };
     if (!ctx.progress.takeCounts) ctx.progress.takeCounts = {};
-    if (!Number.isInteger(ctx.progress.tutorialStep)) ctx.progress.tutorialStep = tutorialStep();
     lastAccepted = null;
     redo = null;
+    redoLesson = 'pending';
+    partEnd = null;
+    holdTipNext = false;
+    storeFailedAt = null;
+    storeFailures = 0;
+    quotaHit = false;
     feedback = null;
+    if (!ctx.progress.usable) ctx.progress.usable = {};
+    ctx.progress.round = V2S.storage.roundOf(ctx.progress);
+    // A Redo that was under way (reload, End for today) carries on.
+    const pending = ctx.progress.pendingRedo;
+    if (pending && pending.targetIndex === ctx.progress.currentIndex) {
+      redo = { targetIndex: pending.targetIndex, returnIndex: pending.returnIndex, partEnd: pending.partEnd || null };
+      lastAccepted = { index: pending.targetIndex, fileName: (ctx.progress.usable[pending.targetIndex] || {}).fileName || null, sentence: material.all[pending.targetIndex] };
+      if (!coaching()) setFeedback(copy.record.redoing, 'info');
+    } else if (pending) {
+      delete ctx.progress.pendingRedo;
+    }
     justSaved = false;
     qcFailures = { index: null, count: 0 };
+    consecutiveStartFailures = 0;
     deviceFailureActive = false;
     V2S.ui.fitSentences(material.all);
-    logEvent('session_begin', { participantId, setKey, index: progress.currentIndex });
+    logEvent('session_begin', { participantId, setKey, index: progress.currentIndex, coaching: coaching() });
     enterReady();
   }
 
   function stop() {
     state = 'idle';
+    if (take) {
+      clearTimeout(take.startTimer);
+      clearTimeout(take.maxTimer);
+      clearTimeout(take.longTimer);
+    }
     take = null;
     V2S.meter.setIdleDetection(false);
     V2S.meter.setLive(false);
     clearTimeout(idleHintTimer);
     clearTimeout(savedTimer);
     justSaved = false;
-    V2S.ui.setRecordingFrame(false);
+    V2S.ui.setRecording(false);
+  }
+
+  function enterPartEnd(info) {
+    state = 'partEnd';
+    partEnd = info;
+    take = null;
+    V2S.meter.setIdleDetection(false);
+    render(partEndView());
+    logEvent('part_end', { kind: info.kind, index: lastAccepted && lastAccepted.index });
+  }
+
+  function leavePartEnd() {
+    const info = partEnd;
+    partEnd = null;
+    lastAccepted = null;  // Redo never reaches back into a finished part
+    stop();
+    if (info.kind === 'practice') {
+      ctx.progress.coachDone = true;
+      if (Number.isInteger(ctx.progress.resumeIndex)) {
+        ctx.progress.currentIndex = ctx.progress.resumeIndex;
+        delete ctx.progress.resumeIndex;
+      }
+      saveProgress();
+      if (handlers.onWarmupDone) handlers.onWarmupDone();
+    } else if (info.kind === 'all') {
+      if (handlers.onAllDone) handlers.onAllDone();
+    } else if (handlers.onBlockDone) {
+      handlers.onBlockDone({ block: info.block, blocks: info.blocks });
+    }
   }
 
   function enterReady() {
+    if (storeFailedAt !== null) return backToUnstored();
     state = 'ready';
     take = null;
     sentenceShownAt = performance.now();
@@ -210,9 +331,10 @@ V2S.session = (() => {
   // Speaking before Start: a gentle reminder that nothing is being recorded.
   function onIdleSpeech() {
     if (state !== 'ready') return;
-    // Leave a fresh message (e.g. "Please tap, don't hold") up long enough to be read.
+    // Leave a fresh message (e.g. the hold message) up long enough to be read.
     if (feedback && !feedback.transient && performance.now() - feedback.setAt < 4000) return;
-    setFeedback(copy.feedback.speechBeforeStart, 'info', true);
+    const lesson = coachView('ready');
+    setFeedback(lesson && lesson.redo ? copy.feedback.speechBeforeRedo : copy.feedback.speechBeforeStart, 'warn', true);
     render(readyView());
     logEvent('speech_before_start', { index: index() });
     idleHintTimer = setTimeout(() => {
@@ -227,24 +349,44 @@ V2S.session = (() => {
   function onPrimary({ source }) {
     if (state === 'ready') startTake(source);
     else if (state === 'recording') stopTake(source);
+    else if (state === 'partEnd') leavePartEnd();
+    // starting / finishing / checking: the press is ignored (the button shows it is busy).
   }
 
   function onSecondary() {
-    if (state === 'ready') redoLast();
-    else if (state === 'recording') abortTake('restarted', copy.feedback.restarted, 'info');
+    if (state === 'ready' && redoPending()) cancelRedo();
+    else if (state === 'ready' || state === 'partEnd') redoLast();
   }
 
-  function onHold() {
-    if (state === 'recording') {
-      abortTake('aborted_hold', copy.feedback.hold);
+  // A held button is the push-to-talk habit: the take is thrown away and a short dialog
+  // explains "press once, then let go". The same sentence comes back.
+  // Only the press that STARTS a take is treated this way: a slow release of Stop is not
+  // push-to-talk, so that recording is kept (finalize) and a gentle tip follows.
+  async function onHold(press = {}) {
+    if (press.kind === 'secondary') return;
+    if (state === 'starting' || state === 'recording') {
+      await abortTake('aborted_hold', null);
+      explainHold(copy.holdDialog.bodyDiscarded);
     } else if (state === 'ready') {
-      setFeedback(copy.feedback.hold, 'warn');
+      explainHold(copy.holdDialog.body);
+    }
+  }
+
+  async function explainHold(body) {
+    logEvent('hold_explained', { index: ctx ? index() : null });
+    await V2S.ui.dialog({
+      title: copy.holdDialog.title,
+      body,
+      actions: [{ label: copy.holdDialog.ok, value: true, variant: 'go', default: true }],
+      dismissValue: true
+    });
+    if (state === 'ready') {
+      setFeedback(copy.feedback.afterHold, 'info');
       render(readyView());
     }
-    // While finishing, finalize() sees the hold through waitForRelease() and aborts.
   }
 
-  // The press must turn the screen red at once, so nothing here waits on async work.
+  // The press must answer at once, so nothing here waits on async work.
   function startTake(source) {
     if (state !== 'ready' || deviceFailureActive) return;
     if (storageBlocked) {
@@ -254,7 +396,7 @@ V2S.session = (() => {
       if (handlers.onStorageFull) handlers.onStorageFull();
       return;
     }
-    state = 'recording';
+    state = 'starting';
     // The press is a user gesture: wake the audio analysis if iOS paused it.
     V2S.meter.resume();
     clearTimeout(savedTimer);
@@ -269,28 +411,76 @@ V2S.session = (() => {
       pressAt: performance.now(),
       closed: false,
       recorder: null,
+      attempts: 0,
+      startErrors: [],
       redo: redo && redo.targetIndex === i ? { ...redo } : null
     };
     take = current;
     setFeedback(null);
     V2S.meter.setIdleDetection(false);
-    render(recordingView());
+    render(startingView());
     V2S.sounds.play('start');
     logEvent('take_start', { index: i, source, takeId: current.id });
-
     // The start sound plays first so it is not in the recording.
-    current.startTimer = setTimeout(() => {
-      if (current.closed) return;
-      try {
-        V2S.meter.beginCollect();
-        current.recorder = V2S.media.startRecorder();
-        V2S.media.startMonitor();
-      } catch (error) {
-        logEvent('recorder_start_failed', { error: String(error && error.message || error) });
-        onDeviceFailure('recorder_start_failed');
-      }
-    }, cfg.START_CUE_LEAD_MS);
+    current.startTimer = setTimeout(() => launchRecorder(current), cfg.START_CUE_LEAD_MS);
+  }
 
+  // Starts the recorder and waits until it has proven it runs. Start failures are retried
+  // silently with a new recorder; only if every try fails is the participant told.
+  async function launchRecorder(current) {
+    if (current.closed || take !== current) return;
+    current.attempts += 1;
+    let handle;
+    try {
+      V2S.meter.beginCollect();
+      handle = V2S.media.startRecorder({ skip: current.attempts >= cfg.START_ATTEMPTS ? 1 : 0 });
+    } catch (error) {
+      logEvent('recorder_start_failed', { error: String(error && error.message || error) });
+      onDeviceFailure('recorder_start_failed');
+      return;
+    }
+    current.recorder = handle;
+    const result = await handle.ready;
+    if (current.closed || take !== current) {
+      if (!result.ok) handle.stop().catch(() => {});
+      return;
+    }
+    if (!result.ok) {
+      current.startErrors.push(result.error);
+      logEvent('recorder_restart', { index: current.index, attempt: current.attempts, error: result.error });
+      current.recorder = null;
+      handle.stop().catch(() => {});
+      V2S.meter.endCollect();
+      if (current.attempts < cfg.START_ATTEMPTS) {
+        current.startTimer = setTimeout(() => launchRecorder(current), 150);
+        return;
+      }
+      current.closed = true;
+      take = null;
+      consecutiveStartFailures += 1;
+      logEvent('recorder_gave_up', { index: current.index, errors: current.startErrors, consecutive: consecutiveStartFailures });
+      setFeedback(copy.feedback.startFailed, 'warn');
+      V2S.sounds.play('retry');
+      enterReady();
+      if (consecutiveStartFailures >= 2 && handlers.onStartFailure) handlers.onStartFailure();
+      return;
+    }
+    consecutiveStartFailures = 0;
+    handle.onError = () => {
+      if (!current.closed && take === current) abortTake('aborted_device', copy.feedback.stoppedEarly, 'warn', current);
+    };
+    state = 'recording';
+    current.readNowAt = performance.now();
+    current.mediaAtStart = V2S.media.snapshot();
+    render(recordingView());
+    V2S.media.startMonitor();
+    current.longTimer = setTimeout(() => {
+      if (!current.closed && take === current && state === 'recording') {
+        current.longTake = true;
+        render(recordingView());
+        logEvent('long_take_reminder', { index: current.index });
+      }
+    }, cfg.TIMER_SHOW_AFTER_MS);
     current.maxTimer = setTimeout(() => {
       if (!current.closed && take === current && state === 'recording') {
         abortTake('aborted_timeout', copy.feedback.timeout);
@@ -305,6 +495,7 @@ V2S.session = (() => {
     current.stopAt = performance.now();
     current.stopSource = source;
     clearTimeout(current.maxTimer);
+    clearTimeout(current.longTimer);
     render(busyView('finishing'));
     logEvent('take_stop', { index: current.index, source, takeId: current.id });
     finishTail(current);
@@ -321,11 +512,13 @@ V2S.session = (() => {
   async function closeRecorder(current) {
     clearTimeout(current.startTimer);
     clearTimeout(current.maxTimer);
+    clearTimeout(current.longTimer);
     V2S.media.stopMonitor();
     let recording = null;
     if (current.recorder) {
       try {
-        recording = await current.recorder.stop();
+        recording = await Promise.race([current.recorder.stop(), sleep(3000).then(() => null)]);
+        if (!recording) logEvent('recorder_stop_timeout', { index: current.index });
       } catch (error) {
         logEvent('recorder_stop_failed', { error: String(error) });
       }
@@ -339,17 +532,15 @@ V2S.session = (() => {
     if (current.closed || take !== current) return;
     const release = await V2S.input.waitForRelease();
     if (current.closed || take !== current) return;
-    if (release === 'hold') {
-      abortTake('aborted_hold', copy.feedback.hold, 'warn', current);
-      return;
-    }
+    current.heldStop = release === 'hold';
     current.closed = true;
     state = 'checking';
     render(busyView('checking'));
     const { recording, frames } = await closeRecorder(current);
     if (!recording || !recording.blob || !recording.blob.size) {
-      logEvent('take_empty', { index: current.index });
-      setFeedback(copy.feedback.device, 'warn');
+      logEvent('take_empty', { index: current.index, error: recording && recording.error });
+      setFeedback(copy.feedback.stoppedEarly, 'warn');
+      V2S.sounds.play('retry');
       enterReady();
       return;
     }
@@ -358,6 +549,7 @@ V2S.session = (() => {
     if (qc.pass) {
       persistTake(current, recording, qc, 'accepted', current.index + 1);
       qcFailures = { index: null, count: 0 };
+      if (current.heldStop) holdTipNext = true;
       advance(current);
       return;
     }
@@ -371,10 +563,10 @@ V2S.session = (() => {
     if (qcFailures.count >= cfg.QC.OVERRIDE_AFTER_FAILURES) {
       const choice = await V2S.ui.dialog({
         title: copy.keepDialog.title,
-        body: copy.keepDialog.body(reason),
+        body: copy.keepDialog.body(copy.keepDialog.reasons[qc.code] || copy.keepDialog.reasons.no_speech),
         actions: [
-          { label: copy.keepDialog.retry, value: 'retry', variant: 'primary', default: true },
-          { label: copy.keepDialog.keep, value: 'keep', variant: 'secondary' }
+          { label: copy.keepDialog.retry, value: 'retry', variant: 'go', default: true },
+          { label: copy.keepDialog.keep, value: 'keep', variant: 'ghost' }
         ],
         dismissValue: 'retry'
       });
@@ -392,8 +584,8 @@ V2S.session = (() => {
     enterReady();
   }
 
-  // Ends the current take without accepting it. The take is still saved (marked with
-  // its status) and the same sentence comes back.
+  // Ends the current take without accepting it. Whatever was recorded is still saved
+  // (marked with its status, into not_used/) and the same sentence comes back.
   async function abortTake(status, message, tone = 'warn', current = take) {
     if (!current || current.closed) return;
     current.closed = true;
@@ -406,47 +598,65 @@ V2S.session = (() => {
     logEvent('take_aborted', { index: current.index, status, takeId: current.id });
     if (status === 'aborted_device' && deviceFailureActive) return;
     setFeedback(message, tone);
-    if (status !== 'restarted') V2S.sounds.play('retry');
+    V2S.sounds.play('retry');
     enterReady();
   }
 
-  // Moves on right away; storage happens in the background (see persistTake).
+  // Moves on right away; storage happens in the background (see persistTake). The last
+  // sentence of a part (also after a Redo of it) pauses on the part-end view.
   function advance(current) {
     V2S.sounds.play('saved');
     const p = position(current.index);
     const wasRedo = Boolean(current.redo);
-    lastAccepted = { index: current.index, fileName: current.fileName };
+    lastAccepted = { index: current.index, fileName: current.fileName, sentence: current.sentence };
+    if (wasRedo && redoLesson === 'redoing') redoLesson = 'done';
     redo = null;
-    if (tutorialStep() < 3) ctx.progress.tutorialStep = tutorialStep() + 1;
-    const allDone = current.index + 1 >= ctx.material.all.length;
-
-    if (allDone) {
-      stop();
-      handlers.onAllDone && handlers.onAllDone();
-      return;
+    if (wasRedo) {
+      delete ctx.progress.pendingRedo;
+      saveProgress();
     }
-    if (!wasRedo && p.warmup && p.pos === p.total) {
-      stop();
-      handlers.onWarmupDone && handlers.onWarmupDone();
-      return;
-    }
-    if (!wasRedo && !p.warmup && p.inBlock === p.blockSize) {
-      stop();
-      handlers.onBlockDone && handlers.onBlockDone({ block: p.block, blocks: p.blocks });
-      return;
-    }
+    const last = current.index + 1 >= ctx.material.all.length;
+    const tip = holdTipNext;
+    holdTipNext = false;
+    if (last) return enterPartEnd({ kind: 'all' });
+    if (p.warmup && p.pos === p.total) return enterPartEnd({ kind: 'practice' });
+    if (!p.warmup && p.inBlock === p.blockSize) return enterPartEnd({ kind: 'part', block: p.block, blocks: p.blocks });
+    if (tip) setFeedback(copy.feedback.holdTip, 'info', true);
     showJustSaved();
     enterReady();
   }
 
   function redoLast() {
-    if (state !== 'ready' || !canRedoLast()) return;
-    redo = { targetIndex: lastAccepted.index, returnIndex: index(), supersedes: lastAccepted.fileName };
+    if (!canRedo()) return;
+    const fromPartEnd = state === 'partEnd';
+    redo = { targetIndex: lastAccepted.index, returnIndex: index(), partEnd: fromPartEnd ? partEnd : null };
+    // After the very last sentence: not "all done" while its Redo is pending, so a reload
+    // or End for today comes back to it.
+    if (fromPartEnd && partEnd.kind === 'all') Object.assign(ctx.progress, { completed: false, completedAt: null });
+    partEnd = null;
+    if (coaching() && redoLesson === 'pending') redoLesson = 'redoing';
+    ctx.progress.pendingRedo = { targetIndex: redo.targetIndex, returnIndex: redo.returnIndex, partEnd: redo.partEnd };
     ctx.progress.currentIndex = lastAccepted.index;
     saveProgress();
-    logEvent('redo_last', { targetIndex: redo.targetIndex });
-    setFeedback(copy.feedback.redoLast, 'info');
+    logEvent('redo_last', { targetIndex: redo.targetIndex, fromPartEnd });
+    justSaved = false;
+    setFeedback(coaching() ? null : copy.record.redoing, 'info');
     enterReady();
+  }
+
+  // Pressed Redo by mistake: go back to where they were.
+  function cancelRedo() {
+    const pending = redo;
+    redo = null;
+    if (redoLesson === 'redoing') redoLesson = 'pending';
+    delete ctx.progress.pendingRedo;
+    ctx.progress.currentIndex = pending.returnIndex;
+    if (pending.partEnd && pending.partEnd.kind === 'all') Object.assign(ctx.progress, { completed: true, completedAt: new Date().toISOString() });
+    saveProgress();
+    logEvent('redo_cancelled', { targetIndex: pending.targetIndex });
+    setFeedback(null);
+    if (pending.partEnd) enterPartEnd(pending.partEnd);
+    else enterReady();
   }
 
   // ---- storage (serialised, in the background) ----
@@ -472,13 +682,31 @@ V2S.session = (() => {
   // only while there is something to save (otherwise saving could not help).
   async function refreshStorageGuard() {
     const estimate = await V2S.storage.storageEstimate();
-    if (!estimate || !estimate.blocked) {
+    if (!quotaHit && !(estimate && estimate.blocked)) {
       storageBlocked = false;
+      roomFromLatest = false;
       return;
     }
     await flush();
-    storageBlocked = (await V2S.storage.countTakes()) > 0;
-    logEvent('storage_near_full', { ratio: estimate.ratio, blocked: storageBlocked });
+    // Copies of earlier ZIP files make room first. Those of the most recent ZIP stay until
+    // the participant confirms that file is saved (the save screen asks).
+    const pruned = await V2S.storage.pruneExported(Infinity, { keepLatest: true });
+    if (pruned) {
+      logEvent('backups_pruned', { count: pruned, reason: 'storage' });
+      quotaHit = false;
+      const after = await V2S.storage.storageEstimate();
+      if (!(after && after.blocked)) {
+        storageBlocked = false;
+        roomFromLatest = false;
+        return;
+      }
+    }
+    // Saving helps if something is waiting to be saved; otherwise only the last ZIP's
+    // copies are left to remove.
+    const unsaved = await V2S.storage.countUnsaved();
+    roomFromLatest = unsaved === 0 && (await V2S.storage.latestBackup()).ids.length > 0;
+    storageBlocked = unsaved > 0 || roomFromLatest;
+    logEvent('storage_near_full', { ratio: estimate ? estimate.ratio : null, quotaHit, unsaved, roomFromLatest, blocked: storageBlocked });
   }
 
   function uniqueName(fileName) {
@@ -500,15 +728,26 @@ V2S.session = (() => {
     return Number.isFinite(ms) ? Math.round(ms - (performance.now() - sinceSessionStart())) : null;
   }
 
-  function buildMetadata(current, recording, qc, status, takeNumber, fileName) {
+  // The earlier page's option text for a setting (its sidecars carry these labels).
+  function optionLabel(kind, value) {
+    const option = cfg.QUALITY_LABELS[kind].find(([key]) => String(key) === String(value));
+    return option ? option[1] : String(value);
+  }
+
+  // Every key the earlier page wrote, in the same shape, so old and new sidecars can be
+  // read by the same scripts; the new keys come on top.
+  function buildMetadata(current, recording, qc, status, takeNumber, fileName, replaced, round) {
     const p = position(current.index);
     const settings = V2S.media.getSettings();
     const usable = status === 'accepted' || status === 'qc_overridden';
+    const requested = V2S.media.requestedConstraints() || {};
+    const failuresInARow = qc.pass ? 0 : (qcFailures.index === current.index ? qcFailures.count : 1);
     return {
       appVersion: cfg.APP_VERSION,
       uiVersion: 'next',
       materialCacheVersion: cfg.MATERIAL_VERSION,
       createdAt: new Date().toISOString(),
+      startedAt: current.recorder && Number.isFinite(current.recorder.startedAt) ? new Date(performance.timeOrigin + current.recorder.startedAt).toISOString() : null,
       fileName,
       sidecarFileName: fileName.replace(/\.[^.]+$/, '') + '.json',
       mimeType: recording.mimeType,
@@ -529,9 +768,13 @@ V2S.session = (() => {
       positionInBlock: p.warmup ? null : p.inBlock,
       sentence: current.sentence,
       redo: takeNumber > 1,
-      supersedes: current.redo ? current.redo.supersedes : null,
+      supersedes: replaced ? replaced.fileName : null,
+      round,
       qcOverride: status === 'qc_overridden',
       requiresRetry: !usable,
+      qcIssue: qc.pass ? null : qc.code,
+      qcFailuresInARow: failuresInARow,
+      audioQualityWarning: qc.pass ? null : copy.feedback[qc.code] || null,
       qc: { pass: qc.pass, code: qc.code, ...qc.metrics, rules: V2S.qc.rules() },
       audioQuality: {
         rms: qc.metrics.rms ?? null,
@@ -544,75 +787,162 @@ V2S.session = (() => {
         sentenceShown: relative(current.shownAt),
         startPress: relative(current.pressAt),
         recorderStart: current.recorder ? relative(current.recorder.startedAt) : null,
+        readNow: relative(current.readNowAt),
         stopPress: relative(current.stopAt),
         recorderStop: relative(current.recorderStoppedAt)
       },
-      timing: { startCueLeadMs: cfg.START_CUE_LEAD_MS, tailMs: current.tailMs ?? null, holdMs: cfg.HOLD_MS },
+      timing: {
+        startCueLeadMs: cfg.START_CUE_LEAD_MS,
+        startGuardMs: cfg.START_GUARD_MS,
+        startAttempts: current.attempts,
+        startErrors: current.startErrors,
+        tailMs: current.tailMs ?? null,
+        holdMs: V2S.input.getHoldMs()
+      },
+      stopDelayMs: cfg.TAIL_MS,
       inputType: current.source,
       stopInputType: current.stopSource || null,
       session: { takesInSession: takesThisSession, msSinceSessionStart: sinceSessionStart() },
-      quality: { videoBitsPerSecond: Number(settings.bitrate) },
-      frameRate: { requested: Number(settings.fps) },
+      quality: { label: optionLabel('bitrate', settings.bitrate), videoBitsPerSecond: Number(settings.bitrate) },
+      frameRate: { label: optionLabel('fps', settings.fps), fps: Number(settings.fps) },
       resolution: settings.resolution,
-      audioMode: settings.audioMode,
+      audioMode: { mode: settings.audioMode === 'fallback' ? 'fallback' : 'raw', label: optionLabel('audio', settings.audioMode === 'fallback' ? 'fallback' : 'raw') },
       audioConstraintMode: V2S.media.getAudioConstraintMode(),
-      requestedConstraints: V2S.media.requestedConstraints(),
+      requestedVideoConstraints: requested.video || null,
+      requestedAudioConstraints: requested.audio || null,
       recorderConfig: recording.recorderConfig || null,
+      recorderError: recording.error || null,
+      mediaAtStart: current.mediaAtStart || null,
       mediaAtSave: V2S.media.snapshot(),
       browser: { userAgent: navigator.userAgent, platform: navigator.platform || '', language: navigator.language || '' },
-      saveMode: V2S.exporter.getSaveMode()
+      saveMode: V2S.exporter.getSaveMode(),
+      downloadClearPolicy: V2S.exporter.getSaveMode() === 'folder' ? 'deleted_after_verified_folder_write' : 'kept_as_backup_after_confirmed_save'
     };
   }
 
-  // Names the take now (so Redo last can refer to it) and stores it — together with
-  // the progress it causes — in one background transaction.
+  // Names the take now and stores it — together with the progress it causes — in one
+  // background transaction. A usable take replaces any earlier usable take of the same
+  // sentence in this round (Redo, going back, practising again): storage marks the old one
+  // superseded in the same transaction, or lists it if it has already left the device.
   function persistTake(current, recording, qc, status, nextIndex) {
     takesThisSession += 1;
     const counts = ctx.progress.takeCounts;
     const takeNumber = (counts[current.index] || 0) + 1;
     counts[current.index] = takeNumber;
     const p = position(current.index);
-    const repeat = (ctx.progress.repetitionCount || 0) + 1;
-    const progressInfo = p.warmup ? `_warmup${p.pos}-${p.total}_repeat${repeat}` : `_${p.pos}-${p.total}_repeat${repeat}`;
+    const round = ctx.progress.round;
+    const progressInfo = p.warmup ? `_warmup${p.pos}-${p.total}_repeat${round}` : `_${p.pos}-${p.total}_repeat${round}`;
     const fileName = uniqueName(`${sanitize(current.sentence)}${progressInfo}_${timestamp()}${takeNumber > 1 ? '_redo' : ''}.${recording.ext}`);
     current.fileName = fileName;
-    const metadata = buildMetadata(current, recording, qc, status, takeNumber, fileName);
+    const usable = status === 'accepted' || status === 'qc_overridden';
+    const replaced = usable ? ctx.progress.usable[current.index] || null : null;
+    if (usable) ctx.progress.usable[current.index] = { fileName, takeId: current.id };
+    const metadata = buildMetadata(current, recording, qc, status, takeNumber, fileName, replaced, round);
 
+    // The last practice sentence after "Practise again": the place to come back to is
+    // stored with this take (End for today on the pause must not lose it).
+    if (p.warmup && p.pos === p.total && nextIndex === current.index + 1 && Number.isInteger(ctx.progress.resumeIndex)) {
+      nextIndex = ctx.progress.resumeIndex;
+    }
     if (nextIndex >= ctx.material.all.length) {
       ctx.progress.currentIndex = ctx.material.all.length - 1;
       ctx.progress.completed = true;
       ctx.progress.completedAt = new Date().toISOString();
+      ctx.progress.repetitionCount = Math.max(Number(ctx.progress.repetitionCount) || 0, round);
     } else {
       ctx.progress.currentIndex = nextIndex;
     }
     const progressSnapshot = snapshot(ctx.progress);
 
-    return enqueue(async () => {
-      const record = {
-        fileName,
-        arrayBuffer: await recording.blob.arrayBuffer(),
-        mimeType: recording.mimeType,
-        sentence: current.sentence,
-        sentenceSet: ctx.setKey,
-        sentenceIndex: current.index,
-        timestamp: new Date().toISOString(),
-        size: recording.blob.size,
-        metadata,
-        participantId: ctx.participantId,
-        status,
-        takeId: current.id
-      };
+    enqueue(async () => {
+      let record = null;
       try {
-        const id = await V2S.storage.commitTake(record, progressSnapshot);
-        logEvent('take_saved', { index: current.index, status, fileName, qc: qc.code, speechMs: qc.metrics.speechMs });
+        record = {
+          fileName,
+          arrayBuffer: await recording.blob.arrayBuffer(),
+          mimeType: recording.mimeType,
+          sentence: current.sentence,
+          sentenceSet: ctx.setKey,
+          sentenceIndex: current.index,
+          timestamp: new Date().toISOString(),
+          size: recording.blob.size,
+          metadata,
+          participantId: ctx.participantId,
+          status,
+          takeId: current.id
+        };
+        const id = await V2S.storage.commitTake(record, progressSnapshot, replaced);
+        storeFailures = 0;
+        quotaHit = false;
+        logEvent('take_saved', { index: current.index, status, fileName, qc: qc.code, speechMs: qc.metrics.speechMs, replaces: replaced && replaced.fileName });
         V2S.exporter.queueFolderWrite(id, record, recording.blob);
+        if (replaced) V2S.exporter.applySuperseded(ctx.participantId, ctx.setKey);
       } catch (error) {
-        // Storage failed: hand the file straight to the person rather than lose it.
-        logEvent('take_store_failed', { fileName, error: String(error && error.message || error) });
-        await V2S.storage.saveParticipantProgress(progressSnapshot).catch(() => {});
-        V2S.exporter.rescueTake(recording.blob, fileName, metadata);
+        const quota = Boolean(error && error.name === 'QuotaExceededError');
+        logEvent('take_store_failed', { fileName, quota, error: String(error && error.message || error) });
+        // Folder mode: write it straight to the folder instead. Otherwise the participant
+        // records that sentence again — the take is never silently lost or skipped.
+        const rescued = await V2S.exporter.rescueTake(recording.blob, {
+          fileName, metadata, mimeType: recording.mimeType, participantId: ctx.participantId, status,
+          sentence: current.sentence, sentenceSet: ctx.setKey, sentenceIndex: current.index, size: recording.blob.size,
+          timestamp: new Date().toISOString(), takeId: current.id
+        }, replaced);
+        if (rescued) {
+          await V2S.storage.saveParticipantProgress(progressSnapshot).catch(() => {});
+        } else {
+          storeFailed(current, usable, replaced, quota);
+        }
       }
     });
+    return writeChain;
+  }
+
+  // A take could not be stored, so its sentence must be recorded again. Progress goes back
+  // to it at once (saved after every write already queued), also when no session is on
+  // screen; while another take is being recorded, the screen follows when it is done.
+  function storeFailed(current, usable, replaced, quota) {
+    if (usable) {
+      const entry = ctx.progress.usable[current.index];
+      // Undo only this take's own entry: a newer take of the sentence may have replaced it.
+      if (entry && entry.takeId === current.id) {
+        if (replaced) ctx.progress.usable[current.index] = replaced;
+        else delete ctx.progress.usable[current.index];
+      }
+    }
+    storeFailures += 1;
+    if (quota) quotaHit = true;
+    storeFailedAt = storeFailedAt === null ? current.index : Math.min(storeFailedAt, current.index);
+    if (state === 'ready' || state === 'partEnd') backToUnstored();
+    else if (state === 'idle') rewindTo(storeFailedAt);
+  }
+
+  function rewindTo(i) {
+    if (!ctx.progress.completed && ctx.progress.currentIndex <= i) return;
+    Object.assign(ctx.progress, { currentIndex: i, completed: false, completedAt: null });
+    ctx.progress.repetitionCount = Math.min(Number(ctx.progress.repetitionCount) || 0, V2S.storage.roundOf(ctx.progress) - 1);
+    delete ctx.progress.pendingRedo;
+    saveProgress();
+    logEvent('rewound', { index: i });
+  }
+
+  // Back to the first sentence whose take could not be stored. A full device leads to the
+  // save screen; a device that keeps failing for another reason gets the error screen.
+  async function backToUnstored() {
+    const i = storeFailedAt;
+    storeFailedAt = null;
+    redo = null;
+    partEnd = null;
+    lastAccepted = null;
+    rewindTo(i);
+    setFeedback(copy.feedback.storeFailed, 'warn');
+    logEvent('back_to_unstored', { index: i, failures: storeFailures });
+    enterReady();
+    if (quotaHit || storeFailures >= 2) {
+      await refreshStorageGuard().catch(() => {});
+      if (state !== 'ready') return;
+      if (storageBlocked && handlers.onStorageFull) handlers.onStorageFull();
+      else if (storeFailures >= 2 && handlers.onStoreFailure) handlers.onStoreFailure();
+    }
   }
 
   // ---- device problems ----
@@ -627,13 +957,60 @@ V2S.session = (() => {
 
   function resumeAfterReconnect() {
     deviceFailureActive = false;
+    consecutiveStartFailures = 0;
     setFeedback(null);
-    enterReady();
+    resume();
+  }
+
+  // After the last sentence, recording again (Settings: Go to, Previous, Clear progress, …)
+  // starts the next pass: new file names say repeat<n+1>, and no sentence has a usable
+  // take in it yet. Before that, a sentence recorded again replaces its earlier take.
+  function startNewRoundIfCompleted(progress) {
+    if (!progress.completed) return false;
+    const round = V2S.storage.roundOf(progress) + 1;
+    Object.assign(progress, { completed: false, completedAt: null, round, usable: {}, takeCounts: {} });
+    delete progress.pendingRedo;
+    logEvent('new_round', { round });
+    return true;
+  }
+
+  // Settings: go to another sentence without recording (Previous / Next / Skip / Go to).
+  // Redo is cleared: it must never reach across a jump.
+  function jumpTo(target) {
+    if (!ctx || !['ready', 'partEnd', 'idle'].includes(state)) return false;
+    const i = Math.max(0, Math.min(target, ctx.material.all.length - 1));
+    startNewRoundIfCompleted(ctx.progress);
+    Object.assign(ctx.progress, { currentIndex: i, completed: false, completedAt: null });
+    delete ctx.progress.pendingRedo;
+    redo = null;
+    lastAccepted = null;
+    partEnd = null;
+    justSaved = false;
+    if (i < ctx.material.warmupCount && !ctx.progress.coachDone) redoLesson = 'pending';
+    qcFailures = { index: null, count: 0 };
+    setFeedback(null);
+    saveProgress();
+    logEvent('jump', { to: i });
+    if (state !== 'idle') enterReady();
+    return true;
+  }
+
+  // Back on the recording screen (from How to record, Settings, a new check): carry on
+  // exactly where it was, including the pause after a part's last sentence.
+  function resume() {
+    if (partEnd && lastAccepted) enterPartEnd(partEnd);
+    else enterReady();
+  }
+
+  // The page is being left (another tab took over): keep what was recorded, as not used.
+  async function abortCurrent(status) {
+    if (take && !take.closed) await abortTake(status, null, 'warn', take);
+    await flush();
   }
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && take && !take.closed && (state === 'recording' || state === 'finishing')) {
-      abortTake('aborted_device', copy.feedback.hidden);
+    if (document.hidden && take && !take.closed && ['starting', 'recording', 'finishing'].includes(state)) {
+      abortTake('aborted_hidden', copy.feedback.hidden);
     }
   });
 
@@ -644,11 +1021,17 @@ V2S.session = (() => {
     getState,
     getContext,
     position,
+    coaching,
     onPrimary,
     onSecondary,
     onHold,
     onDeviceFailure,
     resumeAfterReconnect,
+    resume,
+    jumpTo,
+    startNewRoundIfCompleted,
+    abortCurrent,
+    needsRoom: () => storageBlocked && roomFromLatest,
     enterReady,
     flush,
     refreshStorage: refreshStorageGuard

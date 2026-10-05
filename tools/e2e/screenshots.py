@@ -1,6 +1,8 @@
-"""Screenshots of every screen at phone, tablet and laptop sizes, light and dark.
+"""Screenshots of every screen on phones, tablets and a laptop, in light and dark.
 
-Run:  <venv>/bin/python tools/e2e/screenshots.py [output-dir]
+Run:  <venv>/bin/python tools/e2e/screenshots.py [--engine webkit] [OUT_DIR] [--only phone ipad]
+
+Silent (common.launch mutes every browser). The synthetic voice speaks during takes.
 """
 import asyncio
 import os
@@ -8,116 +10,205 @@ import sys
 
 from playwright.async_api import async_playwright
 
-from common import NEXT_PAGE, launch, static_server
+from common import NEXT_PAGE, launch, next_url, static_server
 import test_next_app as t
 
 VIEWPORTS = {
     'phone': ({'width': 390, 'height': 844}, True),
-    'phone-se': ({'width': 375, 'height': 667}, True),
     'phone-land': ({'width': 844, 'height': 390}, True),
-    'phone-se-land': ({'width': 667, 'height': 375}, True),
     'ipad-mini': ({'width': 744, 'height': 1133}, True),
     'ipad': ({'width': 820, 'height': 1180}, True),
-    'ipad-pro': ({'width': 1024, 'height': 1366}, True),
     'ipad-land': ({'width': 1180, 'height': 820}, True),
     'laptop': ({'width': 1440, 'height': 900}, False),
 }
-
 
 ENGINE = 'chrome'
 
 
 async def capture(pw, base, out, name, viewport, mobile, theme):
-    # Browsers without save/folder dialogs (iPad, phones) show the download + confirm flow.
-    scripts = [f"try {{ localStorage.setItem('v2s_theme', '{theme}'); }} catch (e) {{}}",
-               'delete window.showDirectoryPicker; delete window.showSaveFilePicker;']
-    browser, context, page, errors = await launch(pw, audio='fan', viewport=viewport, has_touch=mobile,
-                                                  is_mobile=mobile, init_scripts=scripts, engine=ENGINE)
+    theme_js = f"try {{ localStorage.setItem('v2s_theme', '{theme}'); }} catch (e) {{}}"
     prefix = os.path.join(out, f'{name}-{theme}')
+    common = dict(viewport=viewport, has_touch=mobile, is_mobile=mobile, engine=ENGINE)
+
+    # Sign-in page (not signed in yet).
+    browser, _, page, errors = await launch(pw, authed=False, media='shim', init_scripts=[theme_js], **common)
+    await page.goto(f'{base}/index.html')
+    await page.wait_for_selector('#loginForm')
+    await page.wait_for_timeout(400)
+    await page.screenshot(path=f'{prefix}-00-signin.png')
+    await browser.close()
+
+    browser, _, page, errors = await launch(pw, audio='speech', media='shim', init_scripts=[theme_js, t.NO_PICKERS, t.FAST], **common)
+
+    # Anything wider than the screen (or the settings panel) is printed as a problem.
+    overflow_js = """() => {
+      const limit = window.innerWidth + 1;
+      const wide = [...document.querySelectorAll('body *')].filter(n => {
+        if (!n.getClientRects().length) return false;
+        const r = n.getBoundingClientRect();
+        return r.width > 0 && r.right > limit && getComputedStyle(n).visibility !== 'hidden';
+      });
+      const sheet = document.querySelector('#settingsPanel:not([hidden]) .sheet');
+      // Buttons whose content does not fit inside them (a label spilling over the edge).
+      const spill = [...document.querySelectorAll('button')].filter(b => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && b.scrollWidth > b.clientWidth + 1);
+      return { page: document.documentElement.scrollWidth - window.innerWidth, sheet: sheet ? sheet.scrollWidth - sheet.clientWidth : 0,
+               wide: wide.slice(0, 3).map(n => `${n.tagName}#${n.id}.${n.className}`),
+               spill: spill.slice(0, 3).map(b => `${b.id || b.textContent.trim().slice(0, 20)}`) };
+    }"""
 
     async def shot(label):
         await page.wait_for_timeout(350)
         await page.screenshot(path=f'{prefix}-{label}.png')
+        r = await page.evaluate(overflow_js)
+        if r['page'] > 1 or r['sheet'] > 1 or r['wide'] or r['spill']:
+            print(f'  OVERFLOW {name}-{theme}-{label}: {r}')
 
-    await page.goto(f'{base}/{NEXT_PAGE}')
+    async def take(stop=True, ms=1500):
+        await page.keyboard.press('Space')
+        await page.wait_for_function("() => V2S.session.getState() === 'recording'", timeout=5000)
+        await page.wait_for_timeout(ms)
+        if stop:
+            await finish_take()
+
+    # Each take's outcome is printed, so a screenshot never silently shows the wrong state.
+    async def finish_take():
+        await page.keyboard.press('Space')
+        await t.wait_ready(page)
+        event = await page.evaluate("""async () => {
+          await V2S.session.flush();
+          let last = null;
+          await V2S.storage.forEachTake(r => { last = r; });
+          const q = (last && last.metadata && last.metadata.qc) || {};
+          return { status: last && last.status, speechMs: q.speechMs, frames: q.frames, durationMs: q.durationMs, floor: q.noiseFloor, threshold: q.speechThreshold, interval: q.frameIntervalMs };
+        }""")
+        print(f"  {name}-{theme} take: {event}")
+
+    await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await shot('01-setup')
-    await page.fill('#setupId', 'P017')
+    await page.fill('#setupId', 'semg1')
     await page.click('#setupNext')
     await page.wait_for_selector('#setupStepConfirm:not([hidden])')
+    await shot('02-setup-confirm')
     await page.click('#setupConfirmYes')
-    try:
-        await page.locator('#setupStepFolder:not([hidden])').wait_for(timeout=1500)
-        await page.click('#setupFolderZip')
-    except Exception:
-        pass
-    await page.wait_for_selector('#screen-welcome:not([hidden])')
-    await shot('02-welcome')
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    await shot('03-welcome')
     await page.click('#welcomeStart')
     await page.wait_for_selector('#screen-check:not([hidden])')
-    await t.wait_for(page, "() => document.getElementById('checkOk').getAttribute('aria-disabled') === 'false'")
-    await shot('03-check')
-    await page.click('#checkOk')
-    await page.wait_for_selector('#screen-record:not([hidden])')
+    await t.wait_for(page, "() => V2S.media.getStream() && document.getElementById('checkBadge').textContent.includes('Live')")
+    await shot('04-check')
+    await page.click('#testRecord')
+    await page.wait_for_timeout(600)
+    await shot('05-check-recording')
+    await t.wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=15000)
+    await shot('06-check-ask')
+    await page.click('#testYes')
+    await page.wait_for_selector('#screen-howto:not([hidden])')
+    await shot('07-howto')
+    await page.click('#howtoGo')
     await t.wait_for(page, "() => V2S.session.getState() === 'ready'")
-    await shot('04-ready')
+    await page.evaluate("window.__v2sAudio.set('silence')")
+    await shot('08-practice-ready')
+    await page.evaluate("window.__v2sAudio.set('speech')")
+    await take(stop=False)
+    await shot('09-practice-recording')
+    await finish_take()
+    await take()
+    await page.evaluate("window.__v2sAudio.set('silence')")
+    await shot('10-practice-redo-lesson')
+    await page.evaluate("window.__v2sAudio.set('speech')")
+    await page.keyboard.press('ArrowLeft')  # do the Redo lesson
+    await page.wait_for_timeout(400)
+    await take()
+    for _ in range(3):
+        await take()
+    await page.evaluate("window.__v2sAudio.set('silence')")
+    await shot('11-practice-end')
+    await page.evaluate("window.__v2sAudio.set('speech')")
     await page.keyboard.press('Space')
-    await page.wait_for_timeout(1200)
-    await shot('05-recording')
-    await page.keyboard.press('Space')
-    await t.wait_ready(page)
-    await shot('06-retry')
-    await t.record(page, 1200, stop=False)
-    await page.keyboard.press('Space')
-    await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await shot('07-keep-dialog')
-    await page.keyboard.press('Enter')
-    await t.wait_ready(page)
-    await page.evaluate("""async () => {
-      const app = V2S.app.state();
-      app.progress.currentIndex = 5 + 36;
-      await V2S.storage.saveParticipantProgress(app.progress);
-      await V2S.app.restartSession();
-    }""")
-    await page.wait_for_selector('#screen-welcome:not([hidden])')
-    await shot('08-welcome-back')
-    await t.start_session(page)
-    await shot('09-ready-formal')
-    await page.evaluate("() => document.getElementById('finishButton').click()")
-    await page.wait_for_selector('#screen-done:not([hidden])')
-    await shot('10-done')
-    print(name, theme, 'errors:', errors)
-    await browser.close()
-
-    # Second pass with speech so a take is accepted at the end of a block.
-    browser, context, page, errors = await launch(pw, audio='speech', viewport=viewport, has_touch=mobile,
-                                                  is_mobile=mobile, init_scripts=scripts, engine=ENGINE)
-    await t.setup_participant(page, base)
-    await t.start_session(page)
-    await t.set_index(page, 5 + 48)
-    await t.record(page)
-    await shot('11-last-in-block')
-    await t.record(page)
     await page.wait_for_selector('#screen-break:not([hidden])')
-    await shot('12-break')
+    await t.wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
+    await shot('12-practice-done')
+    # Saving is learnt here: the practice recordings are saved once (ZIP mode).
     async with page.expect_download():
         await page.click('#breakPrimary')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await shot('13-save-confirm')
+    await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
     await page.get_by_role('button', name='Yes, it saved').click()
     await page.wait_for_timeout(500)
-    await shot('14-saved')
-    print(name, theme, 'errors (pass 2):', errors)
+    await shot('12b-practice-saved')
+    await page.click('#breakPrimary')  # Start part 1
+    await t.wait_ready(page)
+    await page.evaluate("window.__v2sAudio.set('silence')")
+    await shot('13-ready')
+    await page.evaluate("window.__v2sAudio.set('speech')")
+    await take(stop=False)
+    await shot('14-recording')
+    await finish_take()
+    await page.evaluate("window.__v2sAudio.set('silence')")
+    await shot('15-saved-redo')
+    await page.keyboard.down('Space')
+    await page.wait_for_timeout(1400)
+    await shot('16-hold-dialog')
+    await page.keyboard.up('Space')
+    await page.wait_for_timeout(500)
+    await page.keyboard.press('Enter')
+    await t.wait_ready(page)
+    await page.evaluate("window.__v2sAudio.set('fan')")
+    await take()
+    await shot('17-no-speech')
+    await page.evaluate("window.__v2sAudio.set('speech')")
+    await page.keyboard.press('ArrowLeft')
+    await page.wait_for_timeout(400)
+    await page.evaluate("window.__v2sAudio.set('silence')")
+    await shot('18-redoing')
+    await page.keyboard.press('ArrowLeft')  # Cancel redo
+    await page.wait_for_timeout(400)
+    await page.evaluate("window.__v2sAudio.set('speech')")
+    await page.click('#settingsButton')
+    await page.wait_for_selector('#settingsPanel:not([hidden])')
+    await shot('19-settings')
+    await page.click('#settingsClose')
+    await page.click('#finishButton')
+    await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await shot('20-end-dialog')
+    await page.keyboard.press('Enter')  # Keep going
+    await page.wait_for_timeout(400)
+    await t.set_index(page, 5 + 49)
+    await take()
+    await page.evaluate("window.__v2sAudio.set('silence')")
+    await shot('21-part-end')
+    await page.evaluate("window.__v2sAudio.set('speech')")
+    await page.keyboard.press('Space')
+    await page.wait_for_selector('#screen-break:not([hidden])')
+    await t.wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
+    await shot('22-break')
+    async with page.expect_download():
+        await page.click('#breakPrimary')
+    await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await shot('23-save-confirm')
+    await page.get_by_role('button', name='Yes, it saved').click()
+    await page.wait_for_timeout(500)
+    await shot('24-saved')
+    await page.click('#breakSecondary')
+    await page.wait_for_selector('#screen-done:not([hidden])')
+    await page.wait_for_timeout(600)
+    await shot('25-done')
+    print(name, theme, 'errors:', errors)
     await browser.close()
 
 
-async def main(out):
+async def main(out, names, themes):
     os.makedirs(out, exist_ok=True)
     with static_server() as base:
         async with async_playwright() as pw:
-            for name, (viewport, mobile) in VIEWPORTS.items():
-                for theme in ('light', 'dark'):
-                    await capture(pw, base, out, name, viewport, mobile, theme)
+            for name in names:
+                viewport, mobile = VIEWPORTS[name]
+                for theme in themes:
+                    try:
+                        await capture(pw, base, out, name, viewport, mobile, theme)
+                    except Exception as error:
+                        print(name, theme, 'FAILED:', repr(error))
 
 
 if __name__ == '__main__':
@@ -125,9 +216,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--engine', choices=['chrome', 'webkit', 'firefox'], default='chrome')
     parser.add_argument('--only', nargs='*', help='viewport names, e.g. phone ipad')
+    parser.add_argument('--theme', choices=['light', 'dark'], help='one theme only')
     parser.add_argument('out', nargs='?', default=os.path.join(os.path.dirname(__file__), 'shots'))
     args = parser.parse_args()
     ENGINE = args.engine
-    if args.only:
-        VIEWPORTS = {k: v for k, v in VIEWPORTS.items() if k in args.only}
-    asyncio.run(main(args.out))
+    t.ENGINE = args.engine
+    asyncio.run(main(args.out, args.only or list(VIEWPORTS), [args.theme] if args.theme else ['light', 'dark']))

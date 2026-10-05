@@ -1,132 +1,231 @@
-# Speech recorder (v202)
+# Speech recorder (v204)
 
 The new patient recorder lives at `app_next.html` while it is being tested on real
 devices. The current page, `app.html` (v114, hotfixed), keeps running for participants
 until the switch described at the end.
 
+Why every screen looks and behaves the way it does (sizes, colours, wording, flow):
+[recorder-design.md](recorder-design.md). What was checked before hand-over, item by
+item: [recorder-checklist.md](recorder-checklist.md).
+
 ## What a participant sees
 
-1. **First-time setup** (research team or helper, once per device): participant ID,
-   shown back in large type to confirm. On Chrome/Edge computers, the folder where
-   recordings are saved. A device that has progress from the earlier page asks whether
-   to continue from it.
-2. **Welcome**: where they are (warm-up, or block and sentence) and, in ZIP mode, how
-   many recordings are not saved yet.
-   In folder mode the browser must be allowed to write to the folder again in every
-   new browser session; pressing **Start** asks for it. If permission is not given,
-   the *Allow saving to your folder* screen offers **Allow**, **Choose a different
-   folder** or **Save as ZIP files instead**. Nothing is ever saved anywhere else
-   without asking.
-3. **Camera and microphone check** (every session): large preview with a face outline
-   and a live waveform. One button: *Looks good*.
-4. **Recording**: one sentence at a time.
-   - *Not recording*: the sentence is grey but readable; **● Start**. Speaking before
-     Start shows "Not recording yet — press Start, then read."
-   - *Recording*: the sentence turns **green**, a red frame surrounds the whole screen,
-     "● Recording"; **■ Stop**.
-   - After Stop the page keeps recording for a fixed 0.7 s (the legacy page: 0.3 s),
-     whether or not the person is still speaking. The next sentence then appears at once
-     with "Saved"; checking and storing happen in the background.
-   - Next to Start/Stop: the waveform (last 4 s, green while recording), a small
-     camera view, and one line saying where recordings go
-     (*Saved to “folder”* or *Kept on this device until the break*).
-5. **Block break** every 50 sentences: rest; in ZIP mode, save before continuing.
-6. **Done**: progress is saved; a reminder if anything is still unsaved.
+1. **Sign in** (`index.html`), in the same style, with a light/dark switch.
+2. **First-time setup** (research team or helper, once per device):
+   - The participant ID (example "SEMG1", saved in capitals), confirmed in large type.
+   - On Chrome/Edge computers, the folder where recordings are saved.
+   - If the device holds progress from the earlier page, the setup asks whether to
+     continue from it.
+3. **Welcome**:
+   - First time: what will happen, in three stages.
+   - Later visits: where they are ("Part 2 of 7 — 14 of 50 done").
+   - In folder mode the browser must be allowed to write to the folder again in each
+     new browser session; **Begin** / **Continue** asks for it.
+   - If permission is not given, a screen offers **Allow**, **Choose a different
+     folder** or **Save as ZIP files instead**. Nothing is ever saved anywhere else
+     without asking.
+4. **Camera and microphone check** (every session):
+   - A large preview with a head-and-neck outline and the study's camera position:
+     below the chin, tilted up, mouth, cheeks and throat visible. The names of the
+     camera and microphone in use, each with **Change**.
+   - A Bluetooth or headset microphone gets a warning and a one-tap switch to the
+     built-in one.
+   - **Record a 5-second test** plays the clip back (picture and sound) and asks "Can
+     you see your mouth, cheeks and throat, and hear yourself clearly?". Continue only
+     after **Yes**.
+5. **How to record** (once per participant, and from the **?** button):
+   1. Press **Start** once — no need to hold it.
+   2. When the sentence turns green, read it out loud.
+   3. Press **Stop**.
 
-Warm-up (5 sentences) happens only at the start of the sentence list.
+   Plus: read a word wrong → **Redo**.
+6. **Practice** (the 5 warm-up sentences, first time only), with a coach line and a
+   Start → Read → Stop strip. Practice 3 teaches Redo by doing it.
+7. **Recording**, one sentence at a time:
+   - The sentence card sits near the top of the screen, close to the camera, so the
+     face stays turned towards it.
+   - *Not recording*: grey pill "Not recording", the sentence in grey, a soft green
+     **Start** button. **Redo** (with the previous sentence written under it) and a
+     small camera view are shown only now.
+   - *Starting…* (about 0.35 s): the start sound plays, then the recorder must run 0.2 s
+     without an error. Only then does the card turn green.
+   - *Recording*: the card turns light green, the sentence green, a solid green pill
+     reads "Recording", a green frame surrounds the screen, and the line under the card
+     says "Read it out loud, then press Stop." Only **Stop** is shown. After 20 s a clock
+     appears in the pill, the line turns amber ("Still recording. Press Stop when you
+     have finished.") and Stop pulses.
+   - After Stop, recording continues a fixed 0.7 s (the legacy page: 0.3 s). The next
+     sentence then appears; "✓ Saved" shows briefly on the Redo button, next to the
+     sentence just saved. Checking and storing happen in the background.
+   - The last sentence of a part stays on screen ("Saved", Redo still possible) until
+     **Take a break**.
+8. **Practice done**: in ZIP mode the practice recordings are saved once, with the same
+   steps as after every part (so saving is learnt by doing it); in folder mode the screen
+   names the folder.
+9. **Break** after every 50 sentences ("Part 2 done"); in ZIP mode, save first.
+   **Continue to part 3** or **Finish for today**.
+10. **Done**: "You can close this page" only when everything is saved; otherwise "Please
+    save your recordings before you close this page." with **Save recordings**.
 
-### First-session tutorial
+The top bar shows where you are ("Part 2 of 7 · Sentence 14 of 50 · 37 to go before
+the break"), with **End for today** (asks first), **?**, the light/dark switch and
+**Settings**. Its buttons are hidden while recording.
 
-Shown once per participant, on the first three takes, in the message line under the
-sentence. The button the tip talks about pulses.
+On small screens the next action stays visible at the bottom edge while the rest
+scrolls.
 
-| Take | Before Start | While recording |
-|---|---|---|
-| 1 | Press Start, then read the sentence aloud. | Read it now. Press Stop when you finish. |
-| 2 | To redo the last sentence, press Redo last. | Made a mistake? Press Start over. |
-| 3 | Recordings save to your folder automatically. *(or)* Recordings stay on this device. You save them at each break. | — |
-
-A problem message (for example "We didn't hear you…") always replaces the tip.
-
-## Design language
-
-- One thing to look at: the sentence. Then the Start/Stop button, then the recording
-  state (dot + red frame), then a single message line. Progress, the waveform, the
-  camera view and save status are small and quiet.
-- Colour has one meaning each: red = recording, green = read now / saved,
-  amber = try again, blue = tip. Nothing else is coloured.
-- Light and dark themes (researcher panel → Display). Font: Atkinson Hyperlegible
-  Next, bundled in `vendor/fonts/`.
-- On tablets held upright and on phones the controls form one column: secondary
-  button, waveform + camera, Start/Stop at the bottom. The waveform row keeps the two
-  buttons apart so a shaky press cannot hit the wrong one.
+The page runs in one tab at a time. A second copy shows "Already open in another tab"
+with **Use this tab instead**; the first copy then stops and says so.
 
 ## Interaction rules
 
 - Two presses per sentence: Start, then Stop. Both act on press, not on release.
 - Keys: Space, Enter, → and PageDown are the main button (presentation clickers and
-  accessibility switches usually send these); ← is the small button
-  (*Redo last* while waiting, *Start over* while recording).
-- Keyboard auto-repeat is ignored. A key or touch **held for 1 s** throws the take away
-  and restarts the same sentence ("Please tap, don't hold"). The click a browser sends
-  after a held mouse button is ignored too.
-- Presses less than 300 ms apart are ignored (tremor double taps, switch bounce).
-- Every failure — held press, no speech, too loud, 60-second limit, camera or
-  microphone lost, page hidden, reload — returns to the **same** sentence.
-  Progress only moves on an accepted take.
+  accessibility switches send these); ← and PageUp are **Redo**.
+- Keyboard auto-repeat is ignored. Presses less than 300 ms apart are ignored (tremor
+  double taps, switch bounce).
+- **Start held for 1 s** (the push-to-talk habit) throws the take away. A dialog then
+  explains: "Press Start once and let go. It records until you press Stop." The same
+  sentence comes back.
+- **Stop held** is not push-to-talk (people let go slowly): the take is kept and the next
+  sentence shows a gentle tip. The limit is 1 s, or 2 or 3 s in Settings.
+- **Redo** records the previous sentence again, within the same part only (also the
+  part's last sentence, before the break), and then returns. While it is under way the
+  button reads **Cancel redo**. A Redo survives a reload or End for today. The
+  recording it replaces goes to `not_used/` as `superseded`.
+- Every failure returns to the **same** sentence: held Start, no speech, too loud, no
+  audio, recorder failed to start, 60-second limit, camera or microphone lost, page
+  hidden, reload, a take that could not be stored. Progress only moves together with a
+  stored take.
+
+## Recording reliability
+
+- **Recording settings** are the legacy page's (see Settings → Recording quality):
+  - video: 1080p, 30 fps, 15 Mbps; H.264 MP4 where supported, otherwise WebM;
+  - audio: raw (no echo cancellation, noise suppression or gain control), 48 kHz
+    requested, mono.
+- **Audio bitrate**: 192 kbps for a microphone at 44.1/48 kHz, 64 kbps below that.
+  Chrome's MP4 encoder fails to start about 1 time in 4 with a 16 kHz (Bluetooth)
+  microphone at 192 kbps.
+- **Start failures**: an error while starting is retried silently with a new recorder
+  (up to 3 tries; the last uses the next recording format). If all tries fail the
+  participant is told. A second failure in a row shows a screen suggesting the
+  built-in microphone. Each sidecar records `timing.startAttempts` and `startErrors`.
 
 ## Recording check (approved 2026-10-03; no_audio approved 2026-10-04)
 
 - A frame counts as speech when its RMS is at least `max(0.004, 3 × noise floor)`,
   where the noise floor is the take's 20th-percentile frame RMS.
-- **no_speech**: under 300 ms of speech frames. **too_loud**: 1% or more of samples clip.
-  **no_audio**: the audio analysis delivered nothing (e.g. iOS paused it); the page says
-  the microphone did not respond instead of blaming the speaker.
+- **no_speech**: under 300 ms of speech frames.
+- **too_loud**: 1% or more of samples clip.
+- **no_audio**: the audio analysis delivered nothing (e.g. iOS paused it).
 - After two failures in a row on one sentence the participant may choose
-  *Keep it and continue* (`status: qc_overridden`).
-- Recorded but not used to decide: RMS, peak, clipping rate, noise floor, speech ms,
-  silence before speech and `speechAtEnd` (speech in the last 150 ms of the take, i.e.
-  possibly cut off). `timing.tailMs` says how long recording continued after Stop.
-
-Thresholds live in `js/config.js` (`QC`, `TAIL_MS`).
+  *Keep it and go on* (`status: qc_overridden`).
+- Recorded but not used to decide:
+  - RMS, peak, clipping rate, noise floor and speech ms;
+  - silence before speech;
+  - `speechAtEnd` (speech in the last 150 ms: a possible cut-off);
+  - `timing.tailMs`.
 
 ## Files
 
 File names are unchanged from the legacy page:
 `<sentence>_<pos>-<total>_repeat<n>_<YYYYMMDD_HHMMSS>[_redo].<ext>`
-(`_warmup<pos>-5_` for warm-up sentences). Every video has a JSON sidecar.
+(`_warmup<pos>-5_` for practice sentences). Every video has a JSON sidecar.
 
 The folder and the ZIP use the same layout:
 
 | Where | What |
 |---|---|
-| `<participant>/` | takes to use: `status` `accepted` or `qc_overridden` |
-| `<participant>/not_used/` | everything else: `qc_failed`, `aborted_hold`, `aborted_timeout`, `aborted_device`, `restarted` |
+| `<participant>/` | exactly one usable recording per sentence and round: `status` `accepted` or `qc_overridden` |
+| `<participant>/not_used/` | everything else: `qc_failed`, `aborted_hold`, `aborted_timeout`, `aborted_device`, `aborted_hidden`, and `superseded` (replaced by a newer recording of the same sentence, with `supersededBy`) |
+| `<participant>/logs/` | `session-*.json` (folder: the event log of each session), `superseded.json` (every replaced recording so far) |
 | `previous-page-recordings/` | recordings the earlier page left unsaved on this device (no participant ID) |
-| `manifest.json` (ZIP) or `<participant>/session-*.json` (folder) | all records plus the session event log |
+| `manifest.json` (ZIP) | all records in the ZIP, the replaced list, and the event log |
 
-Sidecar additions: `participantId`, `sessionId`, `takeId`, `takeIndex`, `status`,
-`usable`, `qc{…}`, `markers{…}` (sentence shown, start press, recorder start, stop press,
-recorder stop — ms since session start), `supersedes` (for *Redo last*), `inputType`.
-
+- **Rounds** (`repeat<n>`): the pass through the sentence set, as on the legacy page
+  (`repetitionCount` counts completed passes). After the last sentence, anything
+  recorded starts the next round; until then the last sentence can still be redone in
+  the same round. Settings shows the current round.
+- **One usable recording per sentence and round**: a newer usable recording of a
+  sentence (Redo, Previous, Go to, Practise again) supersedes the earlier one. Still on
+  the device: marked in the same storage transaction. Already in the folder: moved to
+  `not_used/`. Already in an earlier ZIP: listed in `logs/superseded.json`, which every
+  later ZIP carries in full.
+- **Sidecar additions**:
+  - identity and status: `participantId`, `sessionId`, `takeId`, `takeIndex`,
+    `status`, `usable`, `round`;
+  - `qc{…}`;
+  - `markers{…}`: sentence shown, start press, recorder start, read now (green), stop
+    press, recorder stop;
+  - `timing{…}`;
+  - replacement links: `supersedes` / `supersededBy`;
+  - `inputType`.
 - **Folder mode** (Chrome/Edge on a computer): every take is written to the chosen
-  folder as soon as it is checked, and read back to verify its size. It leaves browser
-  storage only after that check. Folder mode never downloads files.
+  folder as soon as it is checked, then read back to verify its size. It leaves browser
+  storage only after that. Folder mode never downloads files.
 - **ZIP mode** (iPad, phones, Safari, Firefox, or when chosen at setup): one ZIP per
-  block, `<participant>_video-recordings-<time>_blockNN.zip`. Where the browser has a
-  save dialog (Chrome/Edge) it opens first and the person picks the location; cached
-  takes are deleted after the file is written there. Elsewhere the ZIP is a normal
-  download followed by *Did the file save?*; cached takes are deleted only after
-  **Yes, it saved**.
+  part, at most 60 recordings per file, named
+  `<participant>_video-recordings-<time>_blockNN.zip`.
+  - Where the browser has a save dialog (Chrome/Edge), it opens first.
+  - Elsewhere the ZIP is a normal download followed by *Did the file save?*.
+  - After **Yes, it saved** the recordings stay on the device as backup copies: left
+    out of later ZIPs, at most 100, removed first when the device needs space. Settings
+    → **Save backup copies again** recovers from a mistaken "Yes".
+- If a take cannot be stored (for example a full device), the participant goes back to
+  that sentence; a nearly full device leads to the save screen. When the only thing left
+  to remove is the copy of the most recent ZIP, the save screen first asks the
+  participant to check that file is saved ("It is saved — make room").
+- **Merging** files from several places (two folders, or ZIP files from different days):
+  unzip the oldest first, then run `python3 tools/apply_superseded.py <folder>/<participant>
+  --apply`; it moves every recording listed in `logs/superseded.json` into `not_used/`
+  (nothing is deleted).
+- **Falling back to the legacy page** on a device: save everything with the new page
+  first. The legacy page's Save All puts every cached take (including not-used ones and
+  backup copies) flat into its ZIP.
 
-## Researcher panel
+## Settings (gear button)
 
-Open the page once with `?admin=1` (e.g. `app_next.html?admin=1`) to show the gear
-button for that browser session (`?admin=0` hides it). It can switch participant or
-sentence set, jump to a sentence, reset progress (shows the tutorial again), write
-cached recordings to the folder or download them as a ZIP, delete cached recordings,
-choose the save folder, change camera settings (applied when the camera restarts),
-switch light/dark theme and download the event log.
+Available on every screen except while recording. Every option of the legacy page is
+here, under its old name (checked by the `settings_parity` test):
+- **Sentences and progress** (research team): participant, position and round;
+  Sentence set; ← Previous sentence; Next sentence (skip) →; Go to sentence N; Skip
+  practice (bypass warm-up) or Practise again (returns to the same sentence afterwards);
+  Clear progress…; Held-press limit; Switch participant….
+- **Saving**: where recordings go; not saved yet, backup copies, storage used; Save all
+  recordings now; Save backup copies again; Choose folder… / Use ZIP files; Delete
+  backup copies…; Clear storage (delete recordings on this device)….
+- **Camera and microphone**: device pickers, a Bluetooth warning, the stream in use, and
+  Record a new test.
+- **Recording quality** (research team): Recording resolution, Recording quality
+  (bitrate), Recording frame rate, Audio mode, Mirror video display.
+- **Display**: Light / Dark.
+- **Account**: Sign out (log out); signing in again returns to this page.
+- **About**: version, session ID, and Download event log.
+
+Destructive actions ask for confirmation first.
+
+## Device recommendations (tell participants)
+
+The study's camera position (the earlier page's How to Record checklist): the camera
+**below chin level, tilted up**, so the **mouth, cheeks and throat** are visible. Front
+cameras sit at the top edge of the screen, so:
+- **Tablet**: low in front of the participant (on the table, or a low stand), screen
+  tilted back, so its top edge is below the chin. Sideways if the camera is on the long
+  edge (iPad 10th generation and newer, recent iPad Air and Pro), so the camera is in the
+  middle; upright if it is on the short edge (older iPads).
+- **Phone**: upright on a low stand, tilted back. Held sideways, the camera ends up to
+  one side and films the face from the side. Upright phones record portrait video
+  (1080×1920); computers and tablets record 1920×1080.
+- **Computer**: the built-in camera usually sits above eye level, which is too high. Use
+  a webcam placed below the chin, pointing up, and choose it in Settings → Camera.
+  Prefer the built-in microphone over Bluetooth headphones.
+
+The camera check shows a head-and-neck outline, and the test playback asks whether the
+mouth, cheeks and throat can be seen.
+
+The layout is checked on all five shapes: phone upright and sideways, tablet upright
+and sideways, computer.
 
 ## Compatibility with the legacy page
 
@@ -135,31 +234,57 @@ switch light/dark theme and download the event log.
 - Progress is stored per participant and mirrored to the legacy key, so the legacy page
   continues from the same sentence on that device.
 - The first participant set up on a device that already has legacy progress is asked
-  whether to continue from it.
+  whether to continue from it. Such participants see How to record once; there is no
+  practice.
+
+## Code
+
+Classic scripts sharing `window.V2S`, loaded in order:
+
+| Script | Role |
+|---|---|
+| `config.js` | thresholds and timings, including sentence-size rules |
+| `copy.js` | every visible sentence |
+| `util.js` | shared helpers |
+| `storage.js` | IndexedDB access |
+| `sentences.js` | the sentence lists |
+| `media.js` | camera, microphone, recorder |
+| `meter.js` | waveform and cue sounds |
+| `qc.js` | the recording check |
+| `input.js` | presses, holds, debounce |
+| `ui.js` | rendering and sentence sizing |
+| `export.js` | folder, ZIP (chunks, backups), superseded handling |
+| `session.js` | the state machine, practice coaching, Redo, rounds |
+| `settings.js` | the settings panel |
+| `main.js` | screens and flow |
+
+Styles: `css/base.css` (shared with the sign-in page) and `css/app.css`.
 
 ## Testing
 
-See `tools/e2e/README.md` for setup.
+See `tools/e2e/README.md` for setup. Every test run is silent: browsers are muted.
 
 ```bash
-python tools/e2e/test_next_app.py                   # new recorder, 22 scenarios (Chrome)
-python tools/e2e/test_next_app.py --engine webkit   # 15 scenarios in Safari's engine
-python tools/e2e/test_next_app.py --engine firefox  # 15 scenarios in Firefox
+python tools/e2e/test_next_app.py                   # 47 scenarios (Chrome)
+python tools/e2e/test_next_app.py --engine webkit   # 36 scenarios in Safari's engine
+python tools/e2e/test_next_app.py --engine firefox
 python tools/e2e/test_legacy_hotfix.py              # app.html v114
 python tools/e2e/screenshots.py --engine webkit OUT_DIR --only phone ipad
 ```
 
 What the tests can and cannot show:
-- Folder permission rules (picker and permission only during a click, `prompt` in a new
-  browser session, refusal) are emulated on the browser's private file system with
-  Chrome's rules. That the real folder picker opens from the click is checked in
-  Chrome through DevTools. Writing to a real folder on disk was only checked by hand.
-- iPad/iPhone are approximated by WebKit with a synthetic camera and voice; keep the
+- **Folder permission rules** (picker and permission only during a click, `prompt` in
+  a new browser session, refusal) are emulated on the browser's private file system
+  with Chrome's rules.
+  - That the real folder picker opens from the click is checked in Chrome through
+    DevTools.
+  - Writing to a real folder on disk was only checked by hand.
+- **iPad/iPhone** are approximated by WebKit with a synthetic camera and voice; keep the
   real-device checks.
 
 ## Releasing
 
-- Bump the version in one step: `python3 tools/bump_version.py 201`.
+- Bump the version in one step: `python3 tools/bump_version.py <new version>`.
 - **Switch** (after device testing): the `switch-to-v200` branch makes the new recorder
   `app.html`, keeps the legacy page as `app_legacy.html` (update prompt removed) and
   moves the recorder's version to the `appVersion` key of `version.json`.

@@ -1,15 +1,19 @@
-"""Scenario tests for the new recorder (app_next.html, or app.html after the switch).
+"""Scenario tests for the recorder (app_next.html, or app.html after the switch).
 
 Run:
   <venv>/bin/python tools/e2e/test_next_app.py                    # every scenario, Chrome
   <venv>/bin/python tools/e2e/test_next_app.py --engine webkit     # Safari's engine
   <venv>/bin/python tools/e2e/test_next_app.py --engine firefox
   <venv>/bin/python tools/e2e/test_next_app.py normal folder ...   # chosen scenarios
+
+Every browser is muted (common.launch). The 5-second microphone test is shortened to
+1.2 s through window.__V2S_TEST so each session start stays quick.
 """
 import argparse
 import asyncio
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -17,44 +21,65 @@ import zipfile
 
 from playwright.async_api import async_playwright
 
-from common import NEXT_PAGE, Checks, launch, static_server
+from common import NEXT_PAGE, REPO, Checks, launch, next_url, static_server
 
 ENGINE = 'chrome'
+FAST = 'window.__V2S_TEST = { testRecordMs: 1200 };'
+NO_PICKERS = 'delete window.showDirectoryPicker; delete window.showSaveFilePicker;'
 
 STATE_JS = """() => {
   const ctx = V2S.session.getContext();
   const visible = [...document.querySelectorAll('.screen')].find(s => !s.hidden);
-  const msg = document.getElementById('recMessage');
+  const rec = document.getElementById('screen-record');
+  const msg = document.getElementById('message');
+  const coach = document.getElementById('coach');
+  const step = coach.querySelector('li.is-active');
+  const redo = document.getElementById('redoButton');
+  const main = document.getElementById('mainButton');
   const active = document.activeElement;
   return {
     screen: visible ? visible.id.replace('screen-', '') : null,
     state: V2S.session.getState(),
     index: ctx ? ctx.progress.currentIndex : null,
-    card: document.getElementById('screen-record').dataset.state,
-    frame: document.body.dataset.rec || 'off',
-    message: msg.classList.contains('is-empty') ? null : document.getElementById('recMessageText').textContent,
+    card: rec.dataset.state,
+    rec: document.body.dataset.rec || 'off',
+    saved: rec.classList.contains('is-saved'),
+    status: document.getElementById('cardStatusText').textContent,
+    timer: document.getElementById('cardTimer').textContent,
+    message: msg.classList.contains('is-empty') ? null : document.getElementById('messageText').textContent,
     tone: (msg.className.match(/tone-(\\w+)/) || [])[1] || null,
-    highlight: ['primaryButton', 'secondaryButton', 'saveStatus'].find(id => document.getElementById(id).classList.contains('is-highlighted')) || null,
-    stateText: document.getElementById('recStateText').textContent,
+    coach: coach.hidden ? null : document.getElementById('coachText').textContent,
+    step: step ? Number(step.dataset.step) : null,
+    pulse: main.classList.contains('is-pulsing') ? 'main' : (redo.classList.contains('is-pulsing') ? 'redo' : null),
+    redo: redo.classList.contains('is-invisible') ? null : document.getElementById('redoCaption').textContent,
+    redoLabel: redo.classList.contains('is-invisible') ? null : document.getElementById('redoLabel').textContent,
+    redoSaved: !document.getElementById('redoSaved').hidden,
+    main: document.getElementById('mainLabel').textContent,
+    sentence: document.getElementById('sentenceText').textContent,
     sentenceColor: getComputedStyle(document.getElementById('sentenceText')).color,
+    cardBg: getComputedStyle(document.getElementById('card')).backgroundColor,
     dialog: V2S.ui.isDialogOpen() ? document.getElementById('dialogTitle').textContent : null,
     focus: active && active.tagName === 'BUTTON' ? active.textContent.trim() : (active ? active.id || active.tagName : null),
-    progressMain: document.getElementById('progressMain').textContent,
-    progressSub: document.getElementById('progressSub').textContent,
-    saveStatus: document.getElementById('saveStatus').textContent
+    where: document.getElementById('whereMain').textContent,
+    whereSub: document.getElementById('whereSub').textContent,
+    fit: rec.dataset.fit || null
   };
 }"""
 
 TAKES_JS = """async () => {
   await V2S.session.flush();
+  const exported = new Set(await V2S.storage.exportedIds());
   const out = [];
   await V2S.storage.forEachTake(r => out.push({ index: r.sentenceIndex, status: r.status, fileName: r.fileName,
      speechMs: r.metadata && r.metadata.qc && r.metadata.qc.speechMs, supersedes: r.metadata && r.metadata.supersedes,
-     participantId: r.participantId, size: r.size }));
+     supersededBy: r.metadata && r.metadata.supersededBy, participantId: r.participantId, size: r.size,
+     round: r.metadata && r.metadata.round, exported: exported.has(r.id) }));
   return out;
 }"""
 
-LAST_META_JS = """async () => { await V2S.session.flush(); let m = null; await V2S.storage.forEachTake(r => { m = r.metadata; }); return m; }"""
+UNSAVED_JS = "async () => { await V2S.session.flush(); return V2S.storage.countUnsaved(); }"
+
+LAST_META_JS = """async () => { await V2S.session.flush(); let m = null; await V2S.storage.forEachTake(r => { if (r.status === 'accepted') m = r.metadata; }); return m; }"""
 
 LIST_OPFS_JS = """async (dirName) => {
   const out = [];
@@ -69,6 +94,13 @@ LIST_OPFS_JS = """async (dirName) => {
   return out.sort();
 }"""
 
+READ_OPFS_JSON = """async ([dirName, path]) => {
+  let dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(dirName);
+  const parts = path.split('/');
+  for (const part of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(part);
+  return JSON.parse(await (await (await dir.getFileHandle(parts[parts.length - 1])).getFile()).text());
+}"""
+
 WAVE_PIXELS_JS = """() => {
   const c = document.getElementById('recordWave');
   if (!c.width || !c.height) return 0;
@@ -77,6 +109,50 @@ WAVE_PIXELS_JS = """() => {
   for (let i = 3; i < d.length; i += 4) if (d[i] > 0) n++;
   return n;
 }"""
+
+# MediaRecorder that fails to start while window.__failStarts > 0 — like Chrome's
+# "EncodingError: Encoder initialization failed" with a 16 kHz Bluetooth microphone.
+FLAKY_RECORDER = """
+(() => {
+  const Original = window.MediaRecorder;
+  if (!Original) return;
+  window.__failStarts = 0;
+  class Flaky extends Original {
+    start(...args) {
+      const result = super.start(...args);
+      if (window.__failStarts > 0) {
+        window.__failStarts -= 1;
+        setTimeout(() => {
+          const event = new Event('error');
+          event.error = new DOMException('Encoder initialization failed.', 'EncodingError');
+          this.dispatchEvent(event);
+          try { Original.prototype.stop.call(this); } catch (e) { /* already stopped */ }
+        }, 30);
+      }
+      return result;
+    }
+  }
+  Flaky.isTypeSupported = type => Original.isTypeSupported(type);
+  window.MediaRecorder = Flaky;
+})();
+"""
+
+# Bluetooth headphones as the microphone, with a built-in microphone also available.
+BLUETOOTH_MIC = """
+(() => {
+  Object.defineProperty(MediaStreamTrack.prototype, 'label', {
+    configurable: true,
+    get() { return this.kind === 'audio' ? 'AirPods (Bluetooth)' : 'FaceTime HD Camera'; }
+  });
+  const list = async () => [
+    { kind: 'videoinput', deviceId: 'cam-1', label: 'FaceTime HD Camera', groupId: 'g1' },
+    { kind: 'audioinput', deviceId: 'mic-airpods', label: 'AirPods (Bluetooth)', groupId: 'g2' },
+    { kind: 'audioinput', deviceId: 'mic-builtin', label: 'MacBook Pro Microphone', groupId: 'g3' }
+  ];
+  if (window.MediaDevices) Object.defineProperty(MediaDevices.prototype, 'enumerateDevices', { value: list, configurable: true, writable: true });
+  if (navigator.mediaDevices) Object.defineProperty(navigator.mediaDevices, 'enumerateDevices', { value: list, configurable: true, writable: true });
+})();
+"""
 
 
 async def state(page):
@@ -93,7 +169,7 @@ async def wait_for(page, js, timeout=15000):
 
 async def wait_ready(page, timeout=15000):
     """Until the take is settled: back to ready, a dialog is asking, or another screen took over."""
-    await wait_for(page, "() => V2S.ui.isDialogOpen() || ['ready', 'idle'].includes(V2S.session.getState())", timeout)
+    await wait_for(page, "() => V2S.ui.isDialogOpen() || ['ready', 'idle', 'partEnd'].includes(V2S.session.getState())", timeout)
     # A person needs a moment before the next press; it also keeps the next press
     # outside the 300 ms debounce window.
     await page.wait_for_timeout(450)
@@ -106,7 +182,7 @@ def track_downloads(page):
 
 
 async def setup_participant(page, base, participant='P017', save='zip', before_submit=None):
-    await page.goto(f'{base}/{NEXT_PAGE}')
+    await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await page.fill('#setupId', participant)
     if before_submit:
@@ -122,20 +198,51 @@ async def setup_participant(page, base, participant='P017', save='zip', before_s
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
 
 
-async def start_session(page):
-    await page.click('#welcomeStart')
+async def set_progress(page, **fields):
+    """Change this participant's progress while on the welcome screen (before Begin)."""
+    await page.evaluate("""async fields => {
+      const app = V2S.app.state();
+      Object.assign(app.progress, fields);
+      await V2S.storage.saveParticipantProgress(app.progress);
+    }""", fields)
+
+
+async def pass_check(page):
+    """The camera and microphone check: record the test, watch it back, answer Yes."""
     await page.wait_for_selector('#screen-check:not([hidden])', timeout=15000)
-    await wait_for(page, "() => document.getElementById('checkOk').getAttribute('aria-disabled') === 'false'")
-    await page.click('#checkOk')
+    await wait_for(page, "() => V2S.media.getStream() && !document.getElementById('testRecord').hidden")
+    await page.click('#testRecord')
+    await wait_for(page, "() => !document.getElementById('testAsk').hidden || !document.getElementById('testError').hidden", timeout=20000)
+    if await page.is_visible('#testError'):
+        raise AssertionError('microphone test failed: ' + (await page.text_content('#testError')))
+    await page.click('#testYes')
+
+
+async def start_session(page):
+    """Welcome → check → (How to record, once) → recording screen, waiting."""
+    await page.click('#welcomeStart')
+    await pass_check(page)
+    await wait_for(page, "() => ['howto', 'record'].includes(document.body.dataset.screen)")
+    if await page.is_visible('#screen-howto'):
+        await page.click('#howtoGo')
     await page.wait_for_selector('#screen-record:not([hidden])')
     await wait_for(page, "() => V2S.session.getState() === 'ready'")
     await page.wait_for_timeout(400)
 
 
-async def boot(pw, base, audio='speech', save='zip', **kwargs):
+async def boot(pw, base, audio='speech', save='zip', trained=True, index=None, init_scripts=(), **kwargs):
+    """Set up P017 and open the recording screen. trained=True skips How to record and the
+    practice coaching (most scenarios are about real sentences); index jumps there."""
     kwargs.setdefault('engine', ENGINE)
-    browser, context, page, errors = await launch(pw, audio=audio, **kwargs)
+    browser, context, page, errors = await launch(pw, audio=audio, init_scripts=[FAST, *init_scripts], **kwargs)
     await setup_participant(page, base, save=save)
+    fields = {}
+    if trained:
+        fields.update(howtoSeen=True, coachDone=True)
+    if index is not None:
+        fields.update(currentIndex=index, completed=False)
+    if fields:
+        await set_progress(page, **fields)
     await start_session(page)
     return browser, context, page, errors
 
@@ -158,6 +265,34 @@ async def hold_key(page, key='Space', ms=2000):
     await page.keyboard.up(key)
 
 
+async def end_for_today(page):
+    """The top-bar End for today, confirmed in its dialog."""
+    await page.click('#finishButton')
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await page.wait_for_timeout(450)
+    await page.locator('#dialogActions button', has_text='End for today').click()
+    await page.wait_for_selector('#screen-done:not([hidden])')
+
+
+async def confirm_dialog(page, name):
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await page.wait_for_timeout(450)
+    await page.locator('#dialogActions button', has_text=name).click()
+    await page.wait_for_timeout(300)
+
+
+async def open_settings(page):
+    await page.click('#settingsButton')
+    await page.wait_for_selector('#settingsPanel:not([hidden])')
+    await page.wait_for_timeout(200)
+
+
+async def dismiss_dialog(page):
+    await page.wait_for_timeout(450)
+    await page.locator('#dialogActions button').first.click()
+    await page.wait_for_timeout(300)
+
+
 async def set_index(page, index):
     await page.evaluate("""async i => {
       const app = V2S.app.state();
@@ -170,165 +305,257 @@ async def set_index(page, index):
     await start_session(page)
 
 
-async def css_var(page, name):
+async def css_color(page, name):
     return await page.evaluate("n => { const s = document.createElement('span'); s.style.color = getComputedStyle(document.documentElement).getPropertyValue(n); document.body.appendChild(s); const c = getComputedStyle(s).color; s.remove(); return c; }", name)
+
+
+async def css_background(page, name):
+    return await page.evaluate("n => { const s = document.createElement('span'); s.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue(n); document.body.appendChild(s); const c = getComputedStyle(s).backgroundColor; s.remove(); return c; }", name)
 
 
 # ---------------------------------------------------------------- scenarios
 
-async def s_normal(pw, base):
-    c = Checks('Normal take: green sentence, red frame, quick next sentence')
-    browser, _, page, errors = await boot(pw, base)
-    s = await state(page)
-    c.check(s['card'] == 'ready' and s['index'] == 0 and s['frame'] == 'off', 'starts on warm-up 1, not recording', s)
-    idle = await css_var(page, '--sentence-idle')
-    live = await css_var(page, '--sentence-live')
-    c.check(s['sentenceColor'] == idle, 'sentence is grey while waiting', (s['sentenceColor'], idle))
-    await page.keyboard.press('Space')
+async def s_first_run(pw, base):
+    c = Checks('First run: welcome, microphone test, How to record, coached practice with the Redo lesson')
+    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE, init_scripts=[FAST, NO_PICKERS])
+    await setup_participant(page, base)
+    c.check(await page.text_content('#welcomeTitle') == 'Welcome' and await page.is_visible('#welcomeStages'),
+            'first visit: Welcome, with the three stages')
+    c.check(await page.text_content('#welcomeStart') == 'Begin', 'button says Begin')
+    await page.click('#welcomeStart')
+    await page.wait_for_selector('#screen-check:not([hidden])')
+    await wait_for(page, '() => V2S.media.getStream() !== null')
     await page.wait_for_timeout(300)
+    camera_text = await page.text_content('#checkCameraText')
+    c.check('below your chin' in camera_text and 'throat' in camera_text, "the study's camera position: below the chin, mouth, cheeks and throat visible", camera_text)
+    c.check(await page.is_visible('#testRecord') and await page.is_hidden('#testAsk'), 'check: one button to record the test')
+    c.check((await page.text_content('#micName')).strip() != '', 'names the microphone in use', await page.text_content('#micName'))
+    await page.click('#testRecord')
+    await page.wait_for_timeout(300)
+    c.check(await page.is_visible('#testLive') and 'Hello' in await page.text_content('#testSay'), 'while recording: tells what to say')
+    await wait_for(page, "() => !document.getElementById('checkPlayback').hidden", timeout=10000)
+    c.check(True, 'plays the test back, picture and sound')
+    await wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=10000)
+    question = await page.text_content('#testQuestion')
+    c.check('throat' in question and 'hear yourself clearly' in question, 'asks whether mouth, cheeks and throat are visible and the sound is clear', question)
+    await page.click('#testYes')
+    await page.wait_for_selector('#screen-howto:not([hidden])')
+    steps = await page.text_content('.howto-steps')
+    c.check('no need to hold' in steps and 'green' in steps and 'Stop' in steps, 'How to record: Start once (no need to hold), read when green, Stop', steps)
+    c.check('Redo' in await page.text_content('.howto-redo'), 'How to record explains Redo')
+    c.check(await page.text_content('#howtoGo') == 'Practice now', 'button: Practice now')
+    await page.click('#howtoGo')
+    await page.wait_for_selector('#screen-record:not([hidden])')
+    await wait_for(page, "() => V2S.session.getState() === 'ready'")
+    await page.wait_for_timeout(400)
     s = await state(page)
-    c.check(s['card'] == 'recording' and s['frame'] == 'on', 'Space starts recording at once: red screen frame', s)
-    c.check(s['sentenceColor'] == live, 'sentence turns green to read', (s['sentenceColor'], live))
-    c.check(s['stateText'] == 'Recording', 'state label says Recording', s['stateText'])
+    c.check(s['where'] == 'Practice 1 of 5' and s['status'] == 'Not recording', 'Practice 1 of 5, "Not recording"', s)
+    c.check(s['coach'] and 'Press Start once' in s['coach'] and s['step'] == 1 and s['pulse'] == 'main',
+            'coach step 1: press Start once; the Start button pulses', s)
+    c.check(s['redo'] is None, 'no Redo before anything is recorded', s['redo'])
+
+    await page.keyboard.press('Space')
+    await wait_for(page, "() => V2S.session.getState() === 'recording'")
     await page.wait_for_timeout(1300)
-    c.check(await page.evaluate(WAVE_PIXELS_JS) > 0, 'waveform is drawn while recording')
+    s = await state(page)
+    c.check(s['step'] == 2 and 'Read the green sentence' in (s['coach'] or ''), 'coach step 2: read the green sentence, then Stop', s)
+    c.check(s['status'] == 'Recording' and s['timer'] == '', 'pill: "Recording" (no clock on short takes)', s)
+    await page.keyboard.press('Space')
+    await wait_ready(page)
+    s = await state(page)
+    c.check(s['index'] == 1 and 'Well done' in (s['coach'] or '') and s['redoSaved'] and s['status'] == 'Not recording',
+            'practice 2: Well done; "Saved" next to the sentence just recorded; the card says Not recording', s)
+    c.check(s['redo'] and 'I need the water' in s['redo'], 'Redo names the sentence it would record again', s['redo'])
+
+    await record(page)
+    s = await state(page)
+    c.check(s['index'] == 2 and 'try Redo' in (s['coach'] or '') and s['pulse'] == 'redo', 'practice 3: the Redo lesson, Redo pulses', s)
+    c.check(await page.get_attribute('#mainButton', 'aria-disabled') == 'false', 'Start still works (a single-switch user can go on)')
+    await page.keyboard.press('ArrowLeft')
+    await page.wait_for_timeout(400)
+    s = await state(page)
+    c.check(s['index'] == 1 and 'read this sentence again' in (s['coach'] or '') and s['redoLabel'] == 'Cancel redo',
+            'Redo goes back to practice 2; Cancel redo offered', s)
+    await record(page)
+    s = await state(page)
+    c.check(s['index'] == 2 and 'That is how Redo works' in (s['coach'] or ''), 'back on practice 3; Redo explained', s)
+    t = await takes(page)
+    c.check([x['status'] for x in t if x['index'] == 1] == ['superseded', 'accepted'], 'the replaced recording is marked superseded', t)
+    c.check(t[-1]['fileName'].rsplit('.', 1)[0].endswith('_redo'), 'the new one ends with _redo', t[-1]['fileName'])
+
+    await record(page)
+    s = await state(page)
+    c.check(s['index'] == 3 and 'Read a word wrong' in (s['coach'] or ''), 'practice 4: reminder about Redo', s)
+    await record(page)
+    await record(page)
+    s = await state(page)
+    c.check(s['state'] == 'partEnd' and s['main'] == 'Continue' and 'Practice done' in (s['coach'] or '') and s['redoLabel'] == 'Redo',
+            'after practice 5 the sentence stays (Saved, Redo possible) until Continue', s)
+    await page.keyboard.press('Space')
+    await page.wait_for_selector('#screen-break:not([hidden])')
+    await wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
+    c.check(await page.text_content('#breakTitle') == 'Practice done', 'Practice done screen')
+    c.check('practice recordings' in await page.text_content('#breakSaveText') and await page.text_content('#breakPrimary') == 'Save recordings',
+            'saving is learnt by doing it once: save the practice recordings', await page.text_content('#breakSaveText'))
+    async with page.expect_download() as info:
+        await page.click('#breakPrimary')
+    c.check((await info.value).suggested_filename.endswith('_practice.zip'), 'a practice ZIP', (await info.value).suggested_filename)
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await page.wait_for_timeout(450)
+    await page.get_by_role('button', name='Yes, it saved').click()
+    await page.wait_for_timeout(600)
+    c.check(await page.text_content('#breakPrimary') == 'Start part 1', 'then: Start part 1')
+    await page.click('#breakPrimary')
+    await wait_ready(page)
+    s = await state(page)
+    c.check(s['index'] == 5 and s['coach'] is None and s['where'] == 'Part 1 of 7 · Sentence 1 of 50' and s['whereSub'] == '50 to go before the break',
+            'real sentences: no coach, "Part 1 of 7 · Sentence 1 of 50 · 50 to go before the break"', s)
+    c.check(s['redo'] is None, 'Redo does not reach back into the practice', s['redo'])
+    progress = await page.evaluate('V2S.app.state().progress')
+    c.check(progress.get('coachDone') and progress.get('howtoSeen'), 'practice and How to record are remembered')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_normal(pw, base):
+    c = Checks('A real sentence: Starting…, green card + Recording pill, fixed tail, Saved next to it')
+    browser, _, page, errors = await boot(pw, base, index=5)
+    s = await state(page)
+    c.check(s['card'] == 'ready' and s['status'] == 'Not recording' and s['main'] == 'Start' and s['rec'] == 'off',
+            'waiting: "Not recording", Start', s)
+    c.check(s['sentenceColor'] == await css_color(page, '--sentence-wait'), 'sentence is grey while waiting', s['sentenceColor'])
+    await page.keyboard.press('Space')
+    await page.wait_for_timeout(60)
+    s = await state(page)
+    c.check(s['card'] == 'starting' and s['main'] == 'Starting…' and s['rec'] == 'on', 'the press answers at once: Starting…', s)
+    await wait_for(page, "() => V2S.session.getState() === 'recording'", timeout=3000)
+    await page.wait_for_timeout(1200)
+    s = await state(page)
+    c.check(s['status'] == 'Recording' and s['timer'] == '' and s['message'] == 'Read it out loud, then press Stop.',
+            'pill: "Recording"; under the card: read it out loud, then press Stop', s)
+    c.check(s['cardBg'] == await css_background(page, '--go-tint') and s['sentenceColor'] == await css_color(page, '--go-text'),
+            'the card turns green, the sentence turns green', (s['cardBg'], s['sentenceColor']))
+    c.check(s['main'] == 'Stop' and s['redo'] is None, 'only Stop is offered while recording', s)
+    c.check(await page.evaluate(WAVE_PIXELS_JS) > 0, 'the waveform moves')
     t_stop = await page.evaluate('performance.now()')
     await page.keyboard.press('Space')
-    await page.wait_for_timeout(150)
+    await page.wait_for_timeout(120)
     s = await state(page)
-    c.check(s['card'] == 'finishing' and s['frame'] == 'off', 'Stop: frame off, Saving…', s)
+    c.check(s['card'] == 'finishing' and s['status'] == 'Saving…' and s['cardBg'] != await css_background(page, '--go-tint'),
+            'Stop: the card is no longer green; Saving…', s)
     await wait_for(page, "() => V2S.session.getState() === 'ready'")
     t_ready = await page.evaluate('performance.now()')
     meta = await page.evaluate(LAST_META_JS)
     tail = meta['timing']['tailMs']
     c.check(700 <= tail <= 900, 'kept recording 0.7 s after Stop', tail)
-    c.check((t_ready - t_stop) - tail < 450, 'next sentence appears right after the tail (no waiting for storage)',
-            round(t_ready - t_stop - tail))
+    c.check((t_ready - t_stop) - tail < 450, 'next sentence right after the tail (storage in the background)', round(t_ready - t_stop - tail))
     s = await state(page)
-    c.check(s['index'] == 1 and s['stateText'] == 'Saved', 'moved on and shows Saved', s)
-    t = await takes(page)
-    c.check(len(t) == 1 and t[0]['status'] == 'accepted', 'one accepted take', t)
-    c.check(t and '_warmup1-5_repeat1_' in t[0]['fileName'], 'legacy-compatible file name', t and t[0]['fileName'])
+    c.check(s['index'] == 6 and s['status'] == 'Not recording' and s['redoSaved'], 'next sentence: "Not recording"; "Saved" next to the previous one', s)
+    c.check(s['redo'] and 'Yes, turn it on' in s['redo'], 'Redo shows the sentence just saved', s['redo'])
     mk = meta['markers']
-    ordered = mk['sentenceShown'] <= mk['startPress'] <= mk['recorderStart'] <= mk['stopPress'] <= mk['recorderStop']
-    c.check(ordered, 'time markers in order', mk)
+    c.check(mk['startPress'] <= mk['recorderStart'] <= mk['readNow'] <= mk['stopPress'] <= mk['recorderStop'], 'time markers in order', mk)
     c.check(120 <= mk['recorderStart'] - mk['startPress'] <= 400, 'recorder starts after the start sound', mk['recorderStart'] - mk['startPress'])
-    c.check(meta['participantId'] == 'P017' and meta['qc']['speechMs'] > 300, 'sidecar has participant and check metrics')
+    c.check(mk['readNow'] - mk['recorderStart'] >= 180, 'green only after the recorder has run 0.2 s', mk['readNow'] - mk['recorderStart'])
+    c.check(meta['timing']['startAttempts'] == 1 and meta['participantId'] == 'P017' and meta['qc']['speechMs'] > 300,
+            'sidecar: one start attempt, participant, check metrics', meta['timing'])
+    c.check('_1-350_repeat1_' in meta['fileName'], 'legacy-compatible file name', meta['fileName'])
+    legacy_keys = ['appVersion', 'materialCacheVersion', 'createdAt', 'startedAt', 'fileName', 'sidecarFileName', 'mimeType', 'fileExt', 'size',
+                   'sentenceSet', 'sentenceIndex', 'phase', 'position', 'total', 'sentence', 'redo', 'quality', 'frameRate', 'audioMode',
+                   'requestedVideoConstraints', 'requestedAudioConstraints', 'recorderConfig', 'stopDelayMs', 'audioQuality', 'mediaAtStart',
+                   'mediaAtSave', 'browser', 'downloadClearPolicy', 'audioQualityWarning', 'qcIssue', 'qcFailuresInARow', 'qcOverride', 'requiresRetry']
+    missing = [k for k in legacy_keys if k not in meta]
+    c.check(not missing, "sidecar has every key the earlier page wrote", missing)
+    c.check(meta['quality'].get('label') == '15 Mbps - Research Quality' and meta['frameRate'] == {'label': '30 fps - Standard', 'fps': 30}
+            and meta['audioMode'] == {'mode': 'raw', 'label': 'Raw - Disable Browser Processing'} and meta['startedAt'] and meta['qcIssue'] is None,
+            'legacy shapes: quality / frameRate / audioMode labels, startedAt, qcIssue', (meta['quality'], meta['frameRate'], meta['audioMode']))
     await page.wait_for_timeout(1600)
-    c.check((await state(page))['stateText'] == 'Not recording', 'Saved label fades back to Not recording')
+    c.check(not (await state(page))['redoSaved'], '"Saved" goes after a moment')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
-
-
-async def s_tutorial(pw, base):
-    c = Checks('First-session tutorial: Start/Stop, Redo last, Start over, saving')
-    browser, _, page, errors = await boot(pw, base, audio='silence', media='shim')
-    s = await state(page)
-    c.check(s['tone'] == 'tip' and 'Press Start' in (s['message'] or '') and s['highlight'] == 'primaryButton', 'step 1: Start (highlighted)', s)
-    await speak_take(page)
-    s = await state(page)
-    c.check('Redo last' in (s['message'] or '') and s['highlight'] == 'secondaryButton', 'step 2: Redo last (highlighted)', s)
-    await page.keyboard.press('Space')
-    await page.wait_for_timeout(400)
-    s = await state(page)
-    c.check('Start over' in (s['message'] or '') and s['highlight'] == 'secondaryButton', 'step 2: Start over (highlighted)', s)
-    await speak_take(page, started=True)
-    s = await state(page)
-    c.check('save' in (s['message'] or '').lower() and s['highlight'] == 'saveStatus', 'step 3: how saving works (save status highlighted)', s)
-    await speak_take(page)
-    s = await state(page)
-    c.check(s['message'] is None and s['highlight'] is None, 'no more tips after the tutorial', s)
-    c.check(not errors, 'no page errors', errors)
-    await browser.close()
-    return c.done()
-
-
-async def speak_take(page, started=False):
-    """One accepted take with the synthetic voice switched on only while recording
-    (so the 'Not recording yet' hint never replaces the tips)."""
-    shim = await page.evaluate("Boolean(window.__v2sAudio)")
-    if not started:
-        await page.keyboard.press('Space')
-        await page.wait_for_timeout(300)
-    if shim:
-        await page.evaluate("window.__v2sAudio.set('continuous')")
-    await page.wait_for_timeout(1300)
-    if shim:
-        await page.evaluate("window.__v2sAudio.set('silence')")
-    await page.keyboard.press('Space')
-    await wait_ready(page)
 
 
 async def s_hold(pw, base):
-    c = Checks('Held presses abort the take and restart the same sentence')
-    browser, _, page, errors = await boot(pw, base)
+    c = Checks('Holding the button (push-to-talk habit): a held Start is explained and restarts; a held Stop keeps the take')
+    browser, _, page, errors = await boot(pw, base, media='shim', index=5)
     await hold_key(page, 'Space', 2200)
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    s = await state(page)
+    c.check(s['dialog'] == 'Press once, then let go' and 'not kept' in await page.text_content('#dialogBody'),
+            'held key: a dialog says the recording was not kept and to press once, then let go', s['dialog'])
+    await page.wait_for_timeout(450)
+    await page.keyboard.press('Enter')
     await wait_ready(page)
     s = await state(page)
+    c.check(s['message'] == 'Press Start once, then read.', 'after OK: what to do next', s['message'])
     t = await takes(page)
-    c.check(s['index'] == 0 and s['card'] == 'ready', 'held Space at Start: same sentence, not recording', s)
-    c.check(s['message'] and "don't hold" in s['message'], 'explains "tap, don\'t hold"', s['message'])
-    c.check([x['status'] for x in t] == ['aborted_hold'], 'take kept as aborted_hold, no fragments', t)
+    c.check(s['index'] == 5 and s['card'] == 'ready' and not s['dialog'], 'Enter closes it; same sentence, not recording', s)
+    c.check(all(x['status'] == 'aborted_hold' for x in t), 'whatever was recorded is kept as aborted_hold', t)
 
-    box = await page.locator('#primaryButton').bounding_box()
+    box = await page.locator('#mainButton').bounding_box()
     await page.mouse.move(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2)
     await page.mouse.down()
-    await page.wait_for_timeout(300)
-    c.check((await state(page))['card'] == 'recording', 'mouse press starts on press, not on release')
+    await page.wait_for_timeout(250)
+    c.check((await state(page))['card'] in ('starting', 'recording'), 'a mouse press acts on press, not on release')
     await page.wait_for_timeout(1700)
     await page.mouse.up()
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await dismiss_dialog(page)
     await wait_ready(page)
     s = await state(page)
-    t = await takes(page)
-    c.check(s['index'] == 0 and s['card'] == 'ready' and [x['status'] for x in t] == ['aborted_hold'] * 2,
-            'held mouse: same sentence, aborted_hold, nothing starts on release', (s, t))
+    c.check(s['index'] == 5 and s['card'] == 'ready', 'held mouse: same sentence, nothing starts on release', s)
 
     await page.keyboard.press('Space')
     await page.wait_for_timeout(1500)
+    await page.evaluate("window.__v2sAudio.set('silence')")  # done reading
     await hold_key(page, 'Space', 1800)  # hold the Stop press
     await wait_ready(page)
     s = await state(page)
     t = await takes(page)
-    c.check(s['index'] == 0 and t[-1]['status'] == 'aborted_hold', 'held Stop: take discarded, same sentence', (s, t[-1]))
+    c.check(s['index'] == 6 and not s['dialog'] and t and t[-1]['status'] == 'accepted', 'held Stop: the recording is kept, next sentence', (s, t[-1:]))
+    c.check('let go' in (s['message'] or '') and s['tone'] == 'info', 'a gentle tip: let go right after pressing', s['message'])
+    await page.evaluate("window.__v2sAudio.set('speech')")
+    await record(page)
+    c.check((await state(page))['index'] == 7, 'a normal press afterwards works')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
 async def s_no_speech(pw, base):
-    c = Checks('No speech: retry; second failure offers Keep')
-    browser, _, page, errors = await boot(pw, base, audio='fan')
+    c = Checks('No speech: retry with a reason; second failure offers Keep')
+    # The microphone check passes with speech; then only fan noise is left.
+    browser, _, page, errors = await boot(pw, base, audio='speech', media='shim', index=5)
+    await page.evaluate("window.__v2sAudio.set('fan')")
     await page.keyboard.press('Space')
     await page.wait_for_timeout(150)
     await page.keyboard.press('Space')  # tremor double tap: ignored (debounce)
-    await page.wait_for_timeout(300)
-    c.check((await state(page))['card'] == 'recording', 'double tap does not stop the take')
-    await page.wait_for_timeout(1000)
+    await page.wait_for_timeout(500)
+    c.check((await state(page))['card'] == 'recording', 'a double tap does not stop the take')
+    await page.wait_for_timeout(900)
     await page.keyboard.press('Space')
     await wait_ready(page)
     s = await state(page)
-    c.check(s['index'] == 0 and s['tone'] == 'warn' and "didn't hear" in (s['message'] or ''), 'first failure: same sentence + reason', s)
+    c.check(s['index'] == 5 and s['tone'] == 'warn' and "couldn't hear" in (s['message'] or ''), 'first failure: same sentence + reason', s)
     await record(page, 1300, stop=False)
     await page.keyboard.press('Space')
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
     await page.wait_for_timeout(450)
     s = await state(page)
-    c.check(s['dialog'] and 'twice' in s['dialog'], 'second failure opens the keep/try-again choice', s['dialog'])
-    c.check(s['focus'] == 'Try again', 'default button is Try again', s['focus'])
+    c.check(s['dialog'] and 'twice' in s['dialog'] and s['focus'] == 'Try again', 'second failure: Try again (default) or Keep', s)
     await page.keyboard.press('Enter')
     await wait_ready(page)
-    s = await state(page)
-    c.check(s['index'] == 0 and not s['dialog'], 'Enter = try again, same sentence', s)
+    c.check((await state(page))['index'] == 5, 'Enter = try again, same sentence')
     await record(page, 1300, stop=False)
     await page.keyboard.press('Space')
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
     await page.wait_for_timeout(450)
-    await page.get_by_role('button', name='Keep it and continue').click()
+    await page.get_by_role('button', name='Keep it and go on').click()
     await wait_ready(page)
     s = await state(page)
     t = await takes(page)
-    c.check(s['index'] == 1, 'Keep it and continue moves on', s)
+    c.check(s['index'] == 6, 'Keep it and go on moves on', s)
     c.check([x['status'] for x in t] == ['qc_failed', 'qc_failed', 'qc_overridden'], 'statuses recorded', [x['status'] for x in t])
     c.check(not errors, 'no page errors', errors)
     await browser.close()
@@ -336,43 +563,69 @@ async def s_no_speech(pw, base):
 
 
 async def s_redo(pw, base):
-    c = Checks('Start over and Redo last')
-    browser, _, page, errors = await boot(pw, base)
-    await page.keyboard.press('Space')
-    await page.wait_for_timeout(1000)
-    await page.keyboard.press('ArrowLeft')
-    await wait_ready(page)
-    s = await state(page)
-    t = await takes(page)
-    c.check(s['index'] == 0 and 'again' in (s['message'] or ''), 'Start over: same sentence', s)
-    c.check([x['status'] for x in t] == ['restarted'], 'take kept as restarted', t)
-    c.check(await page.locator('#secondaryButton').get_attribute('aria-disabled') == 'true', 'no Redo last before anything was accepted')
-
+    c = Checks('Redo: names the sentence, records it again, the replaced take is marked superseded')
+    browser, _, page, errors = await boot(pw, base, index=5)
+    c.check((await state(page))['redo'] is None, 'no Redo before the first recording of the part')
+    await record(page)
     await record(page)
     s = await state(page)
-    c.check(s['index'] == 1, 'accepted, on warm-up 2', s)
-    c.check(await page.locator('#secondaryButton').get_attribute('aria-disabled') == 'false', 'Redo last available')
-    await page.keyboard.press('ArrowLeft')
+    c.check(s['index'] == 7 and s['redo'] and 'What is that there' in s['redo'], 'Redo names the previous sentence', s['redo'])
+    await page.click('#redoButton')
     await page.wait_for_timeout(400)
     s = await state(page)
-    c.check(s['index'] == 0 and 'previous' in (s['message'] or ''), 'Redo last goes back one sentence', s)
+    c.check(s['index'] == 6 and 'read this sentence again' in (s['message'] or '') and s['redoLabel'] == 'Cancel redo',
+            'Redo: back to that sentence, says so; Cancel redo instead of a second Redo', s)
     await record(page)
     s = await state(page)
     t = await takes(page)
-    c.check(s['index'] == 1, 'after the redo it returns to where it was', s)
-    c.check('_redo.' in t[-1]['fileName'], 'redo file has _redo', t[-1]['fileName'])
-    c.check(t[-1]['supersedes'] == t[1]['fileName'], 'redo records which take it supersedes', (t[-1]['supersedes'], t[1]['fileName']))
+    c.check(s['index'] == 7, 'afterwards it returns to where it was', s)
+    replaced = [x for x in t if x['index'] == 6]
+    c.check([x['status'] for x in replaced] == ['superseded', 'accepted'], 'old take superseded, new one accepted', replaced)
+    c.check(replaced[-1]['supersedes'] == replaced[0]['fileName'] and replaced[0]['supersededBy'] == replaced[-1]['fileName'],
+            'both sidecars point at each other', replaced)
+    await page.click('#redoButton')
+    await page.wait_for_timeout(400)
+    await page.click('#redoButton')  # Cancel redo
+    await page.wait_for_timeout(400)
+    s = await state(page)
+    c.check(s['index'] == 7 and s['redoLabel'] == 'Redo' and not s['message'], 'Cancel redo: back where they were, nothing recorded', s)
+    c.check(len(await takes(page)) == len(t), 'cancelling records nothing')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_redo_folder(pw, base):
+    c = Checks('Redo in folder mode: the replaced recording moves to not_used/ (no cleaning by hand)')
+    browser, _, page, errors = await boot(pw, base, save='folder', fsa=True, index=5)
+    await record(page)
+    await record(page)
+    await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
+    await page.keyboard.press('ArrowLeft')
+    await page.wait_for_timeout(400)
+    await record(page)
+    await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
+    files = await page.evaluate(LIST_OPFS_JS, 'picked')
+    videos = [f for f in files if f.endswith(('.mp4', '.webm'))]
+    usable = [f for f in videos if f.count('/') == 1]
+    unused = [f for f in videos if '/not_used/' in f]
+    c.check(len(usable) == 2 and any(f.rsplit('.', 1)[0].endswith('_redo') for f in usable), 'P017/: one file per sentence, the redo included', usable)
+    c.check(len(unused) == 1 and 'What is that there' in unused[0], 'P017/not_used/: the replaced recording', unused)
+    meta = await page.evaluate(READ_OPFS_JSON, ['picked', unused[0].rsplit('.', 1)[0] + '.json'])
+    c.check(meta['status'] == 'superseded' and meta['supersededBy'].endswith(('_redo.mp4', '_redo.webm')), 'its sidecar says superseded, by which file', meta.get('status'))
+    log = await page.evaluate(READ_OPFS_JSON, ['picked', 'P017/logs/superseded.json'])
+    c.check(len(log['replaced']) == 1 and log['replaced'][0]['fileName'] == unused[0].split('/')[-1], 'P017/logs/superseded.json lists it', log)
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
 async def s_speech_before_start(pw, base):
-    c = Checks('Speaking before Start shows "Not recording yet"')
-    browser, _, page, errors = await boot(pw, base)
+    c = Checks('Speaking before Start: "Not recording yet"')
+    browser, _, page, errors = await boot(pw, base, index=5)
     await page.wait_for_timeout(3500)
     s = await state(page)
-    c.check(s['message'] and 'Not recording yet' in s['message'], 'hint shown while idle', s['message'])
+    c.check(s['message'] and 'Not recording yet' in s['message'] and s['status'] == 'Not recording', 'hint while not recording', s)
     await page.keyboard.press('Space')
     await page.wait_for_timeout(300)
     c.check('Not recording yet' not in ((await state(page))['message'] or ''), 'hint cleared when recording starts')
@@ -383,7 +636,7 @@ async def s_speech_before_start(pw, base):
 
 async def s_tail(pw, base):
     c = Checks('After Stop: a fixed 0.7 s tail, also while still speaking')
-    browser, _, page, errors = await boot(pw, base, audio='continuous', media='shim')
+    browser, _, page, errors = await boot(pw, base, audio='continuous', media='shim', index=5)
     await page.keyboard.press('Space')
     await page.wait_for_timeout(1500)
     await page.evaluate("window.__v2sAudio.set('silence')")
@@ -404,22 +657,130 @@ async def s_tail(pw, base):
     return c.done()
 
 
+async def s_recorder_retry(pw, base):
+    c = Checks('Recorder fails to start: silent retries; told only when every try fails')
+    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=[FLAKY_RECORDER])
+    await page.evaluate('window.__failStarts = 1')
+    await page.keyboard.press('Space')
+    await wait_for(page, "() => V2S.session.getState() === 'recording'", timeout=4000)
+    s = await state(page)
+    c.check(s['tone'] != 'warn' and s['status'] == 'Recording', 'one failure: retried silently (no warning), recording', s)
+    await page.wait_for_timeout(1300)
+    await page.keyboard.press('Space')
+    await wait_ready(page)
+    meta = await page.evaluate(LAST_META_JS)
+    c.check(meta['timing']['startAttempts'] == 2 and len(meta['timing']['startErrors']) == 1, 'sidecar records 2 start attempts', meta['timing'])
+    c.check((await state(page))['index'] == 6, 'take accepted')
+
+    await page.evaluate('window.__failStarts = 3')
+    await page.keyboard.press('Space')
+    await wait_ready(page)
+    s = await state(page)
+    c.check(s['index'] == 6 and "didn't start" in (s['message'] or ''), 'every try failed: "The recording didn\'t start", same sentence', s)
+    await page.evaluate('window.__failStarts = 3')
+    await page.keyboard.press('Space')
+    await page.wait_for_selector('#screen-error:not([hidden])', timeout=5000)
+    c.check(await page.text_content('#errorTitle') == 'Recording cannot start' and 'Bluetooth' in await page.text_content('#errorBody'),
+            'twice in a row: a screen suggests the built-in microphone')
+    await page.evaluate('window.__failStarts = 0')
+    await page.click('#errorSecondary')
+    await wait_ready(page)
+    await record(page)
+    c.check((await state(page))['index'] == 7, 'Try again: recording works')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_low_rate_mic(pw, base):
+    c = Checks('16 kHz (Bluetooth-like) microphone: 64 kbps audio, no encoder failures')
+    browser, _, page, errors = await boot(pw, base, media='shim', index=5,
+                                          init_scripts=["sessionStorage.setItem('__audio_rate', '16000');"])
+    rate = await page.evaluate('V2S.media.current().sampleRate')
+    for _ in range(4):
+        await record(page, 1300)
+    t = await takes(page)
+    meta = await page.evaluate(LAST_META_JS)
+    events = await page.evaluate("async () => (await V2S.storage.getAllEvents()).filter(e => e.type === 'recorder_error').length")
+    c.check(rate == 16000, 'the microphone runs at 16 kHz', rate)
+    c.check(meta['recorderConfig']['options']['audioBitsPerSecond'] == 64000, 'audio bitrate 64 kbps', meta['recorderConfig'])
+    c.check(len([x for x in t if x['status'] == 'accepted']) == 4 and events == 0, '4 takes accepted, no recorder errors', (t, events))
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_bluetooth(pw, base):
+    c = Checks('Bluetooth microphone: the check warns and offers the built-in one')
+    browser, _, page, errors = await launch(pw, audio='speech', media='shim', engine=ENGINE, init_scripts=[FAST, NO_PICKERS, BLUETOOTH_MIC])
+    await setup_participant(page, base)
+    await page.click('#welcomeStart')
+    await page.wait_for_selector('#screen-check:not([hidden])')
+    await wait_for(page, "() => !document.getElementById('micWarning').hidden && !document.getElementById('micSwitch').hidden", timeout=8000)
+    c.check('Bluetooth' in await page.text_content('#micWarningText'), 'warns about lower sound quality')
+    c.check(await page.text_content('#micSwitch') == 'Use MacBook Pro Microphone', 'offers the built-in microphone by name')
+    await page.click('#micSwitch')
+    await page.wait_for_timeout(800)
+    stored = await page.evaluate("V2S.storage.getSetting('mediaSettings', null)")
+    c.check(stored and stored.get('audioDeviceId') == 'mic-builtin', 'remembers the chosen microphone', stored)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_mic_test_silent(pw, base):
+    c = Checks('Microphone test hears nothing: says so, offers to record again')
+    browser, _, page, errors = await launch(pw, audio='silence', media='shim', engine=ENGINE, init_scripts=[FAST, NO_PICKERS])
+    await setup_participant(page, base)
+    await page.click('#welcomeStart')
+    await page.wait_for_selector('#screen-check:not([hidden])')
+    await wait_for(page, '() => V2S.media.getStream() !== null')
+    await page.click('#testRecord')
+    await wait_for(page, "() => !document.getElementById('testError').hidden", timeout=10000)
+    c.check("couldn't hear anything" in await page.text_content('#testError'), 'explains that nothing was heard')
+    c.check(await page.is_visible('#testRecord') and await page.is_hidden('#testYes'), 'no way to continue; record again')
+    await page.evaluate("window.__v2sAudio.set('speech')")
+    await page.click('#testRecord')
+    await wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=10000)
+    c.check(True, 'with sound, the playback and question appear')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_help(pw, base):
+    c = Checks('"?" shows How to record again and returns to the same sentence')
+    browser, _, page, errors = await boot(pw, base, index=5)
+    await record(page)
+    await page.click('#helpButton')
+    await page.wait_for_selector('#screen-howto:not([hidden])')
+    c.check(await page.text_content('#howtoGo') == 'Back to recording', 'button: Back to recording')
+    await page.click('#howtoGo')
+    await wait_ready(page)
+    s = await state(page)
+    c.check(s['screen'] == 'record' and s['index'] == 6, 'back on the same sentence', s)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
 async def s_device(pw, base):
     c = Checks('Camera stops mid-take → Reconnect → same sentence')
-    browser, _, page, errors = await boot(pw, base)
+    browser, _, page, errors = await boot(pw, base, index=5)
     await page.keyboard.press('Space')
-    await page.wait_for_timeout(800)
+    await page.wait_for_timeout(900)
     await page.evaluate("() => V2S.media.getStream().getVideoTracks()[0].stop()")
     await page.wait_for_selector('#screen-error:not([hidden])', timeout=10000)
+    c.check(await page.text_content('#errorTitle') == 'Camera or microphone disconnected', 'says what happened')
     t = await takes(page)
     c.check(len(t) == 1 and t[0]['status'] == 'aborted_device', 'partial take kept as aborted_device', t)
     await page.click('#errorAction')
     await page.wait_for_selector('#screen-record:not([hidden])', timeout=10000)
     await wait_ready(page)
     s = await state(page)
-    c.check(s['index'] == 0 and s['card'] == 'ready', 'back on the same sentence', s)
+    c.check(s['index'] == 5 and s['card'] == 'ready', 'back on the same sentence', s)
     await record(page)
-    c.check((await state(page))['index'] == 1, 'recording works after reconnect')
+    c.check((await state(page))['index'] == 6, 'recording works after reconnect')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
@@ -427,45 +788,40 @@ async def s_device(pw, base):
 
 async def s_reload(pw, base):
     c = Checks('Reload during a take → same sentence')
-    browser, _, page, errors = await boot(pw, base)
+    browser, _, page, errors = await boot(pw, base, index=5)
     await record(page)
     await page.keyboard.press('Space')
-    await page.wait_for_timeout(800)
+    await page.wait_for_timeout(900)
     await page.reload()
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
-    title = await page.text_content('#welcomeTitle')
-    c.check(title == 'Welcome back', 'returns to Welcome back', title)
+    c.check(await page.text_content('#welcomeTitle') == 'Welcome back', 'returns to Welcome back')
+    c.check(await page.text_content('#welcomePart') == 'Part 1 of 7' and await page.text_content('#welcomeCount') == '1 of 50 done',
+            'welcome shows where they are')
     await start_session(page)
     s = await state(page)
-    c.check(s['index'] == 1, 'still on warm-up 2 (nothing skipped)', s)
+    c.check(s['index'] == 6, 'still on the second sentence (nothing skipped)', s)
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
 async def s_break_zip(pw, base):
-    c = Checks('Download-only browsers: block break, ZIP, cleared only after "Yes"')
-    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE,
-                                            init_scripts=['delete window.showDirectoryPicker; delete window.showSaveFilePicker;'])
-    await setup_participant(page, base)
-    await start_session(page)
-    await set_index(page, 4)
-    await record(page)
-    await page.wait_for_selector('#screen-break:not([hidden])')
-    c.check(await page.text_content('#breakTitle') == 'Warm-up done', 'warm-up done screen')
-    await page.click('#breakPrimary')
-    await wait_ready(page)
+    c = Checks('Download-only browsers: part break, ZIP, cleared only after "Yes"')
+    browser, _, page, errors = await boot(pw, base, index=5 + 48, init_scripts=[NO_PICKERS])
     s = await state(page)
-    c.check(s['index'] == 5 and s['progressMain'] == 'Sentence 1 of 50' and s['progressSub'] == 'Break in 50', 'first formal sentence, break in 50', s)
-
-    await set_index(page, 5 + 49)
-    s = await state(page)
-    c.check(s['progressSub'] == 'Break after this one', 'last sentence before the break is announced', s['progressSub'])
+    c.check(s['whereSub'] == '2 to go before the break', 'counts down to the break', s['whereSub'])
     await record(page)
+    s = await state(page)
+    c.check(s['whereSub'] == 'Break after this one', 'the last sentence before the break is announced', s['whereSub'])
+    await record(page)
+    s = await state(page)
+    c.check(s['state'] == 'partEnd' and s['main'] == 'Take a break' and s['status'] == 'Saved' and s['redoLabel'] == 'Redo',
+            "part's last sentence: stays on screen (Saved), Redo still possible, then Take a break", s)
+    await page.keyboard.press('Space')
     await page.wait_for_selector('#screen-break:not([hidden])')
     await wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
-    c.check(await page.text_content('#breakTitle') == 'Block 1 done', 'block 1 done')
-    c.check('Save your recordings' in await page.text_content('#breakSaveText'), 'asks to save before continuing')
+    c.check(await page.text_content('#breakTitle') == 'Part 1 done', 'Part 1 done')
+    c.check('Save your recordings' in await page.text_content('#breakSaveText'), 'asks to save before going on')
     cached_before = len(await takes(page))
 
     async with page.expect_download() as info:
@@ -474,7 +830,7 @@ async def s_break_zip(pw, base):
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
     await page.wait_for_timeout(450)
     s = await state(page)
-    c.check(s['dialog'] == 'Did the file save?' and s['focus'] == 'Not sure', 'asks for confirmation, default Not sure', s)
+    c.check(s['dialog'] == 'Did the file save?' and s['focus'] == 'Not sure', 'asks for confirmation; default Not sure', s)
     await page.keyboard.press('Enter')
     await page.wait_for_timeout(500)
     c.check(cached_before == 2 and len(await takes(page)) == cached_before, 'Not sure keeps every cached take', cached_before)
@@ -487,9 +843,8 @@ async def s_break_zip(pw, base):
         manifest = json.loads(archive.read('manifest.json'))
     usable = [n for n in names if n.endswith(('.mp4', '.webm'))]
     c.check(download.suggested_filename.startswith('P017_video-recordings-') and '_block01' in download.suggested_filename,
-            'ZIP name has participant and block', download.suggested_filename)
-    c.check(len(usable) == cached_before and all(n.startswith('P017/') and n.count('/') == 1 for n in usable),
-            'accepted takes in P017/', usable)
+            'ZIP name has participant and part', download.suggested_filename)
+    c.check(len(usable) == cached_before and all(n.startswith('P017/') and n.count('/') == 1 for n in usable), 'accepted takes in P017/', usable)
     c.check(manifest['recordCount'] == cached_before and manifest['events'], 'manifest with records and event log')
 
     async with page.expect_download():
@@ -498,25 +853,26 @@ async def s_break_zip(pw, base):
     await page.wait_for_timeout(450)
     await page.get_by_role('button', name='Yes, it saved').click()
     await page.wait_for_timeout(600)
-    c.check(len(await takes(page)) == 0, 'Yes clears the cache')
-    c.check('Saved' in await page.text_content('#breakSaveText'), 'shows Saved')
+    t = await takes(page)
+    c.check(await page.evaluate(UNSAVED_JS) == 0 and len(t) == 2 and all(x['exported'] for x in t),
+            'Yes: nothing left to save; the recordings stay as backup copies', t)
+    c.check(await page.text_content('#breakPrimary') == 'Continue to part 2', 'button: Continue to part 2')
     await page.click('#breakPrimary')
     await wait_ready(page)
     s = await state(page)
-    c.check(s['index'] == 55 and s['progressMain'] == 'Sentence 1 of 50', 'continues with block 2', s)
+    c.check(s['index'] == 55 and s['where'] == 'Part 2 of 7 · Sentence 1 of 50' and s['redo'] is None,
+            'part 2 starts; Redo does not reach back into part 1', s)
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
 async def s_zip_picker(pw, base):
-    c = Checks('ZIP mode in Chrome: save dialog opens on the click, file written where chosen')
-    browser, _, page, errors = await launch(pw, audio='speech', fsa=True)
+    c = Checks('ZIP mode in Chrome: the save dialog opens on the click; file written where chosen')
+    browser, _, page, errors = await boot(pw, base, fsa=True, index=5 + 49)
     downloads = track_downloads(page)
-    await setup_participant(page, base, save='zip')
-    await start_session(page)
-    await set_index(page, 5 + 49)
     await record(page)
+    await page.keyboard.press('Space')  # Take a break
     await page.wait_for_selector('#screen-break:not([hidden])')
     await wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
     await page.click('#breakPrimary')
@@ -527,40 +883,38 @@ async def s_zip_picker(pw, base):
     files = await page.evaluate(LIST_OPFS_JS, 'saved-zips')
     c.check(len(files) == 1 and files[0].startswith('P017_video-recordings-'), 'ZIP written to the chosen location', files)
     c.check(not downloads, 'no browser download happened', downloads)
-    c.check(len(await takes(page)) == 0, 'verified save clears the cache without asking')
+    c.check(await page.evaluate(UNSAVED_JS) == 0, 'a verified save needs no question; nothing left to save')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
 async def s_folder(pw, base):
-    c = Checks('Folder mode: every take goes to the chosen folder, nothing is downloaded')
-    browser, _, page, errors = await launch(pw, audio='speech', fsa=True)
+    c = Checks('Folder mode: every take goes to the chosen folder; nothing is downloaded')
+    browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST])
     downloads = track_downloads(page)
     await setup_participant(page, base, save='folder')
     log = await page.evaluate('window.__fsaLog')
     c.check(any(e['event'] == 'showDirectoryPicker' and e['active'] for e in log), 'folder picker opened during the click', log)
+    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=5)
     await start_session(page)
-    s = await state(page)
-    c.check('picked/P017' in s['saveStatus'], 'save status names the folder', s['saveStatus'])
     await record(page)
-    await page.keyboard.press('Space')
-    await page.wait_for_timeout(900)
-    await page.keyboard.press('ArrowLeft')  # Start over → not_used
+    await hold_key(page, 'Space', 1500)  # a held press → not_used
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await dismiss_dialog(page)
     await wait_ready(page)
     await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
     files = await page.evaluate(LIST_OPFS_JS, 'picked')
     usable = [f for f in files if f.startswith('P017/') and f.count('/') == 1 and f.endswith(('.mp4', '.webm'))]
     unused = [f for f in files if f.startswith('P017/not_used/') and f.endswith(('.mp4', '.webm'))]
-    c.check(len(usable) == 1 and len(unused) == 1, 'accepted take in P017/, discarded one in P017/not_used/', files)
+    c.check(len(usable) == 1 and len(unused) == 1, 'accepted take in P017/, the held (discarded) one in P017/not_used/', files)
     c.check(all(f.rsplit('.', 1)[0] + '.json' in files for f in usable + unused), 'each video has its JSON sidecar')
     c.check(len(await takes(page)) == 0, 'cache emptied after verified writes')
-    await page.click('#finishButton')
-    await page.wait_for_selector('#screen-done:not([hidden])')
+    await end_for_today(page)
     await wait_for(page, "() => document.getElementById('doneSaveText').textContent.includes('saved in')")
     c.check('picked/P017' in await page.text_content('#doneSaveText'), 'done screen confirms the folder')
     files = await page.evaluate(LIST_OPFS_JS, 'picked')
-    c.check(any(f.startswith('P017/session-') for f in files), 'session log written next to the recordings')
+    c.check(any(f.startswith('P017/logs/session-') for f in files), 'session log written to P017/logs/')
     c.check(not downloads, 'no browser download happened', downloads)
     c.check(not errors, 'no page errors', errors)
     await browser.close()
@@ -568,10 +922,11 @@ async def s_folder(pw, base):
 
 
 async def s_folder_new_session(pw, base):
-    c = Checks('Folder mode, next session: permission asked on Start, still the same folder')
-    browser, _, page, errors = await launch(pw, audio='speech', fsa=True)
+    c = Checks('Folder mode, next session: permission asked on Begin, still the same folder')
+    browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST])
     downloads = track_downloads(page)
     await setup_participant(page, base, save='folder')
+    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=5)
     await page.evaluate("sessionStorage.setItem('__fsa_mode', 'prompt')")  # a new browser session
     await page.reload()
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
@@ -579,7 +934,7 @@ async def s_folder_new_session(pw, base):
     await start_session(page)
     log = await page.evaluate('window.__fsaLog')
     requests = [e for e in log if e['event'] == 'requestPermission']
-    c.check(requests and all(e['active'] for e in requests), 'permission requested during the Start click', log)
+    c.check(requests and all(e['active'] for e in requests), 'permission requested during the Begin click', log)
     await record(page)
     await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
     files = await page.evaluate(LIST_OPFS_JS, 'picked')
@@ -591,10 +946,11 @@ async def s_folder_new_session(pw, base):
 
 
 async def s_folder_denied(pw, base):
-    c = Checks('Folder permission refused: recording waits, person chooses; never a download')
-    browser, _, page, errors = await launch(pw, audio='speech', fsa=True)
+    c = Checks('Folder permission refused: recording waits, the person chooses; never a download')
+    browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST])
     downloads = track_downloads(page)
     await setup_participant(page, base, save='folder')
+    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=5)
     await page.evaluate("sessionStorage.setItem('__fsa_mode', 'deny')")
     await page.reload()
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
@@ -606,9 +962,8 @@ async def s_folder_denied(pw, base):
     c.check(await page.is_visible('#folderError'), 'explains that permission was not given')
     await page.evaluate("sessionStorage.setItem('__fsa_mode', 'granted'); sessionStorage.setItem('__fsa_pick', 'second')")
     await page.click('#folderChoose')
-    await page.wait_for_selector('#screen-check:not([hidden])', timeout=10000)
-    await wait_for(page, "() => document.getElementById('checkOk').getAttribute('aria-disabled') === 'false'")
-    await page.click('#checkOk')
+    await pass_check(page)
+    await page.wait_for_selector('#screen-record:not([hidden])')
     await wait_for(page, "() => V2S.session.getState() === 'ready'")
     await page.wait_for_timeout(400)
     await record(page)
@@ -643,9 +998,9 @@ SEED_LEGACY_TAKE = """() => new Promise((resolve, reject) => {
 
 async def s_folder_legacy(pw, base):
     c = Checks('Recordings left by the earlier page go to previous-page-recordings/, never labelled with the new ID')
-    browser, _, page, errors = await launch(pw, audio='speech', fsa=True)
+    browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST])
     downloads = track_downloads(page)
-    await page.goto(f'{base}/{NEXT_PAGE}')
+    await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await page.evaluate(SEED_LEGACY_TAKE)
     await page.fill('#setupId', 'SEMG0')
@@ -660,7 +1015,7 @@ async def s_folder_legacy(pw, base):
     c.check('previous-page-recordings/When did you know_1-290_repeat1_20260313_151311.mp4' in files,
             'old recording written to previous-page-recordings/', files)
     c.check(not any(f.startswith('SEMG0/') for f in files), 'nothing labelled with the new participant', files)
-    await page.evaluate("() => V2S.app.showWelcome()")
+    await page.evaluate('() => V2S.app.showWelcome()')
     await page.wait_for_selector('#screen-welcome:not([hidden])')
     c.check(await page.is_hidden('#welcomeNotice'), 'welcome shows nothing left to save')
     c.check(not downloads, 'no browser download happened', downloads)
@@ -676,7 +1031,7 @@ async def s_real_picker(pw, base):
     opened = []
     cdp.on('Page.fileChooserOpened', lambda event: opened.append(event))
     await cdp.send('Page.enable')
-    await page.goto(f'{base}/{NEXT_PAGE}')
+    await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await cdp.send('Page.setInterceptFileChooserDialog', {'enabled': True})
     await page.fill('#setupId', 'P018')
@@ -707,9 +1062,9 @@ SEED_PROGRESS = """() => new Promise((resolve, reject) => {
 
 
 async def s_legacy_progress(pw, base):
-    c = Checks('Progress from the legacy page carries over')
-    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE)
-    await page.goto(f'{base}/{NEXT_PAGE}')
+    c = Checks('Progress from the legacy page carries over; How to record shown once, no practice')
+    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE, init_scripts=[FAST, NO_PICKERS])
+    await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await page.evaluate(SEED_PROGRESS)
     await page.fill('#setupId', 'P020')
@@ -724,11 +1079,16 @@ async def s_legacy_progress(pw, base):
     except Exception:
         pass
     await page.wait_for_selector('#screen-welcome:not([hidden])')
-    c.check(await page.text_content('#welcomeBlock') == 'Block 3 of 7', 'welcome shows block 3')
-    await start_session(page)
+    c.check(await page.text_content('#welcomePart') == 'Part 3 of 7', 'welcome shows part 3')
+    await page.click('#welcomeStart')
+    await pass_check(page)
+    await page.wait_for_selector('#screen-howto:not([hidden])')
+    c.check(await page.text_content('#howtoGo') == 'Continue', 'How to record shown once (new design); no practice')
+    await page.click('#howtoGo')
+    await wait_for(page, "() => V2S.session.getState() === 'ready'")
+    await page.wait_for_timeout(400)
     s = await state(page)
-    c.check(s['index'] == 120 and s['progressMain'] == 'Sentence 16 of 50', 'resumes at the same sentence', s)
-    c.check(s['message'] is not None, 'first session in the new page still gets the tips', s['message'])
+    c.check(s['index'] == 120 and s['where'] == 'Part 3 of 7 · Sentence 16 of 50' and s['coach'] is None, 'resumes at the same sentence, no coach', s)
     await record(page)
     await page.evaluate('V2S.session.flush()')
     mirror = await page.evaluate("async () => (await V2S.storage.getProgress('50words_350sentences')).currentIndex")
@@ -749,12 +1109,9 @@ FULL_STORAGE = """
 
 async def s_storage_full(pw, base):
     c = Checks('Nearly full device: save first, then recording continues (no loop)')
-    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE,
-                                            init_scripts=[FULL_STORAGE, 'delete window.showDirectoryPicker; delete window.showSaveFilePicker;'])
-    await setup_participant(page, base)
-    await start_session(page)
+    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=[FULL_STORAGE, NO_PICKERS])
     await record(page)
-    c.check((await state(page))['index'] == 1, 'first take is accepted (nothing cached before it)')
+    c.check((await state(page))['index'] == 6, 'first take is accepted (nothing cached before it)')
     await page.wait_for_timeout(800)
     await page.keyboard.press('Space')
     await page.wait_for_selector('#screen-break:not([hidden])', timeout=8000)
@@ -765,59 +1122,110 @@ async def s_storage_full(pw, base):
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
     await page.wait_for_timeout(450)
     await page.get_by_role('button', name='Yes, it saved').click()
-    await page.wait_for_timeout(600)
+    await page.wait_for_timeout(800)
+    t = await takes(page)
+    c.check(len(t) == 1 and t[0]['exported'], 'right after "Yes" the copy of the saved file is still on the device', t)
+    c.check('This device is full' in await page.text_content('#breakSaveText') and await page.text_content('#breakPrimary') == 'It is saved — make room',
+            'the device is full: it asks to check the file before removing its copy', await page.text_content('#breakSaveText'))
+    await page.click('#breakPrimary')  # It is saved — make room
+    await page.wait_for_timeout(800)
+    c.check(len(await takes(page)) == 0, 'only then is the copy removed')
     await page.click('#breakPrimary')  # Continue
     await wait_ready(page)
     await page.keyboard.press('Space')
-    await page.wait_for_timeout(400)
-    s = await state(page)
-    c.check(s['screen'] == 'record' and s['card'] == 'recording', 'recording works again', s)
+    await wait_for(page, "() => ['starting', 'recording'].includes(V2S.session.getState())", timeout=3000)
+    c.check((await state(page))['screen'] == 'record', 'recording works again')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
-async def s_finish_and_admin(pw, base):
-    c = Checks('Finish for today, Record more, researcher panel')
-    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE,
-                                            init_scripts=['delete window.showDirectoryPicker; delete window.showSaveFilePicker;'])
-    await setup_participant(page, base)
-    c.check(await page.is_hidden('#adminButton'), 'no researcher button for participants')
-    await start_session(page)
+async def s_finish_settings(pw, base):
+    c = Checks('Finish for today, Settings (always reachable), light/dark switch, sign out')
+    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=[NO_PICKERS])
     await record(page)
+    c.check(await page.is_visible('#settingsButton') and await page.is_visible('#themeButton'), 'settings and light/dark are in the top bar')
+    await page.keyboard.press('Space')
+    await wait_for(page, "() => V2S.session.getState() === 'recording'")
+    c.check(not await page.locator('.topbar-right').is_visible() or await page.evaluate("getComputedStyle(document.querySelector('.topbar-right')).visibility") == 'hidden',
+            'top-bar actions hidden while recording')
+    await page.keyboard.press('Space')
+    await wait_ready(page)
+    await page.click('#settingsButton')
+    await page.wait_for_selector('#settingsPanel:not([hidden])')
+    text = await page.text_content('#settingsBody')
+    for section in ['Camera and microphone', 'Display', 'Saving', 'Sentences and progress', 'Recording quality', 'Account', 'About']:
+        c.check(section in text, f'settings: {section}')
+    values = await page.evaluate("['setResolution', 'setBitrate', 'setFps', 'setAudio'].map(id => document.getElementById(id).value)")
+    c.check(values == ['1080p', '15000000', '30', 'raw'], 'recording quality: same defaults as the earlier page', values)
+    await page.click('#settingsClose')
+    await page.click('#themeButton')
+    await page.wait_for_timeout(200)
+    c.check(await page.get_attribute('html', 'data-theme') == 'dark', 'the top-bar switch turns dark mode on')
     await page.click('#finishButton')
-    await page.wait_for_selector('#screen-done:not([hidden])')
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await page.wait_for_timeout(450)
+    s = await state(page)
+    c.check(s['dialog'] == 'End for today?' and s['focus'] == 'Keep going', 'End for today asks first; Keep going is the default', s)
+    await page.keyboard.press('Enter')
+    await page.wait_for_timeout(400)
+    c.check((await state(page))['screen'] == 'record', 'Keep going: still recording')
+    await end_for_today(page)
     await wait_for(page, "() => !document.getElementById('doneSave').hidden")
     c.check(await page.text_content('#doneTitle') == 'Great work today', 'done screen')
-    c.check('1 recording is not saved' in await page.text_content('#doneSaveText'), 'reminds about unsaved recordings')
-    await page.click('#doneAgain')
-    await page.wait_for_selector('#screen-welcome:not([hidden])')
-    c.check(await page.is_visible('#welcomeNotice'), 'welcome repeats the reminder')
-
-    await page.goto(f'{base}/{NEXT_PAGE}?admin=1')
-    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
-    c.check(await page.is_visible('#adminButton'), '?admin=1 shows the researcher button')
-    await page.click('#adminButton')
-    await page.wait_for_selector('#adminPanel:not([hidden])')
-    text = await page.text_content('#adminBody')
-    c.check('P017' in text and 'Cached takes' in text, 'panel shows participant and cached takes')
-    await page.select_option('#adminTheme', 'dark')
-    await page.wait_for_timeout(200)
-    c.check(await page.get_attribute('html', 'data-theme') == 'dark', 'theme switches to dark')
-    await page.click('#adminClose')
+    c.check('2 recordings are not saved' in await page.text_content('#doneSaveText'), 'reminds about unsaved recordings')
+    c.check(await page.text_content('#doneBody') == 'Please save your recordings before you close this page.',
+            'does not say "you can close this page" while recordings are unsaved', await page.text_content('#doneBody'))
     await page.reload()
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
-    c.check(await page.get_attribute('html', 'data-theme') == 'dark', 'theme is remembered after reload')
+    c.check(await page.get_attribute('html', 'data-theme') == 'dark', 'dark mode is remembered after reload')
+    await page.click('#settingsButton')
+    await page.wait_for_selector('#settingsPanel:not([hidden])')
+    visited = []
+    page.on('framenavigated', lambda frame: visited.append(frame.url) if frame == page.main_frame else None)
+    await page.get_by_role('button', name='Sign out').click()
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await page.wait_for_timeout(450)
+    await page.get_by_role('button', name='Yes, continue').click()
+    await page.wait_for_timeout(1500)
+    # (These tests sign in automatically on every page load, so the sign-in page forwards
+    # straight back; what matters is that Sign out went there.)
+    c.check(any('/index.html?next=' in url and 'app' in url for url in visited), 'Sign out goes to the sign-in page, which returns here', visited)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_signin(pw, base):
+    c = Checks('Sign-in page: same style, light/dark, wrong password, then into the recorder')
+    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE, authed=False, init_scripts=[FAST])
+    html = open(os.path.join(REPO, 'index.html'), encoding='utf-8').read()
+    user, password = re.search(r"username === '([^']+)' && password === '([^']+)'", html).groups()
+    await page.goto(f'{base}/index.html?next=/{NEXT_PAGE}')
+    await page.wait_for_selector('#loginForm')
+    font = await page.evaluate("getComputedStyle(document.body).fontFamily")
+    c.check('Atkinson' in font, 'same font as the recorder', font)
+    await page.click('#themeButton')
+    c.check(await page.get_attribute('html', 'data-theme') == 'dark', 'light/dark switch')
+    await page.fill('#username', 'someone')
+    await page.fill('#password', 'wrong')
+    await page.click('button[type="submit"]')
+    c.check(await page.text_content('#error') == 'Invalid username or password.', 'wrong password: plain message')
+    await page.fill('#username', user)
+    await page.fill('#password', password)
+    await page.click('button[type="submit"]')
+    await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
+    c.check(NEXT_PAGE in page.url, 'signed in: the recorder opens (setup on a new device)', page.url)
+    c.check(await page.get_attribute('html', 'data-theme') == 'dark', 'the theme carries over')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
 async def s_keyboard_only(pw, base):
-    c = Checks('The whole flow works with the keyboard alone')
-    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE,
-                                            init_scripts=['delete window.showDirectoryPicker; delete window.showSaveFilePicker;'])
-    await page.goto(f'{base}/{NEXT_PAGE}')
+    c = Checks('Keyboard alone: setup → welcome → microphone test → How to record → a take')
+    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE, init_scripts=[FAST, NO_PICKERS])
+    await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await wait_for(page, "() => document.activeElement && document.activeElement.id === 'setupId'")
     await page.keyboard.type('p030')
@@ -829,15 +1237,184 @@ async def s_keyboard_only(pw, base):
     await page.wait_for_timeout(200)
     await page.keyboard.press('Enter')
     await page.wait_for_selector('#screen-check:not([hidden])')
-    await wait_for(page, "() => document.getElementById('checkOk').getAttribute('aria-disabled') === 'false'")
-    await page.wait_for_timeout(300)
+    await wait_for(page, "() => V2S.media.getStream() && document.activeElement && document.activeElement.id === 'testRecord'")
+    await page.keyboard.press('Enter')
+    await wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=10000)
+    await wait_for(page, "() => document.activeElement && document.activeElement.id === 'testYes'")
+    await page.keyboard.press('Enter')
+    await page.wait_for_selector('#screen-howto:not([hidden])')
+    await page.wait_for_timeout(200)
     await page.keyboard.press('Enter')
     await page.wait_for_selector('#screen-record:not([hidden])')
     await wait_for(page, "() => V2S.session.getState() === 'ready'")
     await page.wait_for_timeout(300)
     await record(page)
     s = await state(page)
-    c.check(s['index'] == 1, 'setup → welcome → check → one take, keyboard only', s)
+    c.check(s['index'] == 1, 'one practice take, keyboard only', s)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_clicker(pw, base):
+    c = Checks('A presentation clicker alone (PageDown): welcome → test → How to record → takes')
+    browser, _, page, errors = await launch(pw, audio='speech', engine=ENGINE, init_scripts=[FAST, NO_PICKERS])
+    await setup_participant(page, base)
+    await page.wait_for_timeout(300)
+    await page.keyboard.press('PageDown')
+    await page.wait_for_selector('#screen-check:not([hidden])')
+    await wait_for(page, "() => V2S.media.getStream() && document.activeElement && document.activeElement.id === 'testRecord'")
+    await page.keyboard.press('PageDown')
+    await wait_for(page, "() => !document.getElementById('testAsk').hidden && document.activeElement && document.activeElement.id === 'testYes'", timeout=10000)
+    await page.keyboard.press('PageDown')
+    await page.wait_for_selector('#screen-howto:not([hidden])')
+    await page.wait_for_timeout(300)
+    await page.keyboard.press('PageDown')
+    await page.wait_for_selector('#screen-record:not([hidden])')
+    await wait_for(page, "() => V2S.session.getState() === 'ready'")
+    await page.wait_for_timeout(400)
+    await page.keyboard.press('PageDown')
+    await page.wait_for_timeout(1600)
+    await page.keyboard.press('PageDown')
+    await wait_ready(page)
+    c.check((await state(page))['index'] == 1, 'PageDown starts and stops a take')
+    await page.keyboard.press('PageUp')
+    await page.wait_for_timeout(400)
+    c.check((await state(page))['index'] == 0, 'PageUp = Redo')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_practice_save(pw, base):
+    c = Checks('Folder mode, practice done: says where recordings go; nothing to do')
+    browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST])
+    await setup_participant(page, base, save='folder')
+    await set_progress(page, howtoSeen=True, coachDone=False, currentIndex=4)
+    await start_session(page)
+    await record(page)
+    await page.keyboard.press('Space')  # Continue
+    await page.wait_for_selector('#screen-break:not([hidden])')
+    await wait_for(page, "() => document.getElementById('breakSaveText').textContent.includes('by itself')", timeout=15000)
+    c.check('picked/P017' in await page.text_content('#breakSaveText'), 'names the folder', await page.text_content('#breakSaveText'))
+    c.check(await page.text_content('#breakPrimary') == 'Start part 1', 'button: Start part 1')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_set_switch(pw, base):
+    c = Checks('Switching the sentence set: a trained participant is not taught again')
+    browser, _, page, errors = await boot(pw, base, index=7, init_scripts=[NO_PICKERS])
+    await open_settings(page)
+    await page.select_option('#setSentenceSet', 'Open_300sentences')
+    await confirm_dialog(page, 'Yes, continue')
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=10000)
+    await start_session(page)
+    s = await state(page)
+    c.check(s['index'] == 0 and s['coach'] is None and s['where'] == 'Practice 1 of 5', 'new set: from its first sentence, no coaching', s)
+    c.check(await page.evaluate("V2S.app.state().setKey") == 'Open_300sentences', 'the new set is in use')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_store_failure_late(pw, base):
+    c = Checks('A store that fails after End for today: the next session starts at that sentence')
+    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=[FAIL_COMMIT, NO_PICKERS])
+    await record(page)
+    await page.evaluate('window.__failDelayMs = 2500; window.__failCommits = 1')
+    await record(page)  # sentence 2: stored late, and that fails
+    await end_for_today(page)
+    await page.wait_for_timeout(3500)
+    await page.evaluate('V2S.session.flush()')
+    stored = await page.evaluate("async () => (await V2S.storage.getProgress('P017::50words_350sentences')).currentIndex")
+    c.check(stored == 6, 'stored progress went back to the sentence that failed', stored)
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    c.check(await page.text_content('#welcomeCount') == '1 of 50 done', 'welcome: 1 of 50 done (sentence 2 is next)', await page.text_content('#welcomeCount'))
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+FAIL_SUPERSEDE_LOG = """
+window.__failMarks = 0;
+document.addEventListener('DOMContentLoaded', () => {
+  const wait = setInterval(() => {
+    if (!window.V2S || !V2S.storage || !V2S.storage.markSupersedeDone) return;
+    clearInterval(wait);
+    const original = V2S.storage.markSupersedeDone;
+    V2S.storage.markSupersedeDone = (...args) => {
+      if (window.__failMarks > 0) {
+        window.__failMarks -= 1;
+        return Promise.reject(new DOMException('Simulated failure', 'NoModificationAllowedError'));
+      }
+      return original(...args);
+    };
+  }, 5);
+});
+"""
+
+
+async def s_folder_failure(pw, base):
+    c = Checks('Folder mode: one failed write never stops the writes after it')
+    browser, _, page, errors = await boot(pw, base, save='folder', fsa=True, index=5, init_scripts=[FAIL_SUPERSEDE_LOG])
+    await record(page)
+    await record(page)
+    await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
+    await page.evaluate('window.__failMarks = 1')
+    await page.keyboard.press('ArrowLeft')  # Redo: its folder step fails
+    await page.wait_for_timeout(400)
+    await record(page)
+    await record(page)  # the next take must still reach the folder
+    await end_for_today(page)
+    await wait_for(page, "() => !document.getElementById('doneSaveText').textContent.includes('Saving')", timeout=25000)
+    files = await page.evaluate(LIST_OPFS_JS, 'picked')
+    videos = [f for f in files if f.endswith(('.mp4', '.webm')) and f.count('/') == 1]
+    c.check(len(videos) >= 3, 'later takes were still written to the folder', videos)
+    c.check('saved in' in await page.text_content('#doneSaveText'), 'the done screen settles (no endless "Saving…")', await page.text_content('#doneSaveText'))
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_stale_backups(pw, base):
+    c = Checks('Backup list out of date (the earlier page cleared storage): unsaved recordings still counted')
+    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=[NO_PICKERS])
+    await page.evaluate("V2S.storage.setSetting('exportedTakeIds', [99990, 99991])")
+    await record(page)
+    await end_for_today(page)
+    await wait_for(page, "() => !document.getElementById('doneSave').hidden", timeout=10000)
+    c.check('1 recording is not saved' in await page.text_content('#doneSaveText'), 'still says 1 recording is not saved', await page.text_content('#doneSaveText'))
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_too_loud(pw, base):
+    c = Checks('Too loud (clipping): retry with a reason, same sentence')
+    browser, _, page, errors = await boot(pw, base, media='shim', index=5)
+    await page.evaluate("window.__v2sAudio.set('loud')")
+    await record(page)
+    s = await state(page)
+    t = await takes(page)
+    c.check(s['index'] == 5 and 'Too loud' in (s['message'] or ''), 'says it was too loud; same sentence', s['message'])
+    c.check([x['status'] for x in t] == ['qc_failed'], 'kept as qc_failed', t)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_no_audio(pw, base):
+    c = Checks('No audio analysis at all: blames the microphone, same sentence')
+    browser, _, page, errors = await boot(pw, base, index=5)
+    await page.evaluate('() => V2S.meter.detach()')
+    await record(page)
+    s = await state(page)
+    t = await takes(page)
+    c.check(s['index'] == 5 and 'microphone sent no sound' in (s['message'] or ''), 'says the microphone sent no sound', s['message'])
+    c.check([x['status'] for x in t] == ['qc_failed'], 'take kept as qc_failed', t)
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
@@ -845,41 +1422,477 @@ async def s_keyboard_only(pw, base):
 
 async def s_timeout(pw, base):
     c = Checks('A take longer than 60 s restarts the same sentence')
-    browser, _, page, errors = await boot(pw, base)
+    browser, _, page, errors = await boot(pw, base, index=5)
     await page.keyboard.press('Space')
     await page.wait_for_timeout(61500)
     await wait_ready(page)
     s = await state(page)
     t = await takes(page)
-    c.check(s['index'] == 0 and '1 minute' in (s['message'] or ''), 'same sentence, explains the timeout', s)
+    c.check(s['index'] == 5 and '1 minute' in (s['message'] or ''), 'same sentence, explains the timeout', s)
     c.check([x['status'] for x in t] == ['aborted_timeout'], 'take kept as aborted_timeout', t)
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
-async def s_no_audio(pw, base):
-    c = Checks('No audio analysis at all: device message, same sentence')
-    browser, _, page, errors = await boot(pw, base)
-    await page.evaluate('() => V2S.meter.detach()')
-    await record(page)
+# Every option the earlier page (app.html v114) offered, checked by the words its users
+# know (the earlier page's own labels), plus what was added since. Found in Settings.
+LEGACY_OPTIONS = [
+    ('Select Sentence Set', 'select#setSentenceSet'),
+    ('Previous', 'button:has-text("Previous sentence")'),
+    ('Next / Skip', 'button:has-text("Next sentence (skip)")'),
+    ('Reset Progress', 'button:has-text("Reset progress")'),
+    ('Clear Storage', 'button:has-text("Clear storage")'),
+    ('Save All', 'button:has-text("Save all recordings now")'),
+    ('Logout', 'button:has-text("Sign out (log out)")'),
+    ('Recording Resolution', 'select#setResolution'),
+    ('Recording Quality', 'select#setBitrate'),
+    ('Recording Frame Rate', 'select#setFps'),
+    ('Audio Mode', 'select#setAudio'),
+    ('Mirror Video Display', 'input#setMirror'),
+    # added since
+    ('Go to sentence', 'input#setJump'),
+    ('Camera', 'select#setCamera'),
+    ('Microphone', 'select#setMicrophone'),
+    ('Switch participant', 'button:has-text("Switch participant")'),
+    ('Held-press limit', 'select#setHold'),
+    ('Light / dark', '#settingsDisplay button:has-text("Dark")'),
+    ('Download event log', 'button:has-text("Download event log")'),
+]
+
+# The earlier page's option texts, word for word.
+LEGACY_LABELS = {
+    'setSentenceSet': ['50words_350sentences', 'Open_300sentences'],
+    'setResolution': ['720p (1280×720) - Standard', '1080p (1920×1080) - Recommended', '480p (854×480) - Standard', '360p (640×360) - Low Quality', 'Auto - Camera Default'],
+    'setBitrate': ['8 Mbps - Compatibility', '12 Mbps - High Quality', '15 Mbps - Research Quality', '25 Mbps - Fast Motion', '40 Mbps - Maximum Quality'],
+    'setFps': ['30 fps - Standard', '60 fps - Fast Motion'],
+    'setAudio': ['Raw - Disable Browser Processing', 'Fallback - Browser Default'],
+}
+
+
+async def s_settings_parity(pw, base):
+    c = Checks('Settings hold every option of the earlier page, and they work')
+    browser, _, page, errors = await boot(pw, base, index=7, init_scripts=[NO_PICKERS])
+    await open_settings(page)
+    for label, selector in LEGACY_OPTIONS:
+        c.check(await page.locator(f'#settingsPanel {selector}').count() >= 1, f'option: {label}')
+    for select_id, labels in LEGACY_LABELS.items():
+        found = await page.evaluate("id => [...document.getElementById(id).options].map(o => o.textContent)", select_id)
+        c.check(sorted(found) == sorted(labels), f'{select_id}: the earlier page\'s options, same words', found)
+    c.check('Round 1' in await page.text_content('#settingsBody'), 'says which round (repeat number) new recordings get')
+    await page.locator('#settingsPanel button', has_text='Previous sentence').click()
+    await wait_ready(page)
+    c.check((await state(page))['index'] == 6, 'Previous: one sentence back')
+    await open_settings(page)
+    await page.locator('#settingsPanel button', has_text='Next sentence (skip)').click()
+    await confirm_dialog(page, 'Yes, continue')
+    await wait_ready(page)
+    c.check((await state(page))['index'] == 7, 'Next (skip): asks first, then one sentence on')
+    await open_settings(page)
+    await page.fill('#setJump', '120')
+    await page.get_by_role('button', name='Go', exact=True).click()
+    await wait_ready(page)
     s = await state(page)
-    t = await takes(page)
-    c.check(s['index'] == 0 and 'microphone did not respond' in (s['message'] or ''), 'blames the microphone, not the speaker', s['message'])
-    c.check([x['status'] for x in t] == ['qc_failed'], 'take kept as qc_failed', t)
+    c.check(s['index'] == 5 + 119 and s['where'] == 'Part 3 of 7 · Sentence 20 of 50', 'Go to sentence 120', s)
+    c.check(s['redo'] is None, 'Redo never reaches across a jump', s)
+    await open_settings(page)
+    await page.keyboard.press('End')
+    await page.locator('#settingsPanel button', has_text='Reset progress').click()
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await page.wait_for_timeout(450)
+    await page.keyboard.press('Escape')
+    await page.wait_for_timeout(300)
+    c.check(await page.is_visible('#settingsPanel') and not await page.evaluate('V2S.ui.isDialogOpen()'),
+            'Esc closes only the question, Settings stays open')
+    await page.click('#settingsClose')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
+    # Skip practice (bypass warm-up), from the very first sentence.
+    browser, _, page, errors = await boot(pw, base, trained=False, init_scripts=[NO_PICKERS])
+    s = await state(page)
+    c.check(s['index'] == 0 and s['coach'], 'a new participant starts with coached practice', s)
+    await open_settings(page)
+    await page.locator('#settingsPanel button', has_text='Skip practice (bypass warm-up)').click()
+    await wait_ready(page)
+    s = await state(page)
+    c.check(s['index'] == 5 and s['coach'] is None and s['where'] == 'Part 1 of 7 · Sentence 1 of 50', 'Skip practice: Part 1, sentence 1, no coaching', s)
+    progress = await page.evaluate('V2S.app.state().progress')
+    c.check(progress['coachDone'] and progress['howtoSeen'], 'practice and How to record count as done')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
+SHEET_FITS_JS = """() => {
+  const sheet = document.querySelector('#settingsPanel .sheet');
+  const limit = Math.min(window.innerWidth, sheet.getBoundingClientRect().right) + 1;
+  const wide = [...sheet.querySelectorAll('*')].filter(n => n.getClientRects().length && n.getBoundingClientRect().right > limit);
+  return { scroll: sheet.scrollWidth - sheet.clientWidth, wide: wide.slice(0, 5).map(n => n.tagName + '.' + n.className + ' ' + (n.textContent || '').slice(0, 30)) };
+}"""
+
+
+async def s_settings_fit(pw, base):
+    c = Checks('Settings fit every screen: nothing wider than the panel')
+    for name, viewport, kind in FIT_VIEWPORTS:
+        browser, _, page, errors = await boot(pw, base, index=7, viewport=viewport, has_touch=kind != 'wide' and ENGINE != 'firefox',
+                                              is_mobile=kind in ('phone', 'flat'), init_scripts=[NO_PICKERS])
+        await open_settings(page)
+        r = await page.evaluate(SHEET_FITS_JS)
+        c.check(r['scroll'] <= 1 and not r['wide'], f'{name}: settings panel fits', r)
+        c.check(not errors, f'{name}: no page errors', errors)
+        await browser.close()
+    return c.done()
+
+
+async def s_redo_reload(pw, base):
+    c = Checks('A Redo under way survives a reload; it still returns to the right place')
+    browser, _, page, errors = await boot(pw, base, index=5)
+    await record(page)
+    await record(page)
+    await page.keyboard.press('ArrowLeft')  # Redo sentence 2
+    await page.wait_for_timeout(400)
+    await page.evaluate('V2S.session.flush()')
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    await start_session(page)
+    s = await state(page)
+    c.check(s['index'] == 6 and s['redoLabel'] == 'Cancel redo', 'back on the sentence being redone, Cancel redo offered', s)
+    await record(page)
+    s = await state(page)
+    t = await takes(page)
+    c.check(s['index'] == 7, 'afterwards: on to where they were', s)
+    c.check([x['status'] for x in t if x['index'] == 6] == ['superseded', 'accepted'], 'the replaced take is superseded', t)
+    await page.keyboard.press('ArrowLeft')
+    await page.wait_for_timeout(400)
+    await page.evaluate('V2S.session.flush()')
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    await start_session(page)
+    await page.keyboard.press('ArrowLeft')  # Cancel redo
+    await page.wait_for_timeout(400)
+    s = await state(page)
+    c.check(s['index'] == 7 and s['redoLabel'] == 'Redo', 'Cancel redo after a reload: back where they were', s)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_practice_again(pw, base):
+    c = Checks('Practise again (Settings): coached practice, then back to the same sentence')
+    browser, _, page, errors = await boot(pw, base, index=5 + 20, init_scripts=[NO_PICKERS])
+    await open_settings(page)
+    await page.locator('#settingsPanel button', has_text='Practise again').click()
+    await confirm_dialog(page, 'Yes, continue')
+    await wait_ready(page)
+    s = await state(page)
+    c.check(s['index'] == 0 and s['where'] == 'Practice 1 of 5' and 'Press Start once' in (s['coach'] or ''), 'practice 1, coached', s)
+    for _ in range(2):
+        await record(page)
+    s = await state(page)
+    c.check(s['index'] == 2 and s['pulse'] == 'redo', 'practice 3 suggests Redo', s)
+    await record(page)  # Start right away instead of Redo: allowed
+    c.check((await state(page))['index'] == 3, 'Start works without doing the Redo lesson')
+    for _ in range(2):
+        await record(page)
+    c.check((await state(page))['state'] == 'partEnd', 'practice 5 done: pause on the last practice sentence')
+    await page.evaluate('V2S.session.flush()')
+    stored = await page.evaluate("async () => (await V2S.storage.getProgress('P017::50words_350sentences')).currentIndex")
+    c.check(stored == 25, 'the place to come back to is already stored (End for today here would keep it)', stored)
+    await page.keyboard.press('Space')
+    await page.wait_for_selector('#screen-break:not([hidden])')
+    await wait_for(page, "() => !document.getElementById('breakTertiary').hidden")
+    c.check(await page.text_content('#breakPrimary') == 'Save recordings', 'practice done: save the practice recordings (ZIP mode)')
+    await page.click('#breakTertiary')  # Save later and continue
+    await wait_ready(page)
+    s = await state(page)
+    c.check(s['index'] == 25 and s['coach'] is None, 'back on the sentence they were on, no coach', s)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_rounds(pw, base):
+    c = Checks('Rounds: Redo after the last sentence stays in the round; recording again starts round 2')
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
+    await record(page)
+    s = await state(page)
+    c.check(s['state'] == 'partEnd' and s['main'] == 'Finish', 'the very last sentence: pause with Finish', s)
+    await page.evaluate('V2S.session.flush()')
+    progress = await page.evaluate("V2S.storage.getProgress('50words_350sentences')")
+    c.check(progress['completed'] and progress['repetitionCount'] == 1, 'legacy key: completed, repetitionCount 1 (as the earlier page)', progress)
+    await page.keyboard.press('ArrowLeft')  # Redo the last sentence
+    await page.wait_for_timeout(400)
+    await page.evaluate('V2S.session.flush()')
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    c.check(await page.is_visible('#welcomeStart'), 'a reload during that Redo comes back to it (not "all done")')
+    await start_session(page)
+    s = await state(page)
+    c.check(s['index'] == 354 and s['redoLabel'] == 'Cancel redo', 'still redoing the last sentence', s)
+    await record(page)
+    t = await takes(page)
+    c.check([x['status'] for x in t] == ['superseded', 'accepted'] and all('_repeat1_' in x['fileName'] for x in t),
+            'Redo of the last sentence: still repeat1, replaces the first take', t)
+    await page.keyboard.press('Space')  # Finish
+    await page.wait_for_selector('#screen-done:not([hidden])')
+    c.check(await page.text_content('#doneTitle') == 'All sentences are done', 'all done')
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    c.check(await page.is_hidden('#welcomeStart'), 'welcome: all done, nothing to start')
+    await open_settings(page)
+    await page.locator('#settingsPanel button', has_text='Reset progress').click()
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    body = await page.text_content('#dialogBody')
+    c.check('round 2' in body and 'repeat2' in body, 'Reset progress after the end says it starts round 2', body)
+    await page.wait_for_timeout(450)
+    await page.locator('#dialogActions button', has_text='Yes, continue').click()
+    try:
+        await wait_for(page, "() => document.body.dataset.screen === 'welcome' && document.getElementById('welcomeTitle').textContent === 'Welcome'", timeout=10000)
+        c.check(True, 'back to the very start (Welcome, as on the first visit)')
+    except Exception:
+        c.check(False, 'back to the very start (Welcome, as on the first visit)', await page.text_content('#welcomeTitle'))
+    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=5)
+    await start_session(page)
+    await record(page)
+    t = await takes(page)
+    c.check('_1-350_repeat2_' in t[-1]['fileName'] and t[-1]['status'] == 'accepted' and t[-1]['round'] == 2,
+            'new recordings: repeat2', t[-1])
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_zip_backups(pw, base):
+    c = Checks('ZIP backups: kept after "Yes", left out of the next ZIP, can be saved again')
+    browser, _, page, errors = await boot(pw, base, index=5 + 49, init_scripts=[NO_PICKERS])
+    await record(page)
+    await page.keyboard.press('Space')  # Take a break
+    await page.wait_for_selector('#screen-break:not([hidden])')
+    await wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
+    async with page.expect_download():
+        await page.click('#breakPrimary')
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await page.wait_for_timeout(450)
+    await page.get_by_role('button', name='Yes, it saved').click()
+    await page.wait_for_timeout(600)
+    await page.click('#breakPrimary')  # Continue to part 2
+    await wait_ready(page)
+    await record(page)
+    await open_settings(page)
+    text = await page.text_content('#settingsSaving')
+    c.check('Not saved yet1 recording' in text and 'Backup copies1 recording already saved' in text, 'Settings: 1 not saved yet, plus 1 backup copy', text)
+    async with page.expect_download() as info:
+        await page.locator('#settingsPanel button', has_text='Save all recordings now').click()
+    download = await info.value
+    path = os.path.join(tempfile.mkdtemp(), download.suggested_filename)
+    await download.save_as(path)
+    with zipfile.ZipFile(path) as archive:
+        videos = [n for n in archive.namelist() if n.endswith(('.mp4', '.webm'))]
+    c.check(len(videos) == 1 and '_51-350_' in videos[0], 'the new ZIP holds only what was not saved yet', videos)
+    await confirm_dialog(page, 'Yes, it saved')
+    await page.wait_for_selector('#settingsPanel:not([hidden])')
+    async with page.expect_download() as info:
+        await page.locator('#settingsPanel button', has_text='Save backup copies again').click()
+    download = await info.value
+    path = os.path.join(tempfile.mkdtemp(), download.suggested_filename)
+    await download.save_as(path)
+    with zipfile.ZipFile(path) as archive:
+        videos = [n for n in archive.namelist() if n.endswith(('.mp4', '.webm'))]
+        manifest = json.loads(archive.read('manifest.json'))
+    c.check(len(videos) == 2 and manifest['backupCopies'], 'backup copies can be saved again (a mistaken "Yes" loses nothing)', videos)
+    await confirm_dialog(page, 'Yes, it saved')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_part_end_redo(pw, base):
+    c = Checks("A part's last sentence can be redone before the break; the ZIP keeps only the new take usable")
+    browser, _, page, errors = await boot(pw, base, index=5 + 49, init_scripts=[NO_PICKERS])
+    await record(page)
+    s = await state(page)
+    c.check(s['state'] == 'partEnd' and s['redo'] and 'Record this sentence again' in s['redo'], 'Redo offered for the last sentence', s)
+    await page.keyboard.press('ArrowLeft')
+    await page.wait_for_timeout(400)
+    s = await state(page)
+    c.check(s['index'] == 54 and s['redoLabel'] == 'Cancel redo', 'redoing sentence 50 of part 1', s)
+    await record(page)
+    s = await state(page)
+    t = await takes(page)
+    c.check(s['state'] == 'partEnd' and s['main'] == 'Take a break', 'then the pause again, Take a break', s)
+    c.check([x['status'] for x in t] == ['superseded', 'accepted'], 'the first take of it is superseded', t)
+    await page.keyboard.press('Space')
+    await page.wait_for_selector('#screen-break:not([hidden])')
+    c.check(await page.text_content('#breakTitle') == 'Part 1 done', 'Part 1 done')
+    await wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
+    async with page.expect_download() as info:
+        await page.click('#breakPrimary')
+    download = await info.value
+    path = os.path.join(tempfile.mkdtemp(), download.suggested_filename)
+    await download.save_as(path)
+    with zipfile.ZipFile(path) as archive:
+        names = archive.namelist()
+        log = json.loads(archive.read('P017/logs/superseded.json'))
+    usable = [n for n in names if n.endswith(('.mp4', '.webm')) and n.count('/') == 1]
+    unused = [n for n in names if '/not_used/' in n and n.endswith(('.mp4', '.webm'))]
+    c.check(len(usable) == 1 and usable[0].rsplit('.', 1)[0].endswith('_redo'), 'ZIP: P017/ holds only the new take', usable)
+    c.check(len(unused) == 1 and unused[0].split('/')[-1] == t[0]['fileName'], 'ZIP: the replaced take is in P017/not_used/', unused)
+    c.check(log['replaced'][0]['fileName'] == t[0]['fileName'], 'ZIP: P017/logs/superseded.json lists it', log)
+    await confirm_dialog(page, 'Yes, it saved')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_two_tabs(pw, base):
+    c = Checks('Opened twice: the second copy asks first; taking over stops the first one')
+    browser, context, page, errors = await boot(pw, base, index=5)
+    second = await context.new_page()
+    await second.goto(next_url(base))
+    await second.wait_for_selector('#screen-error:not([hidden])', timeout=15000)
+    c.check(await second.text_content('#errorTitle') == 'Already open in another tab', 'the second tab says the page is already open')
+    await second.click('#errorAction')  # Use this tab instead
+    await page.wait_for_selector('#screen-error:not([hidden])', timeout=10000)
+    c.check(await page.text_content('#errorTitle') == 'Opened in another tab', 'the first tab stops and says why')
+    c.check(await page.evaluate('V2S.media.getStream()') is None, 'the first tab released the camera')
+    await second.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    c.check(True, 'the second tab carries on (Welcome back)')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_long_take(pw, base):
+    c = Checks('A long take (22 s): no false camera failure; the clock appears after 20 s')
+    browser, _, page, errors = await boot(pw, base, index=5)
+    await page.keyboard.press('Space')
+    await wait_for(page, "() => V2S.session.getState() === 'recording'")
+    await page.wait_for_timeout(12000)
+    s = await state(page)
+    c.check(s['state'] == 'recording' and s['timer'] == '', 'after 12 s: still recording, no clock yet', s)
+    await page.wait_for_timeout(9500)
+    s = await state(page)
+    c.check(s['state'] == 'recording' and re.fullmatch(r'0:2[0-9]', s['timer'] or ''), 'after 20 s: still recording, the clock shows', s)
+    c.check(s['message'] == 'Still recording. Press Stop when you have finished.' and s['tone'] == 'warn' and s['pulse'] == 'main',
+            'and a reminder to press Stop (Stop pulses)', s)
+    await page.keyboard.press('Space')
+    await wait_ready(page)
+    t = await takes(page)
+    c.check((await state(page))['index'] == 6 and [x['status'] for x in t] == ['accepted'], 'accepted', t)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+FAIL_COMMIT = """
+window.__failCommits = 0;
+window.__failQuota = false;
+window.__failDelayMs = 0;   // a store that fails only after a while (noticed late)
+document.addEventListener('DOMContentLoaded', () => {
+  const wait = setInterval(() => {
+    if (!window.V2S || !V2S.storage || !V2S.storage.commitTake) return;
+    clearInterval(wait);
+    const original = V2S.storage.commitTake;
+    V2S.storage.commitTake = (...args) => {
+      if (window.__failCommits > 0) {
+        window.__failCommits -= 1;
+        const error = new DOMException('Simulated failure', window.__failQuota ? 'QuotaExceededError' : 'UnknownError');
+        return new Promise((resolve, reject) => setTimeout(() => reject(error), window.__failDelayMs));
+      }
+      return original(...args);
+    };
+  }, 5);
+});
+"""
+
+
+async def s_store_failure(pw, base):
+    c = Checks('A take that cannot be stored: back to that sentence (nothing skipped); repeated failures explained')
+    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=[FAIL_COMMIT, NO_PICKERS])
+    await page.evaluate('window.__failCommits = 1')
+    await record(page)
+    await page.wait_for_timeout(800)
+    s = await state(page)
+    c.check(s['index'] == 5 and 'could not be saved' in (s['message'] or ''), 'back on the same sentence, says so', s)
+    await record(page)
+    await page.wait_for_timeout(500)
+    c.check((await state(page))['index'] == 6, 'recording it again works')
+    progress = await page.evaluate("V2S.storage.getProgress('P017::50words_350sentences')")
+    c.check(progress['currentIndex'] == 6, 'stored progress matches', progress['currentIndex'])
+    await page.evaluate('window.__failCommits = 2')
+    await record(page)
+    await page.wait_for_timeout(800)
+    await record(page)
+    await page.wait_for_selector('#screen-error:not([hidden])', timeout=8000)
+    c.check(await page.text_content('#errorTitle') == 'Recordings cannot be saved on this device', 'twice in a row: a screen explains')
+    await page.click('#errorAction')  # Try again
+    await wait_ready(page)
+    await record(page)
+    await page.wait_for_timeout(500)
+    c.check((await state(page))['index'] == 7, 'afterwards recording works, from the sentence that failed')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+FIT_RULES = {'wide': (40, 56, 2), 'tall': (36, 52, 2), 'phone': (28, 36, 2), 'flat': (26, 34, 2)}
+FIT_VIEWPORTS = [
+    ('laptop', {'width': 1440, 'height': 900}, 'wide'),
+    ('tablet sideways', {'width': 1180, 'height': 820}, 'wide'),
+    ('tablet upright', {'width': 820, 'height': 1180}, 'tall'),
+    ('phone upright', {'width': 390, 'height': 844}, 'phone'),
+    ('phone sideways', {'width': 844, 'height': 390}, 'flat'),
+]
+
+FIT_JS = """async () => {
+  const rec = document.getElementById('screen-record');
+  const card = document.getElementById('card');
+  const sentence = document.getElementById('sentenceText');
+  const all = V2S.app.state().material.all;
+  const size = parseFloat(getComputedStyle(sentence).fontSize);
+  const out = { fit: rec.dataset.fit, size, overflow: rec.scrollHeight - rec.clientHeight, worst: 0, oneLine: 0, cardFits: true };
+  for (const text of all) {
+    sentence.textContent = text;
+    const lines = Math.round(sentence.getBoundingClientRect().height / (size * 1.2));
+    out.worst = Math.max(out.worst, lines);
+    if (lines === 1) out.oneLine += 1;
+    if (sentence.scrollWidth > card.clientWidth) out.cardFits = false;
+  }
+  out.oneLine = out.oneLine / all.length;
+  return out;
+}"""
+
+
+async def s_fit(pw, base):
+    c = Checks('Sentence size on every device: one continuous line where possible, never cramped, nothing moves')
+    for name, viewport, kind in FIT_VIEWPORTS:
+        browser, _, page, errors = await boot(pw, base, index=5, viewport=viewport, has_touch=kind != 'wide' and ENGINE != 'firefox', is_mobile=kind in ('phone', 'flat'))
+        r = await page.evaluate(FIT_JS)
+        low, high, lines = FIT_RULES[kind]
+        c.check(r['fit'].startswith(kind) and low <= r['size'] <= high, f'{name}: {kind} size {r["size"]} px within {low}–{high}', r)
+        c.check(r['worst'] <= lines and r['cardFits'] and r['overflow'] <= 1, f'{name}: every sentence fits in {lines} lines, inside the card, nothing overflows', r)
+        if kind != 'phone':
+            c.check(r['oneLine'] >= 0.9, f'{name}: {r["oneLine"]:.0%} of sentences on one line', r)
+        c.check(not errors, f'{name}: no page errors', errors)
+        await browser.close()
+    return c.done()
+
+
 SCENARIOS = {
+    'first_run': s_first_run,
     'normal': s_normal,
-    'tutorial': s_tutorial,
     'hold': s_hold,
     'no_speech': s_no_speech,
     'redo': s_redo,
+    'redo_folder': s_redo_folder,
     'speech_before_start': s_speech_before_start,
     'tail': s_tail,
+    'recorder_retry': s_recorder_retry,
+    'low_rate_mic': s_low_rate_mic,
+    'bluetooth': s_bluetooth,
+    'mic_test_silent': s_mic_test_silent,
+    'help': s_help,
     'device': s_device,
     'reload': s_reload,
     'break_zip': s_break_zip,
@@ -891,15 +1904,37 @@ SCENARIOS = {
     'real_picker': s_real_picker,
     'legacy': s_legacy_progress,
     'storage_full': s_storage_full,
-    'finish_admin': s_finish_and_admin,
+    'finish_settings': s_finish_settings,
+    'signin': s_signin,
     'keyboard': s_keyboard_only,
+    'clicker': s_clicker,
+    'too_loud': s_too_loud,
+    'practice_save': s_practice_save,
+    'store_failure_late': s_store_failure_late,
+    'folder_failure': s_folder_failure,
+    'stale_backups': s_stale_backups,
+    'set_switch': s_set_switch,
     'no_audio': s_no_audio,
+    'fit': s_fit,
+    'settings_parity': s_settings_parity,
+    'settings_fit': s_settings_fit,
+    'redo_reload': s_redo_reload,
+    'practice_again': s_practice_again,
+    'rounds': s_rounds,
+    'zip_backups': s_zip_backups,
+    'part_end_redo': s_part_end_redo,
+    'two_tabs': s_two_tabs,
+    'long_take': s_long_take,
+    'store_failure': s_store_failure,
     'timeout': s_timeout,
 }
 
-# Scenarios that make sense in every engine (no Chrome-only file dialogs or flags).
-CROSS_ENGINE = ['normal', 'tutorial', 'hold', 'no_speech', 'redo', 'speech_before_start', 'tail', 'device',
-                'reload', 'break_zip', 'legacy', 'storage_full', 'finish_admin', 'keyboard', 'no_audio']
+# Scenarios that make sense in every engine (no Chrome-only file dialogs, flags or sample rates).
+CROSS_ENGINE = ['first_run', 'normal', 'hold', 'no_speech', 'redo', 'speech_before_start', 'tail', 'recorder_retry',
+                'bluetooth', 'mic_test_silent', 'help', 'device', 'reload', 'break_zip', 'legacy', 'storage_full',
+                'finish_settings', 'signin', 'keyboard', 'clicker', 'too_loud', 'set_switch', 'no_audio', 'fit', 'settings_parity', 'settings_fit', 'redo_reload',
+                'practice_again', 'rounds', 'zip_backups', 'part_end_redo', 'two_tabs', 'long_take', 'store_failure',
+                'store_failure_late', 'stale_backups']
 
 
 async def main(names):
