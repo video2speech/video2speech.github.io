@@ -1,4 +1,4 @@
-# Speech recorder (v206)
+# Speech recorder (v208)
 
 The new patient recorder lives at `app_next.html` while it is being tested on real
 devices. The current page, `app.html` (v114, hotfixed), keeps running for participants
@@ -152,6 +152,12 @@ The folder and the ZIP use the same layout:
   the device: marked in the same storage transaction. Already in the folder: moved to
   `not_used/`. Already in an earlier ZIP: listed in `logs/superseded.json`, which every
   later ZIP carries in full.
+- **Nothing is deleted or overwritten** (owner's rule, 2026-10-05): a misread recording
+  stays a complete recording with its sidecar. Every attempt is its own file (time in the
+  name, `_redo` for later attempts); the replaced one only moves to `not_used/` with
+  `status: superseded` and `supersededBy`, and the new one says what it `supersedes`.
+  Takes leave the browser's storage only after they are in the folder or in a ZIP file
+  that was confirmed saved.
 - **Sidecar additions**:
   - identity and status: `participantId`, `sessionId`, `takeId`, `takeIndex`,
     `status`, `usable`, `round`;

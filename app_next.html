@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '206';
+      var APP_VERSION = '208';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=206">
-  <link rel="stylesheet" href="css/app.css?v=206">
+  <link rel="stylesheet" href="css/base.css?v=208">
+  <link rel="stylesheet" href="css/app.css?v=208">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -163,11 +163,14 @@
               <video id="checkPreview" playsinline muted autoplay></video>
               <video id="checkPlayback" playsinline hidden></video>
               <!-- Only the head is required: an oval (with the rest dimmed) and two faint lines
-                   for the neck. No shoulders: fitting them makes people bend their head. -->
+                   for the neck. No shoulders: fitting them makes people bend their head.
+                   Calibrated on the owner's standard position (2026-10-05, second photo): the head
+                   from the top of the hair to the chin fills most of the height; the neck lines
+                   start below the chin and are as wide as a real neck. -->
               <svg class="face-guide" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-                <path class="guide-dim" fill-rule="evenodd" d="M -400 -400 H 500 V 500 H -400 Z M 50 9 A 23 30 0 1 0 50.01 9 Z"/>
-                <ellipse class="guide-head" cx="50" cy="39" rx="23" ry="30"/>
-                <path class="guide-neck" d="M 42 70.5 L 41 92 M 58 70.5 L 59 92"/>
+                <path class="guide-dim" fill-rule="evenodd" d="M -400 -400 H 500 V 500 H -400 Z M 50 7 A 26.5 35 0 1 0 50.01 7 Z"/>
+                <ellipse class="guide-head" cx="50" cy="42" rx="26.5" ry="35"/>
+                <path class="guide-neck" d="M 36 78 L 35.5 93 M 64 78 L 64.5 93"/>
               </svg>
               <p class="preview-badge" id="checkBadge"></p>
             </div>
@@ -372,20 +375,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=206"></script>
-  <script defer src="js/config.js?v=206"></script>
-  <script defer src="js/copy.js?v=206"></script>
-  <script defer src="js/util.js?v=206"></script>
-  <script defer src="js/storage.js?v=206"></script>
-  <script defer src="js/sentences.js?v=206"></script>
-  <script defer src="js/media.js?v=206"></script>
-  <script defer src="js/meter.js?v=206"></script>
-  <script defer src="js/qc.js?v=206"></script>
-  <script defer src="js/input.js?v=206"></script>
-  <script defer src="js/ui.js?v=206"></script>
-  <script defer src="js/export.js?v=206"></script>
-  <script defer src="js/session.js?v=206"></script>
-  <script defer src="js/settings.js?v=206"></script>
-  <script defer src="js/main.js?v=206"></script>
+  <script defer src="vendor/jszip.min.js?v=208"></script>
+  <script defer src="js/config.js?v=208"></script>
+  <script defer src="js/copy.js?v=208"></script>
+  <script defer src="js/util.js?v=208"></script>
+  <script defer src="js/storage.js?v=208"></script>
+  <script defer src="js/sentences.js?v=208"></script>
+  <script defer src="js/media.js?v=208"></script>
+  <script defer src="js/meter.js?v=208"></script>
+  <script defer src="js/qc.js?v=208"></script>
+  <script defer src="js/input.js?v=208"></script>
+  <script defer src="js/ui.js?v=208"></script>
+  <script defer src="js/export.js?v=208"></script>
+  <script defer src="js/session.js?v=208"></script>
+  <script defer src="js/settings.js?v=208"></script>
+  <script defer src="js/main.js?v=208"></script>
 </body>
 </html>

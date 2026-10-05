@@ -1,4 +1,4 @@
-# Recorder checklist (v206)
+# Recorder checklist (v208)
 
 <!-- Keep in step with LEGACY_OPTIONS / LEGACY_LABELS in tools/e2e/test_next_app.py. -->
 
@@ -52,7 +52,7 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
 | A34 | The last sentence could be redone after completion | Redo of the last sentence before **Finish**; afterwards Go to / Reset progress start the next round | `rounds` |
 | A35 | Recording stopped after 8 s without sound | Removed (approved plan): a quiet start is not a failure; only real device failures stop a take | `long_take` |
 | A36 | Stop beep | Start sound before recording, "saved" / "retry" tones after the check | code review |
-| A37 | ZIP: flat, `video-recordings-<date>.zip` | `<participant>_video-recordings-<time>_blockNN.zip`, files under `<participant>/` (same layout as folder mode; keeps participants apart). **Owner: scripts that unzip must look in `<participant>/`.** | `break_zip` |
+| A37 | ZIP: flat, `video-recordings-<date>.zip` | `<participant>_video-recordings-<time>_blockNN.zip`, files under `<participant>/` (same layout as folder mode; keeps participants apart). Approved by the owner (2026-10-05). | `break_zip` |
 | A38 | On-screen counter "n / 350" | Top bar: "Part 2 of 7 · Sentence 14 of 50"; the overall n/350 in Settings → Position | `first_run`, `settings_parity` |
 
 ## B. Requirements for the redesign
@@ -93,7 +93,8 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
 | B32 | Camera picture and sound level: off = grey/still, on = live; never competing | Monitor in the card's corner: grey when not recording, live while recording | shots |
 | B33 | Practice instructions: one at a time, prominent, intent explicit, never conflicting | Coach panel: what happened (small), the one next action (large), rarely why; problems replace the first line | `first_run`, `practice_again` |
 | B34 | On computers, Space and ← taught as the controls | How to record shows keycaps and names keys; coach names keys; buttons show their key | `first_run`, shots |
-| B35 | Camera guide: head only, faint neck hint, no shoulders | Head oval (rest dimmed) and two faint dashed neck lines | shots |
+| B35 | Camera guide: head only, faint neck hint, no shoulders; fits the standard position (owner's photos, 2026-10-05) | Head oval from the top of the hair to the chin, filling most of the picture's height (rest dimmed); two faint dashed lines below the chin, as wide as a real neck | shots, calibrated on the owner's photos |
+| B37 | Misread recordings are never deleted or overwritten (owner, 2026-10-05) | Every attempt is its own file; a replaced one moves to `not_used/` (status superseded) with its sidecar; takes leave the device only once saved | `redo`, `redo_folder`, `part_end_redo` |
 | B36 | No hint text near the sentence in formal recording | "Read it out loud…" removed; 20 s reminder is the Stop pulse and clock only | `normal`, `long_take` |
 
 ## C. Review findings (2026-10-04)
