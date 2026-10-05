@@ -1,4 +1,4 @@
-# Recorder checklist (v205)
+# Recorder checklist (v206)
 
 <!-- Keep in step with LEGACY_OPTIONS / LEGACY_LABELS in tools/e2e/test_next_app.py. -->
 

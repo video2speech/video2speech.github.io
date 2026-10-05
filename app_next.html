@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '205';
+      var APP_VERSION = '206';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=205">
-  <link rel="stylesheet" href="css/app.css?v=205">
+  <link rel="stylesheet" href="css/base.css?v=206">
+  <link rel="stylesheet" href="css/app.css?v=206">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -372,20 +372,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=205"></script>
-  <script defer src="js/config.js?v=205"></script>
-  <script defer src="js/copy.js?v=205"></script>
-  <script defer src="js/util.js?v=205"></script>
-  <script defer src="js/storage.js?v=205"></script>
-  <script defer src="js/sentences.js?v=205"></script>
-  <script defer src="js/media.js?v=205"></script>
-  <script defer src="js/meter.js?v=205"></script>
-  <script defer src="js/qc.js?v=205"></script>
-  <script defer src="js/input.js?v=205"></script>
-  <script defer src="js/ui.js?v=205"></script>
-  <script defer src="js/export.js?v=205"></script>
-  <script defer src="js/session.js?v=205"></script>
-  <script defer src="js/settings.js?v=205"></script>
-  <script defer src="js/main.js?v=205"></script>
+  <script defer src="vendor/jszip.min.js?v=206"></script>
+  <script defer src="js/config.js?v=206"></script>
+  <script defer src="js/copy.js?v=206"></script>
+  <script defer src="js/util.js?v=206"></script>
+  <script defer src="js/storage.js?v=206"></script>
+  <script defer src="js/sentences.js?v=206"></script>
+  <script defer src="js/media.js?v=206"></script>
+  <script defer src="js/meter.js?v=206"></script>
+  <script defer src="js/qc.js?v=206"></script>
+  <script defer src="js/input.js?v=206"></script>
+  <script defer src="js/ui.js?v=206"></script>
+  <script defer src="js/export.js?v=206"></script>
+  <script defer src="js/session.js?v=206"></script>
+  <script defer src="js/settings.js?v=206"></script>
+  <script defer src="js/main.js?v=206"></script>
 </body>
 </html>
