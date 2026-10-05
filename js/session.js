@@ -110,8 +110,9 @@ V2S.session = (() => {
     const k = usesKeys();
     const c = copy.coach;
     if (phase === 'partEnd') return { ack: { text: c.practiceDone, tone: 'ok' }, action: c.pressContinue(k), target: 'main' };
-    // Starting, recording, finishing: the same line all through, so nothing flickers.
-    if (phase !== 'ready') return { ack: null, action: c.readNow(k), target: phase === 'recording' ? 'main' : null };
+    // Starting, recording, finishing: the same line all through, so nothing flickers; no
+    // control pulses while someone reads.
+    if (phase !== 'ready') return { ack: null, action: c.readNow(k), target: null };
     const p = index();
     const recorded = justRecorded ? { text: c.recorded, tone: 'ok' } : null;
     let view;
@@ -226,7 +227,9 @@ V2S.session = (() => {
       redo: { visible: false },
       message: null,
       coach,
-      pulse: coach || (take && take.longTake) ? 'main' : null,
+      // Nothing moves while someone reads (the coach line already says "then press
+      // Stop"); only a long take (a forgotten Stop) makes Stop pulse.
+      pulse: take && take.longTake ? 'main' : null,
       liveSince: take && take.readNowAt ? take.readNowAt : performance.now()
     };
   }

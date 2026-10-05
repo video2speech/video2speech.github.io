@@ -179,6 +179,7 @@ V2S.ui = (() => {
     const box = el('coach');
     const visible = Boolean(coach);
     box.hidden = !visible;
+    el('screen-record').classList.toggle('is-coaching', visible);
     if (visible) {
       const ack = coach.ack;
       el('coachAck').className = `coach-ack${ack ? ` tone-${ack.tone}` : ' is-empty'}`;

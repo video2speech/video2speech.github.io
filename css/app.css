@@ -206,7 +206,7 @@ video.is-mirrored { transform: scaleX(-1); }
    towards it, which gives a more frontal video.
    The sentence is the one thing to look at (docs/recorder-design.md, Principles): while
    recording only the sentence changes strongly; everything else stays quiet. */
-.screen-record { justify-content: center; gap: 16px; padding-top: 8px; padding-bottom: calc(12vh + env(safe-area-inset-bottom)); }
+.screen-record { justify-content: center; justify-content: safe center; gap: 16px; padding-top: 8px; padding-bottom: calc(12vh + env(safe-area-inset-bottom)); }
 .coach, .card, .message, .controls { flex: none; width: min(1100px, 100%); margin-left: auto; margin-right: auto; }
 
 /* Coach (practice only): what just happened (small), then the one thing to do now
@@ -297,6 +297,8 @@ video.is-mirrored { transform: scaleX(-1); }
    kept so nothing moves. */
 .message { min-height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; }
 .message.is-empty { visibility: hidden; }
+/* In practice the coach says everything, so the message line takes no room. */
+.screen-record.is-coaching .message { display: none; }
 .message-body { display: inline-block; max-width: 52ch; padding: 9px 18px; border-radius: 14px; font-size: 19px; font-weight: 700; line-height: 1.35; color: var(--ink-2); text-wrap: balance; }
 .message-icon { display: inline-block; vertical-align: -0.17em; margin-right: .4em; }
 .message-icon:empty { display: none; }
@@ -505,7 +507,7 @@ video.is-mirrored { transform: scaleX(-1); }
   .mock { min-height: 40px; font-size: 16px; padding: 0 14px; }
   .mock-card { font-size: 16px; padding: 6px 12px; min-height: 40px; }
 
-  .screen-record { gap: 6px; padding-top: 2px; }
+  .screen-record { justify-content: flex-start; gap: 6px; padding-top: 2px; }
   .coach { min-height: 70px; padding: 4px 12px 6px; gap: 0; border-radius: 14px; }
   .coach-ack { font-size: 13px; min-height: 1.3em; }
   .coach-action { font-size: 17px; }

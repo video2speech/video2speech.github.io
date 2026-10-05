@@ -161,7 +161,9 @@ Top to bottom:
      you.").
    - Then, large: the one thing to do now ("Next sentence: press Start.").
    - Rarely, below: why ("Redo records the last sentence again.").
-   - The control it names pulses.
+   - The control it names pulses, except while someone reads: nothing moves then.
+   - In practice the message line below the card takes no room (the coach says it all),
+     which keeps short screens (phones held sideways) from running out of space.
 3. **Sentence card**:
    - Its top row holds the state on the left and the monitor on the right.
      - State: "○ Not recording" (grey), or "● Recording" with a red dot.
