@@ -1,4 +1,4 @@
-# Speech recorder (v204)
+# Speech recorder (v205)
 
 The new patient recorder lives at `app_next.html` while it is being tested on real
 devices. The current page, `app.html` (v114, hotfixed), keeps running for participants
@@ -33,27 +33,27 @@ item: [recorder-checklist.md](recorder-checklist.md).
    - **Record a 5-second test** plays the clip back (picture and sound) and asks "Can
      you see your mouth, cheeks and throat, and hear yourself clearly?". Continue only
      after **Yes**.
-5. **How to record** (once per participant, and from the **?** button):
-   1. Press **Start** once — no need to hold it.
+5. **How to record** (once per participant, and from the **?** button). On a computer
+   the steps name the keys and show them as keycaps; on touch screens, the buttons:
+   1. Press **Space** / **Start** once — no need to hold it.
    2. When the sentence turns green, read it out loud.
-   3. Press **Stop**.
+   3. Press **Space** again / **Stop**.
 
-   Plus: read a word wrong → **Redo**.
-6. **Practice** (the 5 warm-up sentences, first time only), with a coach line and a
-   Start → Read → Stop strip. Practice 3 teaches Redo by doing it.
-7. **Recording**, one sentence at a time:
-   - The sentence card sits near the top of the screen, close to the camera, so the
-     face stays turned towards it.
+   Plus: read a word wrong → **Space** then **←** / **Stop** then **Redo**.
+6. **Practice** (the 5 warm-up sentences, first time only). A coach panel above the card
+   says one thing at a time: first what just happened ("✓ Recorded."), then the one next
+   action ("Next sentence: press Start."). The control it names pulses. Practice 3
+   teaches Redo by doing it (see recorder-design.md for every line).
+7. **Recording**, one sentence at a time. The sentence is the one thing to look at:
    - *Not recording*: grey pill "Not recording", the sentence in grey, a soft green
-     **Start** button. **Redo** (with the previous sentence written under it) and a
-     small camera view are shown only now.
+     **Start** button, **Redo** (with the previous sentence under it). In the card's
+     corner the camera picture and sound level are grey and still.
    - *Starting…* (about 0.35 s): the start sound plays, then the recorder must run 0.2 s
-     without an error. Only then does the card turn green.
-   - *Recording*: the card turns light green, the sentence green, a solid green pill
-     reads "Recording", a green frame surrounds the screen, and the line under the card
-     says "Read it out loud, then press Stop." Only **Stop** is shown. After 20 s a clock
-     appears in the pill, the line turns amber ("Still recording. Press Stop when you
-     have finished.") and Stop pulses.
+     without an error.
+   - *Recording*: the sentence turns vivid green on a soft highlight. Around it only
+     quiet signs change: the pill shows a red dot ("● Recording"), the camera picture
+     and sound level in the corner come alive, and Start becomes a soft red **Stop**.
+     No text appears. After 20 s a clock appears in the pill and Stop pulses.
    - After Stop, recording continues a fixed 0.7 s (the legacy page: 0.3 s). The next
      sentence then appears; "✓ Saved" shows briefly on the Redo button, next to the
      sentence just saved. Checking and storing happen in the background.

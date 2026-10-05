@@ -21,6 +21,8 @@ V2S.session = (() => {
   let lastAccepted = null;   // { index, fileName, sentence } — the sentence Redo would record again
   let redo = null;           // { targetIndex, returnIndex, partEnd } — also kept in progress.pendingRedo
   let redoLesson = 'pending';  // practice: 'pending' → 'redoing' → 'done'
+  let justRecorded = false;    // practice: the last thing that happened was a recorded take
+  let lessonJustDone = false;  // practice: the Redo lesson was just completed (said once)
   let partEnd = null;          // { kind: 'practice' | 'part' | 'all', block, blocks } after a part's last sentence
   let holdTipNext = false;     // a held Stop press: say so (gently) on the next sentence
   let storeFailedAt = null;    // a take that could not be stored: go back to that sentence
@@ -94,35 +96,62 @@ V2S.session = (() => {
 
   const redoPending = () => Boolean(redo && redo.targetIndex === index());
 
+  // On a computer the instructions name the keys (Space, ←); on touch, the buttons.
+  const usesKeys = () => document.documentElement.classList.contains('has-keyboard');
 
-  // The coach line stays up for every state of a practice sentence, so the card (and the
-  // sentence size) never changes while practising.
+  const MORE = { 2: 'Two', 3: 'Three', 4: 'Four' };
+
+  // The practice coach for this moment (docs/recorder-design.md, principle 5): `ack` says
+  // what just happened, `action` is the ONE thing to do now (target = the control it
+  // names, which pulses), `detail` rarely says why. A problem replaces the ack; the action
+  // then says what to do about it. Never two instructions that disagree.
   function coachView(phase) {
     if (!coaching()) return null;
-    if (phase === 'partEnd') return { text: copy.coach.practiceEnd, step: 3, allDone: true };
+    const k = usesKeys();
+    const c = copy.coach;
+    if (phase === 'partEnd') return { ack: { text: c.practiceDone, tone: 'ok' }, action: c.pressContinue(k), target: 'main' };
+    // Starting, recording, finishing: the same line all through, so nothing flickers.
+    if (phase !== 'ready') return { ack: null, action: c.readNow(k), target: phase === 'recording' ? 'main' : null };
     const p = index();
-    const live = phase === 'recording' || phase === 'busy';
+    const recorded = justRecorded ? { text: c.recorded, tone: 'ok' } : null;
+    let view;
     if (redoPending()) {
-      return live ? { text: copy.coach.redoRecording, step: 2 } : { text: copy.coach.redoReady, step: 1 };
+      view = { ack: { text: c.backToLast, tone: 'info' }, action: c.startAgain(k), target: 'main' };
+    } else if (lessonJustDone) {
+      view = { ack: { text: c.redoDone, tone: 'ok' }, action: c.carryOn(k), target: 'main' };
+    } else if ((p === 2 || p === 3) && redoLesson !== 'done' && canRedo()) {
+      view = { ack: recorded, action: c.tryRedo(k), detail: c.redoWhat(lastAccepted.sentence), target: 'redo', quietMain: true };
+    } else if (p === 0) {
+      view = { ack: null, action: c.pressStart(k), target: 'main' };
+    } else if (p === 1) {
+      view = { ack: justRecorded ? { text: c.recordedFirst, tone: 'ok' } : null, action: c.nextSentence(k), target: 'main' };
+    } else {
+      const left = ctx.material.warmupCount - p;
+      view = { ack: recorded, action: left === 1 ? c.lastOne(k) : c.more(MORE[left] || String(left), k), target: 'main' };
     }
-    if (live) return { text: copy.coach.readNow, step: phase === 'busy' ? 3 : 2 };
-    if (p === 0) return { text: copy.coach.pressStart, step: 1 };
-    if (p === 1) return { text: justSaved ? copy.coach.wellDone : copy.coach.again, step: 1 };
-    if (p === 2) {
-      if (redoLesson === 'done') return { text: copy.coach.redoDone, step: 1 };
-      if (canRedo()) return { text: copy.coach.tryRedo(lastAccepted.sentence), step: null, redo: true };
-      return { text: copy.coach.again, step: 1 };
+    if (feedback) {
+      const text = copy.feedbackShort[feedback.key] || feedback.text;
+      view.ack = { text, tone: feedback.tone === 'warn' ? 'warn' : 'info' };
+      // After a failed take the same sentence comes back: say so (unless it is a hint
+      // about speaking before Start, where the action already says what to press).
+      const hint = feedback.key === 'speechBeforeStart' || feedback.key === 'speechBeforeRedo';
+      if (feedback.tone === 'warn' && !hint && view.target === 'main' && !redoPending()) view.action = c.startAgain(k);
     }
-    if (p === 3) {
-      if (redoLesson !== 'done' && canRedo()) return { text: copy.coach.tryRedo(lastAccepted.sentence), step: null, redo: true };
-      return { text: copy.coach.reminder, step: 1 };
-    }
-    return { text: copy.coach.again, step: 1 };
+    return view;
   }
 
   // ---- views ----
+  // Formal recording is quiet: the message line is only for something that needs fixing
+  // (in practice the coach says it instead).
   function messageView() {
-    return feedback ? { text: feedback.text, tone: feedback.tone } : null;
+    if (!feedback || coaching()) return null;
+    return { text: feedback.text, tone: feedback.tone };
+  }
+
+  function pulseFor(coach, redoVisible) {
+    if (!coach || !coach.target) return null;
+    if (coach.target === 'redo') return redoVisible ? 'redo' : null;
+    return 'main';
   }
 
   // Waiting. The card always says "Not recording"; "Saved" belongs to the sentence just
@@ -141,12 +170,11 @@ V2S.session = (() => {
       status: copy.record.statusReady,
       sentence: ctx.material.all[index()],
       where: whereView(index()),
-      main: { label: copy.record.start, icon: 'go', disabled: false },
+      main: { label: copy.record.start, icon: 'go', disabled: false, quiet: Boolean(coach && coach.quietMain) },
       redo: redoView,
-      showCamera: true,
       message: messageView(),
       coach,
-      pulse: coach ? (coach.redo ? 'redo' : 'main') : null
+      pulse: pulseFor(coach, redoView.visible)
     };
   }
 
@@ -163,10 +191,9 @@ V2S.session = (() => {
       where: { ...whereView(lastAccepted.index), sub: '' },
       main: { label: kind === 'practice' ? copy.record.toPracticeDone : kind === 'all' ? copy.record.toAllDone : copy.record.toBreak, icon: 'next', disabled: false },
       redo: { visible: true, label: copy.record.redo, caption: copy.record.redoThis },
-      showCamera: true,
       message: coach ? null : { text: kind === 'part' ? copy.record.partEndPart(partEnd.block) : copy.record.partEndAll, tone: 'info' },
       coach,
-      pulse: coach ? 'main' : null
+      pulse: pulseFor(coach, true)
     };
   }
 
@@ -179,13 +206,14 @@ V2S.session = (() => {
       where: whereView(index()),
       main: { label: copy.record.starting, icon: 'busy', disabled: true },
       redo: { visible: false },
-      showCamera: false,
       message: null,
       coach: coachView('starting'),
       pulse: null
     };
   }
 
+  // Recording: the sentence turns green (CSS), Stop is offered. Nothing else appears; on a
+  // long take (a forgotten Stop) the clock shows and Stop pulses, away from the sentence.
   function recordingView() {
     const coach = coachView('recording');
     return {
@@ -196,8 +224,7 @@ V2S.session = (() => {
       where: whereView(index()),
       main: { label: copy.record.stop, icon: 'stop', disabled: false },
       redo: { visible: false },
-      showCamera: false,
-      message: take && take.longTake ? { text: copy.record.stillRecording, tone: 'warn' } : (coach ? null : { text: copy.record.recordingHint, tone: 'quiet' }),
+      message: null,
       coach,
       pulse: coach || (take && take.longTake) ? 'main' : null,
       liveSince: take && take.readNowAt ? take.readNowAt : performance.now()
@@ -213,7 +240,6 @@ V2S.session = (() => {
       where: whereView(index()),
       main: { label: copy.record.saving, icon: 'busy', disabled: true },
       redo: { visible: false },
-      showCamera: false,
       message: null,
       coach: coachView('busy'),
       pulse: null
@@ -225,9 +251,11 @@ V2S.session = (() => {
     V2S.ui.renderRecord(view);
   }
 
-  function setFeedback(text, tone = 'warn', transient = false) {
+  // key: a message in copy.feedback (or copy.record); null clears.
+  function setFeedback(key, tone = 'warn', transient = false) {
     clearTimeout(idleHintTimer);
-    feedback = text ? { text, tone, transient, setAt: performance.now() } : null;
+    const text = key ? copy.feedback[key] || copy.record[key] || '' : '';
+    feedback = key ? { key, text, tone, transient, setAt: performance.now() } : null;
   }
 
   // ---- lifecycle ----
@@ -237,6 +265,8 @@ V2S.session = (() => {
     lastAccepted = null;
     redo = null;
     redoLesson = 'pending';
+    justRecorded = false;
+    lessonJustDone = false;
     partEnd = null;
     holdTipNext = false;
     storeFailedAt = null;
@@ -250,7 +280,7 @@ V2S.session = (() => {
     if (pending && pending.targetIndex === ctx.progress.currentIndex) {
       redo = { targetIndex: pending.targetIndex, returnIndex: pending.returnIndex, partEnd: pending.partEnd || null };
       lastAccepted = { index: pending.targetIndex, fileName: (ctx.progress.usable[pending.targetIndex] || {}).fileName || null, sentence: material.all[pending.targetIndex] };
-      if (!coaching()) setFeedback(copy.record.redoing, 'info');
+      if (!coaching()) setFeedback('redoing', 'info');
     } else if (pending) {
       delete ctx.progress.pendingRedo;
     }
@@ -334,7 +364,7 @@ V2S.session = (() => {
     // Leave a fresh message (e.g. the hold message) up long enough to be read.
     if (feedback && !feedback.transient && performance.now() - feedback.setAt < 4000) return;
     const lesson = coachView('ready');
-    setFeedback(lesson && lesson.redo ? copy.feedback.speechBeforeRedo : copy.feedback.speechBeforeStart, 'warn', true);
+    setFeedback(lesson && lesson.target === 'redo' ? 'speechBeforeRedo' : 'speechBeforeStart', 'warn', true);
     render(readyView());
     logEvent('speech_before_start', { index: index() });
     idleHintTimer = setTimeout(() => {
@@ -381,7 +411,7 @@ V2S.session = (() => {
       dismissValue: true
     });
     if (state === 'ready') {
-      setFeedback(copy.feedback.afterHold, 'info');
+      setFeedback('afterHold', 'info');
       render(readyView());
     }
   }
@@ -391,12 +421,14 @@ V2S.session = (() => {
     if (state !== 'ready' || deviceFailureActive) return;
     if (storageBlocked) {
       logEvent('storage_blocked', {});
-      setFeedback(copy.feedback.storageFull, 'warn');
+      setFeedback('storageFull', 'warn');
       render(readyView());
       if (handlers.onStorageFull) handlers.onStorageFull();
       return;
     }
     state = 'starting';
+    justRecorded = false;
+    lessonJustDone = false;
     // The press is a user gesture: wake the audio analysis if iOS paused it.
     V2S.meter.resume();
     clearTimeout(savedTimer);
@@ -459,7 +491,7 @@ V2S.session = (() => {
       take = null;
       consecutiveStartFailures += 1;
       logEvent('recorder_gave_up', { index: current.index, errors: current.startErrors, consecutive: consecutiveStartFailures });
-      setFeedback(copy.feedback.startFailed, 'warn');
+      setFeedback('startFailed', 'warn');
       V2S.sounds.play('retry');
       enterReady();
       if (consecutiveStartFailures >= 2 && handlers.onStartFailure) handlers.onStartFailure();
@@ -467,7 +499,7 @@ V2S.session = (() => {
     }
     consecutiveStartFailures = 0;
     handle.onError = () => {
-      if (!current.closed && take === current) abortTake('aborted_device', copy.feedback.stoppedEarly, 'warn', current);
+      if (!current.closed && take === current) abortTake('aborted_device', 'stoppedEarly', 'warn', current);
     };
     state = 'recording';
     current.readNowAt = performance.now();
@@ -483,7 +515,7 @@ V2S.session = (() => {
     }, cfg.TIMER_SHOW_AFTER_MS);
     current.maxTimer = setTimeout(() => {
       if (!current.closed && take === current && state === 'recording') {
-        abortTake('aborted_timeout', copy.feedback.timeout);
+        abortTake('aborted_timeout', 'timeout');
       }
     }, cfg.MAX_TAKE_MS);
   }
@@ -539,7 +571,7 @@ V2S.session = (() => {
     const { recording, frames } = await closeRecorder(current);
     if (!recording || !recording.blob || !recording.blob.size) {
       logEvent('take_empty', { index: current.index, error: recording && recording.error });
-      setFeedback(copy.feedback.stoppedEarly, 'warn');
+      setFeedback('stoppedEarly', 'warn');
       V2S.sounds.play('retry');
       enterReady();
       return;
@@ -556,7 +588,6 @@ V2S.session = (() => {
 
     if (qcFailures.index !== current.index) qcFailures = { index: current.index, count: 0 };
     qcFailures.count += 1;
-    const reason = copy.feedback[qc.code] || copy.feedback.no_speech;
     V2S.sounds.play('retry');
     logEvent('qc_failed', { index: current.index, code: qc.code, failures: qcFailures.count, speechMs: qc.metrics.speechMs });
 
@@ -580,13 +611,13 @@ V2S.session = (() => {
     }
 
     persistTake(current, recording, qc, 'qc_failed', current.index);
-    setFeedback(reason, 'warn');
+    setFeedback(copy.feedback[qc.code] ? qc.code : 'no_speech', 'warn');
     enterReady();
   }
 
   // Ends the current take without accepting it. Whatever was recorded is still saved
   // (marked with its status, into not_used/) and the same sentence comes back.
-  async function abortTake(status, message, tone = 'warn', current = take) {
+  async function abortTake(status, messageKey, tone = 'warn', current = take) {
     if (!current || current.closed) return;
     current.closed = true;
     state = 'checking';
@@ -597,7 +628,7 @@ V2S.session = (() => {
     }
     logEvent('take_aborted', { index: current.index, status, takeId: current.id });
     if (status === 'aborted_device' && deviceFailureActive) return;
-    setFeedback(message, tone);
+    setFeedback(messageKey, tone);
     V2S.sounds.play('retry');
     enterReady();
   }
@@ -609,7 +640,11 @@ V2S.session = (() => {
     const p = position(current.index);
     const wasRedo = Boolean(current.redo);
     lastAccepted = { index: current.index, fileName: current.fileName, sentence: current.sentence };
-    if (wasRedo && redoLesson === 'redoing') redoLesson = 'done';
+    justRecorded = true;
+    if (wasRedo && redoLesson === 'redoing') {
+      redoLesson = 'done';
+      lessonJustDone = true;
+    }
     redo = null;
     if (wasRedo) {
       delete ctx.progress.pendingRedo;
@@ -621,7 +656,7 @@ V2S.session = (() => {
     if (last) return enterPartEnd({ kind: 'all' });
     if (p.warmup && p.pos === p.total) return enterPartEnd({ kind: 'practice' });
     if (!p.warmup && p.inBlock === p.blockSize) return enterPartEnd({ kind: 'part', block: p.block, blocks: p.blocks });
-    if (tip) setFeedback(copy.feedback.holdTip, 'info', true);
+    if (tip) setFeedback('holdTip', 'info', true);
     showJustSaved();
     enterReady();
   }
@@ -635,12 +670,14 @@ V2S.session = (() => {
     if (fromPartEnd && partEnd.kind === 'all') Object.assign(ctx.progress, { completed: false, completedAt: null });
     partEnd = null;
     if (coaching() && redoLesson === 'pending') redoLesson = 'redoing';
+    justRecorded = false;
+    lessonJustDone = false;
     ctx.progress.pendingRedo = { targetIndex: redo.targetIndex, returnIndex: redo.returnIndex, partEnd: redo.partEnd };
     ctx.progress.currentIndex = lastAccepted.index;
     saveProgress();
     logEvent('redo_last', { targetIndex: redo.targetIndex, fromPartEnd });
     justSaved = false;
-    setFeedback(coaching() ? null : copy.record.redoing, 'info');
+    setFeedback(coaching() ? null : 'redoing', 'info');
     enterReady();
   }
 
@@ -648,6 +685,7 @@ V2S.session = (() => {
   function cancelRedo() {
     const pending = redo;
     redo = null;
+    justRecorded = false;
     if (redoLesson === 'redoing') redoLesson = 'pending';
     delete ctx.progress.pendingRedo;
     ctx.progress.currentIndex = pending.returnIndex;
@@ -934,7 +972,7 @@ V2S.session = (() => {
     partEnd = null;
     lastAccepted = null;
     rewindTo(i);
-    setFeedback(copy.feedback.storeFailed, 'warn');
+    setFeedback('storeFailed', 'warn');
     logEvent('back_to_unstored', { index: i, failures: storeFailures });
     enterReady();
     if (quotaHit || storeFailures >= 2) {
@@ -986,6 +1024,8 @@ V2S.session = (() => {
     lastAccepted = null;
     partEnd = null;
     justSaved = false;
+    justRecorded = false;
+    lessonJustDone = false;
     if (i < ctx.material.warmupCount && !ctx.progress.coachDone) redoLesson = 'pending';
     qcFailures = { index: null, count: 0 };
     setFeedback(null);
@@ -1010,7 +1050,7 @@ V2S.session = (() => {
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && take && !take.closed && ['starting', 'recording', 'finishing'].includes(state)) {
-      abortTake('aborted_hidden', copy.feedback.hidden);
+      abortTake('aborted_hidden', 'hidden');
     }
   });
 

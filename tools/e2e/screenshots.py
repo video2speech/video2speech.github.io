@@ -44,7 +44,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     overflow_js = """() => {
       const limit = window.innerWidth + 1;
       const wide = [...document.querySelectorAll('body *')].filter(n => {
-        if (!n.getClientRects().length) return false;
+        if (!n.getClientRects().length || n.closest('svg')) return false;  // SVG shapes are clipped by their frame
         const r = n.getBoundingClientRect();
         return r.width > 0 && r.right > limit && getComputedStyle(n).visibility !== 'hidden';
       });
@@ -63,8 +63,22 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         if r['page'] > 1 or r['sheet'] > 1 or r['wide'] or r['spill']:
             print(f'  OVERFLOW {name}-{theme}-{label}: {r}')
 
+    # Phones and tablets are driven by taps (their instructions name the buttons);
+    # computers by the keyboard (their instructions name Space and ←).
+    async def press_main():
+        if mobile:
+            await page.tap('#mainButton')
+        else:
+            await page.keyboard.press('Space')
+
+    async def press_redo():
+        if mobile:
+            await page.tap('#redoButton')
+        else:
+            await page.keyboard.press('ArrowLeft')
+
     async def take(stop=True, ms=1500):
-        await page.keyboard.press('Space')
+        await press_main()
         await page.wait_for_function("() => V2S.session.getState() === 'recording'", timeout=5000)
         await page.wait_for_timeout(ms)
         if stop:
@@ -72,7 +86,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
 
     # Each take's outcome is printed, so a screenshot never silently shows the wrong state.
     async def finish_take():
-        await page.keyboard.press('Space')
+        await press_main()
         await t.wait_ready(page)
         event = await page.evaluate("""async () => {
           await V2S.session.flush();
@@ -117,7 +131,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('10-practice-redo-lesson')
     await page.evaluate("window.__v2sAudio.set('speech')")
-    await page.keyboard.press('ArrowLeft')  # do the Redo lesson
+    await press_redo()  # do the Redo lesson
     await page.wait_for_timeout(400)
     await take()
     for _ in range(3):
@@ -125,7 +139,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('11-practice-end')
     await page.evaluate("window.__v2sAudio.set('speech')")
-    await page.keyboard.press('Space')
+    await press_main()
     await page.wait_for_selector('#screen-break:not([hidden])')
     await t.wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
     await shot('12-practice-done')
@@ -147,22 +161,30 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await finish_take()
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('15-saved-redo')
-    await page.keyboard.down('Space')
+    if mobile:
+        box = await page.locator('#mainButton').bounding_box()
+        await page.mouse.move(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2)
+        await page.mouse.down()
+    else:
+        await page.keyboard.down('Space')
     await page.wait_for_timeout(1400)
     await shot('16-hold-dialog')
-    await page.keyboard.up('Space')
+    if mobile:
+        await page.mouse.up()
+    else:
+        await page.keyboard.up('Space')
     await page.wait_for_timeout(500)
-    await page.keyboard.press('Enter')
+    await page.locator('#dialogActions button').first.click()
     await t.wait_ready(page)
     await page.evaluate("window.__v2sAudio.set('fan')")
     await take()
     await shot('17-no-speech')
     await page.evaluate("window.__v2sAudio.set('speech')")
-    await page.keyboard.press('ArrowLeft')
+    await press_redo()
     await page.wait_for_timeout(400)
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('18-redoing')
-    await page.keyboard.press('ArrowLeft')  # Cancel redo
+    await press_redo()  # Cancel redo
     await page.wait_for_timeout(400)
     await page.evaluate("window.__v2sAudio.set('speech')")
     await page.click('#settingsButton')
@@ -179,7 +201,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('21-part-end')
     await page.evaluate("window.__v2sAudio.set('speech')")
-    await page.keyboard.press('Space')
+    await press_main()
     await page.wait_for_selector('#screen-break:not([hidden])')
     await t.wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
     await shot('22-break')

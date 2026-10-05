@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '204';
+      var APP_VERSION = '205';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=204">
-  <link rel="stylesheet" href="css/app.css?v=204">
+  <link rel="stylesheet" href="css/base.css?v=205">
+  <link rel="stylesheet" href="css/app.css?v=205">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -162,11 +162,12 @@
             <div class="preview-frame" id="checkFrame">
               <video id="checkPreview" playsinline muted autoplay></video>
               <video id="checkPlayback" playsinline hidden></video>
-              <!-- Head and neck outline: the study needs the mouth, cheeks and throat in view
-                   (camera below the chin, tilted up), not just a centred face. -->
-              <svg class="face-guide" viewBox="0 0 100 100" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-                <path class="guide-shadow" d="M 8 100 C 12 88 30 84 41 80 L 42 64 C 33 59 32 48 33 38 C 34 25 42 18 50 18 C 58 18 66 25 67 38 C 68 48 67 59 58 64 L 59 80 C 70 84 88 88 92 100"/>
-                <path class="guide-line" d="M 8 100 C 12 88 30 84 41 80 L 42 64 C 33 59 32 48 33 38 C 34 25 42 18 50 18 C 58 18 66 25 67 38 C 68 48 67 59 58 64 L 59 80 C 70 84 88 88 92 100"/>
+              <!-- Only the head is required: an oval (with the rest dimmed) and two faint lines
+                   for the neck. No shoulders: fitting them makes people bend their head. -->
+              <svg class="face-guide" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                <path class="guide-dim" fill-rule="evenodd" d="M -400 -400 H 500 V 500 H -400 Z M 50 9 A 23 30 0 1 0 50.01 9 Z"/>
+                <ellipse class="guide-head" cx="50" cy="39" rx="23" ry="30"/>
+                <path class="guide-neck" d="M 42 70.5 L 41 92 M 58 70.5 L 59 92"/>
               </svg>
               <p class="preview-badge" id="checkBadge"></p>
             </div>
@@ -224,7 +225,8 @@
           <ol class="howto-steps">
             <li>
               <span class="num">1</span>
-              <span class="mock mock-start" aria-hidden="true"><span class="dot-go"></span><span id="howtoMockStart"></span></span>
+              <span class="mock mock-start touch-only" aria-hidden="true"><span class="dot-go"></span><span id="howtoMockStart"></span></span>
+              <kbd class="keycap key-only" aria-hidden="true">Space</kbd>
               <p id="howtoStep1"></p>
             </li>
             <li>
@@ -234,28 +236,27 @@
             </li>
             <li>
               <span class="num">3</span>
-              <span class="mock mock-stop" aria-hidden="true"><span class="square"></span><span id="howtoMockStop"></span></span>
+              <span class="mock mock-stop touch-only" aria-hidden="true"><span class="square"></span><span id="howtoMockStop"></span></span>
+              <kbd class="keycap key-only" aria-hidden="true">Space</kbd>
               <p id="howtoStep3"></p>
             </li>
           </ol>
           <div class="howto-redo">
-            <span class="mock mock-redo" aria-hidden="true"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></span><span id="howtoMockRedo"></span></span>
+            <span class="mock mock-redo touch-only" aria-hidden="true"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></span><span id="howtoMockRedo"></span></span>
+            <kbd class="keycap key-only" aria-hidden="true">←</kbd>
             <p id="howtoRedo"></p>
           </div>
-          <p class="meta howto-keys" id="howtoKeys" hidden></p>
+          <p class="meta howto-keys key-only" id="howtoKeys"></p>
           <div class="cta-sticky howto-cta"><button class="btn btn-go btn-xl btn-block" id="howtoGo" type="button"></button></div>
         </div>
       </section>
 
       <!-- Recording (practice and real sentences) -->
       <section class="screen screen-record" id="screen-record" hidden data-state="ready">
-        <div class="coach" id="coach" hidden>
-          <ol class="steps" id="coachSteps" aria-hidden="true">
-            <li data-step="1"><span class="step-num">1</span><span id="coachStep1"></span></li>
-            <li data-step="2"><span class="step-num">2</span><span id="coachStep2"></span></li>
-            <li data-step="3"><span class="step-num">3</span><span id="coachStep3"></span></li>
-          </ol>
-          <p class="coach-text" id="coachText" aria-live="polite"></p>
+        <div class="coach" id="coach" hidden aria-live="polite">
+          <p class="coach-ack" id="coachAck"><span class="coach-ack-icon" id="coachAckIcon" aria-hidden="true"></span><span id="coachAckText"></span></p>
+          <p class="coach-action" id="coachAction"></p>
+          <p class="coach-detail" id="coachDetail"></p>
         </div>
 
         <div class="card" id="card">
@@ -266,9 +267,14 @@
               <span id="cardStatusText"></span>
               <span class="status-time" id="cardTimer"></span>
             </p>
+            <!-- Camera picture and sound level: grey and still when not recording, live
+                 while recording; small, in the corner, never competing with the sentence. -->
+            <div class="monitor" aria-hidden="true">
+              <canvas class="monitor-wave" id="recordWave"></canvas>
+              <div class="cam-thumb" id="recordFrame"><video id="recordPreview" playsinline muted autoplay></video></div>
+            </div>
           </div>
           <div class="card-text"><p class="sentence" id="sentenceText"></p></div>
-          <canvas class="wave" id="recordWave" aria-hidden="true"></canvas>
         </div>
 
         <p class="message is-empty" id="message" aria-live="polite">
@@ -287,9 +293,6 @@
             <span id="mainLabel"></span>
             <kbd class="key-hint" aria-hidden="true">Space</kbd>
           </button>
-          <div class="controls-right">
-            <div class="cam-thumb" id="recordFrame"><video id="recordPreview" playsinline muted autoplay></video></div>
-          </div>
         </div>
       </section>
 
@@ -345,7 +348,6 @@
   </div>
 
   <!-- While recording, a green frame runs round the whole screen (a cue that does not depend on reading the card). -->
-  <div class="live-frame" aria-hidden="true"></div>
   <!-- Watches the camera for a frozen picture. Always rendered (2 px, nearly transparent):
        the preview is hidden while recording, and browsers stop updating hidden videos. -->
   <video class="monitor-video" id="monitorVideo" playsinline muted autoplay aria-hidden="true" tabindex="-1"></video>
@@ -370,20 +372,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=204"></script>
-  <script defer src="js/config.js?v=204"></script>
-  <script defer src="js/copy.js?v=204"></script>
-  <script defer src="js/util.js?v=204"></script>
-  <script defer src="js/storage.js?v=204"></script>
-  <script defer src="js/sentences.js?v=204"></script>
-  <script defer src="js/media.js?v=204"></script>
-  <script defer src="js/meter.js?v=204"></script>
-  <script defer src="js/qc.js?v=204"></script>
-  <script defer src="js/input.js?v=204"></script>
-  <script defer src="js/ui.js?v=204"></script>
-  <script defer src="js/export.js?v=204"></script>
-  <script defer src="js/session.js?v=204"></script>
-  <script defer src="js/settings.js?v=204"></script>
-  <script defer src="js/main.js?v=204"></script>
+  <script defer src="vendor/jszip.min.js?v=205"></script>
+  <script defer src="js/config.js?v=205"></script>
+  <script defer src="js/copy.js?v=205"></script>
+  <script defer src="js/util.js?v=205"></script>
+  <script defer src="js/storage.js?v=205"></script>
+  <script defer src="js/sentences.js?v=205"></script>
+  <script defer src="js/media.js?v=205"></script>
+  <script defer src="js/meter.js?v=205"></script>
+  <script defer src="js/qc.js?v=205"></script>
+  <script defer src="js/input.js?v=205"></script>
+  <script defer src="js/ui.js?v=205"></script>
+  <script defer src="js/export.js?v=205"></script>
+  <script defer src="js/session.js?v=205"></script>
+  <script defer src="js/settings.js?v=205"></script>
+  <script defer src="js/main.js?v=205"></script>
 </body>
 </html>

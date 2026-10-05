@@ -1,4 +1,4 @@
-# Recorder checklist (v204)
+# Recorder checklist (v205)
 
 <!-- Keep in step with LEGACY_OPTIONS / LEGACY_LABELS in tools/e2e/test_next_app.py. -->
 
@@ -88,6 +88,13 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
 | B27 | Not pushed without approval | Commits stay local; push only after the user's OK | process |
 | B28 | Saving explained in the tutorial (requested 2026-10-03/04) | See A32 | `practice_save` |
 | B29 | Old names kept where the research team knows them | Settings names and option texts as on the earlier page (A4, A12, A15) | `settings_parity` |
+| B30 | The sentence is the only focal point while reading (2026-10-05) | No card tint, ring or screen frame; no waveform under the sentence; formal recording shows no text | `normal`, shots |
+| B31 | Recording obvious on the sentence itself; recording sign red | Sentence vivid green on a highlight; "● Recording" red dot; soft red Stop | `normal`, shots |
+| B32 | Camera picture and sound level: off = grey/still, on = live; never competing | Monitor in the card's corner: grey when not recording, live while recording | shots |
+| B33 | Practice instructions: one at a time, prominent, intent explicit, never conflicting | Coach panel: what happened (small), the one next action (large), rarely why; problems replace the first line | `first_run`, `practice_again` |
+| B34 | On computers, Space and ← taught as the controls | How to record shows keycaps and names keys; coach names keys; buttons show their key | `first_run`, shots |
+| B35 | Camera guide: head only, faint neck hint, no shoulders | Head oval (rest dimmed) and two faint dashed neck lines | shots |
+| B36 | No hint text near the sentence in formal recording | "Read it out loud…" removed; 20 s reminder is the Stop pulse and clock only | `normal`, `long_take` |
 
 ## C. Review findings (2026-10-04)
 
@@ -126,6 +133,8 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
 | C31 | Buttons overflowing ("Take a break" sideways, 175% zoom); Redo row hidden under "Practice now" on small phones; Welcome stage 3 under "Begin" sideways | Flexible button width; compact How to record on phones; stages side by side sideways; screenshots.py flags any spilling button | shots (OVERFLOW check) |
 | C32 | Messages and the hidden step strip moved the sentence | Icon inline with the text; the strip keeps its room | shots |
 | C33 | Wording: hold dialog, keep dialog, "Break after 50 more", iOS download hint, Next (skip) without confirmation | "That recording was not kept…"; reason-only keep dialog; "50 to go before the break"; "⬇ next to the web address"; Skip asks first | `hold`, `settings_parity` |
+| C34 | Owner's review of v204 (2026-10-05): body outline on the camera guide; too many green/bright things while recording (waveform); keyboard not taught; Redo lesson unclear and mixed with other instructions; camera hidden while recording; hint text near the sentence | Redesigned by the principles in recorder-design.md (B30–B36) | see B30–B36 |
+| C35 | "Not recording yet" could fire right after a take (it counted the take's own last second) | Only sound after the waiting began counts | `first_run`, `speech_before_start` |
 
 ## Left for the user to decide
 

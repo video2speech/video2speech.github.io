@@ -72,19 +72,9 @@ V2S.app = (() => {
       howtoMockRedo: copy.howto.mockRedo,
       howtoMockSentence: copy.howto.mockSentence,
       howtoKeys: copy.howto.keys,
-      coachStep1: copy.coach.step1,
-      coachStep2: copy.coach.step2,
-      coachStep3: copy.coach.step3,
       redoSavedText: copy.record.saved
     };
     Object.entries(text).forEach(([id, value]) => ui.setText(id, value));
-    ui.setRich('howtoStep1', copy.howto.step1);
-    ui.setRich('howtoStep2', copy.howto.step2);
-    ui.setRich('howtoStep3', copy.howto.step3);
-    ui.setRich('howtoRedo', copy.howto.redo);
-    // "green" in step 2 is shown in green.
-    const green = el('howtoStep2').querySelector('b');
-    if (green) green.className = 'go-word';
     el('setupId').placeholder = copy.setup.idPlaceholder;
   }
 
@@ -626,7 +616,14 @@ V2S.app = (() => {
     V2S.input.setEnabled(false);
     const backToSession = next === 'back-record' || next === 'back-check';
     ui.setText('howtoGo', backToSession ? copy.howto.back : (needsPractice() ? copy.howto.practice : copy.welcome.continue));
-    el('howtoKeys').hidden = !document.documentElement.classList.contains('has-keyboard');
+    // On a computer the keys are taught as the controls (Space, ←); on touch, the buttons.
+    const keys = document.documentElement.classList.contains('has-keyboard');
+    ui.setRich('howtoStep1', copy.howto.step1(keys));
+    ui.setRich('howtoStep2', copy.howto.step2(keys));
+    ui.setRich('howtoStep3', copy.howto.step3(keys));
+    ui.setRich('howtoRedo', copy.howto.redo(keys));
+    const green = el('howtoStep2').querySelector('b'); // "green" is shown in green
+    if (green) green.className = 'go-word';
     ui.show('howto');
     el('howtoGo').focus({ preventScroll: true });
   }
@@ -1180,7 +1177,7 @@ V2S.app = (() => {
     V2S.media.registerPreview(el('monitorVideo'));
     V2S.media.setMonitorVideo(el('monitorVideo'));
     V2S.meter.registerWave(el('checkWave'));
-    V2S.meter.registerWave(el('recordWave'), { idleFlat: true });
+    V2S.meter.registerWave(el('recordWave'), { idleFlat: true, windowMs: 2400 });
     ui.watchPreviewShape('checkFrame', 'checkPreview');
     ui.watchPreviewShape('recordFrame', 'recordPreview');
 

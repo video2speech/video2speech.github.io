@@ -95,13 +95,16 @@ V2S.copy = {
     help: 'Camera or microphone not working?'
   },
 
+  // On computers (keyboard) the keys are taught as the controls; on touch screens, the
+  // buttons. k = true on a computer.
   howto: {
     title: 'How to record',
-    step1: 'Press **Start** once — no need to hold it.',
-    step2: 'When the sentence turns **green**, read it out loud.',
-    step3: 'Press **Stop** when you finish.',
-    redo: 'Read a word wrong? Press **Stop**, then **Redo** to record that sentence again.',
-    keys: 'Keyboard: Space = Start and Stop · ← = Redo',
+    step1: k => (k ? 'Press **Space** once — no need to hold it.' : 'Press **Start** once — no need to hold it.'),
+    step2: () => 'When the sentence turns **green**, read it out loud.',
+    step3: k => (k ? 'Press **Space** again when you finish.' : 'Press **Stop** when you finish.'),
+    redo: k => (k ? 'Read a word wrong? Press **Space** to stop, then **←** to record that sentence again.'
+      : 'Read a word wrong? Press **Stop**, then **Redo** to record that sentence again.'),
+    keys: 'You can also click the buttons on the screen.',
     mockStart: 'Start',
     mockStop: 'Stop',
     mockRedo: 'Redo',
@@ -115,8 +118,6 @@ V2S.copy = {
     statusReady: 'Not recording',
     statusStarting: 'Starting…',
     statusRecording: 'Recording',
-    recordingHint: 'Read it out loud, then press Stop.',
-    stillRecording: 'Still recording. Press Stop when you have finished.',
     statusSaving: 'Saving…',
     statusSaved: 'Saved',
     start: 'Start',
@@ -141,21 +142,42 @@ V2S.copy = {
     redoing: 'Press Start, then read this sentence again.'
   },
 
-  // Practice coaching (first session only), shown above the sentence.
+  // Practice coaching (first session only), above the sentence. One instruction at a
+  // time: `ack` says what just happened, `action` is the one thing to do now, `detail`
+  // (rarely) says why. k = true on a computer (keys named instead of buttons).
   coach: {
-    step1: 'Start',
-    step2: 'Read',
-    step3: 'Stop',
-    pressStart: 'Press Start once — no need to hold it.',
-    readNow: 'Read the green sentence out loud. Then press Stop.',
-    wellDone: 'Well done! That is all there is to it. Press Start for the next one.',
-    again: 'Press Start, read the sentence, then press Stop.',
-    tryRedo: sentence => `Now try Redo: press Redo to read “${sentence}” again.`,
-    redoReady: 'Press Start, then read this sentence again.',
-    redoRecording: 'Read it out loud. Then press Stop.',
-    redoDone: 'That is how Redo works. Read a word wrong? Press Stop, then Redo. Now press Start.',
-    reminder: 'Read a word wrong? Press Stop, then Redo.',
-    practiceEnd: 'Practice done. Press Continue.'
+    pressStart: k => `Press ${k ? 'Space' : 'Start'} once — no need to hold it.`,
+    readNow: k => `Read the green sentence out loud. Then press ${k ? 'Space' : 'Stop'}.`,
+    recordedFirst: 'Recorded. That is how every sentence works.',
+    recorded: 'Recorded.',
+    nextSentence: k => `Next sentence: press ${k ? 'Space' : 'Start'}.`,
+    tryRedo: k => `Now practise fixing a mistake: press ${k ? '← (Redo)' : 'Redo'}.`,
+    redoWhat: () => 'Redo records the last sentence again.',
+    backToLast: 'Redo: back to the last sentence.',
+    startAgain: k => `Press ${k ? 'Space' : 'Start'} and read it again.`,
+    redoDone: 'Recorded again. The new recording replaces the old one: that is how you fix a mistake.',
+    carryOn: k => `Now carry on with this sentence: press ${k ? 'Space' : 'Start'}.`,
+    more: (n, k) => `${n} more to practise: press ${k ? 'Space' : 'Start'}.`,
+    lastOne: k => `Last practice sentence: press ${k ? 'Space' : 'Start'}.`,
+    practiceDone: 'Practice done.',
+    pressContinue: k => (k ? 'Press Space to continue.' : 'Press Continue.')
+  },
+
+  // The same messages, short, for the practice coach (its next line says what to do).
+  feedbackShort: {
+    speechBeforeStart: 'Not recording yet.',
+    speechBeforeRedo: 'Not recording yet.',
+    afterHold: 'Press once, then let go.',
+    no_speech: "We couldn't hear you. Sit a little closer.",
+    too_loud: 'Too loud. Move back a little.',
+    no_audio: 'The microphone sent no sound.',
+    startFailed: "The recording didn't start.",
+    stoppedEarly: 'Recording stopped unexpectedly.',
+    hidden: 'Recording stopped because you left the page.',
+    timeout: 'That recording was over 1 minute.',
+    storeFailed: 'That recording could not be saved.',
+    storageFull: 'This device is almost full.',
+    holdTip: 'Saved. Let go of the button right after pressing it.'
   },
 
   feedback: {

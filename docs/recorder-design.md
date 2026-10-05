@@ -1,4 +1,4 @@
-# Recorder design (v4)
+# Recorder design (v5)
 
 What every screen shows, why, and how the recorder keeps the data clean. It is the
 reference for building and reviewing the patient recorder (`app_next.html`).
@@ -27,18 +27,49 @@ reference for building and reviewing the patient recorder (`app_next.html`).
 
 ## Principles
 
-- **One task per screen, one main button.** Secondary actions are smaller and quieter.
-- **Three verbs only:** Start, Stop, Redo. No "tap", "hold", "take", "block", "QC".
-- **One colour per meaning.**
-  - Green: go / recording now. It marks the Start button, and the sentence card while
-    recording.
-  - Amber: something needs attention.
-  - Everything else is neutral grey.
-  - No red, no blue.
-- **Hide what is not needed now.** While recording, only the sentence and the Stop
-  button are shown.
-- **Teach by doing**, one idea at a time, in the same words every time.
-- **Same steps every session.** It is predictable, and predictable is learnable.
+These come from the owner's reviews of real use. Every screen and every element is
+checked against all of them before it is shown.
+
+1. **The sentence is the one thing to look at.** While someone reads, nothing near the
+   sentence moves, lights up, appears or disappears. Everything else sits at the edges
+   and stays quiet.
+2. **"Recording" is shown on the sentence itself.** It turns a vivid green with a soft
+   highlight, as on the earlier page, which participants found clear. Around it only
+   conventional, quiet signs change:
+   - a small red ● Recording in the corner (the universal record sign);
+   - the green Start button becomes a soft red Stop.
+
+   There are no green frames, tinted panels or glowing borders.
+3. **One meaning per colour.**
+   - Green: read now (the live sentence) and go (Start).
+   - Red: recording (the dot, the Stop button).
+   - Amber: a problem to fix.
+   - Everything else is neutral.
+4. **Off looks off, on looks on, the same way everywhere.** The camera picture and the
+   sound level are always in the same small place in the card's corner:
+   - while not recording, grey and still;
+   - while recording, in colour and moving;
+   - never brighter or larger than needed.
+5. **One instruction at a time, with its purpose.**
+   - First say what just happened ("✓ Recorded."), then give the single next action in
+     large, plain words, and highlight the control it names.
+   - Never show two instructions that disagree.
+   - Never put a summary and the next step in one sentence.
+6. **Teach the way it will be used.** On a computer the keyboard needs no aiming, so the
+   instructions name **Space** and **←**, and the keys are shown on the buttons. On touch
+   screens the instructions name the buttons.
+7. **Formal recording is quiet.** After the practice, nothing explains anything while
+   recording. Messages appear only when something needs fixing.
+8. **Guides must be easy and comfortable to follow.** The camera guide marks only what
+   is required (the head), with a faint hint of the neck. Never shoulders: fitting them
+   makes people bend their head.
+9. **Simple and predictable.**
+   - One task and one main button per screen.
+   - Three verbs only: Start, Stop, Redo.
+   - Same steps every session.
+   - Hide what is not needed now.
+   - Teach by doing.
+   - Every failure returns to the same sentence.
 
 ## Flow
 
@@ -103,14 +134,16 @@ buttons as the recorder.
 - **Continue** appears only after "Yes".
 
 ### How to record (first time, and from "?")
-Three numbered steps, each with a small picture of the real control:
-1. Press **Start** once — no need to hold it.
+Three numbered steps, each with a picture of the control to use. On a computer the
+pictures are keys and the steps name them; on touch screens they are the buttons.
+1. Press **Space** (touch: **Start**) once — no need to hold it.
 2. When the sentence turns **green**, read it out loud.
-3. Press **Stop** when you finish.
+3. Press **Space** again (touch: **Stop**) when you finish.
 
-Then one fix: "Read a word wrong? Press **Stop**, then **Redo** to record that sentence again."
+Then one fix: "Read a word wrong? Press **Space** to stop, then **←** to record that
+sentence again." (touch: **Stop**, then **Redo**). On a computer, one quiet line adds
+"You can also click the buttons on the screen."
 
-With a keyboard, one more line: Space = Start/Stop, ← = Redo.
 
 Button: **Practice now**.
 
@@ -119,61 +152,69 @@ Top to bottom:
 
 1. **Top bar**, small and grey.
    - Left: where you are ("Practice 2 of 5", or "Part 2 of 7 · Sentence 14 of 50"), with
-     "37 to go before the break" under it and a thin progress bar.
+     "37 to go before the break" and a thin progress bar.
    - Right: End for today (asks first), ?, light/dark, settings.
    - While recording, only the progress stays.
-2. **Coach** (practice only): one short instruction for the current moment, with a
-   3-step strip (Start → Read → Stop) showing the current step.
-3. **Sentence card**, which fills the free space.
-   - Status pill at the top: "Not recording" (grey) or "Recording" (solid green). A clock
-     appears in the pill only on takes longer than 20 s (a forgotten Stop, or the
-     1-minute limit coming); a clock from 0:00 would hurry slow speakers.
-   - The sentence: one size per screen and set, chosen so it reads as one continuous
-     sentence (see `config.SENTENCE_SIZE`). The card keeps room for the longest sentence,
-     so nothing jumps.
-   - A slim waveform at the bottom moves only while recording.
-   - While recording, the card turns light green with a green ring, the sentence turns
-     green, and a green frame is drawn round the whole screen.
-4. **Message line**, always in the same place: one amber line for a problem (what
-   happened, what to do), a quiet line while recording ("Read it out loud, then press
-   Stop.").
+2. **Coach** (practice only): a quiet panel above the card. It keeps one size, so the card
+   never moves.
+   - First, small: what just happened ("✓ Recorded.") or a problem ("⚠ We couldn't hear
+     you.").
+   - Then, large: the one thing to do now ("Next sentence: press Start.").
+   - Rarely, below: why ("Redo records the last sentence again.").
+   - The control it names pulses.
+3. **Sentence card**:
+   - Its top row holds the state on the left and the monitor on the right.
+     - State: "○ Not recording" (grey), or "● Recording" with a red dot.
+     - Monitor: a small sound level and camera picture. Grey and still while not
+       recording; live while recording.
+   - Below the top row is the sentence: one size per screen and set (see
+     `config.SENTENCE_SIZE`), with room kept for the longest sentence.
+   - While not recording the sentence is grey. While recording it turns vivid green on
+     a soft highlight; nothing else in the card changes colour.
+4. **Message line**, the same place every time, used only when something needs fixing
+   (amber), or after Redo ("Press Start, then read this sentence again."). Formal
+   recording never shows text here while reading.
 5. **Controls**:
-   - The big **Start** (soft green) or **Stop** (neutral) button in the centre, always
-     in the same place.
-   - **Redo** to its left, with the sentence it would record again written under it. The
-     "✓ Saved" chip appears on it for 1.4 s after a take, so "Saved" sits next to the
-     sentence that was saved. While a Redo is under way the button reads **Cancel redo**.
-     Shown only while waiting.
-   - A small camera thumbnail on the right, also only while waiting.
+   - The big **Start** (soft green) in the centre. While recording it becomes a soft red
+     **Stop**. On a computer each button shows its key (Space, ←).
+   - **Redo** to its left, with the sentence it would record again; "✓ Saved" sits on it
+     for 1.4 s after a take. While a Redo is under way it reads **Cancel redo**. Shown
+     only while waiting.
 
 States:
 
-| State | Card | Pill | Button | Others |
-|---|---|---|---|---|
-| Waiting | neutral, sentence grey | Not recording | Start | Redo (+ Saved chip), camera, top-bar actions |
-| Starting (≈0.35 s) | neutral | Starting… | Starting… (inactive) | hidden |
-| Recording | green tint and ring, green sentence, screen frame | Recording (clock after 20 s) | Stop | hidden |
-| Finishing (0.7 s) and checking | neutral | Saving… | Saving… (inactive) | hidden |
-| Last sentence of a part | that sentence, neutral | Saved (grey) | Take a break / Continue / Finish | Redo ("Record this sentence again") |
+| State | Sentence | Pill | Monitor | Button | Others |
+|---|---|---|---|---|---|
+| Waiting | grey | ○ Not recording | grey, still | Start (green) | Redo, top-bar actions |
+| Starting (≈0.35 s) | grey | Starting… | grey | Starting… (inactive) | hidden |
+| Recording | vivid green on a highlight | ● Recording (red dot; clock after 20 s) | live | Stop (soft red; pulses after 20 s) | hidden |
+| Finishing (0.7 s) and checking | grey | Saving… | grey | Saving… (inactive) | hidden |
+| Last sentence of a part | grey | ✓ Saved | grey | Take a break / Continue / Finish | Redo ("Record this sentence again") |
 
-The sentence turns green only after the recorder has really started. Green always
-means "this is being recorded now"; "Saved" is grey.
+The sentence turns green only after the recorder has really started. Green on the
+sentence always means "this is being recorded now".
 
 ### Practice (the 5 warm-up sentences, first time only)
-1. "Press Start once — no need to hold it." Steps 1 → 2 → 3 light up in turn; the button
-   for the current step pulses gently.
-2. "Well done! That is all there is to it." then the same steps.
-3. Redo lesson: "Now try Redo: press Redo to read "…" again." The Redo button pulses.
-   After the Redo: "That is how Redo works. Read a word wrong? Press Stop, then Redo."
-   Start is never blocked: a person with a single switch can simply go on.
-4. Reminder: "Read a word wrong? Press Stop, then Redo."
-5. "Press Start, read the sentence, then press Stop."
+The coach says one thing at a time. On a computer it names the keys ("press Space",
+"press ← (Redo)"), elsewhere the buttons.
 
-After practice 5 the sentence stays on screen ("Practice done. Press Continue.") so it
-can still be redone. Then **Practice done**: "The real sentences work the same way.
-There are 7 parts of 50 sentences, and you can rest between parts." Button: **Start part
-1** (or **Continue to part n** after Settings → Practise again, which returns to the same
-sentence).
+| Moment | What happened (small) | The one next action (large) |
+|---|---|---|
+| Practice 1, waiting | — | Press Start once — no need to hold it. |
+| Any practice, recording | — | Read the green sentence out loud. Then press Stop. |
+| Practice 2, waiting | ✓ Recorded. That is how every sentence works. | Next sentence: press Start. |
+| Practice 3, waiting (the Redo lesson) | ✓ Recorded. | Now practise fixing a mistake: press Redo. (*Redo records the last sentence again.*) Redo pulses; Start stays plain but works. |
+| After pressing Redo | Redo: back to the last sentence. | Press Start and read it again. |
+| After that recording | ✓ Recorded again. The new recording replaces the old one: that is how you fix a mistake. | Now carry on with this sentence: press Start. |
+| Practice 4 / 5, waiting | ✓ Recorded. | Two more to practise / Last practice sentence: press Start. |
+| After practice 5 | ✓ Practice done. | Press Continue. |
+| A problem | ⚠ the reason ("We couldn't hear you. Sit a little closer.") | Press Start and read it again. |
+| Speaking before Start | ⚠ Not recording yet. | (unchanged: Start, or Redo during the lesson) |
+
+If Start is pressed instead of Redo at practice 3, practice 4 offers the lesson once
+more. Then **Practice done**: "The real sentences work the same way. There are 7 parts
+of 50 sentences, and you can rest between parts." In ZIP mode the practice recordings
+are saved once here, with the same steps as after every part.
 
 ### Break (after each part of 50)
 - The part's last sentence first stays on screen (Saved, Redo still possible, **Take a

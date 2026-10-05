@@ -1,7 +1,7 @@
 // Live microphone analysis: one AudioContext, an analyser sampled about 60 times a
-// second. Draws the rolling waveforms (always live, so the microphone can be checked
-// before starting; green while recording), collects frames for the recording check,
-// and notices speech while nothing is being recorded ("Not recording yet").
+// second. Draws the rolling sound levels (the check screen's always moves; the recording
+// screen's small one only while recording, in neutral grey), collects frames for the
+// recording check, and notices speech while nothing is being recorded ("Not recording yet").
 window.V2S = window.V2S || {};
 
 V2S.meter = (() => {
@@ -20,6 +20,7 @@ V2S.meter = (() => {
 
   let collector = null;
   let idleEnabled = false;
+  let idleSince = 0;          // only sound after this moment counts as "speaking before Start"
   let idleListener = null;
   let lastIdleHintAt = -Infinity;
   const recent = [];          // frames of the last 5 s (noise floor for the idle hint)
@@ -80,8 +81,8 @@ V2S.meter = (() => {
   // ---- waveform ----
   // idleFlat: the recording screen's waveform only moves while recording, so a moving
   // waveform never suggests "it is recording" when it is not. The check screen's always moves.
-  function registerWave(canvas, { idleFlat = false } = {}) {
-    waves.set(canvas, { idleFlat });
+  function registerWave(canvas, { idleFlat = false, windowMs = WAVE_WINDOW_MS } = {}) {
+    waves.set(canvas, { idleFlat, windowMs });
   }
 
   function setLive(value) {
@@ -129,7 +130,7 @@ V2S.meter = (() => {
       const barWidth = Math.max(2, Math.round(3 * dpr));
       const gap = Math.max(2, Math.round(2.5 * dpr));
       const bars = Math.floor(width / (barWidth + gap));
-      const slice = WAVE_WINDOW_MS / bars;
+      const slice = options.windowMs / bars;
       const minHeight = Math.max(2, Math.round(3 * dpr));
       let index = history.length - 1;
       for (let b = 0; b < bars; b++) {
@@ -193,7 +194,8 @@ V2S.meter = (() => {
     if (frame.t - lastIdleHintAt < cfg.IDLE_SPEECH_HINT_COOLDOWN_MS) return;
     const floor = V2S.util.percentile(recent.map(f => f.rms), Q.NOISE_FLOOR_PERCENTILE);
     const threshold = Math.max(Q.SPEECH_MIN_RMS, Q.SPEECH_NOISE_MULTIPLIER * floor);
-    const lastSecond = recent.filter(f => frame.t - f.t <= 1000);
+    // Only sound since the waiting began counts (not the end of the take just recorded).
+    const lastSecond = recent.filter(f => frame.t - f.t <= 1000 && f.t >= idleSince);
     if (lastSecond.length < 2) return;
     const interval = (lastSecond[lastSecond.length - 1].t - lastSecond[0].t) / (lastSecond.length - 1);
     const speechMs = lastSecond.filter(f => f.rms >= threshold).length * interval;
@@ -204,6 +206,7 @@ V2S.meter = (() => {
   }
 
   function setIdleDetection(enabled, listener) {
+    if (enabled && !idleEnabled) idleSince = performance.now();
     idleEnabled = enabled;
     if (listener) idleListener = listener;
   }

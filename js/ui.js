@@ -76,7 +76,6 @@ V2S.ui = (() => {
   }
 
   // While a take is starting, recording or finishing, the top-bar actions are hidden.
-  // data-live is only "on" while recording: it draws the green frame round the screen.
   function setRecording(on, live = false) {
     document.body.dataset.rec = on ? 'on' : 'off';
     document.body.dataset.live = live ? 'on' : 'off';
@@ -130,12 +129,21 @@ V2S.ui = (() => {
     setFinishVisible(view.state === 'ready');
 
     setText('cardStatusText', view.status);
-    setText('sentenceText', view.sentence);
+    // The sentence sits in one inline span, so a highlight can follow its lines.
+    const sentence = el('sentenceText');
+    let line = sentence.firstElementChild;
+    if (!line || !line.classList.contains('sentence-line')) {
+      line = document.createElement('span');
+      line.className = 'sentence-line';
+      sentence.replaceChildren(line);
+    }
+    line.textContent = view.sentence;
 
     const main = el('mainButton');
     el('mainIcon').innerHTML = iconMarkup(view.main.icon);
     setText('mainLabel', view.main.label);
     main.classList.toggle('is-stop', view.main.icon === 'stop');
+    main.classList.toggle('is-quiet', Boolean(view.main.quiet));
     main.setAttribute('aria-disabled', view.main.disabled ? 'true' : 'false');
 
     // Hidden controls keep their space so nothing else moves.
@@ -153,7 +161,6 @@ V2S.ui = (() => {
     el('redoCaption').hidden = !(redoVisible && redoView.caption);
     // "Saved" belongs to the sentence just recorded: it is shown here, next to it.
     el('redoSaved').hidden = !(redoVisible && redoView.saved);
-    el('recordFrame').classList.toggle('is-invisible', !view.showCamera);
 
     const message = el('message');
     const hasMessage = Boolean(view.message && view.message.text);
@@ -167,21 +174,18 @@ V2S.ui = (() => {
     redo.classList.toggle('is-pulsing', view.pulse === 'redo' && redoVisible);
   }
 
+  // The coach box keeps one size (CSS), so the card below never moves while practising.
   function renderCoach(coach) {
     const box = el('coach');
     const visible = Boolean(coach);
     box.hidden = !visible;
     if (visible) {
-      setSentences('coachText', coach.text);
-      // Hidden but still taking its room, so the card does not move.
-      el('coachSteps').classList.toggle('is-invisible', !coach.step);
-      el('coachSteps').querySelectorAll('li').forEach(item => {
-        const step = Number(item.dataset.step);
-        const done = Boolean(coach.step) && (coach.allDone || step < coach.step);
-        item.classList.toggle('is-active', !coach.allDone && step === coach.step);
-        item.classList.toggle('is-done', done);
-        item.querySelector('.step-num').innerHTML = done ? ICONS.check : String(step);
-      });
+      const ack = coach.ack;
+      el('coachAck').className = `coach-ack${ack ? ` tone-${ack.tone}` : ' is-empty'}`;
+      el('coachAckIcon').innerHTML = ack ? ({ ok: ICONS.check, warn: ICONS.warn }[ack.tone] || ICONS.info) : '';
+      setText('coachAckText', ack ? ack.text : '');
+      setSentences('coachAction', coach.action || '');
+      setText('coachDetail', coach.detail || '');
     }
     // The card changes size when the coach appears or goes: fit the sentence again.
     if (visible !== lastCoachVisible) {
@@ -208,10 +212,13 @@ V2S.ui = (() => {
     if (list) fitList = list.slice();
     const screenEl = el('screen-record');
     if (!fitList.length || screenEl.hidden) return;
-    const card = el('card');
-    const style = getComputedStyle(card);
-    const width = Math.floor(card.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+    // The width the sentence really has (inside the card and its text area).
+    const box = el('sentenceText').parentElement;
+    const style = getComputedStyle(box);
+    const width = Math.floor(box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
     if (width < 120) return;
+    // The highlight while recording pads each line by 0.1em on both sides.
+    const pad = 0.2;
     const kind = deviceClass();
     const rule = cfg.SENTENCE_SIZE[kind];
     const probe = el('sentenceText').cloneNode(false);
@@ -230,15 +237,16 @@ V2S.ui = (() => {
     // cannot do that (phones held upright), most sentences on two lines instead; wrapped
     // lines lose some width at word breaks, hence 85%.
     const oneLine = width * cfg.SENTENCE_LINE_FILL;
-    const targetLines = typicalWidth * rule.min / 100 <= oneLine ? 1 : 2;
-    const lineLimit = targetLines === 1 ? oneLine * 100 / typicalWidth : width * 2 * 0.85 * 100 / typicalWidth;
-    let size = Math.floor(Math.min(rule.max, lineLimit, width * 100 / (cfg.SENTENCE_MIN_CHARS_PER_LINE * charWidth)));
+    const targetLines = rule.min * (typicalWidth / 100 + pad) <= oneLine ? 1 : 2;
+    const lineLimit = targetLines === 1 ? oneLine / (typicalWidth / 100 + pad) : width * 2 * 0.85 / (typicalWidth / 100 + 2 * pad);
+    let size = Math.floor(Math.min(rule.max, lineLimit, width / (cfg.SENTENCE_MIN_CHARS_PER_LINE * charWidth / 100 + pad)));
     size = Math.max(rule.min, size);
     // The longest sentences, wrapped to the card: at most rule.lines lines.
     Object.assign(probe.style, { whiteSpace: 'normal', width: `${width}px`, maxWidth: `${width}px` });
     const longest = fitList.map((text, i) => [widths[i], text]).sort((a, b) => b[0] - a[0]).slice(0, 6).map(pair => pair[1]);
     const linesAt = px => {
       probe.style.fontSize = `${px}px`;
+      probe.style.width = probe.style.maxWidth = `${width - pad * px}px`;
       return Math.max(...longest.map(text => {
         probe.textContent = text;
         return Math.round(probe.getBoundingClientRect().height / (px * 1.2));
