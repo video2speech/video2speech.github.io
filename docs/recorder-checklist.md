@@ -156,25 +156,27 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
 | C48 | Fourteenth review round (2026-10-06): the visual review re-checked every screen after rounds 11–13 | On the shortest screens the scrolling words of a flow screen cut lines in half (the ID error on a sideways phone, "Sentence 3 of 50") → Set up scrolls as one page again, short screens have less room above the words, and where words still scroll their edges fade; Welcome keeps its title in place like Break and Done, its save notice under the words as on a break; How to record keeps only "turns green" together (the whole phrase overflowed a 375 px phone); the welcome rows sideways start on one line; no focus ring on touch screens that open without a key; sign-in on a phone held sideways shows the form first, and on a short phone Sign in stays on screen; the fade appears only where words really scroll (a tight fit had faded its last line); Welcome's save notice replaces "Carry on where you left off."; sideways: no participant line or sentence count on Welcome, 16 px between a link and its button; screenshots.py flags words that do not fit their area (CLIPPED) | shots (phone-safari, phone-land-safari, phone-land), aux probes |
 | C49 | Fifteenth review round (2026-10-06): the visual review's final check of every screen and state | Sign in on a phone held sideways ran off the bottom (the first screen, its only action) → two columns there, the title and notes on the left, the form and Sign in on the right; Set up's ID form on the shortest sideways screens drops its eyebrow and lead so Continue stays on screen; How to record on phones at 17 px, so step 2 breaks after "turns green,"; sideways, Welcome's save notice stands alone and break and make-room notices fit; screenshots.py flags a main button (Sign in included) not fully on screen (OFFSCREEN) | shots (phone, phone sideways, both Safari shapes), aux probes |
 
-## Left for the user to decide
+## Decided, and proposals for the owner
 
-- The sign-in page says "This website is solely for displaying reading materials", while
-  the page also records video and sound (which do stay on the device). The wording is
-  unchanged.
+Decided (as the owner asked, or kept as it is):
 - Possible cut-off at the end of a sentence (`speechAtEnd`) is recorded in the sidecar
   only, as decided; it never rejects a take.
-- Saving the practice recordings at Practice done (ZIP mode). It teaches saving once, as
-  the owner asked and as the legacy warm-up did, while little is at stake. But it puts
-  the most technical step — a browser download, then finding and confirming the file —
-  between the practice and the first real sentence. A first-timer alone may stop there.
-  The alternative is to keep the practice takes for the part-1 ZIP and meet saving first
-  at the first break.
+- Saving the practice recordings at Practice done (ZIP mode): kept, as the owner asked
+  ("the tutorial must explain saving"). It is taught there once, with the same steps as
+  after every part, while little is at stake.
+- The default theme: light (the screen lights the face for the video, reads best, and
+  reflects least on a glossy iPad); dark stays a per-device choice in Settings.
+
+Proposals for the owner (thresholds and wording are theirs to approve; nothing here
+breaks a principle as it stands):
 - "Not recording yet" sensitivity: 0.5 s of speech while waiting, at most every 6 s. A
-  helper's voice, or a participant rehearsing aloud, can set it off. A proposal to approve
-  or reject: 1.5 s of speech, at most once per sentence.
+  helper's voice, or a participant rehearsing aloud, can set it off. Proposal: 1.5 s of
+  speech, at most once per sentence.
 - The held-press limit (1 s; Settings offers 2 or 3 s). People who cannot let go within
-  1 s lose takes until a helper changes it. A proposal to approve or reject: keep
-  recording when nobody spoke during the hold.
+  1 s lose takes until a helper changes it. Proposal: keep recording when nobody spoke
+  during the hold.
 - Staying signed in on the device. Today the sign-in lasts as long as the browser tab,
-  so a participant alone has to type the username and password each time.
-- The default theme (light recommended).
+  so a participant alone types the username and password each time.
+- The sign-in page says "This website is solely for displaying reading materials", while
+  the page also records video and sound (which stay on the device). The wording is
+  unchanged.
