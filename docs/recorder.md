@@ -29,13 +29,11 @@ conventions: the system font, white (or black) screens, a filled blue button to 
      files instead**. Nothing is ever saved anywhere else without asking.
 4. **Camera and microphone check** (every session), two steps beside the same live
    picture:
-   1. **Position the camera**: one head oval in the middle; "Put the iPad below your
-      chin and tilt it up, so your mouth, cheeks and throat are visible." (the iPad, the
-      phone, the tablet or, on a computer, the camera). **Next**.
+   1. **Position the camera**: one head oval in the middle; "Put your face inside the
+      oval." **Next**.
    2. **Test the microphone**: "Press Record and say “Hello, this is my voice.” Then
       watch it back." **Record a 5-second test**; the clip plays back (picture and
-      sound), then "Can you see your mouth, cheeks and throat, and hear yourself
-      clearly?" **Yes, continue** / Play it again / No, try again (back to step 1). A
+      sound), then "Can you see your face and hear yourself clearly?" **Yes, continue** / Play it again / No, try again (back to step 1). A
       Bluetooth microphone gets a warning and a one-tap switch to the built-in one. The
       test is never saved.
 5. **Practice** (the 5 warm-up sentences, first time only). How to record is taught
@@ -243,8 +241,10 @@ cameras sit at the top edge of the screen, so:
   a webcam placed below the chin, pointing up, and choose it in Settings → Camera.
   Prefer the built-in microphone over Bluetooth headphones.
 
-The camera check shows one head oval in the middle, and the test playback asks whether
-the mouth, cheeks and throat can be seen.
+The camera check shows one head oval in the middle and asks participants only to put
+their face inside it (owner, 2026-10-05); the test playback asks whether they can see
+their face and hear themselves. The position above is a setup tip for the research
+team, not an instruction on screen.
 
 The layout is checked on all five shapes: phone upright and sideways, tablet upright
 and sideways, computer.

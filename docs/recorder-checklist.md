@@ -46,7 +46,7 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
 | A28 | Hotfixes v113/v114: key auto-repeat ignored, no clearing without confirmation, no skipping on silence, recording border, save dialog first | Kept: input rules, confirmed saves, recording check, green card + screen frame, picker first | `hold`, `break_zip`, `no_speech`, `normal`, `zip_picker` |
 | A29 | Dark page only (dark background, white sentence, green while reading, red ring while recording) | Light by default (recommended: lights the face, easier reading, fewer reflections); dark in the top bar and Settings. **Owner to confirm the default.** | `finish_settings`, shots |
 | A30 | "Update available" prompt every 60 s | Version checked only when the page opens (never mid-session) | gate in `app_next.html` |
-| A31 | How to Record checklist: "Position the camera below chin level and angle it upward so your mouth, throat, and cheeks are visible" | Camera check step 1: the same instruction with one head oval; the playback question "Can you see your mouth, cheeks and throat…?"; docs/recorder.md device advice follows it. **Owner to confirm it is still the protocol.** | `first_run` |
+| A31 | How to Record checklist: "Position the camera below chin level and angle it upward so your mouth, throat, and cheeks are visible" | Camera check step 1: one head oval and "Put your face inside the oval." — the owner decided (2026-10-05) that participants only need their face in the frame; the playback asks "Can you see your face and hear yourself clearly?". The camera position stays a setup tip in docs/recorder.md | `first_run` |
 | A32 | Warm-up explained saving and ran a real Save All | Practice done screen: in ZIP mode the practice recordings are saved once (same steps as after every part); in folder mode it says where recordings go | `first_run`, `practice_save` |
 | A33 | ← pressed repeatedly walked back several sentences | Redo reaches only the previous sentence (approved plan, 2026-10-03); a second ← cancels the Redo. Settings → Previous / Go to reach further back | `redo`, `clicker` |
 | A34 | The last sentence could be redone after completion | Redo of the last sentence before **Finish**; afterwards Go to / Reset progress start the next round | `rounds` |
@@ -168,5 +168,4 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
   recording when nobody spoke during the hold.
 - Staying signed in on the device. Today the sign-in lasts as long as the browser tab,
   so a participant alone has to type the username and password each time.
-- The default theme (light recommended) and the camera wording ("Put the iPad below
-  your chin…"; computers: "Tilt the screen back…").
+- The default theme (light recommended).

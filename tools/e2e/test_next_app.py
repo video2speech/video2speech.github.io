@@ -374,7 +374,7 @@ async def s_first_run(pw, base):
     await wait_for(page, '() => V2S.media.getStream() !== null')
     await page.wait_for_timeout(300)
     camera_text = await page.text_content('#checkCameraText')
-    c.check('below your chin' in camera_text and 'throat' in camera_text, "the study's camera position: below the chin, mouth, cheeks and throat visible", camera_text)
+    c.check(camera_text == 'Put your face inside the oval.', 'one short instruction: the face inside the oval', camera_text)
     c.check(await page.text_content('#checkCameraStep') == 'Step 1 of 2' and await page.is_visible('#checkNext') and await page.is_hidden('#testRecord'),
             'check, one step at a time: first only the camera (Next), the test is not shown yet')
     await click(page, '#checkNext')
@@ -388,7 +388,7 @@ async def s_first_run(pw, base):
     c.check(True, 'plays the test back, picture and sound')
     await wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=10000)
     question = await page.text_content('#testQuestion')
-    c.check('throat' in question and 'hear yourself clearly' in question, 'asks whether mouth, cheeks and throat are visible and the sound is clear', question)
+    c.check(question == 'Can you see your face and hear yourself clearly?', 'asks whether the face is visible and the sound is clear', question)
     await page.evaluate("window.__v2sAudio.set('silence')")  # sitting quietly, reading the screen
     await click(page, '#testYes')
     # How to record is taught inside the practice, one step at a time (no page of rules).

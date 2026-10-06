@@ -42,7 +42,6 @@ V2S.util = (() => {
     const touchMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1; // iPadOS reports as a Mac
     const ios = /iPhone|iPad|iPod/.test(ua) || touchMac;
     const android = /Android/.test(ua);
-    const ipad = /iPad/.test(ua) || touchMac;
     const edge = /Edg\//.test(ua);
     const chrome = /Chrome\//.test(ua) && !edge && !/OPR\//.test(ua);
     const safari = /Safari\//.test(ua) && !/Chrome\/|Chromium\/|CriOS\/|FxiOS\/|EdgiOS\//.test(ua);
@@ -50,8 +49,6 @@ V2S.util = (() => {
       ios,
       android,
       mobile: ios || android,
-      // What to call the camera in instructions: the device itself on tablets and phones.
-      device: ipad ? 'ipad' : ios ? 'phone' : android ? (/Mobile/.test(ua) ? 'phone' : 'tablet') : 'computer',
       mac: /Macintosh/.test(ua) && !touchMac,
       windows: /Windows/.test(ua),
       safari,

@@ -69,7 +69,7 @@ V2S.app = (() => {
     };
     Object.entries(text).forEach(([id, value]) => ui.setText(id, value));
     // Two sentences each: the second one starts its own line.
-    ui.setSentences('checkCameraText', copy.check.cameraText(platform.device));
+    ui.setSentences('checkCameraText', copy.check.cameraText);
     ui.setSentences('checkMicText', copy.check.micText);
     el('setupId').placeholder = copy.setup.idPlaceholder;
   }

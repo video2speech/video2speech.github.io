@@ -139,11 +139,11 @@ on upright screens) shows one step at a time.
 
 | Moment | Focus | Panel |
 |---|---|---|
-| 1 Camera | the picture and the oval | "Step 1 of 2" · **Position the camera** · "Put the iPad below your chin and tilt it up, so your mouth, cheeks and throat are visible." (it names the thing to move: the iPad, the phone, the tablet, or on a computer the camera) · **Next** (blue). No sound level yet. |
+| 1 Camera | the picture and the oval | "Step 1 of 2" · **Position the camera** · "Put your face inside the oval." (owner: the face in the frame is enough) · **Next** (blue). No sound level yet. |
 | 2 Microphone | Record a 5-second test | "Step 2 of 2" · **Test the microphone** · "Press Record and say “Hello, this is my voice.” Then watch it back." (the phrase is known before the 5 seconds start) · a quiet line "Microphone: …" (for a helper) · **● Record a 5-second test** (green, like Start). Bluetooth headphones: an amber note with a button for the built-in microphone. |
 | Test recording | what to say | "Say:" in grey, then “Hello, this is my voice.” green on the highlight, like a sentence being recorded, and a grey 5-second bar; the picture says "● Recording · 4 s left" (the only red dot on this screen). |
 | Playback | the playback | the recording plays with sound and picture ("Playing your test"). |
-| Question | the answer | Can you see your mouth, cheeks and throat, and hear yourself clearly? (19 px, not a second title) · **Yes, continue** (blue) · Play it again · No, try again (text; back to step 1, where the usual fix is). The help link goes once the test has played. |
+| Question | the answer | Can you see your face and hear yourself clearly? (19 px, not a second title) · **Yes, continue** (blue) · Play it again · No, try again (text; back to step 1, where the usual fix is). The help link goes once the test has played. |
 | Nothing heard | the fix | "We couldn’t hear anything. Check the microphone, then record the test again." |
 
 The live picture has no badge (red means recording). The picture never moves between

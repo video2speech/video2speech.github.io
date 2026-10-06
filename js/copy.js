@@ -73,13 +73,9 @@ V2S.copy = {
   // Two steps, one at a time: place the camera, then a test recording that plays back.
   check: {
     cameraStep: 'Step 1 of 2',
-    // The study's camera position (from the earlier page's checklist).
+    // Participants only need their face inside the oval (owner, 2026-10-05).
     cameraTitle: 'Position the camera',
-    // Name the thing to move: on a tablet or phone the camera is the device itself.
-    // A computer's camera sits in the screen: tilting the screen back points it up.
-    cameraText: device => (device === 'computer'
-      ? 'Tilt the screen back until the camera sees your mouth, cheeks\u00a0and\u00a0throat. With a separate camera, put\u00a0it below your chin, tilted up.'
-      : `Put the ${{ ipad: 'iPad', phone: 'phone', tablet: 'tablet' }[device] || 'camera'} below your chin and tilt it up, so your mouth, cheeks\u00a0and\u00a0throat are visible.`),
+    cameraText: 'Put your face inside the oval.',
     next: 'Next',
     micStep: 'Step 2 of 2',
     micTitle: 'Test the microphone',
@@ -95,7 +91,7 @@ V2S.copy = {
     testSay: '“Hello, this is my voice.”',
     testRecording: seconds => `Recording · ${seconds} s left`,
     testPlaying: 'Playing your test',
-    testQuestion: 'Can you see your mouth, cheeks\u00a0and\u00a0throat, and hear yourself clearly?',
+    testQuestion: 'Can you see your face and hear yourself clearly?',
     testYes: 'Yes, continue',
     testAgain: 'No, try again',
     testReplay: 'Play it again',
