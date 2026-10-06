@@ -365,6 +365,9 @@ V2S.app = (() => {
     // one thing to remember waits until then).
     app.welcomeSaveFirst = show;
     el('welcomeRule').hidden = !app.welcomeRule || show;
+    // The notice says what to do first; "Carry on where you left off." waits (a finished
+    // set keeps its lead, which says to save).
+    el('welcomeLead').hidden = show && !(app.progress && app.progress.completed);
     // A way on if saving cannot be done now (the recordings stay on the device).
     el('welcomeLater').hidden = !show || Boolean(app.progress && app.progress.completed);
     ui.setText('welcomeLater', copy.breakScreen.laterGo);
@@ -1285,7 +1288,7 @@ V2S.app = (() => {
     setSavePanel('doneSavePanel', 'doneSaveText', copy.done.pending(pending), 'warn');
     ui.setText('doneSave', folder ? copy.breakScreen.allowFolder : copy.done.save);
     el('doneSave').hidden = false;
-    el('doneSave').focus({ preventScroll: true });
+    if (usesKeys()) el('doneSave').focus({ preventScroll: true });
   }
 
   async function onDoneSave() {
@@ -1322,7 +1325,7 @@ V2S.app = (() => {
       el('errorSecondary').onclick = secondary.action;
     }
     ui.show('error');
-    if (actionLabel) el('errorAction').focus({ preventScroll: true });
+    if (actionLabel && usesKeys()) el('errorAction').focus({ preventScroll: true });
   }
 
   function showMediaError(error) {

@@ -145,8 +145,10 @@ sideways), tall (tablets upright), phone, flat (phones sideways).
   than 1000 px) the text stays in the middle and the main button sits at the bottom,
   where Start sits on the recording screen; a text button goes above it, never under it.
   Break and Done keep their text at the top, so it stays put while the save steps change
-  it. The screen is the height of the window: if its words do not fit (a small phone
-  held sideways), they scroll and the buttons stay in view. A long dialog scrolls its
+  it; so does Welcome. The screen is the height of the window: if its words do not fit (a
+  small phone held sideways), they scroll, their edges fade rather than cut a line in
+  half, and the buttons stay in view. Set up is the exception: its form scrolls as one
+  page, Continue under the field (the keyboard is up anyway). A long dialog scrolls its
   words, never its answers. The ID form in Set up keeps its button under the field (the keyboard is up); its
   questions follow the rule.
 - Every problem on a flow screen looks the same: an amber notice. On the check it sits
@@ -179,8 +181,8 @@ with what to fix.
 | Button | **Begin** (blue) | **Continue** (blue) |
 
 ZIP mode with unsaved recordings (not mid-practice: those are saved at its end), one
-step at a time: the amber notice "3 recordings are not saved yet." right above the
-buttons (never scrolled away), the main button becomes **Save recordings** (then the
+step at a time: the amber notice "3 recordings are not saved yet." under the words (what
+happened, then the action, as on a break; it replaces "Carry on where you left off."), the main button becomes **Save recordings** (then the
 usual "Did the file save?"; while it saves the button shows its progress), and a quiet
 "Continue without saving" (it asks first, as on a break; the recordings stay on the
 device). The one thing to remember waits until the recordings are saved. Once saved, the button is

@@ -65,6 +65,10 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
       const spill = [...document.querySelectorAll('button')].filter(b => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && b.scrollWidth > b.clientWidth + 1);
       return { page: document.documentElement.scrollWidth - window.innerWidth, sheet: sheet ? sheet.scrollWidth - sheet.clientWidth : 0,
                tall: document.documentElement.scrollHeight - window.innerHeight,
+               // words that do not fit their (scrolling) area: a line cut or faded at its edge
+               clipped: [...document.querySelectorAll('.flow-body, .dialog-body, .check-panel')]
+                 .filter(n => n.getClientRects().length && n.scrollHeight > n.clientHeight + 1)
+                 .map(n => `${n.parentElement && n.parentElement.closest('[id]') ? n.parentElement.closest('[id]').id : ''}.${n.className}`),
                wide: wide.slice(0, 3).map(n => `${n.tagName}#${n.id}.${n.className}`),
                spill: spill.slice(0, 3).map(b => `${b.id || b.textContent.trim().slice(0, 20)}`) };
     }"""
@@ -78,6 +82,8 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         # Taller than the screen: the main button may need scrolling to be seen.
         if r['tall'] > 1:
             print(f'  VSCROLL {name}-{theme}-{label}: {r["tall"]} px')
+        if r['clipped']:
+            print(f'  CLIPPED {name}-{theme}-{label}: {r["clipped"]}')
 
     # Phones and tablets are driven by taps (their instructions name the buttons);
     # computers by the keyboard (their instructions name Space and ←).

@@ -95,9 +95,9 @@ body[data-screen="record"] .topbar { grid-template-columns: minmax(max-content, 
    the column sits in the middle of the screen; on touch screens the actions sit at the
    bottom, where Start sits (see the touch block below). */
 .screen-flow { padding-top: var(--s2); }
-#screen-break .flow, #screen-done .flow { justify-content: flex-start; padding-top: clamp(16px, calc(20vh - 48px), 200px); }
+#screen-break .flow, #screen-done .flow, #screen-welcome .flow { justify-content: flex-start; padding-top: clamp(16px, calc(20vh - 48px), 200px); }
 @media (orientation: portrait) and (min-height: 1000px) {
-  #screen-break .flow, #screen-done .flow { padding-top: 21vh; }
+  #screen-break .flow, #screen-done .flow, #screen-welcome .flow { padding-top: 21vh; }
 }
 .flow { flex: 1; width: min(500px, 100%); margin: 0 auto; display: flex; flex-direction: column; justify-content: center; justify-content: safe center; padding-bottom: 6vh; }
 .flow-step { display: flex; flex-direction: column; }
@@ -125,7 +125,7 @@ body[data-screen="record"] .topbar { grid-template-columns: minmax(max-content, 
 .journey { width: min(320px, 100%); margin-top: var(--s6); display: grid; gap: var(--s2); text-align: center; }
 .journey-label { font-size: var(--t-label); font-weight: 600; color: var(--ink); }
 .journey-count:empty { display: none; }
-.notice-warn.welcome-notice { width: min(400px, 100%); margin: 0; text-align: center; }
+.notice-warn.welcome-notice { width: min(400px, 100%); margin: var(--s4) 0 0; text-align: center; }
 /* A save problem on a break (not saved yet, not in the folder yet): the problem and the
    buttons say what to do, so the usual line under the title steps aside. */
 #breakSave.is-warn:not([hidden]) ~ #breakLead { display: none; }
@@ -534,13 +534,17 @@ button.row:active { background: var(--fill-strong); }
 @media (max-width: 1000px) and (orientation: portrait), (pointer: coarse) {
   .screen-flow:not(#screen-setup) .flow { justify-content: flex-start; padding-bottom: 0; }
   .screen-flow:not(#screen-setup) .flow-body { margin-top: auto; margin-bottom: auto; }
-  .screen-flow#screen-break .flow-body, .screen-flow#screen-done .flow-body { margin-top: 0; }
+  .screen-flow#screen-break .flow-body, .screen-flow#screen-done .flow-body, .screen-flow#screen-welcome .flow-body { margin-top: 0; }
   .screen-flow:not(#screen-setup) .flow-actions { padding-bottom: calc(44px - var(--gutter)); }
   /* The main button never scrolls away: a flow screen is the height of the window; if
      its words do not fit (a small phone held sideways), they scroll and the buttons stay. */
-  body:not([data-screen="record"]):not([data-screen="check"]) .app { height: 100vh; height: 100dvh; }
+  body:not([data-screen="record"]):not([data-screen="check"]):not([data-screen="setup"]) .app { height: 100vh; height: 100dvh; }
   .screen-flow .flow, .screen-flow .flow-step { min-height: 0; }
-  .screen-flow .flow-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .screen-flow:not(#screen-setup) .flow-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  /* if the words must scroll, their edges fade instead of cutting a line in half (ui.js) */
+  .screen-flow .flow-body.is-overflowing {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 20px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 20px), transparent 100%); }
   .screen-flow .flow-actions { flex: none; }
   .screen-flow:not(#screen-setup) .flow-actions .btn-go, #breakPrimary { order: 2; }
   .screen-flow:not(#screen-setup) .flow-actions .btn-text { order: 1; }
@@ -693,7 +697,9 @@ button.row:active { background: var(--fill-strong); }
   #screen-check.has-problem .check-media .preview-frame.is-portrait { height: 22dvh; }
   .check-panel::before { flex-basis: var(--s2); }
   .symbol { width: 52px; height: 52px; margin-bottom: var(--s4); }
-  #screen-break .flow, #screen-done .flow { padding-top: var(--s2); }
+  #screen-break .flow, #screen-done .flow, #screen-welcome .flow { padding-top: var(--s2); }
+  .flow-body { padding-top: var(--s3); }
+  .journey { margin-top: var(--s4); }
   .symbol svg { width: 28px; height: 28px; }
   .wave-check { height: 28px; }
   .check-step h1 { font-size: 22px; margin-bottom: var(--s2); }
@@ -719,7 +725,12 @@ button.row:active { background: var(--fill-strong); }
   #finishButton .label-short { display: none; }
 
   .flow { padding-bottom: 0; width: min(600px, 100%); }
-  #screen-break .flow, #screen-done .flow { padding-top: 0; }
+  #welcomeId, #welcomeCount { display: none; }   /* sideways, the screen is short: the title and the bar say enough */
+  .notice-warn.welcome-notice { margin-top: var(--s2); }
+  .dialog-actions { gap: var(--s4); }
+  .screen-flow:not(#screen-setup) .flow-actions { gap: var(--s4); }
+  .save-panel { margin-bottom: var(--s2); padding: 6px 12px; }
+  #screen-break .flow, #screen-done .flow, #screen-welcome .flow { padding-top: 0; }
   .flow-body { padding-top: var(--s2); }
   .flow-body h1 { margin-bottom: var(--s1); }
   .symbol { display: none; }   /* sideways the screen is short: the title says it */
@@ -727,7 +738,7 @@ button.row:active { background: var(--fill-strong); }
   .flow-actions .btn-xl { min-height: 50px; font-size: 18px; }
   /* Sideways the three rows sit side by side (the button stays on the screen). */
   .feature-list { margin-top: var(--s3); width: min(640px, 100%); grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s4); }
-  .feature-list li { grid-template-columns: none; justify-items: center; gap: var(--s1); text-align: center; font-size: 15px; }
+  .feature-list li { grid-template-columns: none; justify-items: center; align-content: start; align-items: start; gap: var(--s1); text-align: center; font-size: 15px; text-wrap: balance; }
   .feature-icon svg { width: 22px; height: 22px; }
   /* The main button as low as Start is sideways. */
   .screen-flow:not(#screen-setup) .flow-actions, #screen-setup.is-question .flow-actions { padding-bottom: 0; }

@@ -35,7 +35,23 @@ V2S.ui = (() => {
     el('helpButton').hidden = name !== 'record';
     window.scrollTo(0, 0);
     if (name === 'record') requestAnimationFrame(() => fitSentences());
+    markOverflow();
   }
+
+  // A flow screen whose words must scroll (a small phone held sideways) fades their edges,
+  // so no line looks cut in half; one that fits shows every line in full.
+  let overflowFrame = 0;
+  function markOverflow() {
+    cancelAnimationFrame(overflowFrame);
+    overflowFrame = requestAnimationFrame(() => {
+      document.querySelectorAll('.screen-flow:not([hidden]) .flow-body').forEach(body => {
+        body.classList.toggle('is-overflowing', body.scrollHeight > body.clientHeight + 1);
+      });
+    });
+  }
+  window.addEventListener('resize', markOverflow);
+  new MutationObserver(markOverflow).observe(document.querySelector('.screens') || document.body,
+    { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden'] });
 
   const screen = () => currentScreen;
 
