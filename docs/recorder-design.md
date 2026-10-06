@@ -40,11 +40,14 @@ checked against all of them before it is shown.
    where to look and what to press. Information comes one step at a time, when it is
    needed: How to record is taught inside the practice, not as a page of rules. Nothing
    is drawn that looks like a control but is not one.
-2. **The sentence is the one thing to look at** while recording. Nothing near it moves,
-   lights up, appears or disappears while someone reads.
+2. **The sentence is the one thing to look at.** It sits in a card with a clear edge
+   (white on a grey page; grey on black), the only large surface on the screen, which
+   draws the eye to it. Everything else is small and quiet around the card. Nothing near
+   the sentence moves, lights up, appears or disappears while someone reads.
 3. **"Recording" is shown on the sentence itself.** It turns vivid green on a soft
    highlight, as on the earlier page. Around it only conventional, quiet signs change: a
-   red ● Recording under it (steady, not blinking), and Start becoming a soft red Stop.
+   red ● Recording on the card's top edge (steady, not blinking), and Start becoming a
+   soft red Stop.
 4. **Every colour has one meaning.**
    - Blue: continue / move on (the main button of every screen except recording).
    - Green: start recording (Start), and the sentence being recorded ("read now").
@@ -59,8 +62,12 @@ checked against all of them before it is shown.
    and the next step in one sentence.
 7. **Teach the way it will be used.** Computers: Space and ← (the keys are shown on the
    buttons). Touch screens: the buttons.
-8. **Formal recording is quiet.** After the practice, nothing explains anything while
-   recording; a message appears only when something needs fixing.
+8. **Information only when something needs handling.** No routine confirmations: no
+   "✓ Recorded" after each take, no "Not recording" while waiting (the next sentence
+   appearing is the confirmation; the grey sentence and the green Start say "not
+   recording"). After the practice, nothing explains anything while recording; a
+   message appears only when something needs fixing, or when the next action differs
+   from the usual one ("That was the last sentence of part 2.").
 9. **Guides are easy to follow.** The camera guide is one head oval in the middle (fixed
    by the owner; do not change it).
 10. **Simple and predictable.** Three verbs (Start, Stop, Redo). The same steps every
@@ -81,12 +88,21 @@ checked against all of them before it is shown.
     a screen change. A button that removes something is never pre-selected for the keyboard, and a
     save or a reconnection that is running ignores further presses.
 
+13. **No accidental presses on touch screens.** The main action (Start/Stop) is at the
+    bottom, where a thumb, or a hand resting on the table, reaches it. Secondary actions
+    are far from it: Redo at the top left, where a Back button goes; a text action under
+    a main button keeps 24 px of space; nothing harmful is pre-selected.
+14. **Teaching says it is teaching; the one action is repeated.** The Redo lesson
+    says "This is only practice — nothing went wrong." The one action to remember
+    ("Press Start, read the green sentence out loud, then press Stop.") is shown before
+    the practice, after it, and when coming back.
+
 ## Flow
 
 ```
 Sign in ─▶ [first time on this device: Set up — participant ID, save folder]
         ─▶ Welcome ─▶ Check: 1 camera position ─▶ 2 test recording (watch it back)
-        ─▶ [first time: Practice 1–5, coached ─▶ Practice done]
+        ─▶ [first time: One thing to remember ─▶ Practice 1–5, coached ─▶ Practice done]
         ─▶ Part n: 50 sentences ─▶ Break ─▶ … ─▶ All sentences done
 ```
 
@@ -106,11 +122,11 @@ sideways), tall (tablets upright), phone, flat (phones sideways).
   where you are (centre: "Practice 2 of 5", "Part 2 of 7 · Sentence 14 of 50", with a
   thin bar), **?** and the gear (right). Other screens: the gear only. While recording,
   only "where you are" stays.
-- Every screen is one centred group a little above the middle: content, then its main
-  button right under it (never a button stranded at the bottom with a void in between).
-  Flow screens (welcome, practice done, breaks, done, problems): a symbol, a title, one
-  or two short lines, the main button (a filled blue capsule) and at most one or two
-  quiet text buttons under it.
+- Flow screens (welcome, practice done, breaks, done, problems) are one centred group
+  a little above the middle: a symbol, a title, one or two short lines, the main button
+  (a filled blue capsule) and at most one or two quiet text buttons, 24 px under it.
+- The recording screen is a grey page with the sentence card: Redo and the camera
+  picture above the card, the guide and Start/Stop at the bottom (see below).
 - One button shape: capsules. One meaning per colour (Principles 4); ticks (✓) are
   neutral grey, never green.
 
@@ -128,7 +144,7 @@ recordings, or ZIP files.
 | | First visit | Returning |
 |---|---|---|
 | Focus | Begin | Continue |
-| Shows | "Participant SEMG1", **Welcome**, "You will read short sentences out loud. The camera records your face and voice.", three plain rows (icon + text, not buttons): check camera and microphone · practise with 5 sentences · read the sentences, with breaks | **Welcome back**, "We’ll keep your place.", **Part 2 of 7**, seven segments (done parts filled, the current one outlined), "14 of 50 sentences done" (or "Starts with sentence 1") |
+| Shows | "Participant SEMG1", **Welcome**, "You will read short sentences out loud. The camera records your face and voice.", three plain rows (icon + text, not buttons): check camera and microphone · practise with 5 sentences · read the sentences, with breaks | **Welcome back**, "Carry on where you left off.", **Part 2 of 7**, seven segments (done parts filled, the current one outlined), "14 of 50 sentences done" (or "Starts with sentence 1"), then the one action to remember: "Press **Start**, read the **green** sentence out loud, then press **Stop**." |
 | Button | **Begin** (blue) | **Continue** (blue) |
 
 ZIP mode with unsaved recordings: a quiet amber notice with **Save now**.
@@ -140,7 +156,7 @@ on upright screens) shows one step at a time.
 | Moment | Focus | Panel |
 |---|---|---|
 | 1 Camera | the picture and the oval | "Step 1 of 2" · **Position the camera** · "Put your face inside the oval." (owner: the face in the frame is enough) · **Next** (blue). No sound level yet. |
-| 2 Microphone | Record a 5-second test | "Step 2 of 2" · **Test the microphone** · "Press Record and say “Hello, this is my voice.” Then watch it back." (the phrase is known before the 5 seconds start) · a quiet line "Microphone: …" (for a helper) · **● Record a 5-second test** (green, like Start). Bluetooth headphones: an amber note with a button for the built-in microphone. |
+| 2 Microphone | Record a 5-second test | "Step 2 of 2" · **Test the microphone** · "Press Record and say “Hello, this is my voice.” Then watch it back." (the phrase is known before the 5 seconds start) · (the microphone's name is not shown: nothing to do about it) · **● Record a 5-second test** (green, like Start). Bluetooth headphones: an amber note with a button for the built-in microphone. |
 | Test recording | what to say | "Say:" in grey, then “Hello, this is my voice.” green on the highlight, like a sentence being recorded, and a grey 5-second bar; the picture says "● Recording · 4 s left" (the only red dot on this screen). |
 | Playback | the playback | the recording plays with sound and picture ("Playing your test"). |
 | Question | the answer | Can you see your face and hear yourself clearly? (19 px, not a second title) · **Yes, continue** (blue) · Play it again · No, try again (text; back to step 1, where the usual fix is). The help link goes once the test has played. |
@@ -151,34 +167,35 @@ the steps, and on wide screens the panel starts level with it, so its title neve
 either. The test recording is never saved (only its result is in the event log).
 Devices are chosen in Settings → Camera and microphone.
 
+### Before the practice: one thing to remember (first time only)
+"Practice" · **One thing to remember** · "Press **Start**, read the **green** sentence out
+loud, then press **Stop**." (larger and darker than a lead; computers: Space) · "Try it
+now with 5 short sentences. They are only for practice." · **Begin practice** (blue;
+"Start" belongs to recording). After a reload mid-practice it counts what is left.
+
 ### Recording screen (practice and real sentences)
-The sentence, its state under it, the guide (the practice coach, or a message),
-**Start/Stop** and **Redo** form one group a little above the middle of the screen, on
-every device (phones sideways: the sentence on the left, the guide and buttons on the
-right). The camera picture is small in the top corner, its edge level with the gear. The
-guide keeps one height all through the practice (104 px) and a smaller one all through
-the real sentences (80 px; messages are two short lines at most, never wider than
-Start), and Redo keeps its place when hidden, so nothing moves within the practice or
-within a part (Redo's place always keeps the height of the Redo lesson). Start and Redo
-are 24 px apart on every device (two bars of one width: a slightly low tap must not land
-on Redo); Start, Redo, the Redo lesson and messages share one width (340 px; the full
-width on phones). Redo has two lines, "↶ Redo" over the sentence it would record again;
-a long sentence shrinks to fit (16 → 13 px), and on a sideways phone it may take a second
-line. While waiting, "○ Not recording" is plain grey
-text; only "● Recording" is a (red) capsule. Lines break between phrases, never right
-after "the", "a", "to"…
+A grey page with one white card (dark mode: a grey card on black): the sentence card,
+the only large surface, so the eye goes there. Above the card: **Redo** at the top left
+(where a Back button goes, far from Start) and the camera picture with the sound level
+at the top right. Below the card: the guide (the practice coach, or a problem), then
+**Start/Stop** at the bottom of the screen, where a thumb or a resting hand reaches it.
+Computers and tablets: the card has a reading height (about half the screen) and, with
+Redo and the camera above it, sits in the middle of the space above Start. Phones: the
+card fills that space. Phones sideways: the card on the left; Redo and the camera at the
+top right, the guide and Start at the bottom right. The card, the guide and Start keep
+their places and sizes all through the practice and all through a part; only the
+sentence, its state and the labels change. Redo has two lines, "↶ Redo" over the
+sentence it would record again (a long one shrinks to fit, then ends in "…"). Lines
+break between phrases, never right after "the", "a", "to"…
 
-| State | Focus | Sentence | Under it | Camera, level | Main button | Redo | Guide |
+| State | Focus | Sentence (in the card) | Card's top edge | Camera, level | Main button (bottom) | Redo (top left) | Guide |
 |---|---|---|---|---|---|---|---|
-| Waiting | the sentence, then Start | grey | ○ Not recording | grey, still | **● Start** (soft green) | "↶ Redo" over “the last sentence” on a grey capsule (after the first take) | practice only, or a problem |
-| Starting (~0.1 s) | — | grey | Starting… | grey | Starting… (inactive) | hidden | unchanged |
-| Recording | the sentence | dark green on a clear green highlight, with room around the letters (more contrast than the grey) | **● Recording** (red, steady) | live | **■ Stop** (soft red; after 20 s it pulses and shows the time, "Stop · 0:21" — nothing changes near the sentence) | hidden | practice: "Read the green sentence out loud, then press Stop."; real sentences: nothing |
-| After Stop (0.7 s + check) | — | grey | Finishing… | grey | Finishing… (inactive) | hidden | unchanged |
-| Next sentence | the new sentence | grey | ○ Not recording | grey | Start | "↶ Redo" over “the sentence just recorded” (two lines on a grey bar as wide as Start, the Redo lesson's shape) | "✓ Recorded" in quiet grey for 2.5 s |
-| A part's last sentence | Finish part 2 | grey (stays) | ✓ Recorded | grey | **→ Finish part 2** (blue) | Redo — Record this sentence again | "That was the last sentence of part 2." |
-
-"Recorded" is used for a take; "save" only for the file or folder step, so a participant
-never reads "saved" on screen and then "save your recordings" at the break.
+| Waiting | the sentence, then Start | grey | — | grey, still | **● Start** (soft green) | "↶ Redo" over “the last sentence” (after the first take) | practice: the coach; real sentences: nothing, or a problem |
+| Starting (~0.1 s) | — | grey | — | grey | Starting… (inactive) | hidden | unchanged |
+| Recording | the sentence | dark green on a clear green highlight | **● Recording** (red, steady) | live | **■ Stop** (soft red; after 20 s it pulses and shows the time, "Stop · 0:21") | hidden | practice: "Read the green sentence out loud, then press Stop."; real sentences: nothing |
+| After Stop (0.7 s + check) | — | grey | — | grey | Finishing… (inactive) | hidden | unchanged |
+| Next sentence | the new sentence | grey | — | grey | Start | "↶ Redo" over “the sentence just recorded” | nothing (the new sentence is the confirmation) |
+| A part's last sentence | Finish part 2 | grey (stays) | — | grey | **→ Finish part 2** (blue) | "↶ Redo" over "Record this sentence again" | "That was the last sentence of part 2." |
 
 ### Practice (the 5 warm-up sentences, first time only)
 The coach says one thing at a time, just above Start. On a computer it names the keys,
@@ -188,12 +205,12 @@ elsewhere the buttons.
 |---|---|---|---|---|
 | Practice 1, waiting | — | Press Start once. | No need to hold it. | Start |
 | Any practice, recording | — | Read the green sentence out loud, then press Stop. | — | nothing |
-| Practice 2, waiting | ✓ Recorded. Every sentence works like this. | Next sentence: press Start. | — | Start |
-| Practice 3, waiting (Redo lesson) | ✓ Recorded. | Now press Redo, under Start. (computer: Now press ← (Redo).) | It records the last sentence again. | Redo: the only filled button (dark), as large as Start, its sentence on a second line; Start an outline (still works) |
-| After pressing Redo | Back to the last sentence. | Press Start and read it again. | — | Start |
-| After that recording | ✓ Recorded again. The old recording is replaced. | Now go on: press Start. | — | Start |
-| Practice 4 / 5, waiting | ✓ Recorded. | 2 more to practise / Last practice sentence: press Start. | — | Start |
-| After practice 5 | That was the last practice sentence. (the status line already says ✓ Recorded) | Press Continue. | — | Continue (blue) |
+| Practice 2, waiting | That’s it. Every sentence works like this. | Next sentence: press Start. | — | Start |
+| Practice 3, waiting (Redo lesson) | This is only practice — nothing went wrong. | Now try Redo, at the top. (computer: Now try Redo: press ←.) | If you ever misread a sentence, Redo lets you read it again. | Redo (top left): filled dark, with a halo; Start an outline (still works) |
+| After pressing Redo | This is the sentence before. | Press Start and read it again. | — | Start |
+| After that recording | That’s how Redo works. | Now go on: press Start. | — | Start |
+| Practice 4 / 5, waiting | — | 2 more to practise / Last practice sentence: press Start. | — | Start |
+| After practice 5 | That was the last practice sentence. | Press Continue. | — | Continue (blue) |
 | A problem | ⚠ the reason ("We couldn’t hear you. Sit a little closer.") | Press Start and read it again. | — | Start |
 | Speaking before Start | ⚠ Not recording yet. | (unchanged) | — | — |
 
@@ -206,25 +223,27 @@ part; only then are the real sentences introduced. One instruction at a time:
 
 | Moment | Focus | Shows | Buttons |
 |---|---|---|---|
-| ZIP mode, before saving | Save recordings | blue ✓ · **Practice done** · "Now save your practice recordings. You will do the same after each part." | **Save recordings** (blue) · End for today (text) |
+| ZIP mode, before saving | Save recordings | blue ✓ · **Practice done** · "Now save your practice recordings. You will do the same after each part." | **Save recordings** (blue) |
 | ZIP mode, the question | the answer | "Did the file save?" (see Break) | |
-| ZIP mode, saved | Continue to part 1 | "✓ Your practice recordings are saved." (right under the title: what happened first) · "Now the real sentences. They work the same way." · "7 parts of 50 sentences, with a rest after each part." | **Continue to part 1** (blue) · End for today (text) |
-| Folder mode | Continue to part 1 | the same, with "✓ Every recording is saved by itself in “…”." | **Continue to part 1** · End for today |
+| ZIP mode, saved | Continue to part 1 | (no "saved" line: "Yes, I see it" has just said it) "Now the real sentences, the same way:" · the one action again, "Press **Start**, read the **green** sentence out loud, then press **Stop**." · "7 parts of 50 sentences. Rest after each part, or stop and carry on another day." | **Continue to part 1** (blue) |
+| Folder mode | Continue to part 1 | the same, with "✓ Every recording is saved by itself in “…”." | **Continue to part 1** |
 
 "Continue", not "Start": on this page blue moves on; green "Start" belongs to recording.
 
 ### Break (after each part of 50)
+**End for today** is in the top bar (top left, as on the recording screen), never under
+the main button, and always asks "End for today?" first ("Keep going" is the default).
 The part's last sentence first stays on the recording screen (Recorded, Redo possible,
 **Finish part 2**). Then (the top of the screen stays put while it changes; the symbol is
 neutral grey, so the blue button is the only blue):
 
 | Moment | Focus | Shows | Buttons |
 |---|---|---|---|
-| Folder mode | Continue | grey ✓ · **Part 2 done** · "✓ Your recordings are saved in “…”." (what happened first) · "Take a rest. Carry on when you are ready." · seven grey segments, two filled: "2 of 7 parts done" | **Continue to part 3** (blue) · End for today (text) |
-| ZIP mode, before saving | Save recordings | grey ✓ · **Part 2 done** · "Save your recordings, then take a rest." (one instruction) · the segments | **Save recordings** (blue) · End for today (text) |
+| Folder mode | Continue | grey ✓ · **Part 2 done** · "Take a rest. Carry on when you are ready." (nothing about saving unless something is not in the folder) · seven grey segments, two filled: "2 of 7 parts done" | **Continue to part 3** (blue) |
+| ZIP mode, before saving | Save recordings | grey ✓ · **Part 2 done** · "Save your recordings, then take a rest." (one instruction) · the segments | **Save recordings** (blue) |
 | ZIP mode, the question | the answer | **Did the file save?** iPhone/iPad: "If Safari asks, tap Download. Then tap ⬇ next to the web address and look for “SEMG1_part02”." (Android: the download notification; computers: the browser's downloads) | **Yes, I see it** (blue) · Save it again · Not sure (text). Nothing is pre-chosen, not even on a computer: the answer is given after looking. On a computer the first press of Space, Enter or a clicker highlights **Yes, I see it**; the next one chooses it. |
-| ZIP mode, saved | Continue | "✓ Your recordings are saved." · "Take a rest. Carry on when you are ready." · the segments | **Continue to part 3** · End for today |
-| ZIP mode, not saved | Save recordings | "Not saved yet. Your recordings are still on this device." (amber) | **Save recordings** · Continue without saving · End for today |
+| ZIP mode, saved | Continue | "Take a rest. Carry on when you are ready." · the segments (no "saved" line: "Yes, I see it" has just said it) | **Continue to part 3** |
+| ZIP mode, not saved | Save recordings | "Not saved yet. Your recordings are still on this device." (amber) | **Save recordings** · Continue without saving |
 
 The ZIP files are named after the participant and the part, then the time
 (`SEMG1_part02_2026-10-05T14-03-11.zip`); the question names only the first part.

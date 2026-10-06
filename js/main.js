@@ -310,6 +310,8 @@ V2S.app = (() => {
     ui.setSentences('welcomeLead', firstVisit ? copy.welcome.leadFirst : copy.welcome.leadBack);
     el('welcomeStages').hidden = !firstVisit;
     el('welcomeJourney').hidden = firstVisit;
+    el('welcomeRule').hidden = firstVisit || needsPractice() || Boolean(progress.completed);
+    ui.setRich('welcomeRule', copy.rule(usesKeys()));
 
     // Where they are, as the parts (or practice sentences) done, one segment each.
     const p = positionFor(progress.currentIndex);
@@ -344,7 +346,8 @@ V2S.app = (() => {
   async function refreshWelcomeNotice() {
     const pending = await pendingCount();
     // In folder mode cached recordings are written automatically after Begin.
-    const show = pending > 0 && exporter.getSaveMode() !== 'folder';
+    // Mid-practice the practice recordings are saved at its end, as taught there.
+    const show = pending > 0 && exporter.getSaveMode() !== 'folder' && !needsPractice();
     el('welcomeNotice').hidden = !show;
     if (show) {
       ui.setText('welcomeNoticeText', copy.welcome.pending(pending));
@@ -493,7 +496,6 @@ V2S.app = (() => {
   // changed in Settings → Camera and microphone.
   async function renderDevices() {
     const now = V2S.media.current();
-    ui.setText('micName', copy.check.micInUse(now.microphone || copy.check.defaultDevice));
     el('micWarning').hidden = !now.bluetooth;
     el('micSwitch').hidden = true;
     if (!now.bluetooth) return;
@@ -633,12 +635,28 @@ V2S.app = (() => {
     if (ui.screen() !== 'check') return;
     resetTest();
     logEvent('mic_test_ok', V2S.media.current());
-    // How to record is taught inside the practice, one step at a time.
+    // How to record is taught inside the practice, one step at a time; before it, the one
+    // thing to remember.
     if (!app.progress.howtoSeen) {
       app.progress.howtoSeen = true;
       await V2S.storage.saveParticipantProgress(app.progress);
     }
-    return showRecord();
+    return needsPractice() ? showIntro() : showRecord();
+  }
+
+  const usesKeys = () => document.documentElement.classList.contains('has-keyboard');
+
+  // Before the practice: the one thing to remember, and that the next sentences are
+  // only for practice.
+  function showIntro() {
+    V2S.input.setEnabled(false);
+    ui.setText('introEyebrow', copy.intro.eyebrow);
+    ui.setText('introTitle', copy.intro.title);
+    ui.setRich('introRule', copy.rule(usesKeys()));
+    ui.setText('introLead', copy.intro.lead(Math.max(1, app.material.warmupCount - app.progress.currentIndex)));
+    ui.setText('introStart', copy.intro.start);
+    ui.show('intro');
+    if (usesKeys()) el('introStart').focus({ preventScroll: true });
   }
 
   // ---------- how to record (the ? button) ----------
@@ -667,9 +685,9 @@ V2S.app = (() => {
     }
   }
 
-  // Ending asks first: a stray tap must not end the session.
-  async function onFinishToday() {
-    if (ui.screen() !== 'record' || !['ready', 'partEnd'].includes(V2S.session.getState())) return;
+  // Ending always asks first, from every screen: a stray or slightly missed tap must not
+  // end the session.
+  async function confirmEnd() {
     const end = await ui.dialog({
       title: copy.endDialog.title,
       body: copy.endDialog.body,
@@ -679,10 +697,21 @@ V2S.app = (() => {
       ],
       dismissValue: false
     });
-    logEvent('end_for_today', { confirmed: end });
-    if (!end) return;
+    logEvent('end_for_today', { confirmed: end, screen: ui.screen() });
+    return end;
+  }
+
+  async function onFinishToday() {
+    if (ui.screen() === 'break') return endFromBreak();
+    if (ui.screen() !== 'record' || !['ready', 'partEnd'].includes(V2S.session.getState())) return;
+    if (!await confirmEnd()) return;
     V2S.session.stop();
     await showDone({ allDone: false });
+  }
+
+  async function endFromBreak() {
+    if (zipSaving || ui.isDialogOpen()) return;   // a save is under way: its own question comes first
+    if (await confirmEnd()) await showDone({ allDone: false });
   }
 
   function onSettingsClosed() {
@@ -783,8 +812,10 @@ V2S.app = (() => {
     const folder = exporter.getSaveMode() === 'folder';
     setBreakSymbol(breakState.mode === 'storage' ? 'warn' : 'done');
     ui.setText('breakTitle', title);
-    // ZIP mode: what to do (save first, or go on) appears once the recordings are counted.
-    ui.setSentences('breakLead', folder ? lead : '');
+    // ZIP mode, and the practice: what to do (save first, or go on) appears once the
+    // recordings are counted.
+    ui.setSentences('breakLead', folder && breakState.mode !== 'practice' ? lead : '');
+    el('breakRule').hidden = true;
     setParts(parts);
     // ZIP mode, practice: the parts are introduced after the practice recordings are saved.
     if (!folder && breakState.mode === 'practice') el('breakParts').hidden = true;
@@ -843,10 +874,10 @@ V2S.app = (() => {
     }
     const contLabel = practice ? breakState.continueLabel : (breakState.next ? copy.breakScreen.continueTo(breakState.next) : copy.breakScreen.continue);
     const cont = { label: contLabel, action: () => showRecord() };
-    const finish = { label: copy.breakScreen.finish, action: () => showDone({ allDone: false }) };
     // Practice done. ZIP mode: saving is learnt here by doing it once (the same steps as
     // after every part), and only then the real sentences are introduced. Folder mode: the
     // screen says where every recording goes.
+    el('breakRule').hidden = true;
     if (practice) {
       const folder = exporter.getSaveMode() === 'folder';
       if (!folder && pending > 0) {
@@ -854,15 +885,18 @@ V2S.app = (() => {
         el('breakParts').hidden = true;
         el('breakSave').hidden = !breakState.savedNow;
         if (breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.moreToSave(breakState.savedNow, pending));
-        setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, finish, null);
+        setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, null, null);
         return;
       }
       ui.setSentences('breakLead', copy.practiceDone.body);
+      ui.setRich('breakRule', copy.rule(usesKeys()));
+      el('breakRule').hidden = false;
       el('breakParts').hidden = false;
-      el('breakSave').hidden = !(folder || breakState.savedNow);
+      // ZIP: "Yes, I see it" has just said it is saved. Folder: saving is taught here, so
+      // the screen says where every recording goes.
+      el('breakSave').hidden = !folder;
       if (folder) setSavePanel('breakSave', 'breakSaveText', copy.practiceDone.savedFolder(folderLabel()), 'ok');
-      else if (breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.practiceDone.saved, 'ok');
-      setBreakButtons(cont, finish, null);
+      setBreakButtons(cont, null, null);
       return;
     }
     if (exporter.getSaveMode() === 'folder') {
@@ -872,14 +906,15 @@ V2S.app = (() => {
         // Still writing (a slow folder): carrying on is safe, the writes continue — except
         // on a full device, where Continue would only come back here.
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.stillSaving(pending));
-        setBreakButtons(storage ? null : cont, finish, null);
+        setBreakButtons(storage ? null : cont, null, null);
         setTimeout(() => { if (ui.screen() === 'break') refreshBreakSave(); }, 1500);
       } else if (pending === 0) {
-        setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.savedFolder(folderLabel()), 'ok');
-        setBreakButtons(cont, finish, null);
+        // Everything is in the folder: nothing to say (a problem would be said).
+        el('breakSave').hidden = true;
+        setBreakButtons(cont, null, null);
       } else {
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.folderProblem(pending), 'warn');
-        setBreakButtons({ label: copy.breakScreen.allowFolder, action: fixFolderFromBreak }, storage ? finish : cont, null);
+        setBreakButtons({ label: copy.breakScreen.allowFolder, action: fixFolderFromBreak }, storage ? null : cont, null);
       }
       return;
     }
@@ -890,18 +925,18 @@ V2S.app = (() => {
       ui.setSentences('breakLead', pending === 0 ? copy.breakScreen.roomLead : copy.feedback.storageFull);
       el('breakSave').hidden = !(pending > 0 && breakState.savedNow);
       if (pending > 0 && breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.moreToSave(breakState.savedNow, pending));
-      setBreakButtons(pending === 0 ? { label: copy.breakScreen.continue, action: () => showRecord() } : { label: copy.breakScreen.saveButton, action: saveZipFromBreak }, finish, null);
+      setBreakButtons(pending === 0 ? { label: copy.breakScreen.continue, action: () => showRecord() } : { label: copy.breakScreen.saveButton, action: saveZipFromBreak }, null, null);
     } else if (pending === 0) {
+      // Saved: "Yes, I see it" has just said so; now only the rest and Continue.
       ui.setSentences('breakLead', breakState.lead);
-      el('breakSave').hidden = false;
-      setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.savedZip, 'ok');
-      setBreakButtons(cont, finish, null);
+      el('breakSave').hidden = true;
+      setBreakButtons(cont, null, null);
     } else {
       // One instruction: save, then rest.
       ui.setSentences('breakLead', copy.breakScreen.leadSave);
       el('breakSave').hidden = !breakState.savedNow;
       if (breakState.savedNow) setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.moreToSave(breakState.savedNow, pending));
-      setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, finish, null);
+      setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, null, null);
     }
   }
 
@@ -923,8 +958,9 @@ V2S.app = (() => {
     await refreshBreakSave();
   }
 
+  // While a save runs, the break's buttons and End for today rest (greyed out).
   function setBreakBusy(busy) {
-    ['breakPrimary', 'breakSecondary', 'breakTertiary'].forEach(id => el(id).setAttribute('aria-disabled', busy ? 'true' : 'false'));
+    ['breakPrimary', 'breakSecondary', 'breakTertiary', 'finishButton'].forEach(id => el(id).setAttribute('aria-disabled', busy ? 'true' : 'false'));
   }
 
   async function saveZipFromBreak() {
@@ -951,7 +987,7 @@ V2S.app = (() => {
       setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.notConfirmed, 'warn');
       setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak },
         { label: copy.breakScreen.later, action: () => showRecord() },
-        { label: copy.breakScreen.finish, action: () => showDone({ allDone: false }) });
+        null);
     }
   }
 
@@ -1281,6 +1317,7 @@ V2S.app = (() => {
     el('checkNext').addEventListener('click', onCheckNext);
     el('testRecord').addEventListener('click', onTestRecord);
     el('testYes').addEventListener('click', onTestYes);
+    el('introStart').addEventListener('click', () => showRecord());
     el('testAgain').addEventListener('click', () => { resetTest(); showCheckStep('camera'); });
     el('testReplay').addEventListener('click', () => {
       const playback = el('checkPlayback');

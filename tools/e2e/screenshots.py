@@ -132,6 +132,9 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await t.wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=15000)
     await shot('06-check-ask')
     await click(page, '#testYes')
+    await page.wait_for_selector('#screen-intro:not([hidden])')
+    await shot('06b-intro')
+    await click(page, '#introStart')
     await t.wait_for(page, "() => V2S.session.getState() === 'ready'")
     await page.evaluate("window.__v2sAudio.set('silence')")
     await shot('08-practice-ready')
@@ -242,7 +245,10 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(500)
     await shot('24-saved')
-    await click(page, '#breakSecondary')
+    await click(page, '#finishButton')   # End for today (top bar) asks first
+    await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
+    await page.locator('#dialogActions button', has_text='End for today').click()
     await page.wait_for_selector('#screen-done:not([hidden])')
     await page.wait_for_timeout(600)
     await shot('25-done')

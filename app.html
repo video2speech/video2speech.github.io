@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '211';
+      var APP_VERSION = '213';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=211">
-  <link rel="stylesheet" href="css/app.css?v=211">
+  <link rel="stylesheet" href="css/base.css?v=213">
+  <link rel="stylesheet" href="css/app.css?v=213">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -144,6 +144,7 @@
               <div class="parts-bar" id="welcomeParts" aria-hidden="true"></div>
               <p class="journey-count" id="welcomeCount"></p>
             </div>
+            <p class="rule" id="welcomeRule" hidden></p>
             <div class="notice" id="welcomeNotice" hidden>
               <p id="welcomeNoticeText"></p>
               <button class="btn btn-ghost btn-md" id="welcomeNoticeAction" type="button"></button>
@@ -200,7 +201,6 @@
               <p class="eyebrow" id="checkMicStep"></p>
               <h1 id="checkMicTitle"></h1>
               <p class="check-text" id="checkMicText"></p>
-              <p class="check-device" id="micName"></p>
               <div class="notice notice-stack" id="micWarning" hidden>
                 <p id="micWarningText"></p>
                 <button class="btn btn-ghost btn-md" id="micSwitch" type="button" hidden></button>
@@ -234,23 +234,49 @@
            The camera picture sits small in the corner. Below: the practice coach (or a
            message), Start/Stop and Redo. The guide keeps one height in practice and in
            the real recording, so the sentence never moves. -->
+      <!-- Before the practice: the one thing to remember. -->
+      <section class="screen screen-flow" id="screen-intro" hidden>
+        <div class="flow">
+          <div class="flow-body flow-center">
+            <p class="eyebrow" id="introEyebrow"></p>
+            <h1 id="introTitle"></h1>
+            <p class="rule" id="introRule"></p>
+            <p class="lead intro-lead" id="introLead"></p>
+          </div>
+          <div class="flow-actions">
+            <button class="btn btn-go btn-xl btn-block" id="introStart" type="button"></button>
+          </div>
+        </div>
+      </section>
+
       <section class="screen screen-record" id="screen-record" hidden data-state="ready">
-        <!-- Camera picture and sound level: grey and still when not recording, live while
-             recording; small, in the corner, never competing with the sentence. -->
-        <div class="monitor" aria-hidden="true">
-          <canvas class="monitor-wave" id="recordWave"></canvas>
-          <div class="cam-thumb" id="recordFrame"><video id="recordPreview" playsinline muted autoplay></video></div>
+        <!-- Above the card: Redo at the top left, far from Start (where a Back button
+             goes); the camera picture and sound level at the top right, grey and still
+             when not recording, live while recording. -->
+        <div class="record-top">
+          <div class="redo-slot">
+            <button class="btn redo" id="redoButton" type="button" tabindex="-1">
+              <span class="redo-label"><span class="btn-icon" id="redoIcon" aria-hidden="true"></span><span id="redoLabel"></span><kbd class="key-hint" aria-hidden="true">←</kbd></span>
+              <span class="redo-caption" id="redoCaption"></span>
+            </button>
+          </div>
+          <div class="monitor" aria-hidden="true">
+            <canvas class="monitor-wave" id="recordWave"></canvas>
+            <div class="cam-thumb" id="recordFrame"><video id="recordPreview" playsinline muted autoplay></video></div>
+          </div>
         </div>
 
+        <!-- The sentence card: the one place to look. -->
         <div class="stage" id="card">
-          <div class="stage-text"><p class="sentence" id="sentenceText"></p></div>
           <p class="status" id="cardStatus" role="status" aria-live="polite">
             <span class="status-dot" aria-hidden="true"></span>
-            <span class="status-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
             <span id="cardStatusText"></span>
           </p>
+          <div class="stage-text"><p class="sentence" id="sentenceText"></p></div>
         </div>
 
+        <!-- At the bottom, where a thumb reaches: the one instruction (practice) or a
+             problem to fix, then Start/Stop. -->
         <div class="dock">
           <div class="guide">
             <div class="coach" id="coach" hidden aria-live="polite">
@@ -262,18 +288,12 @@
               <span class="message-body"><span class="message-icon" id="messageIcon" aria-hidden="true"></span><span id="messageText"></span></span>
             </p>
           </div>
-          <button class="btn btn-start btn-main" id="mainButton" type="button">
+          <button class="btn btn-start btn-main" id="mainButton" type="button" tabindex="-1">
             <span class="btn-icon" id="mainIcon" aria-hidden="true"></span>
             <span id="mainLabel"></span>
             <span class="btn-time" id="cardTimer"></span>
             <kbd class="key-hint" aria-hidden="true">Space</kbd>
           </button>
-          <div class="redo-slot">
-            <button class="btn redo" id="redoButton" type="button">
-              <span class="redo-label"><span class="btn-icon" id="redoIcon" aria-hidden="true"></span><span id="redoLabel"></span><kbd class="key-hint" aria-hidden="true">←</kbd></span>
-              <span class="redo-caption" id="redoCaption"></span>
-            </button>
-          </div>
         </div>
       </section>
 
@@ -292,6 +312,7 @@
               </div>
             </div>
             <p class="lead" id="breakLead"></p>
+            <p class="rule" id="breakRule" hidden></p>
             <div class="parts" id="breakParts" hidden>
               <div class="parts-bar" id="breakPartsBar" aria-hidden="true"></div>
               <p class="parts-label" id="breakPartsLabel"></p>
@@ -362,20 +383,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=211"></script>
-  <script defer src="js/config.js?v=211"></script>
-  <script defer src="js/copy.js?v=211"></script>
-  <script defer src="js/util.js?v=211"></script>
-  <script defer src="js/storage.js?v=211"></script>
-  <script defer src="js/sentences.js?v=211"></script>
-  <script defer src="js/media.js?v=211"></script>
-  <script defer src="js/meter.js?v=211"></script>
-  <script defer src="js/qc.js?v=211"></script>
-  <script defer src="js/input.js?v=211"></script>
-  <script defer src="js/ui.js?v=211"></script>
-  <script defer src="js/export.js?v=211"></script>
-  <script defer src="js/session.js?v=211"></script>
-  <script defer src="js/settings.js?v=211"></script>
-  <script defer src="js/main.js?v=211"></script>
+  <script defer src="vendor/jszip.min.js?v=213"></script>
+  <script defer src="js/config.js?v=213"></script>
+  <script defer src="js/copy.js?v=213"></script>
+  <script defer src="js/util.js?v=213"></script>
+  <script defer src="js/storage.js?v=213"></script>
+  <script defer src="js/sentences.js?v=213"></script>
+  <script defer src="js/media.js?v=213"></script>
+  <script defer src="js/meter.js?v=213"></script>
+  <script defer src="js/qc.js?v=213"></script>
+  <script defer src="js/input.js?v=213"></script>
+  <script defer src="js/ui.js?v=213"></script>
+  <script defer src="js/export.js?v=213"></script>
+  <script defer src="js/session.js?v=213"></script>
+  <script defer src="js/settings.js?v=213"></script>
+  <script defer src="js/main.js?v=213"></script>
 </body>
 </html>

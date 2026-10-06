@@ -1,4 +1,4 @@
-# Speech recorder (v211)
+# Speech recorder (v213)
 
 The patient recorder is `app.html`. The previous page (v114, hotfixed) is kept at
 `app_legacy.html` as a fallback; it shares progress and cached recordings with the new
@@ -36,33 +36,36 @@ conventions: the system font, white (or black) screens, a filled blue button to 
       sound), then "Can you see your face and hear yourself clearly?" **Yes, continue** / Play it again / No, try again (back to step 1). A
       Bluetooth microphone gets a warning and a one-tap switch to the built-in one. The
       test is never saved.
-5. **Practice** (the 5 warm-up sentences, first time only). How to record is taught
-   here, one step at a time, just above Start: first what just happened ("✓
-   Recorded."), then the one next action ("Next sentence: press Start."). The control it
-   names pulses. Practice 3 teaches Redo by doing it.
-6. **Recording**, one sentence at a time. The sentence is the one thing on the screen:
-   - *Not recording*: the sentence in grey, "○ Not recording" under it, a soft green
-     **Start**, and **Redo** with the previous sentence. The camera picture and sound
-     level, small in the corner, are grey and still.
+5. **Practice** (the 5 warm-up sentences, first time only). First one screen with the
+   one thing to remember: "Press **Start**, read the **green** sentence out loud, then
+   press **Stop**." ("They are only for practice.") Then how to record is taught one
+   step at a time, just above Start; the control it names pulses. Practice 3 teaches
+   Redo by doing it, and says first "This is only practice — nothing went wrong."
+6. **Recording**, one sentence at a time. The sentence sits in a white card on a grey
+   page (the only large surface); **Redo** is at the top left, far from **Start** at the
+   bottom (no accidental presses on touch screens):
+   - *Not recording*: the sentence in grey, a soft green **Start**, and **Redo** with the
+     previous sentence. Nothing else (no "Not recording"). The camera picture and sound
+     level, small at the top right, are grey and still.
    - *Starting…* (about 0.2 s): a short, soft start cue (0.04 s), then recording starts
      (at most 0.16 s after the press); the sentence turns green once the recorder has run
      0.08 s without an error.
      Where the device's sound output is too slow for that, there is no cue and recording
      starts at the press.
    - *Recording*: the sentence turns vivid green on a soft highlight. Around it only
-     quiet signs change: a red "● Recording" under it, the camera picture and sound
-     level come alive, and Start becomes a soft red **Stop**. No text appears. After
-     20 s Stop pulses and shows the time ("Stop · 0:21").
+     quiet signs change: a red "● Recording" on the card's top edge, the camera picture
+     and sound level come alive, and Start becomes a soft red **Stop**. No text appears.
+     After 20 s Stop pulses and shows the time ("Stop · 0:21").
    - After Stop, recording continues a fixed 0.7 s (the legacy page: 0.3 s). The next
-     sentence then appears; "✓ Recorded" shows quietly above Start for 2.5 s, and Redo
-     names the sentence just recorded. Checking and storing happen in the background. ("Save" is only ever
-     used for the file or folder step.)
-   - The last sentence of a part stays on screen ("Recorded", Redo still possible) until
-     **Finish part 2** (blue).
+     sentence then appears (that is the confirmation: no "Recorded" message), and Redo
+     names the sentence just recorded. Checking and storing happen in the background.
+   - The last sentence of a part stays on screen (Redo still possible) with "That was
+     the last sentence of part 2." until **Finish part 2** (blue).
 7. **Practice done**: in ZIP mode the practice recordings are saved once, with the same
    steps as after every part (saving is learnt by doing it); then "Now the real
-   sentences. They work the same way." and **Continue to part 1**. In folder mode the
-   screen names the folder.
+   sentences, the same way:" with the one thing to remember again, and **Continue to
+   part 1**. In folder mode the screen names the folder. Coming back later, the Welcome
+   back screen shows the one thing to remember too.
 8. **Break** after every 50 sentences ("Part 2 done", seven segments for the parts); in
    ZIP mode "Save your recordings, then take a rest." and **Save recordings** first
    (the file is `SEMG1_part02_<time>.zip`; "Did the file save?" → **Yes, I see it**, nothing
@@ -287,8 +290,8 @@ Styles: `css/base.css` (shared with the sign-in page) and `css/app.css`.
 See `tools/e2e/README.md` for setup. Every test run is silent: browsers are muted.
 
 ```bash
-python tools/e2e/test_next_app.py                   # 51 scenarios (Chrome)
-python tools/e2e/test_next_app.py --engine webkit   # 40 scenarios in Safari's engine
+python tools/e2e/test_next_app.py                   # 52 scenarios (Chrome)
+python tools/e2e/test_next_app.py --engine webkit   # 41 scenarios in Safari's engine
 python tools/e2e/test_next_app.py --engine firefox
 python tools/e2e/test_legacy_hotfix.py              # app_legacy.html v114
 python tools/e2e/screenshots.py --engine webkit OUT_DIR --only phone ipad

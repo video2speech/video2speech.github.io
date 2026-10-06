@@ -14,8 +14,8 @@ python3 -m venv ~/.venvs/v2s-e2e
 ~/.venvs/v2s-e2e/bin/playwright install webkit firefox   # only for --engine webkit/firefox
 
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_legacy_hotfix.py              # legacy recorder (app_legacy.html, v114)
-~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py                   # new recorder, Chrome, 51 scenarios
-~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py --engine webkit   # Safari's engine (iPad/iPhone stand-in), 40 scenarios
+~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py                   # new recorder, Chrome, 52 scenarios
+~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py --engine webkit   # Safari's engine (iPad/iPhone stand-in), 41 scenarios
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py --engine firefox
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py hold redo fit     # only these scenarios
 ~/.venvs/v2s-e2e/bin/python tools/e2e/screenshots.py --engine webkit OUT_DIR --only phone ipad --theme light

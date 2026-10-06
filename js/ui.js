@@ -12,7 +12,7 @@ V2S.ui = (() => {
     check: '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'
   };
 
-  const SCREENS = ['loading', 'setup', 'welcome', 'folder', 'check', 'record', 'break', 'done', 'error'];
+  const SCREENS = ['loading', 'setup', 'welcome', 'folder', 'check', 'intro', 'record', 'break', 'done', 'error'];
   let currentScreen = 'loading';
 
   // A screen (or a step on it) changed: a press carried over from the last one does
@@ -25,9 +25,12 @@ V2S.ui = (() => {
     currentScreen = name;
     document.body.dataset.screen = name;
     if (name !== 'record') {
+      document.body.classList.remove('is-redo-lesson');
       setRecording(false);
       setWhere(null);
-      setFinishVisible(false);
+      // Breaks and Practice done keep End for today where it is on the recording screen
+      // (top left), never under their main button.
+      setFinishVisible(name === 'break');
     }
     el('helpButton').hidden = name !== 'record';
     window.scrollTo(0, 0);
@@ -128,7 +131,6 @@ V2S.ui = (() => {
   function renderRecord(view) {
     const screenEl = el('screen-record');
     screenEl.dataset.state = view.state;
-    screenEl.classList.toggle('is-saved', Boolean(view.saved));
     setRecording(view.state !== 'ready', view.state === 'recording');
     setWhere(view.where);
     setFinishVisible(view.state === 'ready');
@@ -160,13 +162,13 @@ V2S.ui = (() => {
     redo.classList.toggle('is-cancel', Boolean(redoView.cancel));
     redo.setAttribute('aria-hidden', redoVisible ? 'false' : 'true');
     redo.setAttribute('aria-disabled', redoVisible ? 'false' : 'true');
-    redo.tabIndex = redoVisible ? 0 : -1;
     el('redoIcon').innerHTML = iconMarkup(redoView.cancel ? 'cancel' : 'undo');
     setText('redoLabel', redoView.label || copy.record.redo);
     setText('redoCaption', redoVisible ? redoView.caption || '' : '');
     el('redoCaption').hidden = !(redoVisible && redoView.caption);
     // The Redo lesson: Redo is the one thing to press, as large as Start.
     redo.classList.toggle('is-lesson', view.pulse === 'redo' && redoVisible);
+    document.body.classList.toggle('is-redo-lesson', view.pulse === 'redo' && redoVisible);
     fitRedoCaption();
 
     const message = el('message');

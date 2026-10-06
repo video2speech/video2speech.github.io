@@ -20,7 +20,7 @@
        recording; the camera picture small in the corner */
 
 /* ---------- shell ---------- */
-:root { --main-w: 340px; }
+:root { --main-w: 400px; --card-w: 960px; }
 .app { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 body[data-screen="record"] .app { height: 100vh; height: 100dvh; overflow: hidden; }
 .screens { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -65,7 +65,10 @@ body[data-screen="record"] .app { height: 100vh; height: 100dvh; overflow: hidde
 }
 @media (hover: hover) { .nav-btn:hover { text-decoration: underline; text-underline-offset: 3px; } }
 .label-short { display: none; }
+.nav-btn[aria-disabled="true"] { color: var(--ink-4); cursor: default; }
 body[data-rec="on"] .topbar-start, body[data-rec="on"] .topbar-end { visibility: hidden; }
+/* The Redo lesson asks for Redo, just below End for today: End steps aside meanwhile. */
+body.is-redo-lesson .topbar-start { visibility: hidden; }
 body[data-screen="loading"] .topbar-end { visibility: hidden; }
 
 .where { display: grid; justify-items: stretch; gap: 7px; text-align: center; }
@@ -93,7 +96,8 @@ body[data-screen="loading"] .topbar-end { visibility: hidden; }
 .flow-center { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .flow-body h1 { margin-bottom: var(--s3); }
 .flow-body .lead { max-width: 30em; }
-.flow-actions { display: flex; flex-direction: column; align-items: center; gap: var(--s1); padding-top: var(--s6); }
+/* A second action never sits right under the main one: a slightly low tap must not press it. */
+.flow-actions { display: flex; flex-direction: column; align-items: center; gap: var(--s5); padding-top: var(--s6); }
 .flow-actions .btn-block { width: min(400px, 100%); }
 .flow-actions .btn-text { min-height: 44px; }
 
@@ -133,6 +137,13 @@ body[data-screen="loading"] .topbar-end { visibility: hidden; }
 .notice-stack .btn { justify-self: start; }
 
 /* Breaks: how many parts are done, as one row of segments. */
+/* The one thing to remember (before and after the practice, and when coming back):
+   darker and larger than a lead, its key words bold. */
+.rule { margin: var(--s4) 0 0; font-size: 21px; line-height: 1.4; font-weight: 400; color: var(--ink); text-wrap: balance; }
+.rule b { font-weight: 700; }
+.lead + .rule { margin-top: var(--s2); }
+.intro-lead { margin-top: var(--s4); }
+.journey + .rule { margin-top: var(--s5); }
 .parts { width: min(400px, 100%); margin-top: var(--s5); display: grid; gap: var(--s2); }
 .parts-bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
 .parts-bar span { height: 6px; border-radius: 999px; background: var(--fill-strong); }
@@ -221,18 +232,30 @@ video.is-mirrored { transform: scaleX(-1); }
 .test-ask .btn-block { width: 100%; }
 /* The question reads in line with the step's title (left on wide screens, centred where
    the whole panel is centred). */
-.test-links { display: flex; justify-content: flex-start; gap: var(--s5); }
+.test-links { display: flex; justify-content: flex-start; gap: var(--s5); margin-top: var(--s4); }
 .test-links .btn-text:first-child { padding-left: 0; }
 .test-hint { font-size: var(--t-small); line-height: 1.4; color: var(--ink-3); }
 .test-question { font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--ink); text-align: left; justify-self: stretch; margin-bottom: var(--s3); text-wrap: balance; }
-.check-help { align-self: flex-start; margin-top: var(--s4); padding-left: 0; font-size: var(--t-small); }
+.check-help { align-self: flex-start; margin-top: var(--s5); padding-left: 0; font-size: var(--t-small); }
 
 /* ---------- recording screen ---------- */
-.screen-record { position: relative; padding-top: 0; justify-content: center; justify-content: safe center; padding-bottom: calc(var(--gutter) + 6vh + env(safe-area-inset-bottom)); }
+/* The sentence card is the one place to look: a white card on the grey page (in dark mode
+   a grey card on black). Everything else sits quietly on the page around it: the top
+   bar, Redo and the camera picture above it; the one instruction (practice) or a problem
+   below it. Start is at the bottom, where a thumb, or a hand resting on the table,
+   reaches it. Redo is at the top, as far from Start as the screen allows (where a Back
+   button goes), so a slightly missed tap on Start never redoes anything. */
+body[data-screen="record"] { background: var(--bg-grouped); }
+.screen-record { gap: var(--s3); padding-top: var(--s1); padding-bottom: calc(44px + env(safe-area-inset-bottom)); }
+.record-top, .stage { width: min(var(--card-w), 100%); }
+/* Computers and tablets: the card has a reading height (about half the screen, never a
+   page of empty white); with Redo and the camera above it, it sits in the middle of the
+   space above Start. Phones: the card fills that space (below). */
+.record-top { flex: none; min-height: 60px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: var(--s4); }
 
-/* Camera picture and sound level: small, in the corner. Not recording: grey and still,
-   level hidden. Recording: colour and a moving level, in neutral grey. */
-.monitor { position: absolute; top: 4px; right: max(var(--gutter), calc((100% - 1200px) / 2)); z-index: 1; display: flex; align-items: center; gap: 10px; }
+/* Camera picture and sound level, at the top right. Not recording: grey and still, level
+   hidden. Recording: colour and a moving level, in neutral grey. */
+.monitor { flex: none; margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .monitor-wave { display: block; width: 40px; height: 22px; visibility: hidden; }
 .screen-record[data-state="recording"] .monitor-wave { visibility: visible; }
 .cam-thumb { position: relative; width: 112px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; transition: filter .16s ease-out, opacity .16s ease-out; }
@@ -240,9 +263,24 @@ video.is-mirrored { transform: scaleX(-1); }
 .cam-thumb video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .screen-record:not([data-state="recording"]) .cam-thumb { filter: grayscale(1); opacity: .35; }
 
-/* The sentence and its state. Computers and tablets: the sentence, the guide and the
-   buttons form one group, a little above the middle of the screen. */
-.stage { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+/* The card keeps its place and size from sentence to sentence; only the sentence in it
+   changes: grey while waiting, dark green on a green highlight while recording. */
+.stage {
+  flex: 1 1 auto;
+  margin: 0 auto;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s7) var(--s5);
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 10px 30px rgba(0, 0, 0, .05);
+}
+/* Dark mode: a lighter grey card with a hairline edge, so its boundary stays clear. */
+[data-theme="dark"] .stage { background: #232325; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .09); }
 .stage-text { width: min(1100px, 100%); padding: 0 12px; display: grid; place-items: center; min-height: calc(var(--sentence-lines, 2) * 1.2 * var(--sentence-size, 48px)); }
 .sentence {
   margin: 0;
@@ -262,42 +300,40 @@ video.is-mirrored { transform: scaleX(-1); }
 .screen-record[data-state="recording"] .sentence { color: var(--read-text); }
 .screen-record[data-state="recording"] .sentence-line { background: var(--read-band); }
 
+/* Recording: the universal red record sign on the card's top edge. Nothing is shown there
+   otherwise (no "Not recording", no "Recorded": the grey sentence and the green Start
+   already say it). */
 .status {
-  margin-top: var(--s5);
+  position: absolute;
+  top: var(--s4);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 34px;
+  height: 32px;
   padding: 0 14px 0 12px;
   border-radius: 999px;
-  background: transparent;
-  color: var(--ink-3);
+  background: var(--rec-tint);
+  color: var(--rec-text);
   font-size: 16px;
   font-weight: 600;
   white-space: nowrap;
+  visibility: hidden;
 }
-.status-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; flex: none; }
-.status-check { display: none; }
-.status-check svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.screen-record[data-state="recording"] .status { visibility: visible; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rec); flex: none; }
 .btn-time { font-weight: 500; font-variant-numeric: tabular-nums; opacity: .85; }
 .btn-time:empty { display: none; }
-/* Recording: the universal red record dot (steady: nothing near the sentence moves). */
-.screen-record[data-state="recording"] .status { background: var(--rec-tint); color: var(--rec-text); }
-.screen-record[data-state="recording"] .status-dot { background: var(--rec); border-color: var(--rec); }
-.screen-record[data-state="starting"] .status-dot,
-.screen-record[data-state="finishing"] .status-dot,
-.screen-record[data-state="checking"] .status-dot { border-right-color: transparent; animation: spin .8s linear infinite; }
-.screen-record.is-saved .status-dot { display: none; }
-.screen-record.is-saved .status-check { display: inline-grid; }
 
-/* The dock: the guide, then Start/Stop, then Redo, centred. */
-.dock { flex: none; width: min(600px, 100%); margin: var(--s6) auto 0; display: flex; flex-direction: column; align-items: center; gap: var(--s4); }
+/* Below the card: the guide, then Start/Stop at the bottom of the screen. */
+.dock { flex: none; width: min(var(--main-w), 100%); margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: var(--s4); }
 
-/* Guide: the practice coach, or a message. One height in practice and in the real
-   recording, so nothing above or below it ever moves. */
-.guide { width: 100%; min-height: 104px; display: grid; place-items: end center; text-align: center; }
-.screen-record:not(.is-coaching) .guide { min-height: 80px; }
-.screen-record:not(.is-coaching) .dock { margin-top: var(--s4); }
+/* Guide: the practice coach, or a problem to fix. Its height is kept (taller in the
+   practice), so the card never changes size within the practice or within a part. */
+.guide { width: 100%; min-height: 108px; display: grid; place-items: end center; text-align: center; }
+.screen-record:not(.is-coaching) .guide { min-height: 84px; }
 .coach { display: grid; justify-items: center; gap: 4px; }
 .coach p { margin: 0; text-wrap: balance; }
 .coach-ack { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 500; color: var(--ink-3); }
@@ -320,12 +356,11 @@ video.is-mirrored { transform: scaleX(-1); }
 .message-icon:empty { display: none; }
 .message-icon svg { display: block; width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
 .message.tone-warn .message-body { color: var(--warn-text); background: var(--warn-tint); }
-.message.tone-info .message-body { color: var(--ink); font-weight: 600; font-size: 20px; text-align: center; }
+.message.tone-info .message-body { color: var(--ink); font-weight: 600; text-align: center; }
 .message.tone-info .message-icon { display: none; }
-/* "✓ Recorded" for a moment after a take, and what just happened ("That was the last
-   sentence of part 2."): quiet grey, like the coach's first line. */
-.message.tone-ok .message-body { padding: 6px 12px; font-size: 16px; color: var(--ink-3); }
-.message.tone-note .message-body { padding: 6px 12px; font-size: 17px; color: var(--ink-3); text-align: center; }
+/* What just happened when it changes what to press ("That was the last sentence of part
+   2."): quiet grey, like the coach's first line. */
+.message.tone-ok .message-body, .message.tone-note .message-body { padding: 6px 12px; font-size: 17px; color: var(--ink-3); text-align: center; }
 
 /* Start (green) becomes Stop (red) while recording; at a part's end it moves you on (blue). */
 .btn-main { width: min(var(--main-w), 100%); min-height: 68px; padding: 0 28px; border-radius: 999px; font-size: 23px; }
@@ -339,21 +374,16 @@ video.is-mirrored { transform: scaleX(-1); }
 .btn-main.is-quiet .dot-go { background: var(--ink-4); }
 .btn-main .btn-icon svg { width: .9em; height: .9em; }
 
-/* Redo: a quiet grey button under Start. Line 1 says what it does, line 2 which sentence
-   it records again — the shape of the Redo lesson, so the two never differ in size.
-   Its place keeps the lesson's height all the time: nothing moves when Redo appears,
-   grows for the lesson or hides while recording. */
-.redo-slot { width: 100%; min-height: 68px; margin-top: var(--s2); display: flex; justify-content: center; align-items: flex-start; }
-.redo { width: min(var(--main-w), 100%); min-height: 60px; padding: 7px 24px; border-radius: 999px; background: var(--fill); color: var(--ink-2); flex-direction: column; justify-content: center; gap: 1px; overflow: hidden; }
+/* Redo, at the top left: what it does, then which sentence it would record again. */
+.redo-slot { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; }
+.redo { max-width: 100%; min-height: 52px; padding: 6px 18px 6px 14px; border-radius: 999px; background: var(--fill); color: var(--ink-2); flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; overflow: hidden; text-align: left; }
 .redo.is-cancel { min-height: 44px; }
-@media (hover: hover) { .redo:hover { background: var(--fill); } }
-.redo-label { flex: none; display: inline-flex; align-items: center; gap: 7px; font-size: 18px; font-weight: 600; }
-.redo-caption { flex: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 400; color: var(--ink-3); }
+@media (hover: hover) { .redo:hover { background: var(--fill-strong); } }
+.redo-label { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 17px; font-weight: 600; }
+.redo-caption { flex: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 400; color: var(--ink-3); }
 .redo-caption [hidden] { display: none; }
-/* The Redo lesson: Redo is the one thing to press — the only filled button, as large as
-   Start, its sentence on a second line, set a little apart (neutral: it is not "move on"). */
-.redo.is-lesson { width: min(var(--main-w), 100%); min-height: 68px; padding: 8px 24px; gap: 2px; background: var(--ink); color: var(--bg); }
-.redo.is-lesson .redo-label { font-size: 21px; }
+/* The Redo lesson: Redo is the one thing to press (filled, with a halo); Start is plain. */
+.redo.is-lesson { background: var(--ink); color: var(--bg); }
 .redo.is-lesson .redo-caption { color: inherit; opacity: .75; }
 .redo.is-lesson.is-pulsing { animation-name: pulse-ring-ink; }
 @keyframes pulse-ring-ink { 0%, 100% { box-shadow: 0 0 0 0 rgba(29, 29, 31, .22); } 50% { box-shadow: 0 0 0 8px rgba(29, 29, 31, .22); } }
@@ -392,7 +422,7 @@ body.has-dialog .screens, body.has-dialog .topbar { filter: saturate(0); opacity
 .dialog-body { font-size: 17px; line-height: 1.45; color: var(--ink-2); text-wrap: balance; }
 .dialog-body p + p, .dialog-body p + .field, .dialog-body .field + p { margin-top: var(--s3); }
 .dialog-body .field { text-align: left; }
-.dialog-actions { display: grid; gap: var(--s2); margin-top: var(--s5); }
+.dialog-actions { display: grid; gap: var(--s3); margin-top: var(--s5); }
 .dialog-link { justify-self: center; min-height: 44px; }
 /* How to record (from the ? button): three numbered steps in order, then the fix. */
 .steps { list-style: none; margin: var(--s4) 0 0; padding: 0; display: grid; gap: var(--s3); text-align: left; counter-reset: step; }
@@ -476,7 +506,6 @@ button.row:active { background: var(--fill-strong); }
   .check-step { width: 100%; display: flex; flex-direction: column; align-items: center; }
   .check-actions { width: min(400px, 100%); margin-top: var(--s5); }
 
-  .guide { min-height: 112px; }
   .cam-thumb { width: 104px; }
 }
 
@@ -491,6 +520,7 @@ button.row:active { background: var(--fill-strong); }
 
   .flow-actions { padding-top: var(--s5); }
   .feature-list { margin-top: var(--s5); }
+  .rule { font-size: 19px; }
 
   .check { padding-bottom: 0; padding-top: var(--s2); }
   .check-media .preview-frame { max-height: 36dvh; }
@@ -498,22 +528,29 @@ button.row:active { background: var(--fill-strong); }
   .check-text { font-size: var(--t-label); }
   .check-step h1 { font-size: 26px; }
 
-  .dock { margin-top: var(--s5); }
-  .guide { min-height: 104px; }
-  .screen-record:not(.is-coaching) .guide { min-height: 76px; }
+  .screen-record { gap: var(--s2); }
+  .record-top { min-height: 68px; margin: 12px auto 0; }
+  .stage { padding: var(--s6) 12px; border-radius: 24px; }
+  .screen-record:not(.is-coaching) .guide { min-height: 80px; }
+  /* Phones: the card uses the width (a larger sentence, the same line breaks). */
+  .screen-record { padding-left: 14px; padding-right: 14px; }
+  .stage-text { padding: 0; }
   .coach-ack { font-size: 15px; }
   .coach-action { font-size: 21px; }
   .coach-detail { font-size: 16px; }
   .message-body { font-size: 17px; }
-  .dock { gap: var(--s4); }
   :root { --main-w: 100%; }
   .btn-main { min-height: 64px; font-size: 22px; }
   .key-hint { display: none !important; }
-  .redo-caption { font-size: 16px; }
+  .redo { min-height: 48px; padding: 5px 16px 5px 12px; border-radius: 20px; }
+  .redo-label { font-size: 16px; }
+  /* Narrow: the sentence on Redo may take a second line rather than be cut off; the row
+     above keeps that height, so the card never moves. */
+  .redo-caption { font-size: 14px; white-space: normal; text-wrap: balance; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
   .cam-thumb { width: 84px; border-radius: 10px; }
   .cam-thumb.is-portrait { width: 52px; }
   .monitor-wave { width: 32px; height: 20px; }
-  .status { height: 32px; font-size: 15px; }
+  .status { top: var(--s3); height: 30px; font-size: 15px; }
 }
 
 /* ================= flat: phones held sideways ================= */
@@ -532,6 +569,7 @@ button.row:active { background: var(--fill-strong); }
   .flow-actions .btn-xl { min-height: 50px; font-size: 18px; }
   .feature-list { margin-top: var(--s4); gap: var(--s2); }
   .journey, .parts, .save-panel { margin-top: var(--s3); }
+  .rule { font-size: 17px; margin-top: var(--s2); }
   .id-display { padding: var(--s1) 0 var(--s2); font-size: 40px; }
 
   /* The check fits one screen: the picture on the left, the step on the right. */
@@ -547,23 +585,23 @@ button.row:active { background: var(--fill-strong); }
   .test-question { font-size: 18px; margin-bottom: var(--s1); }
   .wave-check { height: 30px; }
 
-  /* Recording: the sentence on the left, the guide and the buttons on the right. */
-  .screen-record { display: grid; grid-template-columns: minmax(0, 1fr) 280px; grid-template-rows: minmax(0, 1fr); column-gap: var(--s5); padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-  .stage { grid-column: 1; padding: 0 0 4px; }
+  /* Recording: the card on the left; on the right Redo and the camera picture at the top,
+     the guide and Start at the bottom. */
+  .screen-record { display: grid; grid-template-columns: minmax(0, 1fr) 260px; grid-template-rows: auto minmax(0, 1fr); column-gap: var(--s4); row-gap: var(--s2); padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .record-top { grid-column: 2; grid-row: 1; width: 100%; min-height: 48px; margin: 0; }
+  .stage { grid-column: 1; grid-row: 1 / span 2; width: 100%; height: auto; margin: 0; padding: var(--s5) var(--s4); border-radius: 22px; }
   :root { --main-w: 100%; }
-  .dock { grid-column: 2; width: 100%; margin-top: 0; justify-content: center; }
-  .monitor { top: 2px; right: auto; left: var(--gutter); }
+  .dock { grid-column: 2; grid-row: 2; width: 100%; align-self: end; }
   .guide { min-height: 92px; }
+  .screen-record:not(.is-coaching) .guide { min-height: 56px; }
   .coach-ack { font-size: 14px; }
   .coach-action { font-size: 17px; }
   .coach-detail { font-size: 14px; }
   .message-body { font-size: 15px; padding: 6px 10px; }
-  .status { margin-top: var(--s3); height: 28px; font-size: 14px; }
+  .status { top: var(--s2); height: 28px; font-size: 14px; }
   .btn-main { min-height: 54px; font-size: 20px; }
-  .redo { min-height: 54px; padding: 5px 16px; }
-  .redo-slot { min-height: 78px; }
-  .redo-caption { white-space: normal; text-wrap: balance; text-align: center; }
-  .redo.is-lesson { min-height: 62px; }
+  .redo { min-height: 44px; padding: 4px 14px 4px 10px; border-radius: 18px; }
+  .redo-caption { white-space: normal; text-wrap: balance; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
   /* How to record, sideways: fits without scrolling. */
   .dialog { padding: 16px 20px 14px; }
   .dialog h2 { font-size: 18px; margin-bottom: 4px; }
@@ -571,8 +609,8 @@ button.row:active { background: var(--fill-strong); }
   .steps li { font-size: 16px; }
   .steps-fix { margin-top: var(--s2); padding-top: var(--s2); font-size: 15px; }
   .dialog-actions { margin-top: var(--s3); }
-  .redo-label { font-size: 16px; }
-  .redo-caption { font-size: 15px; }
+  .redo-label { font-size: 15px; }
+  .redo-caption { font-size: 13px; }
   .cam-thumb { width: 64px; border-radius: 8px; }
   .cam-thumb.is-portrait { width: 34px; }
   .monitor-wave { width: 28px; height: 18px; }
