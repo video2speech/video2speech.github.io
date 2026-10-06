@@ -97,7 +97,8 @@ checked against all of them before it is shown.
     main button sits where Start sits: at the bottom, where a thumb, or a hand resting on
     the table, reaches it. A second action goes above it, never under it, so a slip
     downwards presses nothing. Start and these buttons sit 44 px above the bottom edge
-    (32 px on short screens inside a browser's bars, 20 px on phones held sideways).
+    (also on short screens inside a browser's bars, so a slip downwards never reaches the
+    browser's own bar; 20 px on phones held sideways).
     On the recording screen Redo is far from Start, at the top
     left, where a Back button goes. Dialogs rise from the bottom: their main answer lands
     where Start sits, the other answers above it, 24 px apart (on computers they stay in
@@ -255,7 +256,7 @@ third line, which reads as keywords one by one.
 | Recording | the sentence | dark green on a clear green highlight | **● Recording** (red, steady) | live | **■ Stop** (soft red; after 20 s it pulses and shows the time, "Stop · 0:21") | hidden | practice: "Read the green sentence out loud, then press Stop."; real sentences: nothing |
 | After Stop (0.7 s + check) | — | grey | — | grey | Finishing… (inactive) | hidden | unchanged |
 | Next sentence | the new sentence | grey | — | grey | Start | "↶ Redo" over “the sentence just recorded” | nothing (the new sentence is the confirmation) |
-| A part's last sentence | Finish part 2 | grey (stays) | — | grey | **→ Finish part 2** (blue) | "↶ Redo" over "Record this sentence again" | "That was the last sentence of part 2." (the pill on the card's bottom edge) |
+| A part's last sentence | Finish part 2 | grey (stays) | — | grey | **→ Finish part 2** (blue) | "↶ Redo" over "This sentence again" | "That was the last sentence of part 2." (plain words on the card's bottom edge) |
 
 ### Practice (the 5 warm-up sentences, first time only)
 The coach says one thing at a time, between the card and Start. On a computer it names the keys,
@@ -303,7 +304,7 @@ neutral grey, so the blue button is the only blue):
 | ZIP mode, before saving | Save recordings | grey ✓ · **Part 2 done** · "Save your recordings, then take a rest." (one instruction) · the segments | **Save recordings** (blue) |
 | ZIP mode, the question | the answer | **Did the file save?** iPhone/iPad: "If Safari asks, tap Download. Then tap ⬇ next to the web address and look for “SEMG1_part02”." (Android: the download notification; computers: the browser's downloads) | **Yes, I see it** (blue) · Save it again · Not sure (text). Nothing is pre-chosen, not even on a computer: the answer is given after looking. On a computer the first press of Space, Enter or a clicker highlights **Yes, I see it**; the next one chooses it. |
 | ZIP mode, saved | Continue | "Take a rest. Carry on when you are ready." · the segments (no "saved" line: "Yes, I see it" has just said it) | **Continue to part 3** |
-| ZIP mode, not saved | Save recordings | "Not saved yet. Your recordings are still on this device." (amber) | **Save recordings** · Continue without saving (asks first: "Continue without saving?" · "Your recordings stay on this device. You can save them at the next break." · **Save now** is the default; its "Continue without saving" counts only after a second, since it lands where the link was; Esc changes nothing) |
+| ZIP mode, not saved ("Not sure") | Save recordings | "Let’s save them again to be sure. Your recordings are still on this device." (amber) | **Save recordings** · Continue without saving (asks first: "Continue without saving?" · "Your recordings stay on this device. You can save them at the next break." · **Save now** is the default; its "Continue without saving" counts only after a second, since it lands where the link was; Esc changes nothing) |
 
 The ZIP files are named after the participant and the part, then the time
 (`SEMG1_part02_2026-10-05T14-03-11.zip`); the question names only the first part.

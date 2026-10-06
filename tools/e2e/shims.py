@@ -174,18 +174,22 @@ MEDIA_SHIM = r"""
     });
     apply();
 
+    // window.__V2S_PORTRAIT: an upright camera (9:16), as a phone or tablet held upright gives.
+    const portrait = Boolean(window.__V2S_PORTRAIT);
+    const W = portrait ? 360 : 640;
+    const H = portrait ? 640 : 360;
     const canvas = document.createElement('canvas');
-    canvas.width = 640;
-    canvas.height = 360;
+    canvas.width = W;
+    canvas.height = H;
     const g = canvas.getContext('2d');
     let frame = 0;
     const draw = () => {
       frame += 1;
       g.fillStyle = `hsl(${(frame * 2) % 360}, 35%, 35%)`;
-      g.fillRect(0, 0, 640, 360);
+      g.fillRect(0, 0, W, H);
       g.fillStyle = '#f2e9dc';
       g.beginPath();
-      g.ellipse(320 + 40 * Math.sin(frame / 25), 175, 95, 125, 0, 0, Math.PI * 2);
+      g.ellipse(W / 2 + 40 * Math.sin(frame / 25), H * 0.47, portrait ? 110 : 95, portrait ? 145 : 125, 0, 0, Math.PI * 2);
       g.fill();
     };
     draw();

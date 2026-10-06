@@ -27,6 +27,7 @@ VIEWPORTS = {
 }
 
 ENGINE = 'chrome'
+EXTRA_INIT = []   # more scripts before the page loads (e.g. an upright camera)
 
 
 async def capture(pw, base, out, name, viewport, mobile, theme):
@@ -45,7 +46,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         print(f'  OFFSCREEN {name}-{theme}-00-signin: Sign in')
     await browser.close()
 
-    browser, _, page, errors = await launch(pw, audio='speech', media='shim', init_scripts=[theme_js, t.NO_PICKERS, t.FAST], **common)
+    browser, _, page, errors = await launch(pw, audio='speech', media='shim', init_scripts=[theme_js, t.NO_PICKERS, t.FAST, *EXTRA_INIT], **common)
 
     # Anything wider than the screen (or the settings panel) is printed as a problem.
     overflow_js = """() => {

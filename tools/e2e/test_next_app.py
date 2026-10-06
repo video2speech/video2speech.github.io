@@ -1135,7 +1135,7 @@ async def s_break_zip(pw, base):
     await page.locator('#dialogActions button', has_text='Not sure').click()
     await page.wait_for_timeout(500)
     c.check(cached_before == 2 and len(await takes(page)) == cached_before, 'Not sure keeps every cached take', cached_before)
-    c.check('Not saved yet' in await page.text_content('#breakSaveText'), 'says it is not saved yet')
+    c.check('save them again to be sure' in await page.text_content('#breakSaveText'), 'asks to save again to be sure (it does not claim the file is missing)')
 
     path = os.path.join(tempfile.mkdtemp(), download.suggested_filename)
     await download.save_as(path)
@@ -2054,7 +2054,7 @@ async def s_part_end_redo(pw, base):
     browser, _, page, errors = await boot(pw, base, index=5 + 49, init_scripts=[NO_PICKERS])
     await record(page)
     s = await state(page)
-    c.check(s['state'] == 'partEnd' and s['redo'] and 'Record this sentence again' in s['redo'], 'Redo offered for the last sentence', s)
+    c.check(s['state'] == 'partEnd' and s['redo'] and 'This sentence again' in s['redo'], 'Redo offered for the last sentence', s)
     await page.keyboard.press('ArrowLeft')
     await page.wait_for_timeout(400)
     s = await state(page)

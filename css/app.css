@@ -61,7 +61,7 @@ body[data-screen="record"] .app { height: 100vh; height: 100dvh; overflow: hidde
   font: inherit;
   font-size: 17px;
   font-weight: 500;
-  color: var(--ink-2);
+  color: var(--ink-3);
   cursor: pointer;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
@@ -81,7 +81,7 @@ body[data-screen="loading"] .topbar-end { visibility: hidden; }
 body[data-screen="record"] .topbar { grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr); }
 
 .where { display: grid; justify-items: stretch; gap: 7px; text-align: center; }
-.where-text { font-size: 16px; font-weight: 600; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.where-text { font-size: 16px; font-weight: 500; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .where-short, .where-tiny { display: none; }
 .where .bar { width: 200px; justify-self: center; }
 
@@ -125,6 +125,7 @@ body[data-screen="record"] .topbar { grid-template-columns: minmax(max-content, 
 .journey { width: min(320px, 100%); margin-top: var(--s6); display: grid; gap: var(--s2); text-align: center; }
 .journey-label { font-size: var(--t-label); font-weight: 600; color: var(--ink); }
 .journey-count:empty { display: none; }
+#breakLead:not(:empty) { min-height: calc(2 * 1.45em); }
 .notice-warn.welcome-notice { width: min(400px, 100%); margin: var(--s4) 0 0; text-align: center; }
 /* A save problem on a break (not saved yet, not in the folder yet): the problem and the
    buttons say what to do, so the usual line under the title steps aside. */
@@ -184,7 +185,7 @@ body[data-screen="record"] .topbar { grid-template-columns: minmax(max-content, 
    still to do. */
 .save-panel { width: min(400px, 100%); margin: 0 0 var(--s3); padding: var(--s2) var(--s4); border-radius: var(--radius-m); background: none; color: var(--ink-2); text-align: center; }
 .save-panel.is-ok { color: var(--ink-3); padding-top: 0; padding-bottom: 0; }
-.save-panel.is-ok .save-panel-text::before { content: ''; display: inline-block; width: .95em; height: .95em; margin-right: .35em; vertical-align: -.12em; background: var(--ink-2); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+.save-panel.is-ok .save-panel-text::before { content: none; display: inline-block; width: .95em; height: .95em; margin-right: .35em; vertical-align: -.12em; background: var(--ink-2); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
 .save-panel.is-warn { background: var(--warn-tint); color: var(--warn-text); }
 .save-panel-text { font-size: var(--t-label); font-weight: 500; text-wrap: balance; }
 .save-progress { display: grid; gap: var(--s2); margin-top: var(--s3); }
@@ -367,7 +368,7 @@ body[data-screen="record"] { background: var(--bg-grouped); }
 .screen-record:not(.is-coaching) .dock { margin-top: var(--s3); }
 .coach { display: grid; justify-items: center; gap: 4px; }
 .coach p { margin: 0; text-wrap: balance; }
-.coach-ack { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 500; color: var(--ink-3); }
+.coach-ack { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 500; color: var(--ink-2); }
 .coach-ack.is-empty { display: none; }
 .coach-ack.tone-ok { color: var(--ink-3); }
 .coach-ack.tone-warn { color: var(--warn-text); }
@@ -390,11 +391,11 @@ body[data-screen="record"] { background: var(--bg-grouped); }
 .message-icon:empty { display: none; }
 .message-icon svg { display: block; width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
 .message.tone-warn .message-body { color: var(--warn-text); background: var(--warn-tint); }
-.message.tone-info .message-body { color: var(--ink); font-weight: 600; text-align: center; background: var(--fill); }
+.message.tone-info .message-body { color: var(--ink-2); font-weight: 500; text-align: center; background: none; }
 .message.tone-info .message-icon { display: none; }
 /* What just happened when it changes what to press ("That was the last sentence of part
    2."): quiet grey, like the coach's first line. */
-.message.tone-ok .message-body, .message.tone-note .message-body { padding: 8px 14px; font-size: 17px; color: var(--ink-2); text-align: center; background: var(--fill); }
+.message.tone-ok .message-body, .message.tone-note .message-body { padding: 8px 14px; font-size: 17px; color: var(--ink-2); text-align: center; background: none; }
 
 /* Start (green) becomes Stop (red) while recording; at a part's end it moves you on (blue). */
 .btn-main { width: min(var(--main-w), 100%); min-height: 68px; padding: 0 28px; border-radius: 999px; font-size: 23px; }
@@ -597,7 +598,7 @@ button.row:active { background: var(--fill-strong); }
 @media (max-width: 1000px) and (orientation: portrait), (pointer: coarse) and (orientation: portrait) {
   .check { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: var(--s5); align-items: stretch; align-content: stretch; padding: clamp(24px, 6vh, 72px) 0 calc(44px - var(--gutter)); width: min(640px, 100%); margin: 0 auto; }
   .check-media { justify-items: center; }
-  .check-media .preview-frame { width: 100%; max-height: 46dvh; }
+  .check-media .preview-frame { width: min(100%, calc(46dvh * 16 / 9)); }
   .check-media .preview-frame.is-portrait { width: auto; height: 46dvh; }
   .check-media .wave-check { width: 100%; }
   .check-panel { text-align: center; align-items: center; }
@@ -644,8 +645,8 @@ button.row:active { background: var(--fill-strong); }
   .rule { font-size: 19px; }
 
   .check { padding-top: var(--s2); }
-  .check-media .preview-frame { max-height: 36dvh; }
-  .check-media .preview-frame.is-portrait { height: 36dvh; }
+  .check-media .preview-frame { width: min(100%, calc(36dvh * 16 / 9)); }
+  .check-media .preview-frame.is-portrait { width: auto; height: 36dvh; }
   .check-text { font-size: var(--t-label); }
   .check-step h1 { font-size: 26px; }
 
@@ -687,16 +688,15 @@ button.row:active { background: var(--fill-strong); }
 @media (orientation: portrait) and (max-height: 700px) {
   body[data-screen="check"] .topbar { min-height: 44px; }
   /* Start and every main button 32 px above the bottom (the browser's bar is below). */
-  .screen-record { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
-  .screen-flow:not(#screen-setup) .flow-actions, #screen-setup.is-question .flow-actions { padding-bottom: calc(32px - var(--gutter)); }
-  .check { gap: var(--s3); padding-top: 0; padding-bottom: calc(32px - var(--gutter)); }
-  .overlay:not(.overlay-sheet) { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .check { gap: var(--s3); padding-top: 0; }
   .check-media { gap: var(--s2); }
-  .check-media .preview-frame { max-height: 30dvh; }
-  .check-media .preview-frame.is-portrait { height: 30dvh; }
+  /* The picture takes what the step's words and buttons leave (an upright camera on a
+     6.1" iPhone in Safari gets ~240 px, on an SE ~175 px); a problem takes some of it. */
+  #screen-check { --pic-h: min(36dvh, calc(100dvh - 380px)); }
+  #screen-check.has-problem { --pic-h: min(20dvh, calc(100dvh - 450px)); }
+  .check-media .preview-frame { width: min(100%, calc(var(--pic-h) * 16 / 9)); }
+  .check-media .preview-frame.is-portrait { width: auto; height: var(--pic-h); }
   #screen-check.is-asking .wave-check { display: none; }
-  #screen-check.has-problem .check-media .preview-frame { max-height: 22dvh; }
-  #screen-check.has-problem .check-media .preview-frame.is-portrait { height: 22dvh; }
   .check-panel::before { flex-basis: var(--s2); }
   .symbol { width: 52px; height: 52px; margin-bottom: var(--s4); }
   #screen-break .flow, #screen-done .flow, #screen-welcome .flow { padding-top: var(--s2); }
@@ -755,7 +755,7 @@ button.row:active { background: var(--fill-strong); }
   body[data-screen="check"] .app { height: 100vh; height: 100dvh; overflow: hidden; }
   .check { grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: var(--s5); align-items: stretch; align-content: stretch; min-height: 0; height: 100%; padding: var(--s2) 0 0; }
   .check-media { min-height: 0; align-self: start; }
-  .preview-frame { max-height: 66dvh; }
+  .preview-frame { width: min(100%, calc(66dvh * 16 / 9)); }
   .check-panel { min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
   .check-step h1 { font-size: 22px; margin-bottom: var(--s2); }
   .check-text { font-size: 16px; }

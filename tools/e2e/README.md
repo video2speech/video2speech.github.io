@@ -32,6 +32,8 @@ a generated fake microphone (speech-like sound, fan noise, a quiet room, or a cl
     `window.__v2sAudio.set('speech' | 'silence' | 'fan' | …)`.
   - `sessionStorage.__audio_rate` sets the microphone's sample rate (e.g. 16000, as
     with Bluetooth headsets).
+  - `window.__V2S_PORTRAIT = true` gives an upright camera (9:16), as a phone or iPad held
+    upright does; `screenshots.EXTRA_INIT` adds such scripts to a screenshot run.
   - Used for WebKit and Firefox, which have no fake capture devices, and wherever a
     test must control exactly when the person speaks.
 - `FSA_SHIM`: the folder and save dialogs (File System Access API) with Chrome's rules,
