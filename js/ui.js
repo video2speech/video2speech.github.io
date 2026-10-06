@@ -370,6 +370,15 @@ V2S.ui = (() => {
     timerId = setInterval(tick, 250);
   }
 
+  // The sound level under the check's picture is as wide as the picture (an upright
+  // picture is narrower than the screen).
+  const checkFrame = el('checkFrame');
+  if (checkFrame && window.ResizeObserver) {
+    new ResizeObserver(() => {
+      checkFrame.parentElement.style.setProperty('--pic-w', `${Math.round(checkFrame.getBoundingClientRect().width)}px`);
+    }).observe(checkFrame);
+  }
+
   // Portrait camera streams (phones held upright) get a portrait frame.
   function watchPreviewShape(frameId, videoId) {
     const frame = el(frameId);

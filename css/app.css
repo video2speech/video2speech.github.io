@@ -125,7 +125,9 @@ body[data-screen="record"] .topbar { grid-template-columns: minmax(max-content, 
 .journey { width: min(320px, 100%); margin-top: var(--s6); display: grid; gap: var(--s2); text-align: center; }
 .journey-label { font-size: var(--t-label); font-weight: 600; color: var(--ink); }
 .journey-count:empty { display: none; }
-#breakLead:not(:empty) { min-height: calc(2 * 1.45em); }
+@media (max-width: 600px) and (orientation: portrait) {
+  #breakLead:not(:empty) { min-height: calc(2 * 1.45em); }
+}
 .notice-warn.welcome-notice { width: min(400px, 100%); margin: var(--s4) 0 0; text-align: center; }
 /* A save problem on a break (not saved yet, not in the folder yet): the problem and the
    buttons say what to do, so the usual line under the title steps aside. */
@@ -391,11 +393,11 @@ body[data-screen="record"] { background: var(--bg-grouped); }
 .message-icon:empty { display: none; }
 .message-icon svg { display: block; width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
 .message.tone-warn .message-body { color: var(--warn-text); background: var(--warn-tint); }
-.message.tone-info .message-body { color: var(--ink-2); font-weight: 500; text-align: center; background: none; }
+.message.tone-info .message-body { color: var(--ink-3); font-weight: 500; text-align: center; background: none; }
 .message.tone-info .message-icon { display: none; }
 /* What just happened when it changes what to press ("That was the last sentence of part
    2."): quiet grey, like the coach's first line. */
-.message.tone-ok .message-body, .message.tone-note .message-body { padding: 8px 14px; font-size: 17px; color: var(--ink-2); text-align: center; background: none; }
+.message.tone-ok .message-body, .message.tone-note .message-body { padding: 8px 14px; font-size: 17px; color: var(--ink-3); text-align: center; background: none; }
 
 /* Start (green) becomes Stop (red) while recording; at a part's end it moves you on (blue). */
 .btn-main { width: min(var(--main-w), 100%); min-height: 68px; padding: 0 28px; border-radius: 999px; font-size: 23px; }
@@ -600,7 +602,7 @@ button.row:active { background: var(--fill-strong); }
   .check-media { justify-items: center; }
   .check-media .preview-frame { width: min(100%, calc(46dvh * 16 / 9)); }
   .check-media .preview-frame.is-portrait { width: auto; height: 46dvh; }
-  .check-media .wave-check { width: 100%; }
+  .check-media .wave-check { width: var(--pic-w, 100%); }
   .check-panel { text-align: center; align-items: center; }
   .check-actions, .test-ask { justify-items: center; }
   .test-live { text-align: center; }
@@ -687,7 +689,6 @@ button.row:active { background: var(--fill-strong); }
 /* Safari's bars leave an iPhone 550–750 px of height: the check stays on one screen. */
 @media (orientation: portrait) and (max-height: 700px) {
   body[data-screen="check"] .topbar { min-height: 44px; }
-  /* Start and every main button 32 px above the bottom (the browser's bar is below). */
   .check { gap: var(--s3); padding-top: 0; }
   .check-media { gap: var(--s2); }
   /* The picture takes what the step's words and buttons leave (an upright camera on a
