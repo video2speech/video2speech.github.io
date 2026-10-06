@@ -162,7 +162,9 @@ sideways), tall (tablets upright), phone, flat (phones sideways).
 
 ### Sign in
 App name, "Sign in", Username, Password (Show password), the blue Sign in button, the
-privacy note. The light/dark switch in the corner.
+privacy note. The light/dark switch in the corner. On a short phone the app mark steps
+aside so Sign in stays on screen; on a phone held sideways the page has two columns (the
+title and the notes on the left, the form and Sign in on the right).
 
 ### Set up (research team or helper, once per device)
 One question per step: Participant ID (example "SEMG1"; saved in capitals) → "Is this ID
@@ -326,8 +328,9 @@ this page.", the amber count, and **Save recordings** (blue). The page never say
 can close this page" while something is unsaved.
 
 ### How to record (the ? button, on the recording screen)
-A dialog over the screen: **How to record** · 1 Press Start once. · 2 When the sentence
-turns green, read it out loud. · 3 Press Stop when you finish. · "Read a word wrong?
+A dialog over the screen: **How to record** · 1 Press Start once. · 2 Read the green
+sentence out loud. (the same words as the one thing to remember) · 3 Press Stop when you
+finish. · "Read a word wrong?
 After Stop, press Redo to record that sentence again." · **Close** (blue). Computers
 name Space and ←. Nothing records while it is open.
 

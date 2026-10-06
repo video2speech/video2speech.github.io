@@ -45,11 +45,15 @@
     body { padding-top: calc(24px + env(safe-area-inset-top)); }
     .brand { display: none; }
   }
-  /* A phone held sideways: the form first (the mark and the line under the title step aside). */
+  /* A phone held sideways: two columns, the title and the notes on the left, the form and
+     Sign in on the right, all on one screen. */
   @media (max-height: 500px) and (orientation: landscape) {
-    body { place-items: start center; padding-top: calc(12px + env(safe-area-inset-top)); }
-    .brand, .signin .lead { display: none; }
-    .signin h1 { margin-bottom: var(--s3); }
+    body { place-items: center; padding: calc(12px + env(safe-area-inset-top)) 24px calc(12px + env(safe-area-inset-bottom)); }
+    .brand { display: none; }
+    .signin { width: min(760px, 100%); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); column-gap: var(--s6); align-items: center; }
+    .signin > h1, .signin > .lead, .signin > .notes { grid-column: 1; text-align: left; }
+    .signin > form { grid-column: 2; grid-row: 1 / span 3; gap: var(--s3); }
+    .notes { text-align: left; margin-top: var(--s3); }
   }
 </style>
 </head>

@@ -627,6 +627,8 @@ button.row:active { background: var(--fill-strong); }
   :root { --gutter: 16px; }
   .topbar { min-height: 52px; }
   .flow-actions .btn-xl { min-height: 64px; font-size: 20px; }
+  .steps li { font-size: 17px; gap: 10px; }
+  .dialog { padding-left: 20px; padding-right: 20px; }
   .where-long { display: none; }
   .where-short { display: inline; }
   .where .bar { width: 120px; }
@@ -729,9 +731,10 @@ button.row:active { background: var(--fill-strong); }
   .notice-warn.welcome-notice { margin-top: var(--s2); }
   .dialog-actions { gap: var(--s4); }
   .screen-flow:not(#screen-setup) .flow-actions { gap: var(--s4); }
-  .save-panel { margin-bottom: var(--s2); padding: 6px 12px; }
+  .save-panel { margin-bottom: var(--s2); padding: 4px 12px; }
+  #welcomeNotice:not([hidden]) ~ #welcomeJourney { display: none; }
   #screen-break .flow, #screen-done .flow, #screen-welcome .flow { padding-top: 0; }
-  .flow-body { padding-top: var(--s2); }
+  .flow-body { padding-top: var(--s1); }
   .flow-body h1 { margin-bottom: var(--s1); }
   .symbol { display: none; }   /* sideways the screen is short: the title says it */
   .flow-actions { padding-top: var(--s3); }
@@ -796,6 +799,9 @@ button.row:active { background: var(--fill-strong); }
 }
 
 /* ============ very flat: small phones sideways inside the browser's bars ============ */
+@media (orientation: landscape) and (max-height: 380px) {
+  #setupStepId .eyebrow, #setupStepId .lead { display: none; }   /* the title asks the question */
+}
 @media (orientation: landscape) and (max-height: 340px) {
   .topbar { min-height: 40px; }
   .check { padding-top: 0; }

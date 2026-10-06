@@ -55,7 +55,8 @@ a generated fake microphone (speech-like sound, fan noise, a quiet room, or a cl
 `screenshots.py` prints `OVERFLOW` for anything wider than the screen or the settings
 panel, and for any button whose label spills over its edge, `VSCROLL` for a page taller
 than the screen (its main button may need scrolling), `CLIPPED` for words that do not fit
-their scrolling area (a screen's text, a dialog's text, the check's panel), and one line per take with its
+their scrolling area (a screen's text, a dialog's text, the check's panel), `OFFSCREEN` for
+a main button (Sign in included) not fully on screen, and one line per take with its
 check result, so a screenshot never silently shows the wrong state.
 - `window.__V2S_TEST = { testRecordMs: 1200 }`: shortens the 5-second microphone test
   so each session start stays quick.

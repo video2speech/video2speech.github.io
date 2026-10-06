@@ -40,6 +40,9 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.wait_for_selector('#loginForm')
     await page.wait_for_timeout(400)
     await page.screenshot(path=f'{prefix}-00-signin.png')
+    cut = await page.evaluate("() => { const r = document.querySelector('#loginForm button[type=submit]').getBoundingClientRect(); return r.bottom > window.innerHeight + 1; }")
+    if cut:
+        print(f'  OFFSCREEN {name}-{theme}-00-signin: Sign in')
     await browser.close()
 
     browser, _, page, errors = await launch(pw, audio='speech', media='shim', init_scripts=[theme_js, t.NO_PICKERS, t.FAST], **common)
@@ -65,6 +68,11 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
       const spill = [...document.querySelectorAll('button')].filter(b => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && b.scrollWidth > b.clientWidth + 1);
       return { page: document.documentElement.scrollWidth - window.innerWidth, sheet: sheet ? sheet.scrollWidth - sheet.clientWidth : 0,
                tall: document.documentElement.scrollHeight - window.innerHeight,
+               // the screen's main button must be fully on screen, without scrolling
+               offscreen: [...document.querySelectorAll('.btn-xl, .btn-main, #loginForm button[type=submit]')]
+                 .filter(b => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.closest('[hidden]'))
+                 .filter(b => { const r = b.getBoundingClientRect(); return r.bottom > window.innerHeight + 1 || r.top < 0; })
+                 .map(b => b.id || b.textContent.trim().slice(0, 20)),
                // words that do not fit their (scrolling) area: a line cut or faded at its edge
                clipped: [...document.querySelectorAll('.flow-body, .dialog-body, .check-panel')]
                  .filter(n => n.getClientRects().length && n.scrollHeight > n.clientHeight + 1)
@@ -84,6 +92,8 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
             print(f'  VSCROLL {name}-{theme}-{label}: {r["tall"]} px')
         if r['clipped']:
             print(f'  CLIPPED {name}-{theme}-{label}: {r["clipped"]}')
+        if r['offscreen']:
+            print(f'  OFFSCREEN {name}-{theme}-{label}: {r["offscreen"]}')
 
     # Phones and tablets are driven by taps (their instructions name the buttons);
     # computers by the keyboard (their instructions name Space and ←).

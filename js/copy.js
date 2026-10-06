@@ -127,8 +127,8 @@ V2S.copy = {
   howto: {
     title: 'How to record',
     steps: k => (k
-      ? ['Press **Space** once.', 'When the sentence turns\u00a0**green**, read it out\u00a0loud.', 'Press **Space** again when you finish.']
-      : ['Press **Start** once.', 'When the sentence turns\u00a0**green**, read it out\u00a0loud.', 'Press **Stop** when you finish.']),
+      ? ['Press **Space** once.', 'Read the **green** sentence out\u00a0loud.', 'Press **Space** again when you finish.']
+      : ['Press **Start** once.', 'Read the **green** sentence out\u00a0loud.', 'Press **Stop** when you finish.']),
     fix: k => (k ? 'Read a word wrong? After you stop, press **←** (Redo) to\u00a0record that sentence again.'
       : 'Read a word wrong? After\u00a0**Stop**, press **Redo** (at the top) to\u00a0record that sentence again.'),
     close: 'Close'
