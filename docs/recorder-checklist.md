@@ -16,7 +16,7 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
 
 | # | Earlier page | Now | Verified by |
 |---|---|---|---|
-| A1 | Sign-in and version gate | Same gate (`app_next.html` head); sign-in page restyled | `signin` |
+| A1 | Sign-in and version gate | Same gate (`app.html` head); sign-in page restyled | `signin` |
 | A2 | "Initialize Camera + Microphone" | Welcome → Begin → camera and microphone check | `first_run` |
 | A3 | Warm-up / Bypass warm-up (startup choice) | Practice runs once per participant (also after switching the sentence set); Settings → **Skip practice (bypass warm-up)** | `first_run`, `settings_parity` (Skip practice from sentence 1) |
 | A4 | Select Sentence Set (`50words_350sentences`, `Open_300sentences`) | Settings → **Sentence set**, same option names, with a one-line description (progress kept per set) | `settings_parity` (option words) |
@@ -45,7 +45,7 @@ Firefox). **Shots** are `tools/e2e/screenshots.py` (6 screen shapes, light and d
 | A27 | repetitionCount (+1 when the set is completed) | Same meaning; `round` decides `repeat<n>` (B20) | `rounds` |
 | A28 | Hotfixes v113/v114: key auto-repeat ignored, no clearing without confirmation, no skipping on silence, recording border, save dialog first | Kept: input rules, confirmed saves, recording check, green card + screen frame, picker first | `hold`, `break_zip`, `no_speech`, `normal`, `zip_picker` |
 | A29 | Dark page only (dark background, white sentence, green while reading, red ring while recording) | Light by default (recommended: lights the face, easier reading, fewer reflections); dark in the top bar and Settings. **Owner to confirm the default.** | `finish_settings`, shots |
-| A30 | "Update available" prompt every 60 s | Version checked only when the page opens (never mid-session) | gate in `app_next.html` |
+| A30 | "Update available" prompt every 60 s | Version checked only when the page opens (never mid-session) | gate in `app.html` |
 | A31 | How to Record checklist: "Position the camera below chin level and angle it upward so your mouth, throat, and cheeks are visible" | Camera check step 1: one head oval and "Put your face inside the oval." — the owner decided (2026-10-05) that participants only need their face in the frame; the playback asks "Can you see your face and hear yourself clearly?". The camera position stays a setup tip in docs/recorder.md | `first_run` |
 | A32 | Warm-up explained saving and ran a real Save All | Practice done screen: in ZIP mode the practice recordings are saved once (same steps as after every part); in folder mode it says where recordings go | `first_run`, `practice_save` |
 | A33 | ← pressed repeatedly walked back several sentences | Redo reaches only the previous sentence (approved plan, 2026-10-03); a second ← cancels the Redo. Settings → Previous / Go to reach further back | `redo`, `clicker` |

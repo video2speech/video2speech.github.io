@@ -361,7 +361,7 @@ video.is-mirrored { transform: scaleX(-1); }
 @keyframes pulse-ring-ink-dark { 0%, 100% { box-shadow: 0 0 0 0 rgba(245, 245, 247, .25); } 50% { box-shadow: 0 0 0 8px rgba(245, 245, 247, .25); } }
 @keyframes pulse-ring-quiet { 0%, 100% { box-shadow: 0 0 0 0 var(--fill-strong); } 50% { box-shadow: 0 0 0 6px var(--fill-strong); } }
 
-/* Watches the camera for a frozen picture (see app_next.html). */
+/* Watches the camera for a frozen picture (see app.html). */
 .monitor-video { position: fixed; left: 0; bottom: 0; width: 2px; height: 2px; opacity: 0.01; pointer-events: none; z-index: 1; }
 
 /* On computers the keys are the easiest controls: each button shows its key. */

@@ -1,8 +1,8 @@
-# Speech recorder (v210)
+# Speech recorder (v211)
 
-The new patient recorder lives at `app_next.html` while it is being tested on real
-devices. The current page, `app.html` (v114, hotfixed), keeps running for participants
-until the switch described at the end.
+The patient recorder is `app.html`. The previous page (v114, hotfixed) is kept at
+`app_legacy.html` as a fallback; it shares progress and cached recordings with the new
+page on the same device (save everything with the new page before using it).
 
 Why every screen looks and behaves the way it does (sizes, colours, wording, flow):
 [recorder-design.md](recorder-design.md). What was checked before hand-over, item by
@@ -290,7 +290,7 @@ See `tools/e2e/README.md` for setup. Every test run is silent: browsers are mute
 python tools/e2e/test_next_app.py                   # 51 scenarios (Chrome)
 python tools/e2e/test_next_app.py --engine webkit   # 40 scenarios in Safari's engine
 python tools/e2e/test_next_app.py --engine firefox
-python tools/e2e/test_legacy_hotfix.py              # app.html v114
+python tools/e2e/test_legacy_hotfix.py              # app_legacy.html v114
 python tools/e2e/screenshots.py --engine webkit OUT_DIR --only phone ipad
 ```
 
@@ -307,8 +307,9 @@ What the tests can and cannot show:
 ## Releasing
 
 - Bump the version in one step: `python3 tools/bump_version.py <new version>`.
-- **Switch** (after device testing): the `switch-to-v200` branch makes the new recorder
-  `app.html`, keeps the legacy page as `app_legacy.html` (update prompt removed) and
-  moves the recorder's version to the `appVersion` key of `version.json`.
+- The switch is done (2026-10-05, v211): the new recorder is `app.html`, the v114 page
+  is `app_legacy.html` (its update prompt removed) and `version.json` holds only
+  `appVersion`. To roll back, send participants `app_legacy.html`, or revert the switch
+  commit.
 - Backups: git tags `legacy-v111` (before any change), `legacy-v113` (first hotfix)
   and `legacy-v114` (save dialog first).

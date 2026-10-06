@@ -1,7 +1,7 @@
 # Recorder design (v6)
 
 What every screen shows, why, and how the recorder keeps the data clean. It is the
-reference for building and reviewing the patient recorder (`app_next.html`).
+reference for building and reviewing the patient recorder (`app.html`).
 
 ## Who uses it
 
