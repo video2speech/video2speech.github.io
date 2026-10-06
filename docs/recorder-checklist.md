@@ -169,15 +169,11 @@ Decided (as the owner asked, or kept as it is):
   after every part, while little is at stake.
 - The default theme: light (the screen lights the face for the video, reads best, and
   reflects least on a glossy iPad); dark stays a per-device choice in Settings.
+- The owner kept both thresholds as they are (2026-10-06): "Not recording yet" after
+  0.5 s of speech while waiting (at most every 6 s), and the held-press limit of 1 s
+  (Settings offers 2 or 3 s).
 
-Proposals for the owner (thresholds and wording are theirs to approve; nothing here
-breaks a principle as it stands):
-- "Not recording yet" sensitivity: 0.5 s of speech while waiting, at most every 6 s. A
-  helper's voice, or a participant rehearsing aloud, can set it off. Proposal: 1.5 s of
-  speech, at most once per sentence.
-- The held-press limit (1 s; Settings offers 2 or 3 s). People who cannot let go within
-  1 s lose takes until a helper changes it. Proposal: keep recording when nobody spoke
-  during the hold.
+Still open (optional; wording and sign-in are the owner's):
 - Staying signed in on the device. Today the sign-in lasts as long as the browser tab,
   so a participant alone types the username and password each time.
 - The sign-in page says "This website is solely for displaying reading materials", while
