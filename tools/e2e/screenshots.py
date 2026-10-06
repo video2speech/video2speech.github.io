@@ -21,6 +21,9 @@ VIEWPORTS = {
     'ipad': ({'width': 820, 'height': 1180}, True),
     'ipad-land': ({'width': 1180, 'height': 820}, True),
     'laptop': ({'width': 1440, 'height': 900}, False),
+    # What an iPhone shows inside Safari's bars: an SE upright, an iPhone 15 sideways.
+    'phone-safari': ({'width': 375, 'height': 553}, True),
+    'phone-land-safari': ({'width': 750, 'height': 340}, True),
 }
 
 ENGINE = 'chrome'
@@ -61,6 +64,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
       // Buttons whose content does not fit inside them (a label spilling over the edge).
       const spill = [...document.querySelectorAll('button')].filter(b => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && b.scrollWidth > b.clientWidth + 1);
       return { page: document.documentElement.scrollWidth - window.innerWidth, sheet: sheet ? sheet.scrollWidth - sheet.clientWidth : 0,
+               tall: document.documentElement.scrollHeight - window.innerHeight,
                wide: wide.slice(0, 3).map(n => `${n.tagName}#${n.id}.${n.className}`),
                spill: spill.slice(0, 3).map(b => `${b.id || b.textContent.trim().slice(0, 20)}`) };
     }"""
@@ -71,6 +75,9 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         r = await page.evaluate(overflow_js)
         if r['page'] > 1 or r['sheet'] > 1 or r['wide'] or r['spill']:
             print(f'  OVERFLOW {name}-{theme}-{label}: {r}')
+        # Taller than the screen: the main button may need scrolling to be seen.
+        if r['tall'] > 1:
+            print(f'  VSCROLL {name}-{theme}-{label}: {r["tall"]} px')
 
     # Phones and tablets are driven by taps (their instructions name the buttons);
     # computers by the keyboard (their instructions name Space and ←).
@@ -141,7 +148,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await click(page, '#helpButton')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await shot('07-help')
-    await page.wait_for_timeout(400)
+    await t.dialog_ready(page)
     await page.locator('#dialogActions button').first.click()
     await t.wait_for(page, "() => V2S.session.getState() === 'ready'")
     await page.wait_for_timeout(500)  # presses right after a dialog closes are ignored (double tap)
@@ -169,7 +176,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     async with page.expect_download():
         await click(page, '#breakPrimary')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
+    await t.dialog_ready(page)
     await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(500)
     await shot('12b-practice-saved')
@@ -196,7 +203,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         await page.mouse.up()
     else:
         await page.keyboard.up('Space')
-    await page.wait_for_timeout(500)
+    await t.dialog_ready(page)
     await page.locator('#dialogActions button').first.click()
     await t.wait_ready(page)
     await page.wait_for_timeout(200)
@@ -241,13 +248,13 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         await click(page, '#breakPrimary')
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
     await shot('23-save-confirm')
-    await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
+    await t.dialog_ready(page)
     await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(500)
     await shot('24-saved')
     await click(page, '#finishButton')   # End for today (top bar) asks first
     await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await page.wait_for_timeout(450)  # dialogs ignore presses in their first 350 ms
+    await t.dialog_ready(page)
     await page.locator('#dialogActions button', has_text='End for today').click()
     await page.wait_for_selector('#screen-done:not([hidden])')
     await page.wait_for_timeout(600)

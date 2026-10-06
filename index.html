@@ -16,7 +16,7 @@
     if (savedTheme === 'dark' || savedTheme === 'light') document.documentElement.setAttribute('data-theme', savedTheme);
   } catch (error) { /* storage unavailable */ }
 </script>
-<link rel="stylesheet" href="css/base.css?v=213">
+<link rel="stylesheet" href="css/base.css?v=214">
 <style>
   body {
     display: grid;
@@ -30,8 +30,8 @@
     animation: rise .35s var(--ease) both;
   }
   .brand { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: var(--s5); text-align: center; }
-  .brand-mark { width: 56px; height: 56px; border-radius: 14px; background: var(--go-tint); display: grid; place-items: center; flex: none; }
-  .brand-mark span { width: 20px; height: 20px; border-radius: 50%; background: var(--go-dot); }
+  .brand-mark { width: 56px; height: 56px; border-radius: 14px; background: var(--fill); display: grid; place-items: center; flex: none; }
+  .brand-mark span { width: 20px; height: 20px; border-radius: 50%; background: var(--ink-3); }
   .brand-name { font-size: 15px; font-weight: 600; color: var(--ink-3); }
   .signin h1 { margin-bottom: var(--s2); text-align: center; }
   .signin .lead { margin-bottom: var(--s5); text-align: center; }
@@ -77,7 +77,7 @@
   </main>
 
 <script>
-const APP_VERSION = '213';
+const APP_VERSION = '214';
 
 let nextAppVersion = null;
 

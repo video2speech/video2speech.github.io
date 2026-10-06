@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '213';
+      var APP_VERSION = '214';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=213">
-  <link rel="stylesheet" href="css/app.css?v=213">
+  <link rel="stylesheet" href="css/base.css?v=214">
+  <link rel="stylesheet" href="css/app.css?v=214">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -56,7 +56,7 @@
       </div>
       <div class="topbar-title">
         <div class="where" id="where" hidden>
-          <p class="where-text"><span class="where-long" id="whereMain"></span><span class="where-short" id="whereShort"></span></p>
+          <p class="where-text"><span class="where-long" id="whereMain"></span><span class="where-short" id="whereShort"></span><span class="where-tiny" id="whereTiny"></span></p>
           <div class="bar" aria-hidden="true"><div class="bar-fill" id="whereBar"></div></div>
         </div>
       </div>
@@ -110,12 +110,22 @@
               <button class="btn-text" id="setupConfirmChange" type="button"></button>
             </div>
           </div>
+          <div id="setupStepLegacy" class="flow-step" hidden>
+            <div class="flow-body flow-center">
+              <h1 id="setupLegacyTitle"></h1>
+              <p class="lead" id="setupLegacyLead"></p>
+            </div>
+            <div class="flow-actions">
+              <button class="btn btn-go btn-xl btn-block" id="setupLegacyContinue" type="button"></button>
+              <button class="btn-text" id="setupLegacyFresh" type="button"></button>
+            </div>
+          </div>
           <div id="setupStepFolder" class="flow-step" hidden>
             <div class="flow-body flow-center">
               <div class="symbol symbol-neutral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2.5h6.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-10Z"/></svg></div>
               <h1 id="setupFolderTitle"></h1>
               <p class="lead" id="setupFolderLead"></p>
-              <p class="field-error" id="setupFolderError" role="alert" hidden></p>
+              <p class="notice notice-warn" id="setupFolderError" role="alert" hidden></p>
             </div>
             <div class="flow-actions">
               <button class="btn btn-go btn-xl btn-block" id="setupFolderChoose" type="button"></button>
@@ -145,13 +155,12 @@
               <p class="journey-count" id="welcomeCount"></p>
             </div>
             <p class="rule" id="welcomeRule" hidden></p>
-            <div class="notice" id="welcomeNotice" hidden>
-              <p id="welcomeNoticeText"></p>
-              <button class="btn btn-ghost btn-md" id="welcomeNoticeAction" type="button"></button>
-            </div>
           </div>
           <div class="flow-actions">
+            <!-- Why the main button saves first: right above it, never scrolled away. -->
+            <p class="notice-warn welcome-notice" id="welcomeNotice" hidden><span id="welcomeNoticeText"></span></p>
             <button class="btn btn-go btn-xl btn-block" id="welcomeStart" type="button"></button>
+            <button class="btn-text" id="welcomeLater" type="button" hidden></button>
           </div>
         </div>
       </section>
@@ -163,11 +172,11 @@
             <div class="symbol symbol-neutral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2.5h6.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-10Z"/></svg></div>
             <h1 id="folderTitle"></h1>
             <p class="lead" id="folderLead"></p>
-            <p class="field-error" id="folderError" role="alert" hidden></p>
+            <p class="notice notice-warn" id="folderError" role="alert" hidden></p>
           </div>
           <div class="flow-actions">
             <button class="btn btn-go btn-xl btn-block" id="folderAllow" type="button"></button>
-            <button class="btn btn-ghost btn-lg btn-block" id="folderChoose" type="button"></button>
+            <button class="btn-text" id="folderChoose" type="button"></button>
             <button class="btn-text" id="folderZip" type="button"></button>
           </div>
         </div>
@@ -201,11 +210,18 @@
               <p class="eyebrow" id="checkMicStep"></p>
               <h1 id="checkMicTitle"></h1>
               <p class="check-text" id="checkMicText"></p>
-              <div class="notice notice-stack" id="micWarning" hidden>
+              <div class="notice notice-warn" id="micWarning" hidden>
                 <p id="micWarningText"></p>
-                <button class="btn btn-ghost btn-md" id="micSwitch" type="button" hidden></button>
+              </div>
+              <div class="check-actions mic-choice" id="micChoice" hidden>
+                <button class="btn btn-go btn-xl btn-block" id="micSwitch" type="button"></button>
+                <button class="btn-text" id="micKeep" type="button"></button>
               </div>
               <div class="check-actions" id="testBox">
+                <div class="notice notice-warn" id="testError" role="alert" hidden>
+                  <p id="testErrorText"></p>
+                </div>
+                <button class="btn-text" id="testChooseMic" type="button" hidden></button>
                 <button class="btn btn-start btn-xl btn-block" id="testRecord" type="button"><span class="btn-icon"><span class="dot-go"></span></span><span id="testRecordLabel"></span></button>
                 <div class="test-live" id="testLive" hidden>
                   <p class="test-say"><span class="test-say-label" id="testSayLabel"></span> <span class="test-say-phrase" id="testSay"></span></p>
@@ -219,9 +235,8 @@
                     <button class="btn-text" id="testReplay" type="button"></button>
                     <button class="btn-text" id="testAgain" type="button"></button>
                   </div>
-                  <p class="test-hint" id="testHint"></p>
+                  <p class="test-hint" id="testHint" hidden></p>
                 </div>
-                <p class="field-error" id="testError" role="alert" hidden></p>
               </div>
             </div>
             <button class="btn-text check-help" id="checkHelp" type="button"></button>
@@ -273,6 +288,10 @@
             <span id="cardStatusText"></span>
           </p>
           <div class="stage-text"><p class="sentence" id="sentenceText"></p></div>
+          <!-- A problem (or what to do now) on the card's bottom edge; nothing otherwise. -->
+          <p class="message is-empty" id="message" aria-live="polite">
+            <span class="message-body"><span class="message-icon" id="messageIcon" aria-hidden="true"></span><span id="messageText"></span></span>
+          </p>
         </div>
 
         <!-- At the bottom, where a thumb reaches: the one instruction (practice) or a
@@ -284,9 +303,6 @@
               <p class="coach-action" id="coachAction"></p>
               <p class="coach-detail" id="coachDetail"></p>
             </div>
-            <p class="message is-empty" id="message" aria-live="polite">
-              <span class="message-body"><span class="message-icon" id="messageIcon" aria-hidden="true"></span><span id="messageText"></span></span>
-            </p>
           </div>
           <button class="btn btn-start btn-main" id="mainButton" type="button" tabindex="-1">
             <span class="btn-icon" id="mainIcon" aria-hidden="true"></span>
@@ -346,7 +362,7 @@
       <section class="screen screen-flow" id="screen-error" hidden>
         <div class="flow">
           <div class="flow-body flow-center">
-            <div class="symbol symbol-warn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.4v.2"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+            <div class="symbol symbol-warn" id="errorSymbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.4v.2"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
             <h1 id="errorTitle"></h1>
             <p class="lead" id="errorBody"></p>
             <p class="help-text" id="errorHelp" hidden></p>
@@ -383,20 +399,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=213"></script>
-  <script defer src="js/config.js?v=213"></script>
-  <script defer src="js/copy.js?v=213"></script>
-  <script defer src="js/util.js?v=213"></script>
-  <script defer src="js/storage.js?v=213"></script>
-  <script defer src="js/sentences.js?v=213"></script>
-  <script defer src="js/media.js?v=213"></script>
-  <script defer src="js/meter.js?v=213"></script>
-  <script defer src="js/qc.js?v=213"></script>
-  <script defer src="js/input.js?v=213"></script>
-  <script defer src="js/ui.js?v=213"></script>
-  <script defer src="js/export.js?v=213"></script>
-  <script defer src="js/session.js?v=213"></script>
-  <script defer src="js/settings.js?v=213"></script>
-  <script defer src="js/main.js?v=213"></script>
+  <script defer src="vendor/jszip.min.js?v=214"></script>
+  <script defer src="js/config.js?v=214"></script>
+  <script defer src="js/copy.js?v=214"></script>
+  <script defer src="js/util.js?v=214"></script>
+  <script defer src="js/storage.js?v=214"></script>
+  <script defer src="js/sentences.js?v=214"></script>
+  <script defer src="js/media.js?v=214"></script>
+  <script defer src="js/meter.js?v=214"></script>
+  <script defer src="js/qc.js?v=214"></script>
+  <script defer src="js/input.js?v=214"></script>
+  <script defer src="js/ui.js?v=214"></script>
+  <script defer src="js/export.js?v=214"></script>
+  <script defer src="js/session.js?v=214"></script>
+  <script defer src="js/settings.js?v=214"></script>
+  <script defer src="js/main.js?v=214"></script>
 </body>
 </html>

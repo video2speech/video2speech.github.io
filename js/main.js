@@ -34,7 +34,6 @@ V2S.app = (() => {
       finishShort: copy.top.finishShort,
       setupEyebrow: copy.setup.eyebrow,
       setupTitle: copy.setup.title,
-      setupLead: copy.setup.lead,
       setupIdLabel: copy.setup.idLabel,
       setupHint: copy.setup.idHint,
       setupNext: copy.setup.next,
@@ -42,7 +41,6 @@ V2S.app = (() => {
       setupConfirmYes: copy.setup.confirmYes,
       setupConfirmChange: copy.setup.confirmChange,
       setupFolderTitle: copy.setup.folderTitle,
-      setupFolderLead: copy.setup.folderLead,
       setupFolderChoose: copy.setup.folderChoose,
       setupFolderZip: copy.setup.folderZip,
       welcomeStage1: copy.welcome.stage1,
@@ -69,6 +67,8 @@ V2S.app = (() => {
     };
     Object.entries(text).forEach(([id, value]) => ui.setText(id, value));
     // Two sentences each: the second one starts its own line.
+    ui.setSentences('setupLead', copy.setup.lead);
+    ui.setSentences('setupFolderLead', copy.setup.folderLead);
     ui.setSentences('checkCameraText', copy.check.cameraText);
     ui.setSentences('checkMicText', copy.check.micText);
     el('setupId').placeholder = copy.setup.idPlaceholder;
@@ -190,6 +190,9 @@ V2S.app = (() => {
     el('setupStepId').hidden = step !== 'id';
     el('setupStepConfirm').hidden = step !== 'confirm';
     el('setupStepFolder').hidden = step !== 'folder';
+    el('setupStepLegacy').hidden = step !== 'legacy';
+    // A question (not the ID form): on touch screens its buttons sit at the bottom.
+    el('screen-setup').classList.toggle('is-question', step !== 'id');
   }
 
   function showSetup(prefill = '') {
@@ -208,26 +211,23 @@ V2S.app = (() => {
     if (!/^[A-Z0-9][A-Z0-9_-]{0,23}$/.test(value)) {
       ui.setText('setupError', copy.setup.idInvalid);
       el('setupError').hidden = false;
+      el('setupHint').hidden = true;
       return;
     }
     el('setupError').hidden = true;
+    el('setupHint').hidden = false;
     const existing = await V2S.storage.getProgress(V2S.storage.progressKey(value, app.setKey));
     const legacy = existing ? null : await V2S.storage.findUnclaimedLegacyProgress(app.setKey);
     pendingSetup = { participantId: value, legacy };
     ui.setText('setupConfirmId', value);
-    const options = el('setupLegacy');
-    options.replaceChildren();
-    options.hidden = !legacy;
+    el('setupLegacy').hidden = true;
     if (legacy) {
       await loadMaterial();
       const index = Math.min(Number(legacy.currentIndex) || 0, app.material.all.length - 1);
       const place = index < app.material.warmupCount
         ? `practice sentence ${index + 1}`
         : `sentence ${index - app.material.warmupCount + 1} of ${app.material.formalCount}`;
-      options.append(
-        optionRow('legacyChoice', 'continue', true, copy.setup.legacyContinue(place), copy.setup.legacyContinueDetail),
-        optionRow('legacyChoice', 'fresh', false, copy.setup.legacyFresh, copy.setup.legacyFreshDetail)
-      );
+      pendingSetup.place = place;
     }
     showSetupStep('confirm');
     el('setupConfirmYes').focus();
@@ -251,10 +251,20 @@ V2S.app = (() => {
     return label;
   }
 
+  // Earlier progress on this device (before IDs): its own question, one at a time.
+  function askLegacy() {
+    ui.setText('setupLegacyTitle', copy.setup.legacyTitle);
+    ui.setSentences('setupLegacyLead', copy.setup.legacyLead);
+    ui.setText('setupLegacyContinue', copy.setup.legacyContinue(pendingSetup.place));
+    ui.setText('setupLegacyFresh', copy.setup.legacyFresh);
+    showSetupStep('legacy');
+    el('setupLegacyContinue').focus();
+  }
+
   async function onSetupConfirm() {
     if (!pendingSetup) return;
-    const choice = document.querySelector('input[name="legacyChoice"]:checked');
-    const useLegacy = pendingSetup.legacy && (!choice || choice.value === 'continue');
+    if (pendingSetup.legacy && pendingSetup.useLegacy === undefined) return askLegacy();
+    const useLegacy = Boolean(pendingSetup.legacy && pendingSetup.useLegacy);
     app.participantId = pendingSetup.participantId;
     const key = V2S.storage.progressKey(app.participantId, app.setKey);
     if (!(await V2S.storage.getProgress(key))) {
@@ -306,11 +316,12 @@ V2S.app = (() => {
     const progress = app.progress;
     const firstVisit = !progress.howtoSeen && !progress.coachDone && progress.currentIndex === 0;
     ui.setText('welcomeId', copy.welcome.participant(app.participantId));
-    ui.setText('welcomeTitle', firstVisit ? copy.welcome.titleFirst : copy.welcome.titleBack);
+    ui.setText('welcomeTitle', progress.completed ? copy.welcome.doneTitle : firstVisit ? copy.welcome.titleFirst : copy.welcome.titleBack);
     ui.setSentences('welcomeLead', firstVisit ? copy.welcome.leadFirst : copy.welcome.leadBack);
     el('welcomeStages').hidden = !firstVisit;
-    el('welcomeJourney').hidden = firstVisit;
-    el('welcomeRule').hidden = firstVisit || needsPractice() || Boolean(progress.completed);
+    el('welcomeJourney').hidden = firstVisit || Boolean(progress.completed);
+    app.welcomeRule = !(firstVisit || needsPractice() || Boolean(progress.completed));
+    el('welcomeRule').hidden = !app.welcomeRule;
     ui.setRich('welcomeRule', copy.rule(usesKeys()));
 
     // Where they are, as the parts (or practice sentences) done, one segment each.
@@ -333,12 +344,13 @@ V2S.app = (() => {
       segments(p.total, p.pos - 1, p.pos - 1);
     } else {
       ui.setText('welcomePart', copy.welcome.part(p.block, p.blocks));
-      ui.setText('welcomeCount', p.inBlock > 1 ? copy.welcome.partCount(p.inBlock - 1, p.blockSize) : copy.welcome.startsAt);
+      ui.setText('welcomeCount', p.inBlock > 1 ? copy.welcome.sentenceOf(p.inBlock, p.blockSize) : '');
       segments(p.blocks, p.block - 1, p.block - 1);
     }
     ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : copy.welcome.continue);
     el('welcomeStart').hidden = Boolean(progress.completed);
     await refreshWelcomeNotice();
+    if (progress.completed) ui.setSentences('welcomeLead', el('welcomeNotice').hidden ? copy.welcome.doneLead : copy.welcome.doneLeadUnsaved);
     ui.show('welcome');
     if (!el('welcomeStart').hidden) el('welcomeStart').focus({ preventScroll: true });
   }
@@ -349,21 +361,37 @@ V2S.app = (() => {
     // Mid-practice the practice recordings are saved at its end, as taught there.
     const show = pending > 0 && exporter.getSaveMode() !== 'folder' && !needsPractice();
     el('welcomeNotice').hidden = !show;
+    // One step at a time: with unsaved recordings the main button saves them first (the
+    // one thing to remember waits until then).
+    app.welcomeSaveFirst = show;
+    el('welcomeRule').hidden = !app.welcomeRule || show;
+    // A way on if saving cannot be done now (the recordings stay on the device).
+    el('welcomeLater').hidden = !show || Boolean(app.progress && app.progress.completed);
+    ui.setText('welcomeLater', copy.breakScreen.laterGo);
     if (show) {
       ui.setText('welcomeNoticeText', copy.welcome.pending(pending));
-      ui.setText('welcomeNoticeAction', copy.welcome.saveNow);
+      ui.setText('welcomeStart', copy.welcome.saveFirst);
+      el('welcomeStart').hidden = false;
+    } else if (app.progress && !app.progress.completed) {
+      const firstVisit = !app.progress.howtoSeen && !app.progress.coachDone && app.progress.currentIndex === 0;
+      ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : copy.welcome.continue);
+    } else {
+      el('welcomeStart').hidden = true;
     }
-  }
-
-  async function onWelcomeSaveNow() {
-    await runZipSave('saved');
-    await refreshWelcomeNotice();
   }
 
   // Guards against double taps starting the camera twice.
   let starting = false;
 
-  async function onWelcomeStart() {
+  async function onWelcomeStart(event, { skipSave = false } = {}) {
+    if (zipSaving) return;   // a save is under way: its question comes first
+    if (app.welcomeSaveFirst && !skipSave) {
+      await saveFromButton('welcomeStart', copy.welcome.saveFirst, ['welcomeLater']);
+      await refreshWelcomeNotice();
+      if (app.progress.completed) ui.setSentences('welcomeLead', el('welcomeNotice').hidden ? copy.welcome.doneLead : copy.welcome.doneLeadUnsaved);
+      if (!el('welcomeStart').hidden) el('welcomeStart').focus({ preventScroll: true });
+      return;
+    }
     if (starting) return;
     starting = true;
     try {
@@ -387,7 +415,7 @@ V2S.app = (() => {
   function askForFolder() {
     return new Promise(resolve => {
       V2S.input.setEnabled(false);
-      ui.setText('folderLead', copy.folder.lead(exporter.folderName() || ''));
+      ui.setSentences('folderLead', copy.folder.lead(exporter.folderName() || ''));
       el('folderError').hidden = true;
       ui.show('folder');
       el('folderAllow').focus({ preventScroll: true });
@@ -423,7 +451,7 @@ V2S.app = (() => {
     el('checkStepMic').hidden = step !== 'mic';
     document.querySelector('#screen-check .check').classList.toggle('is-camera-step', step === 'camera');
     app.checkStep = step;
-    const focus = step === 'camera' ? el('checkNext') : el('testRecord');
+    const focus = step === 'camera' ? el('checkNext') : (el('micChoice').hidden ? el('testRecord') : el('micSwitch'));
     if (focus && !focus.hidden) focus.focus({ preventScroll: true });
   }
 
@@ -488,31 +516,70 @@ V2S.app = (() => {
       dot.className = 'rec-dot';
       badge.append(dot);
     }
-    const label = { live: copy.check.live, recording: copy.check.testRecording(extra), playing: copy.check.testPlaying }[kind] || '';
+    // Short, so it never covers the face on a narrow picture (the bar under the phrase
+    // shows the time left).
+    const label = { live: copy.check.live, recording: copy.check.testRecording, playing: copy.check.testPlaying }[kind] || '';
     badge.append(document.createTextNode(label));
   }
 
   // The microphone in use, quietly, and a warning for Bluetooth headphones; devices are
   // changed in Settings → Camera and microphone.
+  // The camera already works: help about devices (not about permission).
+  async function onCheckHelp() {
+    if (!V2S.media.getStream()) return ui.showCameraHelp();
+    const choose = await ui.dialog({
+      title: copy.liveHelp.title,
+      body: copy.liveHelp.body,
+      actions: [
+        { label: copy.liveHelp.close, value: false, variant: 'go', default: true },
+        { label: copy.liveHelp.choose, value: true, variant: 'text' }
+      ],
+      dismissValue: false
+    });
+    if (choose) V2S.settings.open('settingsDevices');
+  }
+
+  // 4. A Bluetooth microphone: switching to the device's own microphone is the step's
+  // one main button (Record comes after); keeping the headphones is a quiet link.
   async function renderDevices() {
     const now = V2S.media.current();
-    el('micWarning').hidden = !now.bluetooth;
-    el('micSwitch').hidden = true;
-    if (!now.bluetooth) return;
+    const warn = now.bluetooth && !app.keepBluetooth;
+    el('micWarning').hidden = !warn;
+    el('micChoice').hidden = true;
+    if (!app.test.running && el('testAsk').hidden) el('testRecord').hidden = false;
+    markMicProblem();
+    if (!warn) return;
     ui.setText('micWarningText', copy.check.bluetooth);
     // Offer the device's own microphone if there is one.
     const { microphones } = await V2S.media.listDevices().catch(() => ({ microphones: [] }));
     const builtIn = microphones.find(mic => !V2S.media.isBluetooth(mic.label));
     if (!builtIn) return;
     ui.setText('micSwitch', copy.check.useDevice(builtIn.label));
-    el('micSwitch').hidden = false;
+    ui.setText('micKeep', copy.check.keepHeadphones);
+    el('micChoice').hidden = false;
+    el('testRecord').hidden = true;
+    markMicProblem();
+    if (app.checkStep === 'mic') {
+      ui.pauseClicks();
+      el('micSwitch').focus({ preventScroll: true });
+    }
     el('micSwitch').onclick = async () => {
       const next = { ...V2S.media.getSettings(), audioDeviceId: builtIn.id };
       await V2S.storage.setSetting('mediaSettings', next);
       V2S.media.setSettings(next);
       logEvent('mic_switched', { to: builtIn.label });
       await reopenMedia();
+      // Record now sits where this button was: a second tap must not start the test.
+      ui.pauseClicks();
+      if (!el('testRecord').hidden) el('testRecord').focus({ preventScroll: true });
     };
+  }
+
+  // A problem on the microphone step (Bluetooth headphones to replace, a test that heard
+  // nothing): the step shows only the problem and its fix, without the instructions and
+  // the help link (one thing at a time; it also fits a small phone).
+  function markMicProblem() {
+    el('screen-check').classList.toggle('has-problem', !el('micChoice').hidden || !el('testError').hidden);
   }
 
   function resetTest() {
@@ -533,15 +600,23 @@ V2S.app = (() => {
     el('testLive').hidden = true;
     el('testStatus').hidden = true;
     el('testAsk').hidden = true;
+    el('testHint').hidden = true;
     el('testError').hidden = true;
+    el('testChooseMic').hidden = true;
     el('checkHelp').hidden = false;
+    el('screen-check').classList.remove('is-asking');
+    markMicProblem();
   }
 
   function showTestError(text) {
     resetTest();
-    ui.setText('testError', text);
+    ui.setSentences('testErrorText', text);
+    ui.setText('testChooseMic', copy.check.chooseMic);
     el('testError').hidden = false;
+    el('testChooseMic').hidden = false;
+    markMicProblem();
     setBadge('live');
+    el('testRecord').focus({ preventScroll: true });
   }
 
   // Records TEST_RECORD_MS with the real recording settings, then plays it back.
@@ -613,8 +688,9 @@ V2S.app = (() => {
     const ask = () => {
       app.test.running = false;
       el('testAsk').hidden = false;
+      el('screen-check').classList.add('is-asking');
       el('checkHelp').hidden = true;
-      el('testBox').scrollIntoView({ block: 'nearest' });
+      el('testYes').scrollIntoView({ block: 'nearest' });
       el('testYes').focus({ preventScroll: true });
     };
     playback.onended = () => {
@@ -709,6 +785,29 @@ V2S.app = (() => {
     await showDone({ allDone: false });
   }
 
+  // Going on without saving asks first (Save now is the main answer), wherever it is offered.
+  // Its "Continue without saving" lands where the link that opened it was: it counts only
+  // after a second (a double tap must not skip the save). Esc answers nothing.
+  function askContinueWithoutSaving() {
+    return ui.dialog({
+      title: copy.breakScreen.laterAsk,
+      body: copy.breakScreen.laterAskBody,
+      actions: [
+        { label: copy.breakScreen.laterSave, value: false, variant: 'go', default: true },
+        { label: copy.breakScreen.laterGo, value: true, variant: 'ghost' }
+      ],
+      dismissValue: null,
+      armMs: 1000
+    });
+  }
+
+  async function continueWithoutSaving() {
+    const go = await askContinueWithoutSaving();
+    if (go === null) return;
+    if (go) return showRecord();
+    return saveZipFromBreak();
+  }
+
   async function endFromBreak() {
     if (zipSaving || ui.isDialogOpen()) return;   // a save is under way: its own question comes first
     if (await confirmEnd()) await showDone({ allDone: false });
@@ -730,6 +829,11 @@ V2S.app = (() => {
       button.hidden = !config;
       if (config) {
         button.textContent = config.label;
+        // The main button: blue moves on; a step that removes something is neutral.
+        if (id === 'breakPrimary') {
+          button.classList.toggle('btn-go', config.variant !== 'plain');
+          button.classList.toggle('btn-ghost', config.variant === 'plain');
+        }
         button.setAttribute('aria-disabled', 'false');
         button.onclick = () => { if (button.getAttribute('aria-disabled') !== 'true') config.action(); };
       }
@@ -865,9 +969,9 @@ V2S.app = (() => {
       setSavePanel('breakSave', 'breakSaveText', '', 'warn');
       el('breakSaveText').replaceChildren(before, ...(typeof hint === 'string' ? [hint] : [...hint.childNodes]), after || '');
       setBreakButtons(
-        { label: copy.breakScreen.makeRoomYes, action: makeRoom },
+        { label: copy.breakScreen.makeRoomYes, action: makeRoom, variant: 'plain' },
         null,
-        { label: copy.breakScreen.saveAgain, action: async () => { await runZipSave('backup', null, { backups: true }); await refreshBreakSave(); } },
+        { label: copy.breakScreen.saveAgain, action: saveBackupsAgain },
         { focus: false }
       );
       return;
@@ -918,6 +1022,10 @@ V2S.app = (() => {
       }
       return;
     }
+    if (breakState.mode === 'storage' && pending === 0 && !V2S.session.needsRoom()) {
+      // Saved and room again: back to the sentence (no "saved" step in between).
+      return showRecord();
+    }
     if (breakState.mode === 'storage') {
       // Saved and room again: say so (no more "Save your recordings" above "saved").
       ui.setText('breakTitle', pending === 0 ? copy.breakScreen.roomTitle : copy.breakScreen.savePromptTitle);
@@ -940,7 +1048,30 @@ V2S.app = (() => {
     }
   }
 
+  // "Save it again" on the make-room step: nothing can be removed while it runs.
+  async function saveBackupsAgain() {
+    if (zipSaving) return;
+    setBreakBusy(true);
+    try {
+      await runZipSave('backup', null, { backups: true });
+    } finally {
+      setBreakBusy(false);
+    }
+    await refreshBreakSave();
+  }
+
   async function makeRoom() {
+    if (zipSaving) return;
+    const sure = await ui.dialog({
+      title: copy.breakScreen.makeRoomAsk,
+      body: copy.breakScreen.makeRoomAskBody,
+      actions: [
+        { label: copy.common.cancel, value: false, variant: 'go', default: true },
+        { label: copy.breakScreen.makeRoomRemove, value: true, variant: 'ghost' }
+      ],
+      dismissValue: false
+    });
+    if (!sure) return;
     const removed = await V2S.storage.releaseLatestBackup();
     logEvent('backups_released', { count: removed });
     await V2S.session.refreshStorage().catch(() => {});
@@ -986,7 +1117,7 @@ V2S.app = (() => {
       el('breakSave').hidden = false;
       setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.notConfirmed, 'warn');
       setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak },
-        { label: copy.breakScreen.later, action: () => showRecord() },
+        breakState.mode === 'storage' ? null : { label: copy.breakScreen.later, action: continueWithoutSaving },
         null);
     }
   }
@@ -1015,6 +1146,23 @@ V2S.app = (() => {
   // One save at a time: a second press while the ZIP is built or the question is open
   // does nothing (it would download the same file twice).
   let zipSaving = false;
+  // A save started from Welcome or Done shows its progress on the button and takes no
+  // second press until it is over (as on a break).
+  async function saveFromButton(buttonId, idleLabel, alsoBusy = []) {
+    if (zipSaving) return 'busy';
+    el(buttonId).setAttribute('aria-busy', 'true');
+    alsoBusy.forEach(id => el(id).setAttribute('aria-disabled', 'true'));
+    try {
+      return await runZipSave('saved', (done, total) => {
+        ui.setText(buttonId, done === null || done === undefined ? idleLabel : copy.breakScreen.saving(done, total));
+      });
+    } finally {
+      el(buttonId).removeAttribute('aria-busy');
+      alsoBusy.forEach(id => el(id).setAttribute('aria-disabled', 'false'));
+      ui.setText(buttonId, idleLabel);
+    }
+  }
+
   async function runZipSave(label, onProgress, options = {}) {
     if (zipSaving) return 'busy';
     zipSaving = true;
@@ -1054,7 +1202,8 @@ V2S.app = (() => {
           { label: copy.saveConfirm.unsure, value: 'unsure', variant: 'text' }
         ],
         dismissValue: 'unsure',
-        focus: false
+        focus: false,
+        armMs: 1000
       });
       logEvent('zip_confirm', { answer, fileName: result.fileName, count: result.count });
       if (answer === 'no') return saveZipOnce(label, onProgress, { backups });
@@ -1140,6 +1289,7 @@ V2S.app = (() => {
   }
 
   async function onDoneSave() {
+    if (zipSaving) return;
     if (exporter.getSaveMode() === 'folder') {
       const permission = await exporter.requestFolderPermission(); // first: browser asks
       if (permission !== 'granted') {
@@ -1149,37 +1299,51 @@ V2S.app = (() => {
       }
       await flushPendingToFolder();
     } else {
-      await runZipSave('saved');
+      await saveFromButton('doneSave', copy.done.save, ['doneAgain']);
     }
     await refreshDoneSave();
   }
 
   // ---------- errors ----------
-  function showError({ title, body, help, action, actionLabel, secondary }) {
+  function showError({ title, body, help, action, actionLabel, secondary, neutral = false }) {
     V2S.input.setEnabled(false);
+    el('errorSymbol').className = `symbol ${neutral ? 'symbol-neutral' : 'symbol-warn'}`;
+    el('errorSymbol').innerHTML = neutral ? SYMBOLS.done[1] : SYMBOLS.warn[1];
     ui.setText('errorTitle', title);
-    ui.setText('errorBody', body);
+    ui.setSentences('errorBody', body);
     el('errorHelp').hidden = !help;
     ui.setText('errorHelp', help || '');
-    ui.setText('errorAction', actionLabel);
-    el('errorAction').onclick = action;
+    el('errorAction').hidden = !actionLabel;
+    ui.setText('errorAction', actionLabel || '');
+    el('errorAction').onclick = action || null;
     el('errorSecondary').hidden = !secondary;
     if (secondary) {
       ui.setText('errorSecondary', secondary.label);
       el('errorSecondary').onclick = secondary.action;
     }
     ui.show('error');
-    el('errorAction').focus({ preventScroll: true });
+    if (actionLabel) el('errorAction').focus({ preventScroll: true });
   }
 
   function showMediaError(error) {
     logEvent('media_error', { code: error && error.code, error: String(error && (error.name || error.message) || error) });
     V2S.media.close();
     if (error && error.code === 'unsupported') {
-      return showError({ title: copy.error.unsupportedTitle, body: copy.error.unsupportedBody, actionLabel: copy.error.reload, action: () => window.location.reload() });
+      return showError({
+        title: copy.error.unsupportedTitle,
+        body: copy.error.unsupportedBody,
+        actionLabel: copy.error.copyLink,
+        action: async () => {
+          const link = window.location.origin + '/index.html';
+          // "Link copied" only when it was: otherwise the link is shown to copy by hand.
+          let copied = false;
+          try { await navigator.clipboard.writeText(link); copied = true; } catch (copyError) { window.prompt('', link); }
+          if (copied) ui.setText('errorAction', copy.error.linkCopied);
+        }
+      });
     }
     if (error && error.code === 'permission') {
-      return showError({ title: copy.error.permissionTitle, body: copy.error.permissionBody, help: ui.helpText(), actionLabel: copy.error.tryAgain, action: () => showCheck() });
+      return showError({ title: copy.error.permissionTitle, body: copy.error.permissionBody, help: ui.helpText(), actionLabel: copy.error.reload, action: () => window.location.reload() });
     }
     return showError({ title: copy.error.deviceTitle, body: copy.error.deviceBody, help: ui.helpText(), actionLabel: copy.error.tryAgain, action: () => showCheck() });
   }
@@ -1237,7 +1401,7 @@ V2S.app = (() => {
     logEvent('load_error', { error: String(error && error.message || error) });
     showError({
       title: copy.error.loadTitle,
-      body: `${copy.error.loadBody} (${String(error && error.message || error)})`,
+      body: copy.error.loadBody,
       actionLabel: copy.error.reload,
       action: () => window.location.reload()
     });
@@ -1277,17 +1441,19 @@ V2S.app = (() => {
     });
   }
 
-  function showOtherTab(title, body) {
-    showError({
-      title,
-      body,
-      actionLabel: copy.tab.useHere,
-      action: async () => {
-        logEvent('tab_take_over', {});
-        await holdTabLock(true);
-        window.location.reload();
-      }
-    });
+  // Already open elsewhere: taking over is the action. Taken over: nothing is wrong here
+  // (recording goes on in the other tab), so a neutral screen with a quiet link.
+  function showOtherTab(title, body, { moved = false } = {}) {
+    const takeOver = async () => {
+      logEvent('tab_take_over', {});
+      await holdTabLock(true);
+      window.location.reload();
+    };
+    if (moved) {
+      showError({ title, body, neutral: true, secondary: { label: copy.tab.useHere, action: takeOver } });
+    } else {
+      showError({ title, body, actionLabel: copy.tab.useHere, action: takeOver });
+    }
   }
 
   async function onTabTakenOver() {
@@ -1299,7 +1465,7 @@ V2S.app = (() => {
     V2S.meter.detach();
     V2S.media.close();
     app.sessionStarted = false;
-    showOtherTab(copy.tab.movedTitle, copy.tab.movedBody);
+    showOtherTab(copy.tab.movedTitle, copy.tab.movedBody, { moved: true });
   }
 
   // ---------- boot ----------
@@ -1307,13 +1473,20 @@ V2S.app = (() => {
     el('setupForm').addEventListener('submit', onSetupSubmit);
     el('setupConfirmYes').addEventListener('click', onSetupConfirm);
     el('setupConfirmChange').addEventListener('click', () => showSetup(pendingSetup ? pendingSetup.participantId : ''));
+    el('setupLegacyContinue').addEventListener('click', () => { pendingSetup.useLegacy = true; onSetupConfirm(); });
+    el('setupLegacyFresh').addEventListener('click', () => { pendingSetup.useLegacy = false; onSetupConfirm(); });
     el('setupFolderChoose').addEventListener('click', onSetupChooseFolder);
     el('setupFolderZip').addEventListener('click', async () => {
       await exporter.setSaveMode('zip');
       await showWelcome();
     });
     el('welcomeStart').addEventListener('click', onWelcomeStart);
-    el('welcomeNoticeAction').addEventListener('click', onWelcomeSaveNow);
+    el('welcomeLater').addEventListener('click', async event => {
+      if (zipSaving) return;
+      const go = await askContinueWithoutSaving();
+      if (go === null) return;
+      return onWelcomeStart(event, { skipSave: go });
+    });
     el('checkNext').addEventListener('click', onCheckNext);
     el('testRecord').addEventListener('click', onTestRecord);
     el('testYes').addEventListener('click', onTestYes);
@@ -1325,13 +1498,22 @@ V2S.app = (() => {
       playback.currentTime = 0;
       setBadge('playing');
       playback.play().catch(() => {});
+      el('testHint').hidden = false;   // played again: the hint for not hearing it
       logEvent('mic_test_replay', {});
     });
-    el('checkHelp').addEventListener('click', () => ui.showCameraHelp());
+    el('checkHelp').addEventListener('click', onCheckHelp);
+    el('testChooseMic').addEventListener('click', () => V2S.settings.open('settingsDevices'));
+    el('micKeep').addEventListener('click', async () => {
+      app.keepBluetooth = true;
+      logEvent('bluetooth_kept', {});
+      await renderDevices();
+      ui.pauseClicks();
+      if (!el('testRecord').hidden) el('testRecord').focus({ preventScroll: true });
+    });
     el('finishButton').addEventListener('click', onFinishToday);
     el('helpButton').addEventListener('click', onHelp);
     el('doneSave').addEventListener('click', onDoneSave);
-    el('doneAgain').addEventListener('click', () => showWelcome());
+    el('doneAgain').addEventListener('click', () => { if (!zipSaving) showWelcome(); });
 
     V2S.input.configure({
       primary: press => V2S.session.onPrimary(press),

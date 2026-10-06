@@ -126,7 +126,7 @@ V2S.settings = (() => {
     on: { click: onClick }
   });
 
-  const control = (label, element) => node('label', { className: 'row', htmlFor: element.id }, [
+  const control = (label, element) => node('label', { className: 'row row-control', htmlFor: element.id }, [
     node('span', { className: 'row-label', text: label }),
     element
   ]);
@@ -165,7 +165,7 @@ V2S.settings = (() => {
       group([themeRow()]),
       group([nav(t.about, '', 'settingsAbout')]),
       group([action(t.signOut, async () => {
-        if (!(await V2S.ui.confirm({ title: t.signOut, body: t.signOutConfirm }))) return;
+        if (!(await V2S.ui.confirm({ title: t.signOut, body: t.signOutConfirm, yes: t.signOutYes, caution: true }))) return;
         await api.signOut();
       }, true)])
     ]);
@@ -296,7 +296,7 @@ V2S.settings = (() => {
     return fragment([
       group([
         value(t.mode, folderMode ? t.modeFolder(V2S.exporter.folderName() || '?') : t.modeZip),
-        folderMode ? value(t.folderAccess, status.permission) : null,
+        folderMode ? value(t.folderAccess, t.permissionWord(status.permission)) : null,
         value(t.cached, t.cachedValue(unsaved.length)),
         backups.length ? value(t.backups, t.backupsValue(backups.length)) : null,
         value(t.storage, estimate ? `${formatBytes(estimate.usage)} of ${formatBytes(estimate.quota)}` : '—')

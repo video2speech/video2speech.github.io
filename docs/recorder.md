@@ -1,4 +1,4 @@
-# Speech recorder (v213)
+# Speech recorder (v214)
 
 The patient recorder is `app.html`. The previous page (v114, hotfixed) is kept at
 `app_legacy.html` as a fallback; it shares progress and cached recordings with the new
@@ -13,16 +13,22 @@ item: [recorder-checklist.md](recorder-checklist.md).
 Every screen has one purpose and one main button; information comes one step at a time
 (the moment-by-moment design is in recorder-design.md). The look follows Apple's
 conventions: the system font, white (or black) screens, a filled blue button to move on.
+On phones and tablets every screen's main button sits at the bottom, where Start sits
+(within reach of a thumb or a resting hand); a second action goes above it, never under
+it. Problems show as an amber notice right above the main button.
 
 1. **Sign in** (`index.html`), in the same style, with a light/dark switch.
 2. **First-time setup** (research team or helper, once per device), one question per
    step: the participant ID (example "SEMG1", saved in capitals), confirmed in large
    type; on Chrome/Edge computers, the folder where recordings are saved. If the device
-   holds progress from the earlier page, the setup asks whether to continue from it.
+   holds progress from the earlier page, the setup asks, as its own step, whether to
+   continue from it.
 3. **Welcome**:
    - First time: what will happen, as three plain rows, and **Begin**.
-   - Later visits: where they are ("Part 2 of 7", "14 of 50 sentences done") and
-     **Continue**.
+   - Later visits: where they are ("Part 2 of 7", "Sentence 14 of 50"), the one thing
+     to remember, and **Continue**. In ZIP mode with unsaved recordings the main button
+     saves them first (**Save recordings**; "Continue without saving" is a quiet link).
+   - Everything recorded: "All sentences done", nothing more to record.
    - In folder mode the browser must be allowed to write to the folder again in each
      new browser session; **Begin** / **Continue** asks for it. If permission is not
      given, a screen offers **Allow**, **Choose a different folder** or **Save as ZIP
@@ -33,14 +39,17 @@ conventions: the system font, white (or black) screens, a filled blue button to 
       oval." **Next**.
    2. **Test the microphone**: "Press Record and say “Hello, this is my voice.” Then
       watch it back." **Record a 5-second test**; the clip plays back (picture and
-      sound), then "Can you see your face and hear yourself clearly?" **Yes, continue** / Play it again / No, try again (back to step 1). A
-      Bluetooth microphone gets a warning and a one-tap switch to the built-in one. The
-      test is never saved.
+      sound), then "Can you see your face and hear yourself clearly?" **Yes, continue**
+      / Play it again / No, try again (back to step 1). A Bluetooth microphone gets a
+      warning, and switching to the built-in one becomes the step's main button
+      ("Keep using these headphones" is a link). Nothing heard: an amber notice above
+      Record, with "Choose another microphone". The test is never saved.
 5. **Practice** (the 5 warm-up sentences, first time only). First one screen with the
    one thing to remember: "Press **Start**, read the **green** sentence out loud, then
    press **Stop**." ("They are only for practice.") Then how to record is taught one
-   step at a time, just above Start; the control it names pulses. Practice 3 teaches
-   Redo by doing it, and says first "This is only practice — nothing went wrong."
+   step at a time, between the card and Start; the control it names pulses three times. Practice
+   3 teaches Redo by doing it, and says first "This is only practice — nothing went
+   wrong." (Redo becomes a darker grey capsule with a ring; End for today is hidden.)
 6. **Recording**, one sentence at a time. The sentence sits in a white card on a grey
    page (the only large surface); **Redo** is at the top left, far from **Start** at the
    bottom (no accidental presses on touch screens):
@@ -59,6 +68,9 @@ conventions: the system font, white (or black) screens, a filled blue button to 
    - After Stop, recording continues a fixed 0.7 s (the legacy page: 0.3 s). The next
      sentence then appears (that is the confirmation: no "Recorded" message), and Redo
      names the sentence just recorded. Checking and storing happen in the background.
+   - A problem (or a next action that differs) shows as a small pill on the card's
+     bottom edge; otherwise nothing is there. Below the card there is nothing but Start
+     (the practice coach sits there only in the practice).
    - The last sentence of a part stays on screen (Redo still possible) with "That was
      the last sentence of part 2." until **Finish part 2** (blue).
 7. **Practice done**: in ZIP mode the practice recordings are saved once, with the same
@@ -69,13 +81,15 @@ conventions: the system font, white (or black) screens, a filled blue button to 
 8. **Break** after every 50 sentences ("Part 2 done", seven segments for the parts); in
    ZIP mode "Save your recordings, then take a rest." and **Save recordings** first
    (the file is `SEMG1_part02_<time>.zip`; "Did the file save?" → **Yes, I see it**, nothing
-   pre-chosen). Then
-   **Continue to part 3** or End for today.
+   pre-chosen). Then **Continue to part 3** or End for today (top left; asks first).
+   "Continue without saving" asks first too. A full device: save, and if it is still
+   full, "Make room on this device" removes the copy of the last saved file, after
+   asking.
 9. **Done**: "You can close this page" only when everything is saved; otherwise "Please
    save your recordings before you close this page." with **Save recordings**.
 
 The top bar shows where you are ("Part 2 of 7 · Sentence 14 of 50", a thin bar), **End
-for today** (asks first), **?** (How to record, as a short dialog) and **Settings**. Its
+for today** (grey, top left; asks first), **?** (How to record, as a short dialog) and **Settings**. Its
 buttons are hidden while recording. Light/dark is in Settings.
 
 The page runs in one tab at a time. A second copy shows "Already open in another tab"
@@ -162,7 +176,7 @@ The folder and the ZIP use the same layout:
   recorded starts the next round; until then the last sentence can still be redone in
   the same round. Settings shows the current round.
 - **One usable recording per sentence and round**: a newer usable recording of a
-  sentence (Redo, Previous, Go to, Practise again) supersedes the earlier one. Still on
+  sentence (Redo, Previous, Go to, Practice again) supersedes the earlier one. Still on
   the device: marked in the same storage transaction. Already in the folder: moved to
   `not_used/`. Already in an earlier ZIP: listed in `logs/superseded.json`, which every
   later ZIP carries in full.
@@ -213,7 +227,7 @@ Available on every screen except while recording. Every option of the legacy pag
 here, under its old name (checked by the `settings_parity` test):
 - **Sentences and progress** (research team): participant, position and round;
   Sentence set; ← Previous sentence; Next sentence (skip) →; Go to sentence N; Skip
-  practice (bypass warm-up) or Practise again (returns to the same sentence afterwards);
+  practice (bypass warm-up) or Practice again (returns to the same sentence afterwards);
   Clear progress…; Held-press limit; Switch participant….
 - **Saving**: where recordings go; not saved yet, backup copies, storage used; Save all
   recordings now; Save backup copies again; Choose folder… / Use ZIP files; Delete

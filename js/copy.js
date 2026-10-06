@@ -27,6 +27,8 @@ V2S.copy = {
     confirmTitle: 'Is this ID correct?',
     confirmYes: "Yes, it’s correct",
     confirmChange: 'Change',
+    legacyTitle: 'Earlier progress on this device',
+    legacyLead: 'Recordings were made on this device before IDs were used. Are they this participant’s?',
     legacyContinue: place => `Continue from ${place}`,
     legacyContinueDetail: 'This device already has progress from the earlier recording page.',
     legacyFresh: 'Start from the beginning',
@@ -57,7 +59,7 @@ V2S.copy = {
     leadFirst: 'You will read short sentences out loud. The camera records your face and voice.',
     leadBack: 'Carry on where you left off.',
     stage1: 'Check your camera and microphone',
-    stage2: 'Practise with 5 sentences',
+    stage2: 'Practice with 5 sentences',
     stage3: 'Read the sentences, with breaks',
     begin: 'Begin',
     continue: 'Continue',
@@ -67,10 +69,14 @@ V2S.copy = {
     part: (n, total) => `Part ${n} of ${total}`,
     partCount: (done, size) => `${done} of ${size} sentences done`,
     allDone: 'All sentences are done',
+    doneTitle: 'All sentences done',
+    doneLead: 'Thank you! There is nothing more to record. You can close this page.',
+    doneLeadUnsaved: 'Thank you! There is nothing more to record. Please save your recordings first.',
+    saveFirst: 'Save recordings',
     pending: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet.`,
     saveNow: 'Save now',
     partsDone: (n, total) => `${n} of ${total} parts done`,
-    startsAt: 'Starts with sentence 1'
+    sentenceOf: (n, total) => `Sentence ${n} of ${total}`
   },
 
   folder: {
@@ -96,19 +102,21 @@ V2S.copy = {
     starting: 'Starting camera…',
     live: 'Live',
     defaultDevice: 'Default device',
-    bluetooth: 'These look like Bluetooth headphones. They record lower-quality sound. Please use the built-in microphone.',
+    bluetooth: 'These look like Bluetooth headphones, which record lower-quality sound. Please use the built-in microphone.',
     useDevice: name => `Use ${name}`,
     testRecord: 'Record a 5-second test',
     testSayLabel: 'Say:',
     testSay: '“Hello, this is my voice.”',
-    testRecording: seconds => `Recording · ${seconds} s left`,
+    testRecording: 'Recording',
     testPlaying: 'Playing your test',
     testQuestion: 'Can you see your face and hear yourself clearly?',
     testYes: 'Yes, continue',
     testAgain: 'No, try again',
     testReplay: 'Play it again',
     testHint: 'Can’t hear it? Turn the volume up and play it again.',
-    testSilent: "We couldn’t hear anything. Check the microphone, then record the test again.",
+    testSilent: "We couldn’t hear anything. Check that the microphone is not muted or covered, and speak up.",
+    chooseMic: 'Choose another microphone',
+    keepHeadphones: 'Keep using these headphones',
     testFailed: 'The test could not be recorded. Please try again.',
     help: 'Camera or microphone not working?'
   },
@@ -119,8 +127,8 @@ V2S.copy = {
   howto: {
     title: 'How to record',
     steps: k => (k
-      ? ['Press **Space** once.', 'When the sentence turns\u00a0**green**, read it out loud.', 'Press **Space** again when you finish.']
-      : ['Press **Start** once.', 'When the sentence turns\u00a0**green**, read it out loud.', 'Press **Stop** when you finish.']),
+      ? ['Press **Space** once.', 'When\u00a0the\u00a0sentence\u00a0turns\u00a0**green**, read it out loud.', 'Press **Space** again when you finish.']
+      : ['Press **Start** once.', 'When\u00a0the\u00a0sentence\u00a0turns\u00a0**green**, read it out loud.', 'Press **Stop** when you finish.']),
     fix: k => (k ? 'Read a word wrong? After you stop, press **←** (Redo) to\u00a0record that sentence again.'
       : 'Read a word wrong? After\u00a0**Stop**, press **Redo** (at the top) to\u00a0record that sentence again.'),
     close: 'Close'
@@ -145,6 +153,8 @@ V2S.copy = {
     partOf: (n, total) => `Part ${n} of ${total}`,
     sentenceOf: (n, total) => `Sentence ${n} of ${total}`,
     whereShort: (part, n, total) => `Part ${part} · ${n} of ${total}`,
+    // The narrowest screens (a phone with larger text): only the place in the part.
+    whereTiny: (n, total) => `${n} of ${total}`,
     redoing: k => `Press ${k ? 'Space' : 'Start'}, then read this sentence again.`
   },
 
@@ -165,7 +175,7 @@ V2S.copy = {
     startAgain: k => `Press ${k ? 'Space' : 'Start'} and read it again.`,
     redoDone: 'That’s how Redo works.',
     carryOn: k => `Now go on: press ${k ? 'Space' : 'Start'}.`,
-    more: (n, k) => `${n} more to practise: press ${k ? 'Space' : 'Start'}.`,
+    more: (n, k) => `${n} more to practice: press ${k ? 'Space' : 'Start'}.`,
     lastOne: k => `Last practice sentence: press ${k ? 'Space' : 'Start'}.`,
     lastPractice: 'That was the last practice\u00a0sentence.',
     pressContinue: k => (k ? 'Press Space to continue.' : 'Press Continue.')
@@ -262,7 +272,7 @@ V2S.copy = {
     savePromptTitle: 'Save your recordings',
     storageSaved: 'Your recordings are saved. You can go on.',
     // A full device: save, then (if still full) make room, then go on.
-    makeRoomTitle: 'This device is full',
+    makeRoomTitle: 'Make room on this device',
     roomTitle: 'Recordings saved',
     roomLead: 'You can go on.',
     continueTo: n => `Continue to part ${n}`,
@@ -271,6 +281,13 @@ V2S.copy = {
     later: 'Continue without saving',
     makeRoom: hint => `Check that the last saved file is there: ${hint} Then make room by removing its copy from this device.`,
     makeRoomYes: 'It is saved — make room',
+    makeRoomAsk: 'Remove the copy from this device?',
+    makeRoomAskBody: 'Only if you found the saved file. The file itself is not changed.',
+    makeRoomRemove: 'Remove the copy',
+    laterAsk: 'Continue without saving?',
+    laterAskBody: 'Your recordings stay on this device. You can save them at the next break.',
+    laterSave: 'Save now',
+    laterGo: 'Continue without saving',
     saveAgain: 'Save it again'
   },
 
@@ -290,7 +307,7 @@ V2S.copy = {
     finishTitle: 'Great work today',
     finishBody: 'We’ll keep your place on this device. You can close this page.',
     allTitle: 'All sentences done',
-    allBody: 'Thank you so much!',
+    allBody: 'Thank you so much! You can close this page.',
     pending: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet.`,
     saveFirst: 'Please save your recordings before you close this page.',
     savedFolder: name => `All recordings are saved in “${name}”.`,
@@ -301,16 +318,18 @@ V2S.copy = {
 
   error: {
     deviceTitle: 'Camera or microphone disconnected',
-    deviceBody: 'Check that they are connected, then press Reconnect. We’ll keep your place.',
+    deviceBody: 'Close other apps that use the camera or microphone, then press Reconnect. We’ll keep your place.',
     reconnect: 'Reconnect',
     startTitle: 'Recording cannot start',
     startBody: 'This often happens with Bluetooth headphones. Choose the built-in microphone, then try again.',
     chooseMic: 'Choose microphone',
     permissionTitle: 'Camera and microphone are needed',
-    permissionBody: 'Please allow the camera and microphone, then try again.',
+    permissionBody: 'Please allow the camera and microphone, then reload this page.',
     tryAgain: 'Try again',
     unsupportedTitle: 'This browser cannot record',
-    unsupportedBody: 'Please open this page in Safari, Chrome or Edge.',
+    unsupportedBody: 'Please open this page in Safari, Chrome or Edge: copy the link, then paste it there.',
+    copyLink: 'Copy link',
+    linkCopied: 'Link copied',
     loadTitle: 'Something went wrong',
     loadBody: 'Please reload this page. We’ll keep your place.',
     reload: 'Reload',
@@ -327,12 +346,20 @@ V2S.copy = {
     movedBody: 'Recording continues in the other tab. You can close this one.'
   },
 
+  // The check's help when the picture already works: what else to check.
+  liveHelp: {
+    title: 'Camera or microphone not working?',
+    body: 'Check that nothing covers the camera or the microphone and that the sound is not muted. To use another camera or microphone, choose it below.',
+    choose: 'Choose camera or microphone',
+    close: 'Close'
+  },
+
   help: {
     title: 'Allow camera and microphone',
-    ios: 'In Safari, tap “aA” in the address bar, then Website Settings. Set Camera and Microphone to Allow. Then reload this page.',
-    android: 'Tap the icon next to the web address, then Permissions. Allow Camera and Microphone. Then reload this page.',
-    macSafari: 'In the Safari menu, choose Settings for This Website. Set Camera and Microphone to Allow. Then reload this page.',
-    desktop: 'Click the camera icon in the address bar and choose Always allow. Then reload this page.',
+    ios: 'In Safari, tap “aA” in the address bar, then Website Settings. Set Camera and Microphone to Allow.',
+    android: 'Tap the icon next to the web address, then Permissions. Allow Camera and Microphone.',
+    macSafari: 'In the Safari menu, choose Settings for This Website. Set Camera and Microphone to Allow.',
+    desktop: 'Click the camera icon in the address bar and choose Always allow.',
     close: 'Close'
   },
 
@@ -387,7 +414,7 @@ V2S.copy = {
     jumpLabel: () => 'Go to sentence',
     jump: 'Go',
     jumpInvalid: total => `Enter a number from 1 to ${total}.`,
-    practiceAgain: 'Practise again',
+    practiceAgain: 'Practice again',
     practiceConfirm: 'Go back to practice sentence 1 and show the coaching again? Afterwards recording continues from this sentence. Recordings are not deleted.',
     reset: 'Reset progress…',
     resetConfirm: 'Go back to the very first sentence (practice 1) and coach the practice again? Recordings are not deleted. A sentence recorded again replaces its earlier recording, which moves to not_used.',
@@ -398,6 +425,7 @@ V2S.copy = {
     modeFolder: name => `Folder “${name}”`,
     modeZip: 'ZIP files',
     folderAccess: 'Folder access',
+    permissionWord: state => ({ granted: 'Allowed', prompt: 'Ask again', denied: 'Not allowed' }[state] || 'Unknown'),
     chooseFolder: 'Choose folder…',
     useZip: 'Use ZIP files',
     saveNow: 'Save all recordings now',
@@ -425,6 +453,7 @@ V2S.copy = {
     account: 'Account',
     signOut: 'Sign out (log out)',
     signOutConfirm: 'Sign out of this device? Recordings that are not saved stay on this device.',
+    signOutYes: 'Sign out',
     about: 'About',
     version: 'Version',
     session: 'Session',

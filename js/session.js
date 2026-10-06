@@ -70,10 +70,11 @@ V2S.session = (() => {
 
   function whereView(i) {
     const p = position(i);
-    if (p.warmup) return { main: copy.record.practiceOf(p.pos, p.total), progress: (p.pos - 1) / p.total };
+    if (p.warmup) return { main: copy.record.practiceOf(p.pos, p.total), tiny: copy.record.whereTiny(p.pos, p.total), progress: (p.pos - 1) / p.total };
     return {
       main: `${copy.record.partOf(p.block, p.blocks)} · ${copy.record.sentenceOf(p.inBlock, p.blockSize)}`,
       short: copy.record.whereShort(p.block, p.inBlock, p.blockSize),
+      tiny: copy.record.whereTiny(p.inBlock, p.blockSize),
       progress: (p.inBlock - 1) / p.blockSize
     };
   }
@@ -613,12 +614,13 @@ V2S.session = (() => {
     logEvent('qc_failed', { index: current.index, code: qc.code, failures: qcFailures.count, speechMs: qc.metrics.speechMs });
 
     if (qcFailures.count >= cfg.QC.OVERRIDE_AFTER_FAILURES) {
+      render(readyView());   // behind the question: the sentence and an idle Start (not "Finishing…")
       const choice = await V2S.ui.dialog({
         title: copy.keepDialog.title,
         body: copy.keepDialog.body(copy.keepDialog.reasons[qc.code] || copy.keepDialog.reasons.no_speech),
         actions: [
           { label: copy.keepDialog.retry, value: 'retry', variant: 'go', default: true },
-          { label: copy.keepDialog.keep, value: 'keep', variant: 'ghost' }
+          { label: copy.keepDialog.keep, value: 'keep', variant: 'text' }
         ],
         dismissValue: 'retry'
       });
@@ -1056,6 +1058,9 @@ V2S.session = (() => {
   // Back on the recording screen (from How to record, Settings, a new check): carry on
   // exactly where it was, including the pause after a part's last sentence.
   function resume() {
+    // Back from the save screen: "almost full" has been dealt with (Start brings the
+    // save screen back if the device is still full).
+    if (feedback && feedback.key === 'storageFull') setFeedback(null);
     if (partEnd && lastAccepted) enterPartEnd(partEnd);
     else enterReady();
   }

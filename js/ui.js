@@ -100,6 +100,7 @@ V2S.ui = (() => {
     if (!where) return;
     setText('whereMain', where.main);
     setText('whereShort', where.short || where.main);
+    setText('whereTiny', where.tiny || where.short || where.main);
     el('whereBar').style.transform = `scaleX(${Math.max(0, Math.min(1, where.progress || 0)).toFixed(4)})`;
   }
 
@@ -133,7 +134,8 @@ V2S.ui = (() => {
     screenEl.dataset.state = view.state;
     setRecording(view.state !== 'ready', view.state === 'recording');
     setWhere(view.where);
-    setFinishVisible(view.state === 'ready');
+    // Shown only while waiting (data-rec hides it otherwise), but it keeps its room.
+    setFinishVisible(true);
 
     setText('cardStatusText', view.status);
     // The sentence sits in one inline span, so a highlight can follow its lines.
@@ -213,6 +215,7 @@ V2S.ui = (() => {
   // One size per screen and sentence set (see config.SENTENCE_SIZE), so the size never
   // changes from one sentence to the next, and the card keeps room for the longest one.
   let fitList = [];
+  let twoLineCache = { key: null, size: 0 };
   let fitTimer = null;
 
   function deviceClass() {
@@ -270,6 +273,29 @@ V2S.ui = (() => {
     const lineLimit = targetLines === 1 ? oneLine / (typicalWidth / 100 + pad) : width * 2 * 0.85 / (typicalWidth / 100 + 2 * pad);
     let size = Math.floor(Math.min(rule.max, lineLimit, width / (cfg.SENTENCE_MIN_CHARS_PER_LINE * charWidth / 100 + pad)));
     size = Math.max(rule.min, size);
+    // Phones: most sentences on at most two lines as they really wrap (a phrase is never
+    // split), going a little smaller before a third line; three short lines read as
+    // keywords one by one ("Please put / the water / down here.").
+    const fitKey = `${kind}:${width}:${fitList.length}:${fitList[0]}:${fitList[fitList.length - 1]}`;
+    if (rule.twoLineShare && twoLineCache.key === fitKey) {
+      size = twoLineCache.size;
+    } else if (rule.twoLineShare) {
+      probe.style.whiteSpace = 'normal';
+      const linesOf = (text, px) => {
+        probe.style.fontSize = `${px}px`;
+        probe.style.width = probe.style.maxWidth = `${width - pad * px}px`;
+        probe.textContent = phrased(text);
+        return Math.round(probe.getBoundingClientRect().height / (px * 1.2));
+      };
+      const allowed = Math.floor(fitList.length * (1 - rule.twoLineShare));
+      // A sentence that fits on one line at this size needs no measuring.
+      let longer = fitList.filter((text, i) => widths[i] * size / 100 > width - 2 * pad * size && linesOf(text, size) > 2);
+      while (longer.length > allowed && size > rule.twoLineMin) {
+        size -= 1;
+        longer = longer.filter(text => linesOf(text, size) > 2);
+      }
+      twoLineCache = { key: fitKey, size };
+    }
     // The longest sentences, wrapped to the card: at most rule.lines lines.
     Object.assign(probe.style, { whiteSpace: 'normal', width: `${width}px`, maxWidth: `${width}px` });
     const longest = fitList.map((text, i) => [widths[i], text]).sort((a, b) => b[0] - a[0]).slice(0, 6).map(pair => pair[1]);
@@ -345,7 +371,9 @@ V2S.ui = (() => {
   // actions: [{ label, value, variant: 'go' | 'plain' | 'ghost' | 'caution' | 'text', default }]
   // input: { label, placeholder, value } adds a text field; the result is then
   // { action, value }.
-  function dialog({ title, body, actions, dismissValue, input, focus = true }) {
+  // armMs: answers count only after this long (a question that must be answered after
+  // looking waits longer: on touch screens its main answer lands where the finger was).
+  function dialog({ title, body, actions, dismissValue, input, focus = true, armMs = 350 }) {
     if (dialogState) finishDialog(dialogState.dismissValue);
     return new Promise(resolve => {
       const overlay = el('dialog');
@@ -388,17 +416,26 @@ V2S.ui = (() => {
         button.className = action.variant === 'text' ? 'btn-text dialog-link' : `btn btn-lg btn-block btn-${action.variant || 'ghost'}`;
         button.textContent = action.label;
         button.addEventListener('click', () => {
-          // Ignore presses that started before the dialog appeared.
-          if (!state.armed) return;
+          // Ignore presses that started before the dialog appeared: a finger still down,
+          // or the second tap of a double tap.
+          if (!state.armed || (V2S.input && V2S.input.clicksPaused && V2S.input.clicksPaused())) return;
           finishDialog(action.value);
         });
         actionsEl.appendChild(button);
         if (action.default || !defaultButton) defaultButton = button;
       });
       dialogState = state;
+      // A dialog with a text field stays near the top (the keyboard covers the bottom).
+      overlay.classList.toggle('has-input', Boolean(field));
       overlay.hidden = false;
       document.body.classList.add('has-dialog');
-      setTimeout(() => { state.armed = true; }, 350);
+      overlay.removeAttribute('data-armed');
+      setTimeout(() => {
+        state.armed = true;
+        if (dialogState === state) overlay.dataset.armed = 'true';
+      }, armMs);
+      // A key or finger still down from before the dialog does nothing in it.
+      if (V2S.input && V2S.input.screenChanged) V2S.input.screenChanged();
       // Keyboard users get the default answer focused; on touch screens no button is
       // singled out by a focus ring.
       const keys = document.documentElement.classList.contains('has-keyboard');
@@ -468,14 +505,21 @@ V2S.ui = (() => {
   const isDialogOpen = () => Boolean(dialogState);
   const isOverlayOpen = () => Boolean(dialogState) || !el('settingsPanel').hidden;
 
+  // Something that removes or ends (caution): keeping things as they are is the main,
+  // blue answer, and the action itself is plain grey (red means recording).
   function confirm({ title, body, yes, no, caution }) {
     return dialog({
       title,
       body,
-      actions: [
-        { label: yes || copy.settings.confirm, value: true, variant: caution ? 'caution' : 'go' },
-        { label: no || copy.common.cancel, value: false, variant: 'ghost', default: true }
-      ],
+      actions: caution
+        ? [
+          { label: yes || copy.settings.confirm, value: true, variant: 'ghost' },
+          { label: no || copy.common.cancel, value: false, variant: 'go', default: true }
+        ]
+        : [
+          { label: yes || copy.settings.confirm, value: true, variant: 'go' },
+          { label: no || copy.common.cancel, value: false, variant: 'ghost', default: true }
+        ],
       dismissValue: false
     });
   }
@@ -548,6 +592,7 @@ V2S.ui = (() => {
     labelTopbar,
     renderRecord,
     fitSentences,
+    phrased,
     watchPreviewShape,
     dialog,
     confirm,

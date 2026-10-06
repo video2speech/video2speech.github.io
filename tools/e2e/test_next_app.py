@@ -183,6 +183,16 @@ async def ready_for_press(page):
     await wait_for(page, READY_FOR_PRESS)
 
 
+DIALOG_READY = ("() => V2S.ui.isDialogOpen() && document.getElementById('dialog').dataset.armed === 'true'"
+                " && !V2S.input.clicksPaused()")
+
+
+async def dialog_ready(page):
+    """Like a person: answer a dialog once it takes answers (it ignores presses in its
+    first moment, and "Did the file save?" for a second: it is answered after looking)."""
+    await wait_for(page, DIALOG_READY)
+
+
 async def click(page, selector, **kwargs):
     await ready_for_press(page)
     await page.click(selector, **kwargs)
@@ -253,7 +263,12 @@ async def pass_check(page):
 
 async def start_session(page):
     """Welcome → check (camera, then the test recording) → recording screen, waiting."""
-    await click(page, '#welcomeStart')
+    if await page.is_visible('#welcomeLater'):   # unsaved recordings: go on without saving (it asks first)
+        await click(page, '#welcomeLater')
+        await dialog_ready(page)
+        await page.locator('#dialogActions button', has_text='Continue without saving').click()
+    else:
+        await click(page, '#welcomeStart')
     await pass_check(page)
     await page.wait_for_selector('#screen-record:not([hidden])')
     await wait_for(page, "() => V2S.session.getState() === 'ready'")
@@ -313,14 +328,14 @@ async def end_for_today(page):
     """The top-bar End for today, confirmed in its dialog."""
     await click(page, '#finishButton')
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await page.wait_for_timeout(450)
+    await dialog_ready(page)
     await page.locator('#dialogActions button', has_text='End for today').click()
     await page.wait_for_selector('#screen-done:not([hidden])')
 
 
 async def confirm_dialog(page, name):
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await page.wait_for_timeout(450)
+    await dialog_ready(page)
     await page.locator('#dialogActions button', has_text=name).click()
     await page.wait_for_timeout(300)
 
@@ -337,7 +352,7 @@ async def open_settings(page, section=None):
 
 
 async def dismiss_dialog(page):
-    await page.wait_for_timeout(450)
+    await dialog_ready(page)
     await page.locator('#dialogActions button').first.click()
     await page.wait_for_timeout(300)
 
@@ -454,7 +469,7 @@ async def s_first_run(pw, base):
 
     await take_quietly(page)
     s = await state(page)
-    c.check(s['index'] == 3 and not s['ack'] and 'more to practise' in (s['coach'] or ''), 'practice 4: no "Recorded", just the next step', s)
+    c.check(s['index'] == 3 and not s['ack'] and 'more to practice' in (s['coach'] or ''), 'practice 4: no "Recorded", just the next step', s)
     await take_quietly(page)
     await take_quietly(page)
     s = await state(page)
@@ -1069,8 +1084,10 @@ async def s_reload(pw, base):
     await page.reload()
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
     c.check(await page.text_content('#welcomeTitle') == 'Welcome back', 'returns to Welcome back')
-    c.check(await page.text_content('#welcomePart') == 'Part 1 of 7' and await page.text_content('#welcomeCount') == '1 of 50 sentences done',
-            'welcome shows where they are')
+    c.check(await page.text_content('#welcomePart') == 'Part 1 of 7' and await page.text_content('#welcomeCount') == 'Sentence 2 of 50',
+            'welcome shows where they are (in the recording screen\'s words)')
+    c.check(await page.text_content('#welcomeStart') == 'Save recordings' and await page.is_visible('#welcomeLater'),
+            'unsaved recordings: Save recordings first, with a way on')
     await start_session(page)
     s = await state(page)
     c.check(s['index'] == 6, 'still on the second sentence (nothing skipped)', s)
@@ -1099,7 +1116,7 @@ async def s_break_zip(pw, base):
     await click(page, '#finishButton')
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
     c.check(await page.text_content('#dialogTitle') == 'End for today?', 'End for today on a break asks first')
-    await page.wait_for_timeout(450)
+    await dialog_ready(page)
     await page.locator('#dialogActions button', has_text='Keep going').click()
     await page.wait_for_timeout(500)
     c.check(await page.is_visible('#screen-break') and await page.text_content('#breakPrimary') == 'Save recordings', 'Keep going: still on the break')
@@ -1114,6 +1131,7 @@ async def s_break_zip(pw, base):
     focus = await page.evaluate("document.activeElement && document.activeElement.className")
     c.check(s['dialog'] == 'Did the file save?' and focus == 'dialog' and '“P017_part01”' in await page.text_content('#dialogBody'),
             'asks for confirmation: nothing pre-chosen (look first), and where to look for “P017_part01”', s)
+    await dialog_ready(page)
     await page.locator('#dialogActions button', has_text='Not sure').click()
     await page.wait_for_timeout(500)
     c.check(cached_before == 2 and len(await takes(page)) == cached_before, 'Not sure keeps every cached take', cached_before)
@@ -1133,7 +1151,7 @@ async def s_break_zip(pw, base):
     async with page.expect_download():
         await click(page, '#breakPrimary')
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await page.wait_for_timeout(450)
+    await dialog_ready(page)
     await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(600)
     t = await takes(page)
@@ -1354,9 +1372,12 @@ async def s_legacy_progress(pw, base):
     await page.fill('#setupId', 'P020')
     await click(page, '#setupNext')
     await page.wait_for_selector('#setupStepConfirm:not([hidden])')
-    legacy_text = await page.text_content('#setupLegacy')
-    c.check('Continue from sentence 116 of 350' in legacy_text, 'offers to continue from the earlier progress', legacy_text)
     await click(page, '#setupConfirmYes')
+    # the earlier progress: its own question, after the ID
+    await page.wait_for_selector('#setupStepLegacy:not([hidden])')
+    legacy_text = await page.text_content('#setupLegacyContinue')
+    c.check('Continue from sentence 116 of 350' in legacy_text, 'offers to continue from the earlier progress (its own step)', legacy_text)
+    await click(page, '#setupLegacyContinue')
     try:
         await page.locator('#setupStepFolder:not([hidden])').wait_for(timeout=1500)
         await click(page, '#setupFolderZip')
@@ -1404,21 +1425,23 @@ async def s_storage_full(pw, base):
     async with page.expect_download():
         await click(page, '#breakPrimary')
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await page.wait_for_timeout(450)
+    await dialog_ready(page)
     await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(800)
     t = await takes(page)
     c.check(len(t) == 1 and t[0]['exported'], 'right after "Yes" the copy of the saved file is still on the device', t)
-    c.check(await page.text_content('#breakTitle') == 'This device is full' and 'Check that the last saved file is there' in await page.text_content('#breakSaveText')
+    c.check(await page.text_content('#breakTitle') == 'Make room on this device' and 'Check that the last saved file is there' in await page.text_content('#breakSaveText')
             and await page.is_visible('#breakSaveText') and await page.text_content('#breakPrimary') == 'It is saved — make room',
             'the device is full: it asks (visibly) to check the file before removing its copy', await page.text_content('#breakSaveText'))
     c.check(await page.evaluate("document.activeElement.id") != 'breakPrimary', '"make room" is not pre-selected for the keyboard')
+    c.check('btn-go' not in await page.get_attribute('#breakPrimary', 'class'), '"make room" is not the blue "go on" button')
     await click(page, '#breakPrimary')  # It is saved — make room
-    await page.wait_for_timeout(800)
-    c.check(len(await takes(page)) == 0, 'only then is the copy removed')
-    c.check(await page.text_content('#breakTitle') == 'Recordings saved' and 'symbol-done' in await page.get_attribute('#breakSymbol', 'class')
-            and await page.text_content('#breakPrimary') == 'Continue', 'then: Recordings saved, Continue', await page.text_content('#breakTitle'))
-    await click(page, '#breakPrimary')  # Continue
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    c.check(await page.text_content('#dialogTitle') == 'Remove the copy from this device?' and len(await takes(page)) == 1, 'it asks before removing anything')
+    await dialog_ready(page)
+    await page.locator('#dialogActions button', has_text='Remove the copy').click()
+    await page.wait_for_selector('#screen-record:not([hidden])', timeout=10000)
+    c.check(len(await takes(page)) == 0, 'only then is the copy removed; straight back to the sentence')
     await wait_ready(page)
     await press(page, 'Space')
     await wait_for(page, "() => ['starting', 'recording'].includes(V2S.session.getState())", timeout=3000)
@@ -1477,9 +1500,8 @@ async def s_finish_settings(pw, base):
     visited = []
     page.on('framenavigated', lambda frame: visited.append(frame.url) if frame == page.main_frame else None)
     await page.get_by_role('button', name='Sign out').click()
-    await wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await page.wait_for_timeout(450)
-    await page.get_by_role('button', name='Yes, continue').click()
+    await dialog_ready(page)
+    await page.locator('#dialogActions button', has_text='Sign out').click()
     await page.wait_for_timeout(1500)
     # (These tests sign in automatically on every page load, so the sign-in page forwards
     # straight back; what matters is that Sign out went there.)
@@ -1633,7 +1655,7 @@ async def s_store_failure_late(pw, base):
     c.check(stored == 6, 'stored progress went back to the sentence that failed', stored)
     await page.evaluate('() => V2S.app.showWelcome()')
     await page.wait_for_selector('#screen-welcome:not([hidden])')
-    c.check(await page.text_content('#welcomeCount') == '1 of 50 sentences done', 'welcome: 1 of 50 sentences done (sentence 2 is next)', await page.text_content('#welcomeCount'))
+    c.check(await page.text_content('#welcomeCount') == 'Sentence 2 of 50', 'welcome: sentence 2 of 50 is next', await page.text_content('#welcomeCount'))
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
@@ -1891,10 +1913,10 @@ async def s_redo_reload(pw, base):
 
 
 async def s_practice_again(pw, base):
-    c = Checks('Practise again (Settings): coached practice, then back to the same sentence')
+    c = Checks('Practice again (Settings): coached practice, then back to the same sentence')
     browser, _, page, errors = await boot(pw, base, index=5 + 20, init_scripts=[NO_PICKERS])
     await open_settings(page, 'Sentences & progress')
-    await page.locator('#settingsPanel button', has_text='Practise again').click()
+    await page.locator('#settingsPanel button', has_text='Practice again').click()
     await confirm_dialog(page, 'Yes, continue')
     await wait_ready(page)
     s = await state(page)
@@ -1956,13 +1978,16 @@ async def s_rounds(pw, base):
     c.check(await page.text_content('#doneTitle') == 'All sentences done', 'all done')
     await page.evaluate('() => V2S.app.showWelcome()')
     await page.wait_for_selector('#screen-welcome:not([hidden])')
-    c.check(await page.is_hidden('#welcomeStart'), 'welcome: all done, nothing to start')
+    title = await page.text_content('#welcomeTitle')
+    label = await page.text_content('#welcomeStart') if await page.is_visible('#welcomeStart') else None
+    c.check(title == 'All sentences done' and label in (None, 'Save recordings') and await page.is_hidden('#welcomeLater'),
+            'welcome: all done — nothing to start (only saving, if something is unsaved)', (title, label))
     await open_settings(page, 'Sentences & progress')
     await page.locator('#settingsPanel button', has_text='Reset progress').click()
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
     body = await page.text_content('#dialogBody')
     c.check('round 2' in body and 'repeat2' in body, 'Reset progress after the end says it starts round 2', body)
-    await page.wait_for_timeout(450)
+    await dialog_ready(page)
     await page.locator('#dialogActions button', has_text='Yes, continue').click()
     try:
         await wait_for(page, "() => document.body.dataset.screen === 'welcome' && document.getElementById('welcomeTitle').textContent === 'Welcome'", timeout=10000)
@@ -1990,7 +2015,7 @@ async def s_zip_backups(pw, base):
     async with page.expect_download():
         await click(page, '#breakPrimary')
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
-    await page.wait_for_timeout(450)
+    await dialog_ready(page)
     await page.get_by_role('button', name='Yes, I see it').click()
     await page.wait_for_timeout(600)
     await click(page, '#breakPrimary')  # Continue to part 2
@@ -2152,12 +2177,14 @@ async def s_store_failure(pw, base):
     return c.done()
 
 
-FIT_RULES = {'wide': (40, 56, 2), 'tall': (36, 52, 2), 'phone': (28, 36, 2), 'flat': (26, 34, 2)}
+FIT_RULES = {'wide': (40, 56, 2), 'tall': (36, 52, 2), 'phone': (28, 36, 3), 'flat': (26, 34, 2)}
 FIT_VIEWPORTS = [
     ('laptop', {'width': 1440, 'height': 900}, 'wide'),
     ('tablet sideways', {'width': 1180, 'height': 820}, 'wide'),
     ('tablet upright', {'width': 820, 'height': 1180}, 'tall'),
     ('phone upright', {'width': 390, 'height': 844}, 'phone'),
+    ('small phone upright', {'width': 375, 'height': 667}, 'phone'),
+    ('Android phone upright', {'width': 360, 'height': 740}, 'phone'),
     ('phone sideways', {'width': 844, 'height': 390}, 'flat'),
 ]
 
@@ -2167,19 +2194,21 @@ FIT_JS = """async () => {
   const sentence = document.getElementById('sentenceText');
   const all = V2S.app.state().material.all;
   const size = parseFloat(getComputedStyle(sentence).fontSize);
-  const out = { fit: rec.dataset.fit, size, overflow: rec.scrollHeight - rec.clientHeight, worst: 0, oneLine: 0, cardFits: true };
+  const out = { fit: rec.dataset.fit, size, overflow: rec.scrollHeight - rec.clientHeight, worst: 0, oneLine: 0, twoLines: 0, cardFits: true };
   for (const text of all) {
-    // as the page shows it while recording: in its highlighted line span
+    // as the page shows it while recording: in its highlighted line span, phrases kept whole
     const line = document.createElement('span');
     line.className = 'sentence-line';
-    line.textContent = text;
+    line.textContent = V2S.ui.phrased(text);
     sentence.replaceChildren(line);
     const lines = Math.round(sentence.getBoundingClientRect().height / (size * 1.2));
     out.worst = Math.max(out.worst, lines);
     if (lines === 1) out.oneLine += 1;
+    if (lines <= 2) out.twoLines += 1;
     if (sentence.scrollWidth > card.clientWidth) out.cardFits = false;
   }
   out.oneLine = out.oneLine / all.length;
+  out.twoLines = out.twoLines / all.length;
   return out;
 }"""
 
@@ -2194,6 +2223,9 @@ async def s_fit(pw, base):
         c.check(r['worst'] <= lines and r['cardFits'] and r['overflow'] <= 1, f'{name}: every sentence fits in {lines} lines, inside the card, nothing overflows', r)
         if kind != 'phone':
             c.check(r['oneLine'] >= 0.9, f'{name}: {r["oneLine"]:.0%} of sentences on one line', r)
+        else:
+            # never "keywords one by one": most sentences on at most two lines
+            c.check(r['twoLines'] >= 0.975, f'{name}: {r["twoLines"]:.1%} of sentences on at most two lines', r)
         c.check(not errors, f'{name}: no page errors', errors)
         await browser.close()
     return c.done()

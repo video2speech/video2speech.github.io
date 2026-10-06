@@ -57,8 +57,8 @@ checked against all of them before it is shown.
 5. **Off looks off, on looks on.** The camera picture and the sound level sit small in
    the corner: grey and still while not recording, live while recording.
 6. **One instruction at a time, with its purpose.** First what just happened (small),
-   then the single next action (large), rarely why (small). The control it names pulses,
-   except while someone reads. Never two instructions that disagree; never a summary
+   then the single next action (large), rarely why (small). The control it names pulses
+   three times, then stays still (never while someone reads). Never two instructions that disagree; never a summary
    and the next step in one sentence.
 7. **Teach the way it will be used.** Computers: Space and ← (the keys are shown on the
    buttons). Touch screens: the buttons.
@@ -84,14 +84,25 @@ checked against all of them before it is shown.
     that brought a screen does nothing there: auto-repeat never presses a button, and its
     release is ignored, so holding Space or Enter never runs on through screens. A press
     that would undo the one just made counts only after 1 s (a double press on Start
-    never stops the take; a double ← never cancels the Redo). Closing a dialog counts as
-    a screen change. A button that removes something is never pre-selected for the keyboard, and a
-    save or a reconnection that is running ignores further presses.
+    never stops the take; a double ← never cancels the Redo). Opening and closing a
+    dialog count as screen changes: a finger or key still down from before does nothing
+    in it, and its answers count only after 0.35 s ("Did the file save?", answered after
+    looking, after 1 s: on touch screens its main answer lands where the finger was). A
+    button that removes something is never pre-selected for the keyboard, and a save or
+    a reconnection that is running ignores further presses; a save started from Welcome
+    or Done shows its progress on the button, as on a break. Nothing can be removed while
+    a save runs.
 
-13. **No accidental presses on touch screens.** The main action (Start/Stop) is at the
-    bottom, where a thumb, or a hand resting on the table, reaches it. Secondary actions
-    are far from it: Redo at the top left, where a Back button goes; a text action under
-    a main button keeps 24 px of space; nothing harmful is pre-selected.
+13. **No accidental presses on touch screens.** On phones and tablets every screen's
+    main button sits where Start sits: at the bottom, where a thumb, or a hand resting on
+    the table, reaches it. A second action goes above it, never under it, so a slip
+    downwards presses nothing. Start and these buttons sit 44 px above the bottom edge
+    (32 px on short screens inside a browser's bars, 20 px on phones held sideways).
+    On the recording screen Redo is far from Start, at the top
+    left, where a Back button goes. Dialogs rise from the bottom: their main answer lands
+    where Start sits, the other answers above it, 24 px apart (on computers they stay in
+    the middle, the main answer first). Nothing that removes something is pre-selected,
+    and removing asks first.
 14. **Teaching says it is teaching; the one action is repeated.** The Redo lesson
     says "This is only practice — nothing went wrong." The one action to remember
     ("Press Start, read the green sentence out loud, then press Stop.") is shown before
@@ -118,13 +129,30 @@ sideways), tall (tablets upright), phone, flat (phones sideways).
 
 ### Layout of every screen
 - White screen (black in dark mode), the system font, generous space.
-- Top bar: small and quiet. Recording screen: **End for today** (blue text, left),
-  where you are (centre: "Practice 2 of 5", "Part 2 of 7 · Sentence 14 of 50", with a
-  thin bar), **?** and the gear (right). Other screens: the gear only. While recording,
-  only "where you are" stays.
-- Flow screens (welcome, practice done, breaks, done, problems) are one centred group
-  a little above the middle: a symbol, a title, one or two short lines, the main button
-  (a filled blue capsule) and at most one or two quiet text buttons, 24 px under it.
+- Top bar: small and quiet, its edges in line with the card's. Recording screen:
+  **End for today** (grey text, left; the full name on every device, since "End" alone
+  could mean "end this sentence"), where you are (centre: "Practice 2 of 5", "Part 2 of
+  7 · Sentence 14 of 50", with a thin bar), **?** and the gear (right). Break: End for
+  today and the gear. Other screens: the gear only. While recording, only "where you
+  are" stays. During the Redo lesson End for today is hidden (one thing to press). End
+  for today keeps its room while hidden, so nothing moves when a take starts; on the
+  narrowest screens (a phone with larger text, 320 px) where you are shortens to "14 of
+  50" rather than End for today to "End".
+- Flow screens (welcome, practice done, breaks, done, problems) on computers are one
+  centred group a little above the middle: a symbol, a title, one or two short lines,
+  the main button (a filled blue capsule) and at most one or two quiet text buttons,
+  24 px under it. On phones and tablets (touch screens, and any upright screen narrower
+  than 1000 px) the text stays in the middle and the main button sits at the bottom,
+  where Start sits on the recording screen; a text button goes above it, never under it.
+  Break and Done keep their text at the top, so it stays put while the save steps change
+  it. The screen is the height of the window: if its words do not fit (a small phone
+  held sideways), they scroll and the buttons stay in view. A long dialog scrolls its
+  words, never its answers. The ID form in Set up keeps its button under the field (the keyboard is up); its
+  questions follow the rule.
+- Every problem on a flow screen looks the same: an amber notice. On the check it sits
+  right above the button that fixes it; on a break it reports what just happened, under
+  the title, and the usual line under the title steps aside (the notice and the buttons
+  say what to do).
 - The recording screen is a grey page with the sentence card: Redo and the camera
   picture above the card, the guide and Start/Stop at the bottom (see below).
 - One button shape: capsules. One meaning per colour (Principles 4); ticks (✓) are
@@ -136,18 +164,31 @@ privacy note. The light/dark switch in the corner.
 
 ### Set up (research team or helper, once per device)
 One question per step: Participant ID (example "SEMG1"; saved in capitals) → "Is this ID
-correct?" in large type (and, if the device has progress from the earlier page,
-continue from it or start fresh) → Chrome/Edge on a computer only: the folder for the
-recordings, or ZIP files.
+correct?" in large type → only if the device has progress from the earlier page, its
+own question: **Earlier progress on this device** · "Recordings were made on this
+device before IDs were used. Are they this participant’s?" · **Continue from sentence
+120 of 350** (blue) · Start from the beginning (text) → Chrome/Edge on a computer only:
+the folder for the recordings, or ZIP files. A wrong ID replaces the hint under the field
+with what to fix.
 
 ### Welcome
 | | First visit | Returning |
 |---|---|---|
 | Focus | Begin | Continue |
-| Shows | "Participant SEMG1", **Welcome**, "You will read short sentences out loud. The camera records your face and voice.", three plain rows (icon + text, not buttons): check camera and microphone · practise with 5 sentences · read the sentences, with breaks | **Welcome back**, "Carry on where you left off.", **Part 2 of 7**, seven segments (done parts filled, the current one outlined), "14 of 50 sentences done" (or "Starts with sentence 1"), then the one action to remember: "Press **Start**, read the **green** sentence out loud, then press **Stop**." |
+| Shows | "Participant SEMG1", **Welcome**, "You will read short sentences out loud. The camera records your face and voice.", three plain rows (icon + text, not buttons): check camera and microphone · practice with 5 sentences · read the sentences, with breaks | **Welcome back**, "Carry on where you left off.", **Part 2 of 7**, seven segments (done parts filled, the current one outlined), "Sentence 14 of 50" (nothing at a part's first sentence), then the one action to remember: "Press **Start**, read the **green** sentence out loud, then press **Stop**." |
 | Button | **Begin** (blue) | **Continue** (blue) |
 
-ZIP mode with unsaved recordings: a quiet amber notice with **Save now**.
+ZIP mode with unsaved recordings (not mid-practice: those are saved at its end), one
+step at a time: the amber notice "3 recordings are not saved yet." right above the
+buttons (never scrolled away), the main button becomes **Save recordings** (then the
+usual "Did the file save?"; while it saves the button shows its progress), and a quiet
+"Continue without saving" (it asks first, as on a break; the recordings stay on the
+device). The one thing to remember waits until the recordings are saved. Once saved, the button is
+**Continue** again.
+
+Everything recorded: **All sentences done** · "Thank you! There is nothing more to
+record. You can close this page." (with anything unsaved: "Please save your recordings
+first." and **Save recordings**). No Continue.
 
 ### Camera & microphone check (every session, two steps)
 The picture stays in the same place through both steps; the panel beside it (below it
@@ -156,11 +197,21 @@ on upright screens) shows one step at a time.
 | Moment | Focus | Panel |
 |---|---|---|
 | 1 Camera | the picture and the oval | "Step 1 of 2" · **Position the camera** · "Put your face inside the oval." (owner: the face in the frame is enough) · **Next** (blue). No sound level yet. |
-| 2 Microphone | Record a 5-second test | "Step 2 of 2" · **Test the microphone** · "Press Record and say “Hello, this is my voice.” Then watch it back." (the phrase is known before the 5 seconds start) · (the microphone's name is not shown: nothing to do about it) · **● Record a 5-second test** (green, like Start). Bluetooth headphones: an amber note with a button for the built-in microphone. |
-| Test recording | what to say | "Say:" in grey, then “Hello, this is my voice.” green on the highlight, like a sentence being recorded, and a grey 5-second bar; the picture says "● Recording · 4 s left" (the only red dot on this screen). |
+| 2 Microphone | Record a 5-second test | "Step 2 of 2" · **Test the microphone** · "Press Record and say “Hello, this is my voice.” Then watch it back." (the phrase is known before the 5 seconds start) · (the microphone's name is not shown: nothing to do about it) · **● Record a 5-second test** (green, like Start). Bluetooth headphones: an amber note; the step's main button becomes **Use “MacBook Air Microphone”** (blue) with "Keep using these headphones" (text); Record comes after the choice. |
+| Test recording | what to say | under the title, where the instructions were: "Say:" in grey, then “Hello, this is my voice.” on one line, green on the highlight like a sentence being recorded, and a grey 5-second bar (the time left); the picture says "● Recording" (the only red dot on this screen; short, so it never covers the face). |
 | Playback | the playback | the recording plays with sound and picture ("Playing your test"). |
-| Question | the answer | Can you see your face and hear yourself clearly? (19 px, not a second title) · **Yes, continue** (blue) · Play it again · No, try again (text; back to step 1, where the usual fix is). The help link goes once the test has played. |
-| Nothing heard | the fix | "We couldn’t hear anything. Check the microphone, then record the test again." |
+| Question | the answer | Can you see your face and hear yourself clearly? (19 px, not a second title) · **Yes, continue** (blue) · Play it again · No, try again (text; back to step 1, where the usual fix is). After Play it again: "Can’t hear it? Turn the volume up and play it again." The help link goes once the test has played. |
+| Nothing heard | the fix | the problem and its fix only (no instructions, no help link): an amber notice "We couldn’t hear anything. Check that the microphone is not muted or covered, and speak up." · Choose another microphone (a text link, as "Keep using these headphones"; opens Settings → Camera and microphone) · **● Record a 5-second test** |
+| Camera or microphone not working? (link) | the fix | Before the picture works: how to allow the camera and microphone on this device. Once it works: what else to check (nothing covering them, the sound not muted) · **Close** · Choose camera or microphone |
+
+On phones and tablets the check is one column: the picture, the step's words, and the
+step's buttons at the bottom, where Start sits; the help link and any amber notice sit
+right above them ("Play it again · No, try again" too, above **Yes, continue**). What to
+read ("Say: …") and the question stay under the title, near the camera: reading at the
+bottom would look down. Phones and tablets held sideways: the picture on the left, the
+step on the right with its buttons at the bottom of that column. The picture is as large
+as the screen allows (a third of the height on a short phone inside the browser's
+bars); only a problem takes some of its room.
 
 The live picture has no badge (red means recording). The picture never moves between
 the steps, and on wide screens the panel starts level with it, so its title never moves
@@ -177,28 +228,33 @@ now with 5 short sentences. They are only for practice." · **Begin practice** (
 A grey page with one white card (dark mode: a grey card on black): the sentence card,
 the only large surface, so the eye goes there. Above the card: **Redo** at the top left
 (where a Back button goes, far from Start) and the camera picture with the sound level
-at the top right. Below the card: the guide (the practice coach, or a problem), then
-**Start/Stop** at the bottom of the screen, where a thumb or a resting hand reaches it.
-Computers and tablets: the card has a reading height (about half the screen) and, with
-Redo and the camera above it, sits in the middle of the space above Start. Phones: the
-card fills that space. Phones sideways: the card on the left; Redo and the camera at the
-top right, the guide and Start at the bottom right. The card, the guide and Start keep
+at the top right. Below the card, in the practice only: the coach (one instruction at a
+time). Then **Start/Stop** at the bottom of the screen, where a thumb or a resting hand
+reaches it. A problem, or a next action that differs from the usual one, shows as a
+small pill on the card's bottom edge, mirroring the red ● Recording on its top edge;
+otherwise nothing is there, and the card keeps its size.
+The card fills the space between Redo and Start (at most 960 px wide; the top bar lines
+up with it). Phones sideways: the card on the left; Redo and the camera at the top
+right, the coach and Start at the bottom right. The card, the coach and Start keep
 their places and sizes all through the practice and all through a part; only the
 sentence, its state and the labels change. Redo has two lines, "↶ Redo" over the
 sentence it would record again (a long one shrinks to fit, then ends in "…"). Lines
-break between phrases, never right after "the", "a", "to"…
+break between phrases, never right after "the", "a", "to"… The size is one per screen and
+sentence set: on computers and tablets nearly every sentence on one line; on phones 98%
+on at most two lines as they really wrap, a little smaller (down to 28 px) rather than a
+third line, which reads as keywords one by one.
 
 | State | Focus | Sentence (in the card) | Card's top edge | Camera, level | Main button (bottom) | Redo (top left) | Guide |
 |---|---|---|---|---|---|---|---|
-| Waiting | the sentence, then Start | grey | — | grey, still | **● Start** (soft green) | "↶ Redo" over “the last sentence” (after the first take) | practice: the coach; real sentences: nothing, or a problem |
+| Waiting | the sentence, then Start | grey | — | grey, still | **● Start** (soft green) | "↶ Redo" over “the last sentence” (after the first take) | practice: the coach; real sentences: nothing (a problem: the pill on the card's bottom edge) |
 | Starting (~0.1 s) | — | grey | — | grey | Starting… (inactive) | hidden | unchanged |
 | Recording | the sentence | dark green on a clear green highlight | **● Recording** (red, steady) | live | **■ Stop** (soft red; after 20 s it pulses and shows the time, "Stop · 0:21") | hidden | practice: "Read the green sentence out loud, then press Stop."; real sentences: nothing |
 | After Stop (0.7 s + check) | — | grey | — | grey | Finishing… (inactive) | hidden | unchanged |
 | Next sentence | the new sentence | grey | — | grey | Start | "↶ Redo" over “the sentence just recorded” | nothing (the new sentence is the confirmation) |
-| A part's last sentence | Finish part 2 | grey (stays) | — | grey | **→ Finish part 2** (blue) | "↶ Redo" over "Record this sentence again" | "That was the last sentence of part 2." |
+| A part's last sentence | Finish part 2 | grey (stays) | — | grey | **→ Finish part 2** (blue) | "↶ Redo" over "Record this sentence again" | "That was the last sentence of part 2." (the pill on the card's bottom edge) |
 
 ### Practice (the 5 warm-up sentences, first time only)
-The coach says one thing at a time, just above Start. On a computer it names the keys,
+The coach says one thing at a time, between the card and Start. On a computer it names the keys,
 elsewhere the buttons.
 
 | Moment | What happened (small) | The one next action (large) | Why (small) | Pulses |
@@ -206,10 +262,10 @@ elsewhere the buttons.
 | Practice 1, waiting | — | Press Start once. | No need to hold it. | Start |
 | Any practice, recording | — | Read the green sentence out loud, then press Stop. | — | nothing |
 | Practice 2, waiting | That’s it. Every sentence works like this. | Next sentence: press Start. | — | Start |
-| Practice 3, waiting (Redo lesson) | This is only practice — nothing went wrong. | Now try Redo, at the top. (computer: Now try Redo: press ←.) | If you ever misread a sentence, Redo lets you read it again. | Redo (top left): filled dark, with a halo; Start an outline (still works) |
+| Practice 3, waiting (Redo lesson) | This is only practice — nothing went wrong. | Now try Redo, at the top. (computer: Now try Redo: press ←.) | If you ever misread a sentence, Redo lets you read it again. | Redo (top left): a darker grey capsule with a ring, pulsing three times; Start an outline (still works); End for today hidden |
 | After pressing Redo | This is the sentence before. | Press Start and read it again. | — | Start |
 | After that recording | That’s how Redo works. | Now go on: press Start. | — | Start |
-| Practice 4 / 5, waiting | — | 2 more to practise / Last practice sentence: press Start. | — | Start |
+| Practice 4 / 5, waiting | — | 2 more to practice / Last practice sentence: press Start. | — | Start |
 | After practice 5 | That was the last practice sentence. | Press Continue. | — | Continue (blue) |
 | A problem | ⚠ the reason ("We couldn’t hear you. Sit a little closer.") | Press Start and read it again. | — | Start |
 | Speaking before Start | ⚠ Not recording yet. | (unchanged) | — | — |
@@ -233,7 +289,7 @@ part; only then are the real sentences introduced. One instruction at a time:
 ### Break (after each part of 50)
 **End for today** is in the top bar (top left, as on the recording screen), never under
 the main button, and always asks "End for today?" first ("Keep going" is the default).
-The part's last sentence first stays on the recording screen (Recorded, Redo possible,
+The part's last sentence first stays on the recording screen ("That was the last sentence of part 2.", Redo possible,
 **Finish part 2**). Then (the top of the screen stays put while it changes; the symbol is
 neutral grey, so the blue button is the only blue):
 
@@ -243,18 +299,24 @@ neutral grey, so the blue button is the only blue):
 | ZIP mode, before saving | Save recordings | grey ✓ · **Part 2 done** · "Save your recordings, then take a rest." (one instruction) · the segments | **Save recordings** (blue) |
 | ZIP mode, the question | the answer | **Did the file save?** iPhone/iPad: "If Safari asks, tap Download. Then tap ⬇ next to the web address and look for “SEMG1_part02”." (Android: the download notification; computers: the browser's downloads) | **Yes, I see it** (blue) · Save it again · Not sure (text). Nothing is pre-chosen, not even on a computer: the answer is given after looking. On a computer the first press of Space, Enter or a clicker highlights **Yes, I see it**; the next one chooses it. |
 | ZIP mode, saved | Continue | "Take a rest. Carry on when you are ready." · the segments (no "saved" line: "Yes, I see it" has just said it) | **Continue to part 3** |
-| ZIP mode, not saved | Save recordings | "Not saved yet. Your recordings are still on this device." (amber) | **Save recordings** · Continue without saving |
+| ZIP mode, not saved | Save recordings | "Not saved yet. Your recordings are still on this device." (amber) | **Save recordings** · Continue without saving (asks first: "Continue without saving?" · "Your recordings stay on this device. You can save them at the next break." · **Save now** is the default; its "Continue without saving" counts only after a second, since it lands where the link was; Esc changes nothing) |
 
 The ZIP files are named after the participant and the part, then the time
 (`SEMG1_part02_2026-10-05T14-03-11.zip`); the question names only the first part.
 A device that is almost full shows its own version of this screen: a warning symbol,
-"This device is almost full. Please save your recordings to go on.", Save recordings,
-then "Your recordings are saved. You can go on." and Continue.
+"This device is almost full. Please save your recordings to go on.", Save recordings;
+once they are saved and there is room again, straight back to the sentence. Still full
+after saving: **Make room on this device** · check that the last saved file is there ·
+"It is saved — make room" (grey, not blue: it removes something), which asks first
+("Remove the copy from this device?" · "Only if you found the saved file. The file
+itself is not changed." · **Cancel**, blue, is the default; "Remove the copy" is grey).
+A full device offers no "Continue without saving" (Start would only bring this screen
+back), and its "almost full" message is gone once the recordings are saved.
 
 ### Done
 | | End for today | All sentences done |
 |---|---|---|
-| Shows | ✓ · **Great work today** · "We’ll keep your place. You can close this page." · "✓ All recordings are saved." | ✓ · **All sentences done** · "Thank you so much!" · save status |
+| Shows | ✓ · **Great work today** · "We’ll keep your place. You can close this page." · "✓ All recordings are saved." | ✓ · **All sentences done** · "Thank you so much! You can close this page." · save status |
 | Buttons | Record more (text) | — |
 
 Anything still unsaved: a download symbol, "Please save your recordings before you close
@@ -274,17 +336,21 @@ back button; **Done** closes. The earlier page's option names are kept.
 - First page: Participant and Position (values) · **Sentences & progress** › ·
   **Saving** › (e.g. "3 not saved") · **Camera and microphone** › · **Recording
   quality** › · Appearance (Light | Dark) · About › · **Sign out (log out)** (red).
+- A confirmation that removes or ends something (Sign out, Reset progress, Delete backup
+  copies, Clear storage) has **Cancel** as its blue main answer and the action in plain
+  grey above it (red means recording).
 - Sentences & progress: Participant, Position, Sentence set (with a note on each set) ·
   *Go to a sentence*: ← Previous sentence · Next sentence (skip) → (asks first) · Go to
-  sentence [ ] Go · *Practice*: Practise again or Skip practice (bypass warm-up) ·
+  sentence [ ] Go · *Practice*: Practice again or Skip practice (bypass warm-up) ·
   *Holding the button*: Held-press limit (note) · *Research team*: Switch participant… ·
   Reset progress… (red, asks first) · a note on rounds (`repeat<n>`).
-- Saving: Saved to, Folder access, Not saved yet, Backup copies, Storage used (note) ·
+- Saving: Saved to, Folder access (Allowed, Ask again or Not allowed), Not saved yet, Backup copies, Storage used (note) ·
   Save all recordings now · Save backup copies again · Choose folder… · Use ZIP files ·
   Delete backup copies… and Clear storage… (red, ask first). Recordings that are not
   saved anywhere yet can never be deleted here: Clear storage asks to save them first.
 - In dark mode the sheet is dark grey with an edge, so it stands out from the dimmed
-  page.
+  page. On a phone a setting's name sits above its choice, which takes the full width
+  (never cut off).
 - Camera and microphone: Camera, Microphone (Bluetooth warning; what is in use) ·
   Record a new test.
 - Recording quality: Recording resolution, Recording quality, Recording frame rate,
@@ -303,7 +369,7 @@ buttons under them.
 |---|---|
 | Speaking before Start (not in the first 1.5 s after a take: people often say a word after Stop) | Not recording yet. Press Start first, then read. |
 | Start held ≥ 1 s (push-to-talk habit) | Dialog "Press once, then let go": Press Start once and let go. It records until you press Stop. (take not used) |
-| Stop held ≥ 1 s | Take kept; next sentence says: Recorded. Tip: let go of the button right after pressing it. |
+| Stop held ≥ 1 s | Take kept; the next sentence says, once: "Let go right after pressing." |
 | No speech | We couldn’t hear you. Sit a little closer, press Start and read it again. |
 | Too loud | Too loud. Move back a little, press Start and read it again. |
 | No audio at all | The microphone sent no sound. Press Start and read it again. |
@@ -314,8 +380,12 @@ buttons under them.
 | Take could not be stored | That recording could not be stored. Press Start and read it again. Twice in a row: "Recordings cannot be saved on this device". |
 | Device nearly full | The save screen: This device is almost full. Please save your recordings to go on. |
 | Same sentence failed twice | Dialog: **Try again** (default) or **Keep it and go on** |
-| Camera/microphone lost | Screen: what happened, "your progress is saved", **Reconnect** |
+| Camera/microphone lost | Screen: what happened, "Close other apps that use the camera or microphone, then press Reconnect. We’ll keep your place.", **Reconnect** |
+| Camera and microphone not allowed | Screen: "Please allow the camera and microphone, then reload this page.", how to allow them on this device, **Reload** |
+| Browser cannot record (e.g. inside another app) | Screen: "Please open this page in Safari, Chrome or Edge: copy the link, then paste it there.", **Copy link** (then "Link copied") |
+| Page could not load | Screen: "Please reload this page. We’ll keep your place.", **Reload** (the technical detail goes to the event log only) |
 | Page already open in another tab | Screen: **Use this tab instead** (the other copy stops) |
+| This tab was taken over | A neutral screen (nothing is wrong): "Recording continues in the other tab. You can close this one." · Use this tab instead (text) |
 
 ## Recording reliability
 
@@ -358,10 +428,10 @@ A ZIP file has the same layout, plus `manifest.json` at the top.
 - File names are unchanged:
   `<sentence>_<pos>-<total>_repeat<n>_<YYYYMMDD_HHMMSS>[_redo].<ext>`.
 - **Rounds:** `repeat<n>` is the pass through the sentence set. After the last sentence,
-  anything recorded (Clear progress, Go to, Practise again) starts the next round. The
+  anything recorded (Clear progress, Go to, Practice again) starts the next round. The
   last sentence can still be redone before that, within the same round.
 - **One usable recording per sentence and round.** When a usable recording replaces an
-  earlier one of the same sentence (Redo, Previous, Go to, Practise again), the earlier
+  earlier one of the same sentence (Redo, Previous, Go to, Practice again), the earlier
   one becomes `superseded` (with `supersededBy`; the new one has `supersedes`):
   - still on the device: marked in the same storage transaction, so it is written
     straight into `not_used/`;
@@ -383,7 +453,7 @@ A ZIP file has the same layout, plus `manifest.json` at the top.
 
 - `docs/recorder-checklist.md`: every feature of the earlier page, every requirement and
   every review finding, each with where it lives and how it is verified.
-- Browser scenario tests (47) in Chrome, WebKit (iPad/iPhone engine) and Firefox:
+- Browser scenario tests (52 in Chrome, 41 in WebKit, the iPad/iPhone engine, and in Firefox):
   - first-run flow end to end, including the test recording, practice and the Redo
     lesson;
   - every error path, Redo (also after a reload, and of a part's last sentence),
@@ -391,7 +461,8 @@ A ZIP file has the same layout, plus `manifest.json` at the top.
     microphone, storage failures, a 22-second take, two open tabs;
   - folder and ZIP saving (backups), every Settings option, theme, sign-in.
 - Screenshots of every screen on:
-  - phone, upright and sideways;
+  - phone, upright and sideways, also inside Safari's bars (375×553, 750×340: a page
+    taller than the screen is flagged, since its bottom button would need scrolling);
   - iPad mini upright, iPad upright and sideways;
   - laptop;
   - in light and dark.

@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '213',
-  MATERIAL_VERSION: 'materials_v213',
+  APP_VERSION: '214',
+  MATERIAL_VERSION: 'materials_v214',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -51,7 +51,9 @@ V2S.config = Object.freeze({
   SENTENCE_SIZE: Object.freeze({
     wide: Object.freeze({ min: 40, max: 56, lines: 2 }),   // computers, tablets sideways
     tall: Object.freeze({ min: 36, max: 52, lines: 2 }),   // tablets upright
-    phone: Object.freeze({ min: 28, max: 32, lines: 2 }),  // phones upright (longer lines: phrases, not halves)
+    // phones upright: 98% of sentences on at most two lines as they really wrap (a little
+    // smaller, down to 28 px, before a third line); only the longest take three
+    phone: Object.freeze({ min: 30, max: 36, lines: 3, twoLineShare: 0.98, twoLineMin: 28 }),
     flat: Object.freeze({ min: 26, max: 34, lines: 2 })    // phones sideways
   }),
   SENTENCE_ONE_LINE_SHARE: 0.9,

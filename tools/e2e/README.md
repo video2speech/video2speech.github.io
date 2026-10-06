@@ -53,8 +53,9 @@ a generated fake microphone (speech-like sound, fan noise, a quiet room, or a cl
 - `FAIL_SUPERSEDE_LOG`: makes one folder step fail (`window.__failMarks = n`).
 
 `screenshots.py` prints `OVERFLOW` for anything wider than the screen or the settings
-panel, and for any button whose label spills over its edge, and one line per take with
-its check result, so a screenshot never silently shows the wrong state.
+panel, and for any button whose label spills over its edge, `VSCROLL` for a page taller
+than the screen (its main button may need scrolling), and one line per take with its
+check result, so a screenshot never silently shows the wrong state.
 - `window.__V2S_TEST = { testRecordMs: 1200 }`: shortens the 5-second microphone test
   so each session start stays quick.
 
