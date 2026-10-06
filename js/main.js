@@ -677,11 +677,28 @@ V2S.app = (() => {
     await playTest(recording.blob);
   }
 
+  // iPhone and iPad with the microphone on: a video's own sound is turned down, or sent to
+  // the earpiece. Through the audio context (as the cue sounds) it plays from the speaker,
+  // so the test can really be heard. Once per element; if it fails, it plays as before.
+  function playThroughSpeaker(media) {
+    if (media.dataset.speaker) return;
+    const ctx = V2S.meter.context();
+    if (!ctx || !ctx.createMediaElementSource) return;
+    try {
+      ctx.createMediaElementSource(media).connect(ctx.destination);
+      media.dataset.speaker = '1';
+    } catch (error) {
+      logEvent('playback_route_failed', { error: String(error && error.message || error) });
+    }
+  }
+
   async function playTest(blob) {
     const playback = el('checkPlayback');
     app.test.url = URL.createObjectURL(blob);
     playback.src = app.test.url;
     playback.muted = false;
+    playThroughSpeaker(playback);
+    V2S.meter.resume();
     playback.classList.toggle('is-mirrored', Boolean(V2S.media.getSettings().mirror));
     el('checkPreview').hidden = true;
     playback.hidden = false;
@@ -1500,6 +1517,7 @@ V2S.app = (() => {
       if (!app.test.url || playback.hidden) return;
       playback.currentTime = 0;
       setBadge('playing');
+      V2S.meter.resume();   // a tap: the audio context may run again (iOS)
       playback.play().catch(() => {});
       el('testHint').hidden = false;   // played again: the hint for not hearing it
       logEvent('mic_test_replay', {});

@@ -408,6 +408,10 @@ async def s_first_run(pw, base):
     await wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=10000)
     question = await page.text_content('#testQuestion')
     c.check(question == 'Can you see your face and hear yourself clearly?', 'asks whether the face is visible and the sound is clear', question)
+    # iPhone/iPad with the microphone on turn a video's own sound down (or to the earpiece):
+    # the test plays through the audio context, from the speaker, like the cue sounds.
+    routed = await page.evaluate("document.getElementById('checkPlayback').dataset.speaker === '1'")
+    c.check(routed, 'the test recording plays through the audio context (loud from the speaker on iPhone)', routed)
     await page.evaluate("window.__v2sAudio.set('silence')")  # sitting quietly, reading the screen
     await click(page, '#testYes')
     # Before the practice: the one thing to remember (no page of rules).
