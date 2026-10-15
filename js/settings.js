@@ -126,6 +126,17 @@ V2S.settings = (() => {
     on: { click: onClick }
   });
 
+  // The one action the research team looks for first (New participant): with its symbol.
+  const PERSON_PLUS = '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.6"/><path d="M2.5 19.5c.7-3.5 3.3-5.4 6.5-5.4s5.8 1.9 6.5 5.4"/><path d="M19 7.5v6M16 10.5h6"/></svg>';
+  function strongAction(label, onClick, icon, id) {
+    const symbol = node('span', { className: 'row-icon', 'aria-hidden': 'true' });
+    symbol.innerHTML = icon;
+    return node('button', { type: 'button', className: 'row row-action row-strong', ...(id ? { id } : {}), on: { click: onClick } }, [
+      symbol,
+      node('span', { className: 'row-label', text: label })
+    ]);
+  }
+
   const control = (label, element) => node('label', { className: 'row row-control', htmlFor: element.id }, [
     node('span', { className: 'row-label', text: label }),
     element
@@ -147,28 +158,99 @@ V2S.settings = (() => {
   };
 
   // ---- pages ----
+  // The first page, in order of what matters (owner, 2026-10-15: "put what is important
+  // where it is plain to see"): who is recording and changing that; whether every
+  // recording is saved, and saving them; this participant's own settings; where they are
+  // in the sentences; this device; then About and Sign out.
   async function mainPage() {
     const state = api.state();
     const unsaved = await api.pendingCount().catch(() => 0);
     const media = V2S.media.getSettings();
+    const id = state.participantId;
+    const folderMode = V2S.exporter.getSaveMode() === 'folder';
     return fragment([
       group([
-        value(t.participantId, state.participantId),
-        value(t.position, describePosition(state))
-      ]),
+        value(t.participantId, id),
+        id ? strongAction(t.newParticipant, newParticipant, PERSON_PLUS, 'newParticipant') : null,
+        id ? action(t.switchParticipant, switchParticipant) : null
+      ], { foot: id ? t.participantNote : null, id: 'settingsParticipant' }),
       group([
-        nav(t.participant, '', 'settingsProgress'),
-        nav(t.saving, unsaved ? t.notSaved(unsaved) : t.allSaved, 'settingsSaving'),
+        statusRow(unsaved ? t.notSavedLong(unsaved) : t.allSavedLong, null, unsaved ? 'warn' : 'ok'),
+        unsaved ? strongAction(t.saveNow, () => saveAll(unsaved, 'main'), SAVE_ICON, 'mainSaveNow') : null,
+        nav(t.savingOptions, folderMode ? t.modeFolder(V2S.exporter.folderName() || '?') : t.modeZip, 'settingsSaving')
+      ], { title: t.saving, id: 'settingsSavingSummary' }),
+      group([themeRow(), holdRow()], id ? { title: t.forParticipant(id), foot: t.forParticipantNote, id: 'settingsOwn' } : { id: 'settingsOwn' }),
+      group([nav(t.participant, describePosition(state), 'settingsProgress')]),
+      group([
         nav(t.devices, '', 'settingsDevices'),
         nav(t.quality, `${media.resolution || ''}`, 'settingsQuality')
-      ]),
-      group([themeRow()]),
+      ], { title: t.device }),
       group([nav(t.about, '', 'settingsAbout')]),
       group([action(t.signOut, async () => {
         if (!(await V2S.ui.confirm({ title: t.signOut, body: t.signOutConfirm, yes: t.signOutYes, caution: true }))) return;
         await api.signOut();
       }, true)])
     ]);
+  }
+
+  // How long a press may be held before it counts as holding: this participant's own.
+  function holdRow() {
+    const hold = select('setHold', [['1000', t.hold1], ['2000', t.hold2], ['3000', t.hold3]], String(V2S.input.getHoldMs()));
+    hold.addEventListener('change', async () => {
+      V2S.input.setHoldMs(Number(hold.value));
+      await V2S.storage.setSetting('holdMs', Number(hold.value));
+      await api.saveParticipantPrefs();
+      logEvent('settings_hold', { holdMs: Number(hold.value) });
+    });
+    return control(t.holdLabel, hold);
+  }
+
+  // What is the case, at a glance (a problem in amber): not a button.
+  const CHECK_ICON = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m7.8 12.3 2.9 2.9 5.5-6"/></svg>';
+  const WARN_ICON = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5.5M12 16.4v.4"/></svg>';
+  const SAVE_ICON = '<svg viewBox="0 0 24 24"><path d="M12 4.5v10M7.5 10 12 14.5l4.5-4.5M5.5 19h13"/></svg>';
+  function statusRow(text, detail, tone) {
+    const symbol = node('span', { className: 'row-icon', 'aria-hidden': 'true' });
+    symbol.innerHTML = tone === 'warn' ? WARN_ICON : CHECK_ICON;
+    return node('div', { className: `row row-status${tone === 'warn' ? ' is-warn' : ''}`, role: 'status' }, [
+      symbol,
+      node('span', { className: 'row-label', text }),
+      detail ? node('span', { className: 'row-value', text: detail }) : null
+    ]);
+  }
+
+  // Save all recordings now: a folder writes them here; ZIP files close Settings for the
+  // save and its question, then come back to `returnPage`.
+  async function saveAll(unsavedCount, returnPage) {
+    if (V2S.exporter.getSaveMode() === 'folder') {
+      if (!V2S.exporter.isFolderActive() && (await V2S.exporter.requestFolderPermission()) !== 'granted') {
+        await V2S.ui.alert(t.saving, t.folderNotAllowed);
+        return render();
+      }
+      const result = await V2S.exporter.flushPendingToFolder();
+      await V2S.ui.alert(t.saving, result.written || result.failed ? t.written(result.written, result.failed) : t.nothingToSave);
+      return render();
+    }
+    if (!unsavedCount) return V2S.ui.alert(t.saving, t.nothingToSave);
+    close();
+    await api.runZipSave('manual');
+    await open(returnPage);
+  }
+
+  // Settings → New participant…: asks first, saying what happens to the recordings; then
+  // every recording is saved (main.js) and Set up starts again.
+  async function newParticipant() {
+    const state = api.state();
+    const unsaved = await api.pendingCount().catch(() => 0);
+    const go = await V2S.ui.confirm({
+      title: t.newParticipantTitle,
+      body: t.newParticipantBody(state.participantId, unsaved),
+      yes: unsaved ? t.newParticipantSave : t.newParticipantGo
+    });
+    if (!go) return;
+    logEvent('settings_new_participant', { from: state.participantId, unsaved });
+    close();
+    await api.newParticipant();
   }
 
   function themeRow() {
@@ -234,26 +316,7 @@ V2S.settings = (() => {
     const folderMode = V2S.exporter.getSaveMode() === 'folder';
     const folderSupported = V2S.exporter.folderSupported();
     const status = V2S.exporter.status();
-    const saveNow = action(t.saveNow, async () => {
-      if (folderMode) {
-        if (!V2S.exporter.isFolderActive() && (await V2S.exporter.requestFolderPermission()) !== 'granted') {
-          await V2S.ui.alert(t.saving, t.folderNotAllowed);
-          return render();
-        }
-        const result = await V2S.exporter.flushPendingToFolder();
-        await V2S.ui.alert(t.saving, result.written || result.failed ? t.written(result.written, result.failed) : t.nothingToSave);
-      } else {
-        if (!unsaved.length) {
-          await V2S.ui.alert(t.saving, t.nothingToSave);
-          return;
-        }
-        close();
-        await api.runZipSave('manual');
-        await open('settingsSaving');
-        return;
-      }
-      await render();
-    });
+    const saveNow = action(t.saveNow, () => saveAll(unsaved.length, 'settingsSaving'));
     const saveBackups = backups.length ? action(t.saveBackups, async () => {
       close();
       await api.runZipSave('backup', null, { backups: true });
@@ -377,12 +440,6 @@ V2S.settings = (() => {
         await go(warmup + n - 1);
       } } });
       const jumpRow = node('div', { className: 'row' }, [node('label', { className: 'row-label', htmlFor: 'setJump', text: t.jumpLabel(total) }), jump, jumpGo]);
-      const hold = select('setHold', [['1000', t.hold1], ['2000', t.hold2], ['3000', t.hold3]], String(V2S.input.getHoldMs()));
-      hold.addEventListener('change', async () => {
-        V2S.input.setHoldMs(Number(hold.value));
-        await V2S.storage.setSetting('holdMs', Number(hold.value));
-        logEvent('settings_hold', { holdMs: Number(hold.value) });
-      });
       parts.push(
         group([
           action(t.previous, () => go(Math.max(0, index - 1), {}, 'settings_previous')),
@@ -404,8 +461,7 @@ V2S.settings = (() => {
               // into the next round from its first sentence.
               await go(0, state.progress.completed ? { coachDone: false } : { coachDone: false, resumeIndex: index }, 'settings_practice_again');
             })
-        ], { title: t.practiceTitle }),
-        group([control(t.holdLabel, hold)], { title: t.holdTitle, foot: t.holdNote })
+        ], { title: t.practiceTitle })
       );
     }
     // The Rainbow Passage question answered (No, or Yes and not finished): the research
@@ -421,8 +477,9 @@ V2S.settings = (() => {
         })
       ], { title: t.rainbowTitle, foot: `${t.rainbowAnswer(answer)} ${t.rainbowNote}`, id: 'settingsRainbow' }));
     }
+    // Starting this participant over (Switch participant and New participant are on the
+    // first page, with the participant).
     parts.push(group([
-      action(t.switchParticipant, switchParticipant),
       state.progress ? action(t.reset, async () => {
         const index = state.progress.currentIndex;
         const body = state.progress.completed ? t.resetConfirmNewRound(round + 1) : t.resetConfirm;
@@ -431,7 +488,7 @@ V2S.settings = (() => {
         close();
         await api.clearProgress();
       }, true) : null
-    ], { title: t.research, foot: state.progress ? t.roundNote(round) : null }));
+    ], { foot: state.progress ? t.roundNote(round) : null }));
     return fragment(parts);
   }
 

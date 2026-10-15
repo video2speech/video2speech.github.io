@@ -100,6 +100,13 @@ The top bar shows where you are ("Part 2 of 7 · Sentence 14 of 50", a thin bar)
 for today** (grey, top left; asks first), **?** (How to record, as a short dialog) and **Settings**. Its
 buttons are hidden while recording. Light/dark is in Settings.
 
+**Settings** (first page, by importance): Participant with **New participant…** (saves
+every recording first, then back to Set up; the participant's recordings, progress and own
+settings stay, and their ID entered again goes on where they left off) and Switch
+participant… · the saving state with Save all recordings now · For <ID>: Appearance and
+Held-press limit (they stay with each participant) · Sentences & progress (shows the
+position) · This device: Camera and microphone, Recording quality · About · Sign out.
+
 The page runs in one tab at a time. A second copy shows "Already open in another tab"
 with **Use this tab instead**; the first copy then stops and says so.
 

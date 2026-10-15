@@ -532,6 +532,14 @@ button.row:active { background: var(--fill-strong); }
 .row-chevron { flex: none; width: 9px; height: 15px; color: var(--ink-4); }
 .row-chevron svg { width: 9px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; display: block; }
 .row-action { color: var(--blue-text); }
+.row-strong { font-weight: 600; }
+.row-icon { flex: none; display: inline-flex; width: 24px; height: 24px; }
+.row-icon svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+/* A status line in Settings (not a button): grey when all is well, amber for a problem. */
+.row-status { color: var(--ink-2); }
+.row-status .row-icon { color: var(--ink-3); }
+.row-status.is-warn { color: var(--warn-text); font-weight: 600; }
+.row-status.is-warn .row-icon { color: var(--warn-text); }
 .row-danger { color: var(--rec-text); }
 .row select, .row input[type="number"], .row input[type="text"] { flex: none; max-width: 62%; font: inherit; font-size: 16px; color: var(--ink-3); background: transparent; border: 0; text-align: right; padding: 4px 0; }
 .row select { -webkit-appearance: none; appearance: none; padding-right: 18px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: right 6px center, right 1px center; background-size: 5px 5px; background-repeat: no-repeat; cursor: pointer; }

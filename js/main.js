@@ -96,7 +96,27 @@ V2S.app = (() => {
   async function setTheme(theme) {
     applyTheme(theme);
     await V2S.storage.setSetting('theme', theme === 'dark' ? 'dark' : 'light');
+    await saveParticipantPrefs();
     logEvent('theme', { theme });
+  }
+
+  // The theme and the held-press limit belong to the participant (owner, 2026-10-15): a
+  // new participant starts with the defaults, and someone who comes back (their ID entered
+  // again) gets their own again.
+  async function saveParticipantPrefs() {
+    if (!app.participantId) return;
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    await V2S.storage.setSetting(`prefs:${app.participantId}`, { theme, holdMs: V2S.input.getHoldMs() });
+  }
+
+  async function applyParticipantPrefs(participantId) {
+    const prefs = participantId ? await V2S.storage.getSetting(`prefs:${participantId}`, null) : null;
+    const theme = prefs && prefs.theme === 'dark' ? 'dark' : 'light';
+    const holdMs = prefs && Number(prefs.holdMs) > 0 ? Number(prefs.holdMs) : cfg.HOLD_MS;
+    applyTheme(theme);
+    await V2S.storage.setSetting('theme', theme);
+    V2S.input.setHoldMs(holdMs);
+    await V2S.storage.setSetting('holdMs', holdMs);
   }
 
   // ---------- event log persistence ----------
@@ -391,8 +411,14 @@ V2S.app = (() => {
       await V2S.storage.createParticipantProgress(app.participantId, app.setKey, useLegacy ? pendingSetup.legacy : null);
     }
     await V2S.storage.setSetting('participantId', app.participantId);
+    await applyParticipantPrefs(app.participantId);
     logEvent('participant_set', { participantId: app.participantId, adoptedLegacy: Boolean(useLegacy) });
-    if (exporter.folderSupported()) {
+    // Where recordings go is asked once per device: the next participant keeps it (Settings
+    // → Saving changes it).
+    if (await V2S.storage.getSetting('saveMode', null)) {
+      if (exporter.getSaveMode() === 'folder') flushPendingToFolder();
+      await showWelcome();
+    } else if (exporter.folderSupported()) {
       el('setupFolderError').hidden = true;
       showSetupStep('folder');
       el('setupFolderChoose').focus();
@@ -1466,6 +1492,32 @@ V2S.app = (() => {
     if (usesKeys()) el('doneSave').focus({ preventScroll: true });
   }
 
+  // Before another participant: every recording still only on this device is saved
+  // (a folder: written to it; ZIP files: saved and confirmed, one after another if there are
+  // many). True when nothing is left; otherwise nothing changes.
+  async function saveAllFirst() {
+    const t = copy.settings;
+    for (let i = 0; i < 20; i++) {
+      const before = await pendingCount();
+      if (before === 0) return true;
+      if (exporter.getSaveMode() === 'folder') {
+        if (!exporter.isFolderActive()) {
+          await ui.alert(t.newParticipantNotSaved, t.folderNotAllowed);
+          return false;
+        }
+        await flushPendingToFolder();
+      } else {
+        const result = await runZipSave('saved');
+        if (result !== 'saved' && result !== 'nothing') return false;   // cancelled, not sure or failed: stays
+      }
+      if ((await pendingCount()) >= before) {
+        await ui.alert(t.newParticipantNotSaved, t.newParticipantNotSavedBody);
+        return false;
+      }
+    }
+    return (await pendingCount()) === 0;
+  }
+
   async function onDoneSave() {
     if (zipSaving) return;
     if (exporter.getSaveMode() === 'folder') {
@@ -1791,8 +1843,41 @@ V2S.app = (() => {
       await showWelcome();
     },
     setParticipant: async participantId => {
+      await saveParticipantPrefs();
       app.participantId = participantId;
       await V2S.storage.setSetting('participantId', participantId);
+      await applyParticipantPrefs(participantId);
+    },
+    saveParticipantPrefs,
+    // Settings → New participant…: back to Set up for the next participant (owner,
+    // 2026-10-15). Every recording on the device is saved first; this participant's
+    // recordings, progress and settings stay (their ID entered again goes on where they
+    // left off); the next one starts with the default settings. False if not everything
+    // could be saved (nothing changes then).
+    newParticipant: async () => {
+      // A folder that needs allowing again is asked first, while the press still counts.
+      if (exporter.getSaveMode() === 'folder' && !exporter.isFolderActive()) await exporter.requestFolderPermission();
+      if (['ready', 'partEnd'].includes(V2S.session.getState())) V2S.session.stop();
+      await V2S.session.flush();
+      if (!(await saveAllFirst())) {
+        api.onSettingsClosed();   // back to where they were
+        return false;
+      }
+      await saveParticipantPrefs();
+      logEvent('new_participant', { from: app.participantId });
+      V2S.session.stop();
+      V2S.input.setEnabled(false);
+      V2S.media.stopHealth();
+      V2S.meter.detach();
+      V2S.media.close();
+      releaseWakeLock();
+      app.sessionStarted = false;
+      leaveRainbow();
+      app.participantId = null;
+      await V2S.storage.setSetting('participantId', null);
+      await applyParticipantPrefs(null);
+      showSetup();
+      return true;
     },
     setSetKey: async setKey => {
       app.setKey = setKey;

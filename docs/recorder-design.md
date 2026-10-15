@@ -393,16 +393,33 @@ name Space and ←. Nothing records while it is open.
 Laid out like the Settings app: a short list; each topic opens as its own page with a
 back button; **Done** closes. The earlier page's option names are kept.
 
-- First page: Participant and Position (values) · **Sentences & progress** › ·
-  **Saving** › (e.g. "3 not saved") · **Camera and microphone** › · **Recording
-  quality** › · Appearance (Light | Dark) · About › · **Sign out (log out)** (red).
+- First page, in order of what matters (owner, 2026-10-15: "put what is important where
+  it is plain to see"):
+  1. **Participant** P017 · **New participant…** (bold, with a person-plus symbol) ·
+     Switch participant… — "Each participant's recordings, progress and settings stay on
+     this device."
+  2. *Saving*: the state at a glance — "All recordings are saved" (grey ✓) or "3 recordings
+     are not saved yet" (amber) with **Save all recordings now** right there · Saving
+     options › (shows ZIP files or the folder).
+  3. *For P017*: Appearance (Light | Dark) · Held-press limit — they stay with the
+     participant (a new participant starts with light and 1 s; entering an ID again brings
+     that participant's own back).
+  4. **Sentences & progress** › (shows where they are: "Part 3 · 14 of 50").
+  5. *This device*: Camera and microphone › · Recording quality ›.
+  6. About › · **Sign out (log out)** (red).
+- **New participant…** asks first ("New participant?"), saves every recording that is not
+  saved yet ("Save and continue": a folder writes them; ZIP files are saved and confirmed,
+  one after another if there are many; if not everything can be saved, nothing changes),
+  then goes back to Set up with an empty ID. The participant's recordings, progress and
+  settings stay on the device; their ID entered again goes on where they left off. Set up
+  asks where recordings go only on a device that has never chosen (the next participant
+  keeps the folder or ZIP files).
 - A confirmation that removes or ends something (Sign out, Reset progress, Delete backup
   copies, Clear storage) has **Cancel** as its blue main answer and the action in plain
   grey above it (red means recording).
 - Sentences & progress: Participant, Position, Sentence set (with a note on each set) ·
   *Go to a sentence*: ← Previous sentence · Next sentence (skip) → (asks first) · Go to
   sentence [ ] Go · *Practice*: Practice again or Skip practice (bypass warm-up) ·
-  *Holding the button*: Held-press limit (note) · *Research team*: Switch participant… ·
   Reset progress… (red, asks first) · a note on rounds (`repeat<n>`).
 - Saving: Saved to, Folder access (Allowed, Ask again or Not allowed), Not saved yet, Backup copies, Storage used (note) ·
   Save all recordings now · Save backup copies again · Choose folder… · Use ZIP files ·

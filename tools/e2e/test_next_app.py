@@ -1782,8 +1782,8 @@ LEGACY_OPTIONS = [
     ('Go to sentence', 'Sentences & progress', 'input#setJump'),
     ('Camera', 'Camera and microphone', 'select#setCamera'),
     ('Microphone', 'Camera and microphone', 'select#setMicrophone'),
-    ('Switch participant', 'Sentences & progress', 'button:has-text("Switch participant")'),
-    ('Held-press limit', 'Sentences & progress', 'select#setHold'),
+    ('Switch participant', None, 'button:has-text("Switch participant")'),
+    ('Held-press limit', None, 'select#setHold'),
     ('Light / dark', None, '.segmented button:has-text("Dark")'),
     ('Download event log', 'About', 'button:has-text("Download event log")'),
 ]
@@ -2219,6 +2219,122 @@ async def s_card_room(pw, base):
                 f'{w}×{h} practice: {r["fit"]}, the sentence near the middle of the card, clear of the Recording sign', r)
         c.check(not errors, f'{w}×{h} practice: no page errors', errors)
         await browser.close()
+    return c.done()
+
+
+async def enter_id(page, participant):
+    """On Set up (already showing): type the ID and confirm it."""
+    await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
+    await page.fill('#setupId', participant)
+    await click(page, '#setupNext')
+    await page.wait_for_selector('#setupStepConfirm:not([hidden])')
+    await click(page, '#setupConfirmYes')
+
+
+NEW_PARTICIPANT_STATE = """async () => ({ id: await V2S.storage.getSetting('participantId', null), pending: await V2S.app.pendingCount(),
+  theme: document.documentElement.dataset.theme, hold: V2S.input.getHoldMs(), field: document.getElementById('setupId').value })"""
+
+
+async def s_new_participant(pw, base):
+    c = Checks('Settings → New participant: everything saved first, then Set up; the previous participant comes back where they were, with their own settings')
+    browser, _, page, errors = await boot(pw, base, index=7, init_scripts=[NO_PICKERS])
+    downloads = track_downloads(page)
+    await record(page)
+    await record(page)
+    # This participant's own settings: dark, and a held press counts only after 2 s.
+    await open_settings(page)
+    await page.locator('#settingsPanel .segmented button', has_text='Dark').click()
+    await page.wait_for_timeout(300)
+    await click(page, '#settingsClose')
+    await open_settings(page)
+    await page.select_option('#setHold', '2000')
+    await page.wait_for_timeout(300)
+    await click(page, '#settingsClose')
+    await page.wait_for_timeout(500)
+    # New participant, with two recordings not saved yet: they are saved first.
+    await open_settings(page)
+    c.check(await page.is_visible('#newParticipant') and (await page.text_content('#newParticipant')).strip() == 'New participant…',
+            'Settings: "New participant…" on its first page, under the participant')
+    await page.locator('#newParticipant').click()
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    title = await page.text_content('#dialogTitle')
+    body = await page.text_content('#dialogBody')
+    c.check(title == 'New participant?' and '2 recordings not saved yet' in body, 'it asks first, and says the 2 recordings are saved first', body)
+    async with page.expect_download():
+        await confirm_dialog(page, 'Save and continue')
+    await wait_for(page, '() => V2S.ui.isDialogOpen()', timeout=20000)   # Did the file save?
+    await dialog_ready(page)
+    await page.locator('#dialogActions button', has_text='Yes, I see it').click()
+    await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
+    st = await page.evaluate(NEW_PARTICIPANT_STATE)
+    c.check(st['id'] is None and st['pending'] == 0 and st['field'] == '' and len(downloads) == 1,
+            'saved first (one ZIP, confirmed), then Set up with an empty ID', st)
+    c.check(st['theme'] == 'light' and st['hold'] == 1000, 'the next participant starts with the default settings (light, 1 s)', st)
+    await enter_id(page, 'P018')
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    fresh = await page.evaluate("() => V2S.app.state().progress.currentIndex")
+    c.check(await page.text_content('#welcomeTitle') == 'Welcome' and fresh == 0, 'P018: a first visit, from the very beginning', fresh)
+    # P017 again: nothing to save, then their ID: on where they left off, with their settings.
+    await open_settings(page)
+    await page.locator('#newParticipant').click()
+    await confirm_dialog(page, 'New participant')
+    await enter_id(page, 'P017')
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    back = await page.evaluate("() => ({ index: V2S.app.state().progress.currentIndex, theme: document.documentElement.dataset.theme, hold: V2S.input.getHoldMs() })")
+    c.check(await page.text_content('#welcomeTitle') == 'Welcome back' and back == {'index': 9, 'theme': 'dark', 'hold': 2000},
+            'P017 again: where they left off, with their own settings (dark, 2 s)', back)
+    kept = await page.evaluate("async () => (await V2S.storage.takeIds()).length")
+    c.check(kept >= 2, "P017's recordings are still on this device (saved, kept as a backup)", kept)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
+    if ENGINE == 'chrome':
+        # A folder: recordings are already in it; the next participant keeps the folder.
+        browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST])
+        await setup_participant(page, base, save='folder')
+        await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=7, completed=False)
+        await start_session(page)
+        await record(page)
+        await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
+        await open_settings(page)
+        await page.locator('#newParticipant').click()
+        await confirm_dialog(page, 'New participant')
+        await enter_id(page, 'P018')
+        await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+        mode = await page.evaluate("V2S.exporter.getSaveMode()")
+        c.check(mode == 'folder' and await page.is_hidden('#setupStepFolder'), 'a folder: the next participant keeps it (no folder question)', mode)
+        c.check(not errors, 'no page errors', errors)
+        await browser.close()
+    return c.done()
+
+
+# The first page of Settings, top to bottom: the parts in order, by their first words.
+SETTINGS_HOME_JS = """() => [...document.querySelectorAll('#settingsBody > .group')].map(g => g.textContent.replace(/\\s+/g, ' ').trim().slice(0, 60))"""
+
+
+async def s_settings_home(pw, base):
+    c = Checks('Settings, first page: the participant and New participant first, then saving (with Save now), their own settings, the sentences, this device')
+    browser, _, page, errors = await boot(pw, base, index=7, init_scripts=[NO_PICKERS])
+    downloads = track_downloads(page)
+    await record(page)
+    await open_settings(page)
+    groups = await page.evaluate(SETTINGS_HOME_JS)
+    expect = ['ParticipantP017New participant…Switch participant…', 'Saving 1 recording is not saved yet', 'For P017 Appearance', 'Sentences & progress',
+              'This device Camera and microphone', 'About', 'Sign out']
+    order = [any(g.replace(' ', '').startswith(e.replace(' ', '')) for g in groups[i:i + 1]) for i, e in enumerate(expect)]
+    c.check(len(groups) == len(expect) and all(order), 'in order: participant, saving, their own settings, sentences, this device, About, Sign out', groups)
+    c.check(await page.is_visible('#mainSaveNow') and 'Held-press limit' in groups[2], 'not saved: the amber line and Save all recordings now, right there; held-press limit with the theme', groups[1:3])
+    async with page.expect_download():
+        await page.locator('#mainSaveNow').click()
+    await confirm_dialog(page, 'Yes, I see it')
+    await page.wait_for_selector('#settingsPanel:not([hidden])', timeout=10000)
+    await wait_for(page, "() => document.getElementById('settingsTitle').textContent === 'Settings'")
+    await page.wait_for_timeout(400)
+    groups = await page.evaluate(SETTINGS_HOME_JS)
+    c.check(groups[1].replace(' ', '').startswith('SavingAllrecordingsaresaved') and await page.is_hidden('#mainSaveNow') and len(downloads) == 1,
+            'saved from the first page: back on it, all saved, no Save button', groups[1])
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
     return c.done()
 
 
@@ -2710,6 +2826,8 @@ SCENARIOS = {
     'rainbow': s_rainbow,
     'rainbow_zip': s_rainbow_zip,
     'rainbow_edges': s_rainbow_edges,
+    'new_participant': s_new_participant,
+    'settings_home': s_settings_home,
     'card_room': s_card_room,
     'zip_backups': s_zip_backups,
     'part_end_redo': s_part_end_redo,
@@ -2724,7 +2842,7 @@ CROSS_ENGINE = ['first_run', 'normal', 'hold', 'no_speech', 'redo', 'speech_befo
                 'bluetooth', 'mic_test_silent', 'help', 'double_tap', 'held_keys', 'save_keys', 'camera_denied', 'card_stable', 'device', 'reload', 'break_zip', 'legacy', 'storage_full',
                 'finish_settings', 'signin', 'keyboard', 'clicker', 'too_loud', 'set_switch', 'no_audio', 'fit', 'settings_parity', 'settings_fit', 'redo_reload',
                 'practice_again', 'rounds', 'zip_backups', 'part_end_redo', 'two_tabs', 'long_take', 'store_failure',
-                'store_failure_late', 'stale_backups', 'rainbow_zip', 'card_room']
+                'store_failure_late', 'stale_backups', 'rainbow_zip', 'card_room', 'new_participant']
 
 
 async def main(names):

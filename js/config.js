@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '215',
-  MATERIAL_VERSION: 'materials_v215',
+  APP_VERSION: '216',
+  MATERIAL_VERSION: 'materials_v216',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
