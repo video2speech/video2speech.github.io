@@ -13,10 +13,13 @@ window.V2S = window.V2S || {};
 V2S.input = (() => {
   const cfg = V2S.config;
   const { logEvent } = V2S.util;
-  const PRIMARY_KEYS = new Set([' ', 'Spacebar', 'Enter', 'ArrowRight', 'PageDown']);
+  const PRIMARY_KEYS = new Set([' ', 'Spacebar', 'Enter', 'PageDown']);
   const SECONDARY_KEYS = new Set(['ArrowLeft', 'PageUp']);
+  // → (owner, 2026-10-15): cancels a Redo just pressed (back to where they were);
+  // otherwise it goes on like Enter (clickers send it).
+  const FORWARD_KEYS = new Set(['ArrowRight']);
 
-  let handlers = { primary: null, secondary: null, hold: null };
+  let handlers = { primary: null, secondary: null, forward: null, hold: null };
   let holdMs = cfg.HOLD_MS;   // Settings: 1, 2 or 3 s (people who release buttons slowly)
   let enabled = false;
   let press = null;
@@ -50,6 +53,7 @@ V2S.input = (() => {
   function keyKind(event) {
     if (event.code === 'Space' || PRIMARY_KEYS.has(event.key)) return 'primary';
     if (SECONDARY_KEYS.has(event.key)) return 'secondary';
+    if (FORWARD_KEYS.has(event.key)) return 'forward';
     return null;
   }
 
@@ -84,7 +88,7 @@ V2S.input = (() => {
       if (handlers.hold) handlers.hold({ kind: press.kind, source: press.source });
     }, holdMs);
     logEvent('press', { kind, source });
-    const handler = kind === 'primary' ? handlers.primary : handlers.secondary;
+    const handler = kind === 'primary' ? handlers.primary : kind === 'forward' ? (handlers.forward || handlers.primary) : handlers.secondary;
     if (handler) handler({ source });
     return true;
   }
@@ -244,6 +248,8 @@ V2S.input = (() => {
 
   // For tests: a press now would count (not within DEBOUNCE_MS of the last, nor guarded).
   const pressReady = () => performance.now() - lastPressAt >= cfg.DEBOUNCE_MS;
+  // Presses count only after `ms` (a practice step or a part's end must be seen first).
+  const guardFor = ms => { lastPressAt = Math.max(lastPressAt, performance.now() + ms - cfg.DEBOUNCE_MS); };
 
-  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed, screenChanged, holdClicks, clicksPaused, pressReady };
+  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed, screenChanged, holdClicks, clicksPaused, pressReady, guardFor };
 })();

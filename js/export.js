@@ -46,16 +46,18 @@ V2S.exporter = (() => {
     return !(record.metadata && record.metadata.requiresRetry);
   }
 
-  // Where a take belongs, relative to the folder or ZIP root: <ID>/ (the Rainbow Passage
-  // in <ID>/rainbow/), and not_used/ under it for takes that are not usable.
+  // Where a take belongs, relative to the folder or ZIP root: <ID>/<session folder>/
+  // (owner, 2026-10-15: each visit apart; takes from before have none: <ID>/), the Rainbow
+  // Passage in rainbow/ there, and not_used/ under it for takes that are not usable.
   const isRainbow = setKey => setKey === cfg.RAINBOW.key;
-  function home(participantId, setKey) {
+  function home(participantId, setKey, folder = null) {
     const base = participantId ? safeName(participantId) : LEGACY_FOLDER;
-    return isRainbow(setKey) ? [base, 'rainbow'] : [base];
+    const parts = folder ? [base, safeName(folder)] : [base];
+    return isRainbow(setKey) ? [...parts, 'rainbow'] : parts;
   }
 
   function destination(record) {
-    const parts = home(record.participantId || null, record.sentenceSet);
+    const parts = home(record.participantId || null, record.sentenceSet, record.sessionFolder || null);
     return isUsable(record) ? parts : [...parts, 'not_used'];
   }
 
@@ -301,7 +303,7 @@ V2S.exporter = (() => {
       for (const item of open) {
         if (cached.has(item.fileName)) continue; // still on the device: it will go to not_used/
         try {
-          await moveToNotUsed(participantId, item.fileName, item.supersededBy, setKey);
+          await moveToNotUsed(participantId, item.fileName, item.supersededBy, setKey, item.folder || null);
           finished.push(item.fileName);
         } catch (error) {
           noteWriteFailure(error, item.fileName);
@@ -343,8 +345,8 @@ V2S.exporter = (() => {
   // Moves one file (and its sidecar) from <participant>/ to <participant>/not_used/ (for
   // the Rainbow Passage, within <participant>/rainbow/). Nothing to do if it is not among
   // the usable recordings (already moved, or never there).
-  async function moveToNotUsed(participantId, fileName, supersededBy, setKey) {
-    const parts = home(participantId, setKey);
+  async function moveToNotUsed(participantId, fileName, supersededBy, setKey, folder = null) {
+    const parts = home(participantId, setKey, folder);
     const source = await directoryFor(parts);
     let fileHandle;
     try {
@@ -374,7 +376,7 @@ V2S.exporter = (() => {
     try {
       await writeRecordToFolder({ ...info, mimeType: info.mimeType || blob.type }, blob);
       logEvent('rescue_folder', { fileName: info.fileName });
-      if (replaced && replaced.fileName) chain(() => moveToNotUsed(info.participantId, replaced.fileName, info.fileName, info.sentenceSet), replaced.fileName);
+      if (replaced && replaced.fileName) chain(() => moveToNotUsed(info.participantId, replaced.fileName, info.fileName, info.sentenceSet, replaced.folder || null), replaced.fileName);
       return true;
     } catch (error) {
       noteWriteFailure(error, info.fileName);

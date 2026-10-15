@@ -198,10 +198,54 @@ V2S.ui = (() => {
     setSentences('messageText', hasMessage ? view.message.text : '');
     el('messageIcon').innerHTML = hasMessage ? ({ ok: ICONS.check, warn: ICONS.warn }[view.message.tone] || '') : '';
 
+    // The card's prompt: the one thing to do now (practice, a part's end).
+    const prompt = view.prompt;
+    el('cardPrompt').hidden = !prompt;
+    // The control the guide points at is lifted above the dimming.
+    el('mainButton').classList.toggle('is-spotlit', Boolean(prompt) && prompt.target !== 'redo');
+    el('redoButton').classList.toggle('is-spotlit', Boolean(prompt) && prompt.target === 'redo' && redoVisible);
+    el('cardPrompt').classList.toggle('cue-after', Boolean(prompt && prompt.cueAfter));
+    if (prompt) {
+      setText('promptAck', prompt.ack || '');
+      // On a computer the key to press; on touch the bubble's pointer and the lifted
+      // button show where to tap.
+      el('promptCue').innerHTML = prompt.key ? `<kbd class="prompt-key${prompt.key === 'Space' ? ' is-space' : ''}">${prompt.key}</kbd>` : '';
+      el('promptCue').hidden = !prompt.key;
+      setSentences('promptText', prompt.text || '');
+      setSentences('promptDetail', prompt.detail || '');
+    }
+    setText('redoKey', redoView.cancel ? '→' : '←');
+    if (prompt) requestAnimationFrame(() => placeBubble(prompt.target === 'redo' && redoVisible ? redo : main));
+
     setTimer(view.state === 'recording' ? view.liveSince : null);
     renderCoach(view.coach);
     main.classList.toggle('is-pulsing', view.pulse === 'main');
     redo.classList.toggle('is-pulsing', view.pulse === 'redo' && redoVisible);
+  }
+
+  // The guide's bubble sits next to the control it is about (above Start, below Redo),
+  // pointing at it, so the sentence card stays in view.
+  function placeBubble(target) {
+    const mark = el('cardPrompt');
+    const bubble = mark.querySelector('.coach-bubble');
+    const box = mark.getBoundingClientRect();
+    const t = target.getBoundingClientRect();
+    if (!box.height || !t.height) return;
+    const below = t.top - box.top < box.height / 2;
+    bubble.dataset.side = below ? 'below' : 'above';
+    if (below) {
+      bubble.style.top = `${Math.round(t.bottom - box.top + 16)}px`;
+      bubble.style.bottom = '';
+      const left = Math.max(16, Math.min(t.left - box.left, box.width - bubble.offsetWidth - 16));
+      bubble.style.left = `${Math.round(left)}px`;
+      bubble.style.transform = 'none';
+      bubble.style.setProperty('--tail-x', `${Math.round(Math.max(20, t.left - box.left + Math.min(60, t.width / 2) - left - 9))}px`);
+    } else {
+      bubble.style.top = '';
+      bubble.style.bottom = `${Math.round(box.bottom - t.top + 16)}px`;
+      bubble.style.left = '';
+      bubble.style.transform = '';
+    }
   }
 
   // The guide keeps one height (CSS), so nothing moves while practising.
@@ -776,6 +820,12 @@ V2S.ui = (() => {
     fitSentences,
     phrased,
     sentenceText,
+    nudgePrompt: () => {
+      const box = el('cardPrompt');
+      box.classList.remove('is-nudge');
+      void box.offsetWidth;
+      box.classList.add('is-nudge');
+    },
     writeSentence,
     passageLayout: text => passageLines.get(text) || null,
     watchPreviewShape,

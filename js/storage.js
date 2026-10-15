@@ -225,7 +225,7 @@ V2S.storage = (() => {
         get.onsuccess = () => {
           const list = (get.result && get.result.list) || [];
           if (!list.some(item => item.fileName === supersede.fileName)) {
-            list.push({ fileName: supersede.fileName, supersededBy: record.fileName, sentenceIndex: record.sentenceIndex, sentence: record.sentence, round: progress.round || null, at: new Date().toISOString(), done: false });
+            list.push({ fileName: supersede.fileName, folder: supersede.folder || null, supersededBy: record.fileName, sentenceIndex: record.sentenceIndex, sentence: record.sentence, round: progress.round || null, at: new Date().toISOString(), done: false });
           }
           progressStore.put({ sentenceSet: key, kind: 'supersede', list, timestamp: new Date().toISOString() });
         };

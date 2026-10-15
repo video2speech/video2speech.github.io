@@ -479,7 +479,7 @@ V2S.settings = (() => {
     // The Rainbow Passage question answered (No, or Yes and not finished): the research
     // team can have it asked again, for a wrong answer.
     const answer = state.setKey === cfg.RAINBOW.afterSet && state.progress && state.progress.completed ? state.progress.rainbow : null;
-    if (['declined', 'reading'].includes(answer)) {
+    if (false && ['declined', 'reading'].includes(answer)) {   // (no question any more: owner, 2026-10-15)
       parts.push(group([
         action(t.rainbowAgain, async () => {
           if (!(await V2S.ui.confirm({ title: t.rainbowAgain.replace('…', ''), body: t.rainbowConfirm, yes: t.confirm }))) return;

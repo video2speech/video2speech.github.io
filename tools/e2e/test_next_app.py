@@ -257,8 +257,12 @@ async def pass_check(page):
     await click(page, '#testYes')
     # The first time: the one thing to remember, before the practice.
     await wait_for(page, "() => !document.getElementById('screen-intro').hidden || !document.getElementById('screen-record').hidden")
-    if await page.is_visible('#screen-intro'):
+    # The practice intro (first time), or how it works line by line (coming back).
+    for _ in range(8):
+        if not await page.is_visible('#screen-intro'):
+            break
         await click(page, '#introStart')
+        await page.wait_for_timeout(150)
 
 
 async def start_session(page):

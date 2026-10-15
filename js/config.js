@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '217',
-  MATERIAL_VERSION: 'materials_v217',
+  APP_VERSION: '218',
+  MATERIAL_VERSION: 'materials_v218',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -48,7 +48,9 @@ V2S.config = Object.freeze({
   START_TIMEOUT_MS: 600,       // the sentence turns green when the recorder reports it started; this is the fallback
   START_ATTEMPTS: 3,           // silent recorder restarts before the participant is told
   TAIL_MS: 700,                // keep recording this long after Stop (fixed; legacy page: 300 ms)
-  MAX_TAKE_MS: 60000,          // a take this long is aborted and the sentence restarts
+  MAX_TAKE_MS: 120000,         // a take this long is aborted and the sentence restarts (2 min: slow speakers, long passage sentences)
+  STEP_MIN_MS: 1000,           // practice and a part's end: a step's instruction shows this long before a press counts
+  SESSION_GAP_MS: 3 * 60 * 60 * 1000,   // recordings go to one session folder until a pause this long
   IDLE_SPEECH_HINT_MS: 500,    // speaking this long before Start shows a hint
   IDLE_SPEECH_HINT_COOLDOWN_MS: 6000,
   IDLE_SPEECH_GRACE_MS: 1500,  // after a take, speech in the first 1.5 s is not "reading before Start"

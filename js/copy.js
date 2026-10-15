@@ -42,7 +42,7 @@ V2S.copy = {
 
   // The one thing to remember. Shown before the practice, after it, and when coming back.
   rule: k => (k ? 'Press **Space**, read the **green**\u00a0sentence out loud, then press **Space** again.'
-    : 'Press **Start**, read the **green**\u00a0sentence out loud, then press **Stop**.'),
+    : 'Tap **Start**, read the **green**\u00a0sentence out loud, then tap **Stop**.'),
 
   // Before the practice (first time only).
   // After the last sentence of the 350-sentence set, once: the Rainbow Passage?
@@ -52,6 +52,23 @@ V2S.copy = {
     lead: n => `A short story in ${n} sentences, one at a time, as\u00a0before.`,
     yes: 'Yes, read it',
     no: 'No, finish'
+  },
+
+  // A returning participant, after the check: how it works, one line at a time.
+  review: {
+    eyebrow: 'Welcome back',
+    title: 'How it works',
+    lines: k => (k
+      ? ['**Space** starts recording. The sentence turns green: read it out loud.',
+        'Press **Space** again when you finish. The next sentence appears.',
+        'Misread a sentence? **←** records the last one again.',
+        'Pressed **←** by mistake? **→** goes back.']
+      : ['**Start** begins recording. The sentence turns green: read it out loud.',
+        'Tap **Stop** when you finish. The next sentence appears.',
+        'Misread a sentence? **Redo last sentence** (top left) records it again.',
+        'Tapped Redo by mistake? **Cancel redo** goes back.']),
+    next: 'Got it',
+    last: 'Got it — show the sentence'
   },
 
   intro: {
@@ -82,7 +99,7 @@ V2S.copy = {
     rainbow: 'Rainbow Passage',
     doneTitle: 'All sentences done',
     doneLead: 'Thank you! There is nothing more to record. You can close this page.',
-    doneLeadUnsaved: 'Thank you! There is nothing more to record. Please save your recordings first.',
+    doneLeadUnsaved: 'Thank you! There is nothing more to record. Save your recordings before you close this page.',
     saveFirst: 'Save recordings',
     pending: n => `${n} recording${n === 1 ? ' is' : 's are'} not saved yet.`,
     saveNow: 'Save now',
@@ -126,6 +143,10 @@ V2S.copy = {
     testReplay: 'Play it again',
     testHint: 'Can’t hear it? Turn the volume up and play it again.',
     testSilent: "We couldn’t hear anything. Check that the microphone is not muted or covered, and speak up.",
+    noVoice: 'Can’t use your voice? Go on without it',
+    noVoiceTitle: 'Go on without your voice?',
+    noVoiceBody: 'For example after a laryngectomy. Your recordings are kept even when the microphone hears nothing.',
+    noVoiceYes: 'Yes, go on',
     chooseMic: 'Choose another microphone',
     keepHeadphones: 'Keep using these headphones',
     testFailed: 'The test could not be recorded. Please try again.',
@@ -139,9 +160,9 @@ V2S.copy = {
     title: 'How to record',
     steps: k => (k
       ? ['Press **Space** once.', 'Read the **green** sentence out\u00a0loud.', 'Press **Space** again when you finish.']
-      : ['Press **Start** once.', 'Read the **green** sentence out\u00a0loud.', 'Press **Stop** when you finish.']),
+      : ['Tap **Start** once.', 'Read the **green** sentence out\u00a0loud.', 'Tap **Stop** when you finish.']),
     fix: k => (k ? 'Read a word wrong? After you stop, press **←** (Redo) to\u00a0record that sentence again.'
-      : 'Read a word wrong? After\u00a0**Stop**, press **Redo** (at the top) to\u00a0record that sentence again.'),
+      : 'Read a word wrong? After\u00a0**Stop**, tap **Redo last sentence** (at the top) to\u00a0record it again.'),
     close: 'Close'
   },
 
@@ -151,12 +172,24 @@ V2S.copy = {
     stop: 'Stop',
     starting: 'Starting…',
     saving: 'Finishing…',
-    redo: 'Redo',
+    redo: 'Redo last sentence',
+    redoQueued: 'After saving, this one again',
     redoCaption: sentence => `“${sentence}”`,
     redoThis: 'This sentence again',
     cancelRedo: 'Cancel redo',
     toBreak: n => `Finish part ${n}`,
     toPracticeDone: 'Continue',
+    toNext: 'Continue',
+    donePractice: 'Practice done.',
+    donePart: n => `Part ${n} done.`,
+    doneAll: n => `All ${n} parts done.`,
+    doneRainbow: 'Rainbow Passage done.',
+    pressEnterGo: 'Press Space to continue',
+    pressBreak: k => (k ? 'Press Space to go to your break' : 'Tap Go to break'),
+    toBreakShort: 'Go to break',
+    readyHint: k => (k ? 'Press Space, then read.' : 'Tap Start, then read.'),
+    tapGo: label => `Tap ${label}`,
+    passageNext: n => `Next: the Rainbow Passage, ${n} sentences.`,
     toAllDone: 'Finish',
     partEndPart: n => `That was the\u00a0last\u00a0sentence of part\u00a0${n}.`,
     partEndAll: 'That was the very last sentence.',
@@ -176,21 +209,23 @@ V2S.copy = {
   // `ack` says what just happened (small), `action` is the one thing to do now (large),
   // `detail` (rarely) says why. k = true on a computer (keys named instead of buttons).
   coach: {
-    pressStart: k => `Press ${k ? 'Space' : 'Start'} once.`,
-    noHold: 'No need to hold it.',
-    readNow: k => `Read the green sentence out loud, then press ${k ? 'Space' : 'Stop'}.`,
+    pressStart: k => (k ? 'Press Space to start' : 'Tap Start to begin'),
+    startWhat: k => (k ? 'Recording starts at once and the sentence appears in green. Read it out loud, then press Space again.'
+      : 'Recording starts at once and the sentence appears in green. Read it out loud, then tap Stop.'),
+    readNow: k => (k ? 'Read it out loud. When you finish, press Space.' : 'Read it out loud. When you finish, tap Stop.'),
     recordedFirst: 'That’s it. Every sentence works like this.',
-    nextSentence: k => `Next sentence: press ${k ? 'Space' : 'Start'}.`,
+    nextSentence: k => (k ? 'Press Space for the next sentence' : 'Tap Start for the next sentence'),
     // The Redo lesson: nothing went wrong; it shows how to fix a misread sentence.
     redoLesson: 'This is only practice — nothing went wrong.',
-    tryRedo: k => (k ? 'Now try Redo: press ←.' : 'Now try Redo, at the top.'),
-    redoWhat: () => 'If you ever misread a sentence, Redo lets you read it again.',
+    tryRedo: k => (k ? 'Now press ← to redo the last sentence' : 'Now tap “Redo last sentence” at the top'),
+    redoWhat: () => 'Redo records the sentence you just read once more. Use it whenever you misread one.',
     backToLast: 'This is the sentence before.',
-    startAgain: k => `Press ${k ? 'Space' : 'Start'} and read it again.`,
+    startAgain: k => (k ? 'Press Space and read it again' : 'Tap Start and read it again'),
+    cancelHint: k => (k ? 'Pressed ← by mistake? Press → to go back.' : 'Tapped Redo by mistake? Tap Cancel redo.'),
     redoDone: 'That’s how Redo works.',
-    carryOn: k => `Now go on: press ${k ? 'Space' : 'Start'}.`,
-    more: (n, k) => `${n} more to practice: press ${k ? 'Space' : 'Start'}.`,
-    lastOne: k => `Last practice sentence: press ${k ? 'Space' : 'Start'}.`,
+    carryOn: k => (k ? 'Press Space for the next sentence' : 'Tap Start for the next sentence'),
+    more: (n, k) => (k ? `${n} more. Press Space to start` : `${n} more. Tap Start to begin`),
+    lastOne: k => (k ? 'Last one. Press Space to start' : 'Last one. Tap Start to begin'),
     lastPractice: 'That was the last practice\u00a0sentence.',
     pressContinue: k => (k ? 'Press Space to continue.' : 'Press Continue.')
   },
@@ -217,7 +252,7 @@ V2S.copy = {
     speechBeforeStart: k => `Not recording yet. Press ${k ? 'Space' : 'Start'} first, then read.`,
     afterHold: k => `Press ${k ? 'Space' : 'Start'} once, then read.`,
     holdTip: k => `Tip: let go of the ${k ? 'key' : 'button'} right away.`,
-    no_speech: k => `We couldn’t hear you. Sit closer, then press ${k ? 'Space' : 'Start'}.`,
+    no_speech: k => `We couldn’t hear that. Sit closer, then ${k ? 'press Space' : 'tap Start'} and read it again.`,
     too_loud: k => `Too loud. Move back a little, then press ${k ? 'Space' : 'Start'}.`,
     no_audio: k => `The microphone sent no sound. Press ${k ? 'Space' : 'Start'} again.`,
     startFailed: k => `The recording didn’t start. Press ${k ? 'Space' : 'Start'} again.`,
@@ -234,7 +269,8 @@ V2S.copy = {
       : 'Press Start once and let go. It records until you press Stop.'),
     bodyDiscarded: k => (k ? 'That recording was not kept. Press Space once and let go — it records until you press Space again.'
       : 'That recording was not kept. Press Start once and let go — it records until you press Stop.'),
-    ok: 'OK'
+    ok: 'OK',
+    longer: 'I need longer to let go'
   },
 
   endDialog: {
@@ -259,8 +295,8 @@ V2S.copy = {
   // Saving is learnt here by doing it once (ZIP mode): the same steps as after every part.
   practiceDone: {
     title: 'Practice done',
-    body: 'Now the real sentences, the same way:',
-    saveFirst: 'Now save your practice recordings. You will do the same after each part.',
+    body: 'Now the real sentences. Each one shows first in grey: press Start (or Space), it turns green, then read it.',
+    saveFirst: 'Save them now: you will do this after every part, so nothing is lost.',
     saved: 'Your practice recordings are saved.',
     savedFolder: name => `Every recording is saved by itself in “${name}”.`,
     parts: (parts, size) => `${parts} parts of ${size} sentences. You can stop after any\u00a0part.`,

@@ -207,10 +207,12 @@ V2S.app = (() => {
   // Still to come after the set's last sentence: until the question is answered (No) or the
   // passage is read. Only an answer counts: if the page closed on the question, or before
   // it (End for today on the last sentence), it is asked on the way back.
+  // Owner, 2026-10-15: no question any more — the passage follows the 350 sentences as
+  // part of them, and is read once (not again in a later round).
   const rainbowAhead = () => app.setKey === cfg.RAINBOW.afterSet && Boolean(app.progress && app.progress.completed)
-    && !['declined', 'done'].includes(app.progress.rainbow);
-  const readingRainbow = () => rainbowAhead() && app.progress.rainbow === 'reading';
-  const rainbowUnanswered = () => rainbowAhead() && app.progress.rainbow !== 'reading';
+    && app.progress.rainbow !== 'done';
+  const readingRainbow = () => rainbowAhead();
+  const rainbowUnanswered = () => false;
   // Everything recorded: the set is complete and nothing of the passage is ahead.
   const allDone = () => Boolean(app.progress && app.progress.completed) && !rainbowAhead();
 
@@ -223,17 +225,14 @@ V2S.app = (() => {
     let progress = await V2S.storage.getProgress(key);
     if (!progress) progress = await V2S.storage.createParticipantProgress(app.participantId, cfg.RAINBOW.key, null);
     const round = V2S.storage.roundOf(app.progress);
-    if (V2S.storage.roundOf(progress) === round && progress.completed) {
+    if (progress.completed) {
       leaveRainbow();
       app.progress.rainbow = 'done';
       await V2S.storage.saveParticipantProgress(app.progress);
       logEvent('rainbow_done', { onReturn: true });
       return false;
     }
-    if (V2S.storage.roundOf(progress) !== round) {
-      Object.assign(progress, { currentIndex: 0, completed: false, completedAt: null, round, usable: {}, takeCounts: {} });
-      delete progress.pendingRedo;
-    }
+    if (!progress.round) progress.round = round;
     progress.currentIndex = Math.min(Math.max(0, Number(progress.currentIndex) || 0), material.all.length - 1);
     Object.assign(progress, { coachDone: true, howtoSeen: true });
     await V2S.storage.saveParticipantProgress(progress);
@@ -479,7 +478,8 @@ V2S.app = (() => {
     ui.setSentences('welcomeLead', firstVisit ? copy.welcome.leadFirst : copy.welcome.leadBack);
     el('welcomeStages').hidden = !firstVisit;
     el('welcomeJourney').hidden = firstVisit || done;
-    app.welcomeRule = !(firstVisit || needsPractice() || done || rainbowUnanswered());
+    // How it works is reviewed after the check, line by line (not here).
+    app.welcomeRule = false;
     el('welcomeRule').hidden = !app.welcomeRule;
     ui.setRich('welcomeRule', copy.rule(usesKeys()));
 
@@ -778,6 +778,7 @@ V2S.app = (() => {
     el('testHint').hidden = true;
     el('testError').hidden = true;
     el('testChooseMic').hidden = true;
+    el('testNoVoice').hidden = true;
     el('checkHelp').hidden = false;
     el('screen-check').classList.remove('is-asking');
     markMicProblem();
@@ -845,7 +846,13 @@ V2S.app = (() => {
     const now = V2S.media.current();
     logEvent('mic_test', { pass: qc.pass, code: qc.code, speechMs: qc.metrics.speechMs, rms: qc.metrics.rms, microphone: now.microphone, sampleRate: now.sampleRate, size: recording.blob.size });
     if (!recording.blob.size) return showTestError(copy.check.testFailed);
-    if (qc.code === 'no_speech' || qc.code === 'no_audio') return showTestError(copy.check.testSilent);   // (passes when silence is allowed)
+    if (qc.code === 'no_speech' || qc.code === 'no_audio') {
+      showTestError(copy.check.testSilent);
+      // Someone who cannot use their voice (a laryngectomy) goes on from here, after a yes.
+      ui.setText('testNoVoice', copy.check.noVoice);
+      el('testNoVoice').hidden = false;
+      return;
+    }
     await playTest(recording.blob);
   }
 
@@ -911,7 +918,80 @@ V2S.app = (() => {
       app.progress.howtoSeen = true;
       await V2S.storage.saveParticipantProgress(app.progress);
     }
-    return needsPractice() ? showIntro() : showRecord();
+    if (needsPractice()) return showIntro();
+    // Back from Settings mid-session: straight on. Otherwise (a new visit) how it works,
+    // confirmed one line at a time (owner, 2026-10-15), instead of practice sentences.
+    if (app.checkReturn === 'record') return showRecord();
+    return showReview();
+  }
+
+  // No sound in the test, and "I can't use my voice": asked once, then recordings are kept
+  // without sound for this participant (Settings can turn it off).
+  async function onNoVoice() {
+    if (ui.screen() !== 'check' || app.test.running) return;
+    const yes = await ui.confirm({ title: copy.check.noVoiceTitle, body: copy.check.noVoiceBody, yes: copy.check.noVoiceYes });
+    if (!yes) return;
+    V2S.qc.setAllowSilent(true);
+    await V2S.storage.setSetting('allowSilent', true);
+    await saveParticipantPrefs();
+    logEvent('no_voice_confirmed', {});
+    await onTestYes();
+  }
+
+  // How it works, for a returning participant: each line is confirmed in turn (Enter or
+  // the button), with a moment to read it; then recording starts.
+  let reviewStep = 0;
+  function showReview() {
+    V2S.input.setEnabled(false);
+    const lines = copy.review.lines(usesKeys());
+    reviewStep = 0;
+    ui.setText('introEyebrow', copy.review.eyebrow);
+    ui.setText('introTitle', copy.review.title);
+    el('introRule').hidden = true;
+    el('introLead').hidden = true;
+    const list = el('introReview');
+    list.hidden = false;
+    list.replaceChildren(...lines.map(text => {
+      const item = document.createElement('li');
+      const mark = document.createElement('span');
+      mark.className = 'review-mark';
+      const body = document.createElement('span');
+      item.append(mark, body);
+      body.dataset.rich = text;
+      return item;
+    }));
+    [...list.children].forEach(item => {
+      const body = item.lastElementChild;
+      body.id = `review-${Math.random().toString(36).slice(2)}`;
+      ui.setRich(body.id, body.dataset.rich);
+    });
+    app.reviewing = true;
+    renderReview();
+    ui.show('intro');
+    el('introStart').focus({ preventScroll: true });
+  }
+
+  function renderReview() {
+    const items = [...el('introReview').children];
+    items.forEach((item, i) => {
+      item.classList.toggle('is-done', i < reviewStep);
+      item.classList.toggle('is-current', i === reviewStep);
+    });
+    ui.setText('introStart', reviewStep >= items.length - 1 ? copy.review.last : copy.review.next);
+    V2S.input.holdClicks(cfg.STEP_MIN_MS);
+  }
+
+  function onIntroStart() {
+    if (!app.reviewing) return showRecord();
+    const total = el('introReview').children.length;
+    reviewStep += 1;
+    logEvent('review_line', { step: reviewStep });
+    if (reviewStep < total) return renderReview();
+    app.reviewing = false;
+    el('introReview').hidden = true;
+    el('introRule').hidden = false;
+    el('introLead').hidden = false;
+    return showRecord();
   }
 
   const usesKeys = () => document.documentElement.classList.contains('has-keyboard');
@@ -920,6 +1000,10 @@ V2S.app = (() => {
   // only for practice.
   function showIntro() {
     V2S.input.setEnabled(false);
+    app.reviewing = false;
+    el('introReview').hidden = true;
+    el('introRule').hidden = false;
+    el('introLead').hidden = false;
     ui.setText('introEyebrow', copy.intro.eyebrow);
     ui.setText('introTitle', copy.intro.title);
     ui.setRich('introRule', copy.rule(usesKeys()));
@@ -956,11 +1040,29 @@ V2S.app = (() => {
     if (switching) {
       app.sessionStarted = true;
       app.sessionSet = active.setKey;
-      V2S.session.begin({ participantId: app.participantId, ...active });
+      V2S.session.begin({ participantId: app.participantId, ...active, sessionFolder: await sessionFolder() });
     } else {
       ui.fitSentences(active.material.all);
       V2S.session.resume();
     }
+  }
+
+  // Each visit records into its own folder (owner, 2026-10-15: patients come back again
+  // and again): <ID>/session-YYYY-MM-DD_HH-MM/, the same one until a pause of
+  // SESSION_GAP_MS (a reload or a break stays in it).
+  async function sessionFolder() {
+    const key = `session:${app.participantId}`;
+    const now = Date.now();
+    const last = await V2S.storage.getSetting(key, null);
+    let folder = last && now - last.at < cfg.SESSION_GAP_MS ? last.folder : null;
+    if (!folder) {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      folder = `session-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
+      logEvent('session_folder', { folder });
+    }
+    await V2S.storage.setSetting(key, { folder, at: now });
+    return folder;
   }
 
   // Ending always asks first, from every screen: a stray or slightly missed tap must not
@@ -1724,7 +1826,8 @@ V2S.app = (() => {
     el('checkNext').addEventListener('click', onCheckNext);
     el('testRecord').addEventListener('click', onTestRecord);
     el('testYes').addEventListener('click', onTestYes);
-    el('introStart').addEventListener('click', () => showRecord());
+    el('introStart').addEventListener('click', onIntroStart);
+    el('testNoVoice').addEventListener('click', onNoVoice);
     el('rainbowYes').addEventListener('click', onRainbowYes);
     el('rainbowNo').addEventListener('click', onRainbowNo);
     el('testAgain').addEventListener('click', () => { resetTest(); showCheckStep('camera'); });
@@ -1755,6 +1858,7 @@ V2S.app = (() => {
     V2S.input.configure({
       primary: press => V2S.session.onPrimary(press),
       secondary: press => V2S.session.onSecondary(press),
+      forward: press => V2S.session.onForward(press),
       hold: press => V2S.session.onHold(press)
     });
     V2S.input.bindButton(el('mainButton'), 'primary');

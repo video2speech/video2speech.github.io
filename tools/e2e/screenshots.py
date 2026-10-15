@@ -302,11 +302,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await t.start_session(page)
     await take()
     await shot('27-set-end')
-    await press_main()
-    await page.wait_for_selector('#screen-rainbow:not([hidden])')
-    await shot('28-rainbow-question')
-    await page.wait_for_timeout(700)   # its answers count after a second
-    await click(page, '#rainbowYes')
+    await press_main()   # the passage follows at once (no question)
     await t.wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
     await shot('29-passage')
     await take(stop=False)

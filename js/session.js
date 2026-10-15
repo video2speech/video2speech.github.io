@@ -23,6 +23,8 @@ V2S.session = (() => {
   let redoLesson = 'pending';  // practice: 'pending' → 'redoing' → 'done'
   let justRecorded = false;    // practice: the last thing that happened was a recorded take
   let lessonJustDone = false;  // practice: the Redo lesson was just completed (said once)
+  let redoAfterSave = false;   // Redo pressed while the take just read was being finished
+  let stepShownAt = 0;         // when the present step (practice, a part's end) was shown
   let partEnd = null;          // { kind: 'practice' | 'part' | 'all', block, blocks } after a part's last sentence
   let holdTipNext = false;     // a held Stop press: say so (gently) on the next sentence
   let storeFailedAt = null;    // a take that could not be stored: go back to that sentence
@@ -117,7 +119,7 @@ V2S.session = (() => {
     const p = index();
     let view;
     if (redoPending()) {
-      view = { ack: { text: c.backToLast, tone: 'info' }, action: c.startAgain(k), target: 'main' };
+      view = { ack: { text: c.backToLast, tone: 'info' }, action: c.startAgain(k), detail: c.cancelHint(k), target: 'main' };
     } else if (lessonJustDone) {
       view = { ack: { text: c.redoDone, tone: 'ok' }, action: c.carryOn(k), target: 'main' };
     } else if ((p === 2 || p === 3) && redoLesson !== 'done' && canRedo()) {
@@ -125,7 +127,7 @@ V2S.session = (() => {
       // to press, then what Redo is for.
       view = { ack: { text: c.redoLesson, tone: 'plain' }, action: c.tryRedo(k), detail: c.redoWhat(), target: 'redo', quietMain: true };
     } else if (p === 0) {
-      view = { ack: null, action: c.pressStart(k), detail: c.noHold, target: 'main' };
+      view = { ack: null, action: c.pressStart(k), detail: c.startWhat(k), target: 'main' };
     } else if (p === 1) {
       view = { ack: justRecorded ? { text: c.recordedFirst, tone: 'ok' } : null, action: c.nextSentence(k), target: 'main' };
     } else {
@@ -161,6 +163,26 @@ V2S.session = (() => {
 
   // Waiting: the grey sentence in its card and the green Start; Redo (top left) names the
   // sentence it would record again. No status text: nothing needs doing but Start.
+  // The card's centre says the ONE thing to do now, in practice and at a part's end
+  // (owner, 2026-10-15: the visual centre must say "press Enter", "press ←"): a key (on a
+  // computer) or an arrow to the button (touch), and a few words. In practice the
+  // sentence shows only once recording starts, so nobody reads before pressing.
+  function promptFor(coach, target) {
+    const k = usesKeys();
+    return {
+      target,
+      ack: coach && coach.ack ? coach.ack.text : '',
+      tone: coach && coach.ack ? coach.ack.tone : 'plain',
+      key: k ? (target === 'redo' ? '←' : 'Space') : null,
+      arrow: k ? null : (target === 'redo' ? 'up' : 'down'),
+      text: coach ? coach.action : '',
+      detail: coach ? coach.detail || '' : ''
+    };
+  }
+
+  // Practice after the Redo lesson: like the real sentences (grey sentence, then Start).
+  const greyPractice = coach => coach.target === 'main' && !redoPending() && redoLesson === 'done' && !lessonJustDone;
+
   function readyView() {
     const coach = coachView('ready');
     let redoView = { visible: false };
@@ -177,8 +199,13 @@ V2S.session = (() => {
       where: whereView(index()),
       main: { label: copy.record.start, icon: 'go', disabled: false, quiet: Boolean(coach && coach.quietMain) },
       redo: redoView,
-      message: messageView(),
-      coach,
+      // Real sentences: a quiet line says what to do (a patient read before pressing).
+      message: messageView() || (coach ? null : { text: copy.record.readyHint(usesKeys()), tone: 'note' }),
+      // Practice: the first steps (and the Redo lesson) are in the card, the sentence
+      // hidden; after the lesson the sentence shows in grey, as in the real sentences, and
+      // the line below says what to do.
+      coach: coach && !greyPractice(coach) ? { ack: null, action: '', detail: '' } : coach,
+      prompt: coach && !greyPractice(coach) ? promptFor(coach, coach.target) : null,
       pulse: pulseFor(coach, redoView.visible)
     };
   }
@@ -196,21 +223,41 @@ V2S.session = (() => {
     return passageAhead ? copy.record.partEndPart(position(lastAccepted.index).block) : copy.record.partEndAll;
   }
 
+  // A part's end (owner, 2026-10-15: "Finish part" was not noticed): the card's centre
+  // says the part is done and what to press; Redo (top) can still record its last
+  // sentence again.
   function partEndView() {
     const coach = coachView('partEnd');
     const kind = partEnd.kind;
-    const note = partEndNote(kind);
+    const k = usesKeys();
+    const title = kind === 'practice' ? copy.record.donePractice
+      : kind === 'part' ? copy.record.donePart(partEnd.block)
+      : ctx.setKey === cfg.RAINBOW.key ? copy.record.doneRainbow
+      : copy.record.doneAll(position(lastAccepted.index).blocks);
+    const passageAhead = kind === 'all' && ctx.setKey === cfg.RAINBOW.afterSet && ctx.progress.rainbow !== 'done';
     return {
       state: 'ready',
       saved: false,
       status: '',
       sentence: lastAccepted.sentence,
       where: { ...whereView(lastAccepted.index), progress: 1 },
-      main: { label: kind === 'practice' ? copy.record.toPracticeDone : kind === 'all' ? copy.record.toAllDone : copy.record.toBreak(partEnd.block), icon: 'next', disabled: false },
-      redo: { visible: true, label: copy.record.redo, caption: copy.record.redoThis },
-      message: coach || !note ? null : { text: note, tone: 'note' },
-      coach,
-      pulse: pulseFor(coach, true)
+      main: { label: kind === 'part' ? copy.record.toBreakShort : kind === 'all' && !passageAhead ? copy.record.toAllDone : copy.record.toNext, icon: 'next', disabled: false },
+      redo: { visible: true, label: copy.record.redo, caption: copy.record.redoCaption(lastAccepted.sentence) },
+      message: null,
+      coach: coach ? { ack: null, action: '', detail: '' } : null,
+      // "Part 1 done." is the big line; then the key, and what it does.
+      prompt: {
+        ack: '',
+        tone: 'ok',
+        cueAfter: true,
+        key: k ? 'Space' : null,
+        arrow: k ? null : 'down',
+        text: title,
+        detail: [kind === 'part' ? copy.record.pressBreak(k)
+          : k ? copy.record.pressEnterGo : copy.record.tapGo(kind === 'all' && !passageAhead ? copy.record.toAllDone : copy.record.toNext),
+        passageAhead ? copy.record.passageNext(cfg.RAINBOW.count) : ''].filter(Boolean).join(' ')
+      },
+      pulse: 'main'
     };
   }
 
@@ -245,20 +292,40 @@ V2S.session = (() => {
       coach,
       // Nothing moves while someone reads (the coach line already says "then press
       // Stop"); only a long take (a forgotten Stop) makes Stop pulse.
-      pulse: take && take.longTake ? 'main' : null,
+      pulse: (take && take.longTake) || coaching() ? 'main' : null,
       liveSince: take && take.readNowAt ? take.readNowAt : performance.now()
     };
   }
 
+  // What comes after this take if it is kept: the next sentence of the same part, or
+  // where a Redo returns to; null at a part's end (its end view follows).
+  function upcomingIndex(current) {
+    if (!current) return null;
+    if (current.redo) return current.redo.partEnd ? null : current.redo.returnIndex;
+    const p = position(current.index);
+    if (current.index + 1 >= ctx.material.all.length) return null;
+    if ((p.warmup && p.pos === p.total) || (!p.warmup && p.inBlock === p.blockSize)) return null;
+    return current.index + 1;
+  }
+
+  // After Stop the recording goes on a moment (the tail) and is checked, in the
+  // background (owner, 2026-10-15): the next sentence shows at once, to get ready for;
+  // the main button says Saving… meanwhile; Redo (the sentence just read) still works.
   function busyView(phase) {
+    const current = take;
+    const next = coaching() ? null : upcomingIndex(current);
+    const shown = next === null ? (current ? current.index : index()) : next;
+    const redoView = current && !current.redo
+      ? { visible: true, label: copy.record.redo, caption: redoAfterSave ? copy.record.redoQueued : copy.record.redoCaption(current.sentence) }
+      : { visible: false };
     return {
-      state: phase,
+      state: next === null ? phase : 'ready-busy',
       saved: false,
       status: '',
-      sentence: ctx.material.all[index()],
-      where: whereView(index()),
+      sentence: ctx.material.all[shown],
+      where: whereView(shown),
       main: { label: copy.record.saving, icon: 'busy', disabled: true },
-      redo: { visible: false },
+      redo: redoView,
       message: null,
       coach: coachView('busy'),
       pulse: null
@@ -284,8 +351,8 @@ V2S.session = (() => {
   }
 
   // ---- lifecycle ----
-  function begin({ participantId, setKey, material, progress }) {
-    ctx = { participantId, setKey, material, progress };
+  function begin({ participantId, setKey, material, progress, sessionFolder = null }) {
+    ctx = { participantId, setKey, material, progress, sessionFolder };
     if (!ctx.progress.takeCounts) ctx.progress.takeCounts = {};
     lastAccepted = null;
     redo = null;
@@ -335,6 +402,9 @@ V2S.session = (() => {
     state = 'partEnd';
     partEnd = info;
     take = null;
+    redoAfterSave = false;
+    stepShownAt = performance.now();
+    V2S.input.guardFor(cfg.STEP_MIN_MS);
     V2S.input.guard();   // Start has just become Continue: not the second press of Stop
     V2S.meter.setIdleDetection(false);
     render(partEndView());
@@ -365,7 +435,10 @@ V2S.session = (() => {
     if (storeFailedAt !== null) return backToUnstored();
     state = 'ready';
     take = null;
+    redoAfterSave = false;
     sentenceShownAt = performance.now();
+    stepShownAt = sentenceShownAt;
+    if (coaching()) V2S.input.guardFor(cfg.STEP_MIN_MS);
     // People often say a word after Stop ("oops", or the end of the sentence): only speech
     // that starts a moment later counts as reading before Start.
     V2S.meter.setIdleDetection(true, onIdleSpeech, cfg.IDLE_SPEECH_GRACE_MS);
@@ -401,6 +474,16 @@ V2S.session = (() => {
   const tooSoon = since => Number.isFinite(since) && performance.now() - since < cfg.REVERSE_GUARD_MS;
 
   function onPrimary({ source }) {
+    // Practice: one step at a time. A step's instruction must have been shown a moment,
+    // and during the Redo lesson only Redo goes on (Enter does not skip it).
+    if (state === 'ready' && coaching()) {
+      const coach = coachView('ready');
+      if (coach && coach.target === 'redo') {
+        logEvent('press_ignored', { reason: 'redo_lesson' });
+        nudge();
+        return;
+      }
+    }
     if (state === 'ready') startTake(source);
     else if (state === 'recording') {
       if (take && tooSoon(take.pressAt)) {
@@ -413,7 +496,27 @@ V2S.session = (() => {
     // starting / finishing / checking: the press is ignored (the button shows it is busy).
   }
 
+  // A press the step does not take (Enter during the Redo lesson): the card's
+  // instruction moves a little, to be seen.
+  function nudge() {
+    if (V2S.ui.nudgePrompt) V2S.ui.nudgePrompt();
+  }
+
+  // → cancels a Redo just pressed; otherwise it goes on like Enter.
+  function onForward(press) {
+    if (state === 'ready' && redoPending()) return onSecondary();
+    return onPrimary(press);
+  }
+
   function onSecondary() {
+    // Redo while the take just read is still being finished: it is kept first, then
+    // recorded again.
+    if ((state === 'finishing' || state === 'checking') && take && !take.redo) {
+      redoAfterSave = true;
+      logEvent('redo_queued', { index: take.index });
+      render(busyView(state));
+      return;
+    }
     if (state === 'ready' && redoPending()) {
       if (tooSoon(redo.pressedAt)) {
         logEvent('press_ignored', { reason: 'cancel_too_soon' });
@@ -440,12 +543,22 @@ V2S.session = (() => {
 
   async function explainHold(body) {
     logEvent('hold_explained', { index: ctx ? index() : null });
-    await V2S.ui.dialog({
+    // People who let go slowly (Parkinson's, weakness) can say so here: presses may then
+    // last up to 3 s for them (Settings shows it).
+    const longer = V2S.input.getHoldMs() < 3000;
+    const answer = await V2S.ui.dialog({
       title: copy.holdDialog.title,
       body,
-      actions: [{ label: copy.holdDialog.ok, value: true, variant: 'go', default: true }],
+      actions: [{ label: copy.holdDialog.ok, value: true, variant: 'go', default: true },
+        ...(longer ? [{ label: copy.holdDialog.longer, value: 'longer', variant: 'text' }] : [])],
       dismissValue: true
     });
+    if (answer === 'longer') {
+      V2S.input.setHoldMs(3000);
+      await V2S.storage.setSetting('holdMs', 3000);
+      if (V2S.app && V2S.app.saveParticipantPrefs) await V2S.app.saveParticipantPrefs();
+      logEvent('hold_longer', { holdMs: 3000 });
+    }
     if (state === 'ready') {
       setFeedback('afterHold', 'info');
       render(readyView());
@@ -484,14 +597,15 @@ V2S.session = (() => {
     take = current;
     setFeedback(null);
     V2S.meter.setIdleDetection(false);
-    render(startingView());
-    // A short cue, then recording at once (about 0.1 s after the press, before anyone can
-    // start speaking); no cue where the device's sound output is too slow for that. The
-    // sentence turns green as soon as the recorder runs.
-    current.cueLeadMs = V2S.sounds.startCue();
-    logEvent('take_start', { index: i, source, takeId: current.id, cueLeadMs: current.cueLeadMs });
-    if (current.cueLeadMs) current.startTimer = setTimeout(() => launchRecorder(current), current.cueLeadMs);
-    else launchRecorder(current);
+    // Recording starts at the press (owner, 2026-10-15: "按下立即开始录制"): the start cue
+    // plays at the same moment (it is kept; nothing waits for it), the sentence turns green
+    // and Stop shows at once.
+    V2S.sounds.startCue();
+    current.cueLeadMs = 0;
+    current.readNowAt = performance.now();
+    render(recordingView());
+    logEvent('take_start', { index: i, source, takeId: current.id, cueLeadMs: 0 });
+    launchRecorder(current);
   }
 
   // Starts the recorder and waits until it has proven it runs. Start failures are retried
@@ -539,7 +653,7 @@ V2S.session = (() => {
       if (!current.closed && take === current) abortTake('aborted_device', 'stoppedEarly', 'warn', current);
     };
     state = 'recording';
-    current.readNowAt = performance.now();
+    current.recorderReadyAt = performance.now();
     current.mediaAtStart = V2S.media.snapshot();
     render(recordingView());
     V2S.media.startMonitor();
@@ -619,9 +733,12 @@ V2S.session = (() => {
       persistTake(current, recording, qc, 'accepted', current.index + 1);
       qcFailures = { index: null, count: 0 };
       if (current.heldStop) holdTipNext = true;
+      const queued = redoAfterSave;
       advance(current);
+      if (queued && canRedo()) redoLast();
       return;
     }
+    redoAfterSave = false;
 
     if (qcFailures.index !== current.index) qcFailures = { index: current.index, count: 0 };
     qcFailures.count += 1;
@@ -911,7 +1028,7 @@ V2S.session = (() => {
     current.fileName = fileName;
     const usable = status === 'accepted' || status === 'qc_overridden';
     const replaced = usable ? ctx.progress.usable[current.index] || null : null;
-    if (usable) ctx.progress.usable[current.index] = { fileName, takeId: current.id };
+    if (usable) ctx.progress.usable[current.index] = { fileName, takeId: current.id, folder: ctx.sessionFolder || null };
     const metadata = buildMetadata(current, recording, qc, status, takeNumber, fileName, replaced, round);
 
     // The last practice sentence after "Practise again": the place to come back to is
@@ -929,7 +1046,7 @@ V2S.session = (() => {
     }
     const progressSnapshot = snapshot(ctx.progress);
     // The take's own set and participant, whatever the session shows when it is written.
-    const { setKey, participantId } = ctx;
+    const { setKey, participantId, sessionFolder } = ctx;
 
     enqueue(async () => {
       let record = null;
@@ -945,10 +1062,13 @@ V2S.session = (() => {
           size: recording.blob.size,
           metadata,
           participantId,
+          sessionFolder,
           status,
           takeId: current.id
         };
         const id = await V2S.storage.commitTake(record, progressSnapshot, replaced);
+        // The session folder stays the same while takes keep coming (main.js sessionFolder).
+        if (sessionFolder) V2S.storage.setSetting(`session:${participantId}`, { folder: sessionFolder, at: Date.now() }).catch(() => {});
         storeFailures = 0;
         quotaHit = false;
         logEvent('take_saved', { index: current.index, status, fileName, qc: qc.code, speechMs: qc.metrics.speechMs, replaces: replaced && replaced.fileName });
@@ -960,7 +1080,7 @@ V2S.session = (() => {
         // Folder mode: write it straight to the folder instead. Otherwise the participant
         // records that sentence again — the take is never silently lost or skipped.
         const rescued = await V2S.exporter.rescueTake(recording.blob, {
-          fileName, metadata, mimeType: recording.mimeType, participantId, status,
+          fileName, metadata, mimeType: recording.mimeType, participantId, status, sessionFolder,
           sentence: current.sentence, sentenceSet: setKey, sentenceIndex: current.index, size: recording.blob.size,
           timestamp: new Date().toISOString(), takeId: current.id
         }, replaced);
@@ -1047,7 +1167,7 @@ V2S.session = (() => {
     const round = V2S.storage.roundOf(progress) + 1;
     Object.assign(progress, { completed: false, completedAt: null, round, usable: {}, takeCounts: {} });
     delete progress.pendingRedo;
-    delete progress.rainbow;   // the Rainbow Passage is offered once per round
+    if (progress.rainbow !== 'done') delete progress.rainbow;   // the Rainbow Passage is read once, ever
     logEvent('new_round', { round });
     return true;
   }
@@ -1106,6 +1226,7 @@ V2S.session = (() => {
     coaching,
     onPrimary,
     onSecondary,
+    onForward,
     onHold,
     onDeviceFailure,
     resumeAfterReconnect,

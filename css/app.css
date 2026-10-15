@@ -434,8 +434,8 @@ body[data-screen="record"] { background: var(--bg-grouped); }
 .redo-caption { flex: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 400; color: var(--ink-3); }
 .redo-caption [hidden] { display: none; }
 /* The Redo lesson: Redo is the one thing to press (filled, with a halo); Start is plain. */
-.redo.is-lesson { background: var(--fill-strong); color: var(--ink); box-shadow: 0 0 0 2px var(--ink-4); }
-.redo.is-lesson .redo-caption { color: var(--ink-2); }
+.redo.is-lesson { background: var(--blue); color: var(--on-blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 30%, transparent); }
+.redo.is-lesson .redo-caption { color: var(--on-blue); opacity: .85; }
 .redo.is-lesson.is-pulsing { animation-name: pulse-ring-lesson; }
 @keyframes pulse-ring-lesson { 0%, 100% { box-shadow: 0 0 0 2px var(--ink-4); } 50% { box-shadow: 0 0 0 7px var(--fill-strong); } }
 @keyframes pulse-ring-quiet { 0%, 100% { box-shadow: 0 0 0 0 var(--fill-strong); } 50% { box-shadow: 0 0 0 6px var(--fill-strong); } }
@@ -840,3 +840,57 @@ button.row:active { background: var(--fill-strong); }
   .where-tiny { display: inline; }
   .where .bar { width: 72px; }
 }
+
+/* ---------- the card's prompt (practice, a part's end): the one thing to do now ---------- */
+/* The guide floats over the normal recording screen: everything stays where it is, dimmed;
+   the control to press is lifted above the dimming with a blue ring; a white card in the
+   middle says what to press, what it does and when. */
+#screen-record { position: relative; }
+.coach-mark { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+.coach-mark[hidden] { display: none; }
+.coach-mark::before { content: ''; position: absolute; inset: 0; background: rgba(10, 12, 16, .42); }
+[data-theme="dark"] .coach-mark::before { background: rgba(0, 0, 0, .55); }
+.coach-bubble { position: absolute; left: 50%; transform: translateX(-50%); width: min(440px, calc(100% - 32px)); display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 26px 26px 24px; border-radius: 24px; background: var(--surface); box-shadow: 0 18px 50px rgba(0, 0, 0, .28); text-align: center; animation: bubble-in .22s ease-out; }
+[data-theme="dark"] .coach-bubble { background: #2a2a2d; box-shadow: 0 18px 50px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(255, 255, 255, .08); }
+@keyframes bubble-in { from { opacity: 0; } }
+/* Its pointer: down to the button under it, or up to Redo above it. */
+.coach-bubble::after { content: ''; position: absolute; width: 18px; height: 18px; background: inherit; transform: rotate(45deg); }
+.coach-bubble[data-side="above"]::after { bottom: -8px; left: calc(50% - 9px); }
+.coach-bubble[data-side="below"]::after { top: -8px; left: var(--tail-x, 40px); }
+.is-spotlit { position: relative; z-index: 30; box-shadow: 0 0 0 4px var(--blue), 0 0 0 10px color-mix(in srgb, var(--blue) 25%, transparent) !important; }
+.prompt-ack { margin: 0; font-size: 18px; font-weight: 500; color: var(--ink-3); text-wrap: balance; }
+.prompt-ack:empty { display: none; }
+.prompt-text { margin: 0; font-size: clamp(24px, 3.6vw, 36px); line-height: 1.2; font-weight: 700; color: var(--ink); text-wrap: balance; }
+.prompt-detail { margin: 0; max-width: 32em; font-size: 18px; line-height: 1.4; color: var(--ink-2); text-wrap: balance; }
+.prompt-detail:empty { display: none; }
+.prompt-key { display: inline-block; min-width: 2.2em; padding: 10px 22px; border: 2px solid var(--blue); border-radius: 14px; background: var(--surface); color: var(--blue-text); font: inherit; font-size: 30px; font-weight: 700; line-height: 1.1; box-shadow: 0 4px 0 var(--blue); animation: prompt-breathe 1.6s ease-in-out infinite; }
+.prompt-arrow svg { display: block; width: 56px; height: 56px; fill: none; stroke: var(--blue); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; animation: prompt-bounce 1.2s ease-in-out infinite; }
+@keyframes prompt-breathe { 50% { transform: translateY(2px); box-shadow: 0 2px 0 var(--blue); } }
+@keyframes prompt-bounce { 50% { transform: translateY(6px); } }
+.prompt-arrow.is-up svg { animation-name: prompt-bounce-up; }
+@keyframes prompt-bounce-up { 50% { transform: translate(-5px, -5px); } }
+.coach-mark.is-nudge .coach-bubble { animation: prompt-nudge .45s ease-in-out; }
+@keyframes prompt-nudge { 20%, 60% { margin-left: -8px; } 40%, 80% { margin-left: 8px; } }
+@keyframes prompt-nudge { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+@media (prefers-reduced-motion: reduce) { .prompt-key, .prompt-arrow svg { animation: none; } }
+@media (max-height: 700px) and (orientation: portrait), (max-height: 500px) {
+  .coach-bubble { gap: 8px; padding: 18px 18px 16px; }
+  .prompt-text { font-size: 22px; }
+  .prompt-detail, .prompt-ack { font-size: 15px; }
+  .prompt-key { font-size: 22px; padding: 6px 16px; }
+  .prompt-arrow svg { width: 40px; height: 40px; }
+}
+
+/* ---------- returning: how it works, confirmed one line at a time ---------- */
+.review { list-style: none; margin: var(--s5) 0 0; padding: 0; width: min(520px, 100%); display: grid; gap: var(--s2); text-align: left; }
+.review li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border-radius: 14px; font-size: 19px; line-height: 1.4; color: var(--ink-4); }
+.review li.is-current { color: var(--ink); background: var(--surface-2); box-shadow: inset 4px 0 0 var(--blue); }
+.review li.is-done { color: var(--ink-3); }
+.review-mark { width: 24px; height: 24px; margin-top: 2px; border-radius: 50%; border: 2px solid currentColor; display: grid; place-items: center; }
+.review li.is-done .review-mark { border-color: var(--ink-3); background: var(--ink-3); }
+.review li.is-done .review-mark::after { content: ''; width: 6px; height: 11px; border: solid var(--surface); border-width: 0 2.5px 2.5px 0; transform: translateY(-1px) rotate(45deg); }
+.prompt-key.is-space { min-width: 6.5em; }
+
+/* A part's end: "Part 1 done." is the big line; the key and what it does come after. */
+.coach-mark.cue-after .prompt-cue { order: 3; }
+.coach-mark.cue-after .prompt-detail { order: 4; }
