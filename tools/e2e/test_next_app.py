@@ -1799,9 +1799,10 @@ LEGACY_LABELS = {
 }
 
 
-RAINBOW_FIRST = 'When the sunlight strikes raindrops in the air, they act like a prism and form a rainbow.'
-# The owner's text (2026-10-14), word for word.
-RAINBOW_TEXT = ('When the sunlight strikes raindrops in the air, they act like a prism and form a rainbow. '
+RAINBOW_FIRST = 'When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow.'
+# The owner's text (2026-10-14), word for word, with the classic "act as a prism"
+# (Fairbanks 1960; owner's choice, 2026-10-15).
+RAINBOW_TEXT = ('When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow. '
                 'The rainbow is a division of white light into many beautiful colors. '
                 'These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. '
                 'There is, according to legend, a boiling pot of gold at one end. '

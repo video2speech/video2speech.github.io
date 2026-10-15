@@ -325,6 +325,9 @@ A full device offers no "Continue without saving" (Start would only bring this s
 back), and its "almost full" message is gone once the recordings are saved.
 
 ### The Rainbow Passage (after the 350-sentence set, once per round)
+The text is the owner's (2026-10-14) with the classic first sentence, "they act as a prism"
+(Fairbanks 1960; owner's choice, 2026-10-15), in `newset/rainbow_passage.txt`.
+
 While the passage is still ahead, the set's last sentence ends part 7 like any part
 ("That was the last sentence of part 7.", **Finish**), not "the very last sentence".
 After **Finish**, one question (owner, 2026-10-14): a neutral rainbow symbol · "All 7
@@ -349,12 +352,12 @@ top bar says "Rainbow Passage · 3 of 6" ("Rainbow · 3 of 6" on phones). Its se
 long and read for its prosody, so it is laid out in lines of whole phrases, computed by
 the page (the same in every browser) rather than wrapped by the browser. Its file marks the
 phrases: " || " between clauses (after a comma, before "and"), " | " between smaller
-phrases ("When the sunlight | strikes raindrops | in the air, || they act like a prism ||
+phrases ("When the sunlight | strikes raindrops | in the air, || they act as a prism ||
 and form a rainbow."); the marks are not part of the sentences (file names and sidecars
 carry the words alone). Each sentence takes the fewest lines, then breaks after a comma or
 between clauses, then the most even lines: "When the sunlight / strikes raindrops in the
-air, / they act like a prism / and form a rainbow." on a phone, "When the sunlight strikes
-raindrops in the air, / they act like a prism and form a rainbow." on a computer. Its size
+air, / they act as a prism / and form a rainbow." on a phone, "When the sunlight strikes
+raindrops in the air, / they act as a prism and form a rainbow." on a computer. Its size
 is the largest (computers 40 px, iPads 36 px, phones 28 px, phones sideways 26 px) at which
 its longest sentence takes at most 3, 4, 5 and 5 lines of whole phrases (full lines, never
 one phrase a line) and fits between the card's kept areas: about 22 px on an iPhone,
