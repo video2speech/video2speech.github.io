@@ -72,7 +72,12 @@ checked against all of them before it is shown.
    by the owner; do not change it).
 10. **Simple and predictable.** Three verbs (Start, Stop, Redo). The same steps every
     session. Every failure returns to the same sentence. Nothing moves when a message
-    or the coach appears: their space is kept.
+    or the coach appears: their space is kept. The card keeps its top (the Recording
+    sign) and its bottom (the longest message it can show at that width) free: the
+    sentence is centred between them, and its size is fitted so that no sentence of the
+    set ever reaches either (down to 18 px). In the practice the card shows no message
+    (the coach below speaks): the sentence is centred in the card, and on a short card it
+    starts just below the Recording sign.
 11. **Never miss a word.** Recording starts at most 0.16 s after the press (after a short,
     soft 0.04 s cue that is over before recording starts; no cue where the sound output
     is slow), and continues a fixed 0.7 s after Stop. Presses in the first 0.4 s after the
@@ -320,21 +325,49 @@ A full device offers no "Continue without saving" (Start would only bring this s
 back), and its "almost full" message is gone once the recordings are saved.
 
 ### The Rainbow Passage (after the 350-sentence set, once per round)
-After **Finish** on the set's last sentence, one question (owner, 2026-10-14): a neutral
-rainbow symbol · "All sentences done" · **Do you want to read the Rainbow Passage?** · "A
-short story in 6 sentences, read one at a time, the same way." · **Yes, read it** (blue) ·
-No, finish (text). It is asked once: shown is asked, whatever the answer (a new round
-asks again). Not after the 300-sentence set.
+While the passage is still ahead, the set's last sentence ends part 7 like any part
+("That was the last sentence of part 7.", **Finish**), not "the very last sentence".
+After **Finish**, one question (owner, 2026-10-14): a neutral rainbow symbol · "All 7
+parts done" · **Do you want to read the Rainbow Passage?** · "A short story in 6
+sentences, one at a time, as before." · **Yes, read it** (blue) · No, finish (text) ·
+End for today at the top left, as on a break. Both answers are final and Yes sits where
+Finish was, so they count only after a second (`ANSWER_ARM_MS`), and once.
+
+It is asked once per round: an answer is final (a new round asks again), but only an
+answer counts. If the page closed on the question, or the participant ended for today on
+it or on the set's last sentence, Welcome back shows "All 7 parts done" (seven full
+segments, no Start reminder) and Continue asks it, before the camera check; Yes then goes
+through the check as on any start. A set finished before v215 is asked the same way at the
+next visit. Not after the 300-sentence set. For a wrong answer the research team has
+Settings → Sentences & progress → Rainbow Passage → "Ask the question again…" (shown after
+No, or after Yes while the passage is not finished; recordings are kept). A new microphone
+test from Settings on the question comes back to the question.
 
 Yes: the recording screen with the passage, one sentence at a time, exactly like a part
 (Start/Stop, Redo, the checks, every problem back to the same sentence; no coaching). The
 top bar says "Rainbow Passage · 3 of 6" ("Rainbow · 3 of 6" on phones). Its sentences are
-long, so the size is fitted to them alone (computers 40 px on three lines, iPads 36 px,
-phones 28 px on up to six lines, phones sideways 26 px). Its last sentence stays with "That
-was the last sentence of the Rainbow Passage." and **Finish**, then **All sentences done**
-(saving as usual). Left half-way (a reload, End for today), Welcome back shows "Rainbow
-Passage · Sentence 3 of 6" and Continue goes on there. Settings that move within the
-sentences set the passage aside; after the set's last sentence it comes back where it was.
+long and read for its prosody, so it is laid out in lines of whole phrases, computed by
+the page (the same in every browser) rather than wrapped by the browser. Its file marks the
+phrases: " || " between clauses (after a comma, before "and"), " | " between smaller
+phrases ("When the sunlight | strikes raindrops | in the air, || they act like a prism ||
+and form a rainbow."); the marks are not part of the sentences (file names and sidecars
+carry the words alone). Each sentence takes the fewest lines, then breaks after a comma or
+between clauses, then the most even lines: "When the sunlight / strikes raindrops in the
+air, / they act like a prism / and form a rainbow." on a phone, "When the sunlight strikes
+raindrops in the air, / they act like a prism and form a rainbow." on a computer. Its size
+is the largest (computers 40 px, iPads 36 px, phones 28 px, phones sideways 26 px) at which
+its longest sentence takes at most 3, 4, 5 and 5 lines of whole phrases (full lines, never
+one phrase a line) and fits between the card's kept areas: about 22 px on an iPhone,
+18–20 px on the smallest phones. Its last sentence stays with
+"That was the last sentence of the Rainbow Passage." and **Finish**, then **All sentences
+done** (saving as usual). Left on that Finish (End for today, a reload), it is done: it is
+never read again in the round. Left half-way, Welcome back shows "Rainbow Passage", one
+segment per sentence, "Sentence 3 of 6", and Continue goes on there. Answering waits until
+every take of the set is stored, and each take is stored under its own set. While
+the passage is under way, Settings acts on it: Position says "Rainbow Passage · 3 of 6",
+Previous, Next and Go to sentence (1–6) move within it, and the practice options are not
+shown. The sentence set is left as it is (still all done, same round), and a move from the
+passage's last sentence is not a new round: the passage goes with the set's round.
 
 ### Done
 | | End for today | All sentences done |
@@ -480,7 +513,7 @@ A ZIP file has the same layout, plus `manifest.json` at the top.
 
 - `docs/recorder-checklist.md`: every feature of the earlier page, every requirement and
   every review finding, each with where it lives and how it is verified.
-- Browser scenario tests (54 in Chrome, 42 in WebKit, the iPad/iPhone engine, and in Firefox):
+- Browser scenario tests (56 in Chrome, 43 in WebKit, the iPad/iPhone engine, and in Firefox):
   - first-run flow end to end, including the test recording, practice and the Redo
     lesson;
   - every error path, Redo (also after a reload, and of a part's last sentence),
@@ -492,7 +525,14 @@ A ZIP file has the same layout, plus `manifest.json` at the top.
     taller than the screen is flagged, since its bottom button would need scrolling);
   - iPad mini upright, iPad upright and sideways;
   - laptop;
-  - in light and dark.
+  - in light and dark;
+  - each recording card is checked for the sentence under the Recording sign or a message
+    (`OVERLAP`), and `card_room` checks every sentence of both sets against the longest
+    message on 8 shapes.
+- Smallest screen laid out for: about 550 px of height upright (an iPhone SE inside
+  Safari's bars) and 320 px of width (larger text, Display Zoom, on a taller iPhone). An
+  iPhone SE with Display Zoom inside Safari (320×460) is below that: sign-in, setup and the
+  recording card do not fit there.
 - Independent reviews of the screenshots and flows:
   - a first-time participant's view;
   - a product designer's view;

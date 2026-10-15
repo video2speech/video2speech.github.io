@@ -1800,6 +1800,84 @@ LEGACY_LABELS = {
 
 
 RAINBOW_FIRST = 'When the sunlight strikes raindrops in the air, they act like a prism and form a rainbow.'
+# The owner's text (2026-10-14), word for word.
+RAINBOW_TEXT = ('When the sunlight strikes raindrops in the air, they act like a prism and form a rainbow. '
+                'The rainbow is a division of white light into many beautiful colors. '
+                'These take the shape of a long round arch, with its path high above, and its two ends apparently beyond the horizon. '
+                'There is, according to legend, a boiling pot of gold at one end. '
+                'People look, but no one ever finds it. '
+                'When a man looks for something beyond his reach, his friends say he is looking for the pot of gold at the end of the rainbow.')
+
+# The practice sentence on the card: clear of the Recording sign; how far its middle is from
+# the card's middle (a share of the card's height).
+PRACTICE_ROOM_JS = """() => {
+  const $ = id => document.getElementById(id);
+  const card = $('card').getBoundingClientRect(), line = $('sentenceText').getBoundingClientRect(), sign = $('cardStatus').getBoundingClientRect();
+  return { coaching: $('screen-record').classList.contains('is-coaching'), clear: line.top >= sign.bottom + 2,
+           offset: Math.round(((line.top + line.bottom) / 2 - (card.top + card.bottom) / 2) / card.height * 100) / 100,
+           fit: $('screen-record').dataset.fit };
+}"""
+
+# Each passage sentence on the card as laid out now: every line whole phrases, and the
+# browser shows exactly those lines (no extra wrap).
+PHRASE_BREAKS_JS = r"""async () => {
+  const m = await V2S.sentences.loadRainbow();
+  const line = document.getElementById('sentenceText').firstElementChild;
+  const keep = line.dataset.text;
+  const bad = [];
+  let lines = 0;
+  for (const s of m.all) {
+    V2S.ui.writeSentence(line, s);
+    const layout = V2S.ui.passageLayout(s);
+    if (!layout) { bad.push('no layout: ' + s.slice(0, 24)); continue; }
+    const phrases = V2S.sentences.phrasesOf(s).map(p => p.text);
+    let k = 0;
+    for (const l of layout) {
+      const acc = [];
+      while (k < phrases.length && acc.join(' ') !== l) acc.push(phrases[k++]);
+      if (acc.join(' ') !== l) { bad.push('not whole phrases: ' + l); break; }
+    }
+    const range = document.createRange();
+    range.selectNodeContents(line);
+    const tops = new Set([...range.getClientRects()].filter(r => r.width > 1).map(r => Math.round(r.top)));
+    if (tops.size !== layout.length) bad.push(`shown in ${tops.size} lines, laid out in ${layout.length}: ${s.slice(0, 24)}`);
+    lines += layout.length;
+  }
+  if (keep) V2S.ui.writeSentence(line, keep);
+  return { bad, lines };
+}"""
+
+# Each sentence of the set and of the Rainbow Passage on the card, against the Recording sign
+# and the longest message the card can show (in both its styles).
+CARD_ROOM_JS = r"""async () => {
+  const ui = V2S.ui, $ = id => document.getElementById(id);
+  const keys = document.documentElement.classList.contains('has-keyboard');
+  const text = e => (typeof e === 'function' ? e(keys) : e);
+  const r = V2S.copy.record;
+  const messages = [...Object.values(V2S.copy.feedback).map(text), r.partEndPart(7), r.partEndAll, r.partEndRainbow, text(r.redoing)];
+  const line = $('sentenceText').firstElementChild, message = $('message'), body = $('messageText');
+  const out = {};
+  for (const [name, list] of [['main', V2S.app.state().material.all], ['rainbow', (await V2S.sentences.loadRainbow()).all]]) {
+    ui.fitSentences(list);
+    await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+    const status = $('cardStatus').getBoundingClientRect();
+    let messageTop = Infinity;
+    for (const tone of ['warn', 'note']) {
+      message.className = `message tone-${tone}`;
+      for (const m of messages) { body.textContent = m; messageTop = Math.min(messageTop, message.getBoundingClientRect().top); }
+    }
+    message.className = 'message is-empty';
+    body.textContent = '';
+    const hits = [];
+    for (const s of list) {
+      ui.writeSentence(line, s);
+      const box = $('sentenceText').getBoundingClientRect();
+      if (box.top < status.bottom + 2 || box.bottom > messageTop - 2) hits.push(s.slice(0, 30));
+    }
+    out[name] = { fit: $('screen-record').dataset.fit, hits };
+  }
+  return out;
+}"""
 
 
 async def finish_set(page):
@@ -1815,17 +1893,46 @@ async def s_rainbow(pw, base):
     await setup_participant(page, base, save='folder')
     await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=354, completed=False)
     await start_session(page)
-    await finish_set(page)
+    # Space held on Finish: the question shows and waits; it is answered by a new press.
+    await record(page)
+    s = await state(page)
+    c.check(s['state'] == 'partEnd' and s['message'] == 'That was the\xa0last\xa0sentence of part\xa07.',
+            'the set\'s last sentence ends part 7 (the passage is still ahead: not "the very last sentence")', s['message'])
+    await hold_key(page, 'Space', 1600)
+    await page.wait_for_timeout(1200)
     title = (await page.text_content('#rainbowTitle')).replace('\xa0', ' ')
-    c.check(title == 'Do you want to read the Rainbow Passage?' and await page.text_content('#rainbowYes') == 'Yes, read it'
-            and await page.text_content('#rainbowNo') == 'No, finish', 'after the last sentence: the question, Yes or No', title)
-    await click(page, '#rainbowYes')
+    c.check(await page.is_visible('#screen-rainbow') and title == 'Do you want to read the Rainbow Passage?'
+            and await page.text_content('#rainbowYes') == 'Yes, read it' and await page.text_content('#rainbowNo') == 'No, finish',
+            'after the last sentence (Space held on Finish): the question, Yes or No, and it waits', title)
+    c.check(await page.evaluate("document.activeElement.id") == 'rainbowYes', 'with keys: "Yes, read it" is highlighted')
+    eyebrow = await page.text_content('#rainbowEyebrow')
+    lead = (await page.text_content('#rainbowLead')).replace('\xa0', ' ')
+    c.check(eyebrow == 'All 7 parts done' and lead == 'A short story in 6 sentences, one at a time, as before.'
+            and await page.is_visible('#finishButton'), 'its words: all 7 parts done, 6 sentences as before; End for today at the top', (eyebrow, lead))
+    await press(page, 'Space')
     await wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
     s = await state(page)
     sentence = (await page.text_content('#sentenceText')).replace('\xa0', ' ')
     c.check(sentence == RAINBOW_FIRST and s['coach'] is None, 'the passage from its first sentence, one at a time, no coaching', sentence)
+    words = await page.evaluate("V2S.sentences.loadRainbow().then(m => m.all)")
+    c.check(' '.join(words) == RAINBOW_TEXT, 'the six sentences are exactly the owner\'s text (the phrase marks are not part of them)')
+    breaks = await page.evaluate(PHRASE_BREAKS_JS)
+    c.check(breaks['bad'] == [], f'lines break only between its phrases ({breaks["lines"]} lines for the six)', breaks['bad'][:3])
     c.check(s['where'] == 'Rainbow Passage · 1 of 6', 'where you are: Rainbow Passage · 1 of 6', s['where'])
-    for _ in range(6):
+    await record(page)
+    await record(page)
+    # Settings moves within the passage; the sentence set stays as it is (no new round).
+    await open_settings(page, 'Sentences & progress')
+    body = await page.text_content('#settingsBody')
+    c.check('Rainbow Passage · 3 of 6' in body and 'Practise again' not in body and 'Skip practice' not in body,
+            'Settings during the passage: where it is in the passage; no practice options', body[:200])
+    await page.locator('#settingsPanel button', has_text='Previous sentence').click()
+    await wait_ready(page)
+    s = await state(page)
+    main = await page.evaluate("(() => { const p = V2S.app.state().progress; return [V2S.storage.roundOf(p), p.completed, p.rainbow]; })()")
+    c.check(s['where'] == 'Rainbow Passage · 2 of 6' and await page.evaluate("V2S.session.getContext().setKey") == 'rainbow'
+            and main == [1, True, 'reading'], 'Previous: the passage\'s sentence 2; the set untouched (round 1, all done)', (s['where'], main))
+    for _ in range(5):
         await record(page)
     s = await state(page)
     c.check(s['state'] == 'partEnd' and s['main'] == 'Finish' and 'Rainbow' in (s['message'] or ''),
@@ -1839,6 +1946,8 @@ async def s_rainbow(pw, base):
     c.check(len(videos) == 6 and all(re.search(r'_rainbow[1-6]-6_repeat1_', f) for f in videos),
             'six recordings in P017/rainbow/, named …_rainbow<n>-6_repeat1_…', videos)
     c.check(all(f.rsplit('.', 1)[0] + '.json' in files for f in videos), 'each with its JSON sidecar')
+    replaced = [f for f in files if f.startswith('P017/rainbow/not_used/') and f.endswith(('.mp4', '.webm'))]
+    c.check(len(replaced) == 1 and '_rainbow2-6_repeat1_' in replaced[0], 'the replaced take of sentence 2 in P017/rainbow/not_used/', replaced)
     meta = await page.evaluate(READ_OPFS_JSON, ['picked', videos[0].rsplit('.', 1)[0] + '.json'])
     c.check(meta.get('sentenceSet') == 'rainbow' and meta.get('status') == 'accepted', 'the sidecar: sentenceSet rainbow, accepted', meta.get('sentenceSet'))
     set_files = [f for f in files if f.startswith('P017/') and f.count('/') == 1 and f.endswith(('.mp4', '.webm'))]
@@ -1871,6 +1980,8 @@ async def s_rainbow_zip(pw, base):
     s = await state(page)
     c.check(await page.evaluate("V2S.session.getContext().setKey") == 'rainbow' and s['index'] == 2 and s['where'] == 'Rainbow Passage · 3 of 6',
             'it goes on with the passage, at sentence 3', s)
+    breaks = await page.evaluate(PHRASE_BREAKS_JS)
+    c.check(not breaks['bad'], f'{ENGINE}: the passage shows exactly its lines of whole phrases ({breaks["lines"]} lines)', breaks['bad'][:3])
     for _ in range(4):
         await record(page)
     await press(page, 'Space')   # Finish
@@ -1902,6 +2013,47 @@ async def s_rainbow_zip(pw, base):
     c.check(not errors, 'no page errors', errors)
     await browser.close()
 
+    # End for today on the last sentence (before Finish): the question waits for the next visit.
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
+    await record(page)
+    await end_for_today(page)
+    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
+    await page.evaluate('V2S.session.flush()')
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    c.check(await page.text_content('#welcomePart') == 'All 7 parts done' and await page.is_visible('#welcomeStart'),
+            'End for today on the last sentence: the next visit has Continue (the question)', await page.text_content('#welcomePart'))
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
+    # The page closed on the question (never answered): coming back asks it again.
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
+    await finish_set(page)
+    await page.evaluate('V2S.session.flush()')
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    part = await page.text_content('#welcomePart')
+    count = await page.text_content('#welcomeCount')
+    c.check(await page.text_content('#welcomeTitle') == 'Welcome back' and part == 'All 7 parts done' and count == ''
+            and await page.is_visible('#welcomeStart') and await page.is_hidden('#welcomeRule'),
+            'closed before an answer: Welcome back, all 7 parts done, Continue (no Start reminder before a question)', (part, count))
+    if await page.is_visible('#welcomeLater'):   # the set's last sentence is not saved yet
+        await click(page, '#welcomeLater')
+        await dialog_ready(page)
+        await page.locator('#dialogActions button', has_text='Continue without saving').click()
+    else:
+        await click(page, '#welcomeStart')
+    await page.wait_for_selector('#screen-rainbow:not([hidden])', timeout=10000)
+    c.check(await page.is_hidden('#screen-check'), 'Continue: the question again, before the camera check')
+    await click(page, '#rainbowYes')
+    await pass_check(page)
+    await page.wait_for_selector('#screen-record:not([hidden])')
+    await wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
+    s = await state(page)
+    c.check(s['index'] == 0 and s['where'] == 'Rainbow Passage · 1 of 6', 'Yes: the camera check, then the passage from its first sentence', s)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
     browser, _, page, errors = await launch(pw, audio='speech', init_scripts=[FAST, NO_PICKERS])
     await setup_participant(page, base)
     await page.evaluate("async () => { await V2S.app.state(); await V2S.storage.setSetting('setKey', 'Open_300sentences'); }")
@@ -1915,6 +2067,157 @@ async def s_rainbow_zip(pw, base):
     c.check(await page.is_hidden('#screen-rainbow'), 'the 300-sentence set: no Rainbow Passage question')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
+    return c.done()
+
+
+async def check_from_settings(page):
+    """Settings → Camera and microphone → Record a new test, then Yes. Opened from Settings, the
+    check comes back at the step it was left on."""
+    await open_settings(page, 'Camera and microphone')
+    await page.locator('#settingsPanel button', has_text='Record a new test').click()
+    await page.wait_for_selector('#screen-check:not([hidden])', timeout=15000)
+    await wait_for(page, "() => V2S.media.getStream() && !(document.getElementById('checkStepCamera').hidden && document.getElementById('checkStepMic').hidden)")
+    if await page.is_visible('#checkStepCamera'):
+        await click(page, '#checkNext')
+    await wait_for(page, "() => !document.getElementById('testRecord').hidden && !document.getElementById('checkStepMic').hidden")
+    await click(page, '#testRecord')
+    await wait_for(page, "() => !document.getElementById('testAsk').hidden || !document.getElementById('testError').hidden", timeout=20000)
+    await click(page, '#testYes')
+
+
+async def s_rainbow_edges(pw, base):
+    c = Checks('Rainbow Passage edges: answers after a second and once; End for today; the check; left on its Finish; asked again from Settings')
+    # An answer within a second of the question does nothing (Yes sits where Finish was); a
+    # double tap on Yes starts one passage.
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
+    await record(page)
+    await press(page, 'Space')   # Finish
+    await page.wait_for_selector('#screen-rainbow:not([hidden])', timeout=10000)
+    await page.click('#rainbowYes')   # at once, like a second tap on Finish
+    await page.wait_for_timeout(400)
+    c.check(await page.is_visible('#screen-rainbow') and await page.evaluate("V2S.app.state().progress.rainbow") == 'asked',
+            'a tap in the first second does not answer')
+    await ready_for_press(page)
+    await page.dblclick('#rainbowYes')
+    await wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
+    await page.wait_for_timeout(600)
+    same = await page.evaluate("V2S.app.state().rainbow.progress === V2S.session.getContext().progress")
+    c.check(same, 'a double tap on Yes: one passage (Settings and the session share its place)')
+    # Left on the passage's Finish (End for today, a reload): it is done, never read again.
+    for _ in range(6):
+        await record(page)
+    c.check((await state(page))['main'] == 'Finish', 'the passage\'s last sentence, Finish showing')
+    await end_for_today(page)
+    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
+    await page.evaluate('V2S.session.flush()')
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    answer = await page.evaluate("V2S.app.state().progress.rainbow")
+    takes = await page.evaluate("""async () => { const ids = await V2S.storage.takeIds(); let n = 0;
+      for (const id of ids) { const r = await V2S.storage.getTake(id); if (r && r.sentenceSet === 'rainbow') n++; } return n; }""")
+    c.check(await page.text_content('#welcomeTitle') == 'All sentences done' and answer == 'done' and takes == 6,
+            'left on its Finish: all done next time, not read again (6 passage takes)', (answer, takes))
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
+    # End for today on the question: not answered, so the next visit asks it.
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
+    await finish_set(page)
+    await end_for_today(page)
+    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
+    c.check(await page.text_content('#doneTitle') != 'All sentences done', 'End for today on the question: done for today', await page.text_content('#doneTitle'))
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    await click(page, '#welcomeLater' if await page.is_visible('#welcomeLater') else '#welcomeStart')
+    if await page.evaluate('V2S.ui.isDialogOpen()'):
+        await dialog_ready(page)
+        await page.locator('#dialogActions button', has_text='Continue without saving').click()
+    await page.wait_for_selector('#screen-rainbow:not([hidden])', timeout=10000)
+    c.check(True, 'the next visit: Continue asks the question again')
+    await open_settings(page)
+    body = await page.text_content('#settingsBody')
+    c.check('All 7 parts done' in body and 'All sentences done' not in body, 'Settings on the question: "All 7 parts done" (the passage is still ahead)')
+    await click(page, '#settingsClose')
+    # A new microphone test from Settings, on the question: back to the question; Yes then
+    # goes straight to the passage (the check was just done).
+    await check_from_settings(page)
+    await page.wait_for_selector('#screen-rainbow:not([hidden])', timeout=10000)
+    await click(page, '#rainbowYes')
+    await page.wait_for_selector('#screen-record:not([hidden])', timeout=10000)
+    await wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
+    c.check(True, 'a test from Settings on the question, then Yes: straight to the passage (no second check)')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
+    await finish_set(page)
+    await check_from_settings(page)
+    await page.wait_for_selector('#screen-rainbow:not([hidden])', timeout=10000)
+    s = await state(page)
+    c.check(await page.is_visible('#screen-rainbow') and s['index'] == 354, 'a new test from Settings on the question: back to the question, sentence 350 untouched', s['index'])
+    # No, then Settings → Rainbow Passage → Ask the question again: the next start asks it.
+    await click(page, '#rainbowNo')
+    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    await open_settings(page, 'Sentences & progress')
+    body = await page.text_content('#settingsBody')
+    c.check('The participant answered No.' in body, 'Settings after No: says the answer, offers to ask again')
+    await page.locator('#settingsPanel button', has_text='Ask the question again').click()
+    await confirm_dialog(page, 'Yes, continue')
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=10000)
+    c.check(await page.text_content('#welcomePart') == 'All 7 parts done' and await page.is_visible('#screen-welcome'),
+            'asked again: Welcome has Continue for the question', await page.text_content('#welcomePart'))
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
+    # Sentence 350 could not be stored after all (its write, late, fails): no question; it
+    # is recorded again first.
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[FAIL_COMMIT, NO_PICKERS])
+    await page.evaluate('window.__failDelayMs = 2500; window.__failCommits = 1')
+    await record(page)
+    await press(page, 'Space')   # Finish, while the write is still under way
+    await wait_for(page, "() => V2S.session.getState() === 'ready'", timeout=15000)
+    s = await state(page)
+    shown = await page.evaluate("V2S.app.state().progress.rainbow || null")
+    c.check(await page.is_hidden('#screen-rainbow') and s['index'] == 354 and 'could not be stored' in (s['message'] or ''),
+            'its last take not stored: back to sentence 350 (no question yet)', (s['index'], s['message'], shown))
+    await record(page)
+    await press(page, 'Space')   # Finish
+    await page.wait_for_selector('#screen-rainbow:not([hidden])', timeout=15000)
+    c.check(True, 'recorded again: then the question')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_card_room(pw, base):
+    c = Checks('The card keeps its top (Recording) and bottom (the longest message) free: no sentence of either set reaches them')
+    shapes = [(375, 553), (320, 568), (360, 640), (390, 664), (667, 330), (750, 340), (820, 1180), (1440, 900)]
+    for w, h in shapes:
+        mobile = w < 1000
+        browser, _, page, errors = await boot(pw, base, index=100, init_scripts=[NO_PICKERS], viewport={'width': w, 'height': h},
+                                              has_touch=mobile, is_mobile=mobile)
+        r = await page.evaluate(CARD_ROOM_JS)
+        for name in ('main', 'rainbow'):
+            x = r[name]
+            c.check(not x['hits'], f'{w}×{h} {name}: {x["fit"]}, every sentence clear of the Recording sign and the longest message', x['hits'][:2])
+        breaks = await page.evaluate(PHRASE_BREAKS_JS)   # fitted to the passage last
+        c.check(not breaks['bad'], f'{w}×{h}: the passage\'s lines end only between its phrases ({breaks["lines"]} lines)', breaks['bad'][:3])
+        c.check(not errors, f'{w}×{h}: no page errors', errors)
+        await browser.close()
+    # The practice: the coach speaks below the card, which shows no message then; the
+    # sentence is in the middle of the card, clear of the Recording sign (on a short card
+    # it starts just below the sign).
+    for w, h in [(375, 553), (390, 844), (667, 330)]:
+        browser, _, page, errors = await boot(pw, base, trained=False, init_scripts=[NO_PICKERS], viewport={'width': w, 'height': h},
+                                              has_touch=True, is_mobile=True)
+        await page.wait_for_timeout(400)
+        r = await page.evaluate(PRACTICE_ROOM_JS)
+        c.check(r['coaching'] and r['clear'] and abs(r['offset']) < 0.05,
+                f'{w}×{h} practice: {r["fit"]}, the sentence near the middle of the card, clear of the Recording sign', r)
+        c.check(not errors, f'{w}×{h} practice: no page errors', errors)
+        await browser.close()
     return c.done()
 
 
@@ -2405,6 +2708,8 @@ SCENARIOS = {
     'rounds': s_rounds,
     'rainbow': s_rainbow,
     'rainbow_zip': s_rainbow_zip,
+    'rainbow_edges': s_rainbow_edges,
+    'card_room': s_card_room,
     'zip_backups': s_zip_backups,
     'part_end_redo': s_part_end_redo,
     'two_tabs': s_two_tabs,
@@ -2418,7 +2723,7 @@ CROSS_ENGINE = ['first_run', 'normal', 'hold', 'no_speech', 'redo', 'speech_befo
                 'bluetooth', 'mic_test_silent', 'help', 'double_tap', 'held_keys', 'save_keys', 'camera_denied', 'card_stable', 'device', 'reload', 'break_zip', 'legacy', 'storage_full',
                 'finish_settings', 'signin', 'keyboard', 'clicker', 'too_loud', 'set_switch', 'no_audio', 'fit', 'settings_parity', 'settings_fit', 'redo_reload',
                 'practice_again', 'rounds', 'zip_backups', 'part_end_redo', 'two_tabs', 'long_take', 'store_failure',
-                'store_failure_late', 'stale_backups', 'rainbow_zip']
+                'store_failure_late', 'stale_backups', 'rainbow_zip', 'card_room']
 
 
 async def main(names):

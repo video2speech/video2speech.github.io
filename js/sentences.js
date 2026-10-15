@@ -47,15 +47,31 @@ V2S.sentences = (() => {
     return cache[setKey];
   }
 
-  // The Rainbow Passage, one sentence at a time (no practice of its own).
+  // The Rainbow Passage, one sentence at a time (no practice of its own). Its file marks
+  // its phrases: " || " between clauses (after a comma, before "and"), " | " between the
+  // smaller phrases. Its lines break only there (ui.js). The sentences themselves (file
+  // names, sidecars) are the words alone.
+  const phraseMap = new Map();
   async function loadRainbow() {
     const key = cfg.RAINBOW.key;
     if (cache[key]) return cache[key];
-    const list = await loadFile(cfg.RAINBOW.file);
+    const marked = await loadFile(cfg.RAINBOW.file);
+    const list = marked.map(line => {
+      const parts = line.split(/\s*(\|\|?)\s*/);
+      const phrases = [];
+      for (let i = 0; i < parts.length; i += 2) phrases.push({ text: parts[i], major: i > 0 && parts[i - 1] === '||' });
+      const sentence = phrases.map(phrase => phrase.text).join(' ');
+      phraseMap.set(sentence, phrases);
+      return sentence;
+    });
     validate('Rainbow Passage file', list, cfg.RAINBOW.count);
     cache[key] = { setKey: key, warmupCount: 0, formalCount: list.length, all: list };
     return cache[key];
   }
 
-  return { load, loadRainbow };
+  // A sentence's phrases, if its file marks them (the Rainbow Passage): [{ text, major }],
+  // `major` when a clause boundary comes before it; otherwise null.
+  const phrasesOf = sentence => phraseMap.get(sentence) || null;
+
+  return { load, loadRainbow, phrasesOf };
 })();

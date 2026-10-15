@@ -328,10 +328,24 @@ body[data-screen="record"] { background: var(--bg-grouped); }
   overflow-wrap: break-word;
   transition: color .14s ease-out;
 }
+/* The Rainbow Passage comes in lines laid out by the page (ui.js) for the full width: no
+   balancing on top, and the full width itself (Firefox leaves out the highlight's padding
+   on each line when it sizes the text to its content, and would break a laid-out line). */
+.sentence.is-laid-out { text-wrap: wrap; width: 100%; }
 /* Each line gets its own soft highlight while recording (like a marker pen). */
 .sentence-line { padding: .04em .22em; border-radius: .2em; -webkit-box-decoration-break: clone; box-decoration-break: clone; transition: background-color .14s ease-out; }
 .screen-record[data-state="recording"] .sentence { color: var(--read-text); }
 .screen-record[data-state="recording"] .sentence-line { background: var(--read-band); }
+
+/* The card keeps its top (the Recording sign) and its bottom (the longest message) free:
+   the sentence sits between them, never under either (heights measured in ui.js). */
+#card { padding-top: var(--keep-top, var(--s6)); padding-bottom: var(--keep-bottom, var(--s6)); }
+/* Centred, but never above the top kept free: a sentence taller than the room left
+   between the two (only in the practice, on a short card) starts just below the
+   Recording sign and goes on down. In the practice the text area is the sentence's own
+   height, so it is centred as it is. */
+#card .stage-text { margin-block: auto; }
+.screen-record.is-coaching #card .stage-text { min-height: 0; }
 
 /* Recording: the universal red record sign on the card's top edge. Nothing is shown there
    otherwise (no "Not recording", no "Recorded": the grey sentence and the green Start
@@ -780,6 +794,7 @@ button.row:active { background: var(--fill-strong); }
   .coach-action { font-size: 17px; }
   .coach-detail { font-size: 14px; }
   .message-body { font-size: 15px; padding: 6px 10px; }
+  .message.tone-ok .message-body, .message.tone-note .message-body { font-size: 15px; padding: 6px 10px; }
   .status { top: var(--s2); height: 28px; font-size: 14px; }
   .btn-main { min-height: 54px; font-size: 20px; }
   .redo { min-height: 44px; padding: 4px 14px 4px 10px; border-radius: 18px; }

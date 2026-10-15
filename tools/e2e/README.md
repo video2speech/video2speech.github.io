@@ -14,8 +14,8 @@ python3 -m venv ~/.venvs/v2s-e2e
 ~/.venvs/v2s-e2e/bin/playwright install webkit firefox   # only for --engine webkit/firefox
 
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_legacy_hotfix.py              # legacy recorder (app_legacy.html, v114)
-~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py                   # new recorder, Chrome, 54 scenarios
-~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py --engine webkit   # Safari’s engine (iPad/iPhone stand-in), 42 scenarios
+~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py                   # new recorder, Chrome, 56 scenarios
+~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py --engine webkit   # Safari’s engine (iPad/iPhone stand-in), 43 scenarios
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py --engine firefox
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py hold redo fit     # only these scenarios
 ~/.venvs/v2s-e2e/bin/python tools/e2e/screenshots.py --engine webkit OUT_DIR --only phone ipad --theme light
@@ -58,8 +58,10 @@ a generated fake microphone (speech-like sound, fan noise, a quiet room, or a cl
 panel, and for any button whose label spills over its edge, `VSCROLL` for a page taller
 than the screen (its main button may need scrolling), `CLIPPED` for words that do not fit
 their scrolling area (a screen's text, a dialog's text, the check's panel), `OFFSCREEN` for
-a main button (Sign in included) not fully on screen, and one line per take with its
-check result, so a screenshot never silently shows the wrong state.
+a main button (Sign in included) not fully on screen, `OVERLAP` for a sentence under the
+recording card's Recording sign or message, and one line per take with its check result,
+so a screenshot never silently shows the wrong state. It also shoots the Rainbow Passage
+(the set's last sentence, the question, the passage, its end, Welcome before an answer).
 - `window.__V2S_TEST = { testRecordMs: 1200 }`: shortens the 5-second microphone test
   so each session start stays quick.
 

@@ -245,5 +245,5 @@ V2S.input = (() => {
   // For tests: a press now would count (not within DEBOUNCE_MS of the last, nor guarded).
   const pressReady = () => performance.now() - lastPressAt >= cfg.DEBOUNCE_MS;
 
-  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed, screenChanged, clicksPaused, pressReady };
+  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed, screenChanged, holdClicks, clicksPaused, pressReady };
 })();

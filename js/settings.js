@@ -307,12 +307,25 @@ V2S.settings = (() => {
     ]);
   }
 
+  // What is being recorded: the sentence set, or the Rainbow Passage while it is under way.
+  function activeList(state) {
+    return state.recordingRainbow && state.rainbow
+      ? { material: state.rainbow.material, progress: state.rainbow.progress, passage: true }
+      : { material: state.material, progress: state.progress, passage: false };
+  }
+
   // Short: "Part 2 · 14 of 50" (the main list); long adds the sentence number in the set.
   function describePosition(state, long = false) {
-    if (!state.material || !state.progress) return '—';
-    const index = state.progress.currentIndex;
-    const { warmupCount, formalCount } = state.material;
-    if (state.progress.completed) return copy.done.allTitle;
+    const { material, progress, passage } = activeList(state);
+    if (!material || !progress) return '—';
+    const index = progress.currentIndex;
+    const { warmupCount, formalCount } = material;
+    if (passage) return copy.record.rainbowOf(index + 1, material.all.length);
+    if (progress.completed) {
+      // With the Rainbow Passage still ahead (not answered, or not started): not "all done".
+      const ahead = state.setKey === cfg.RAINBOW.afterSet && !['declined', 'done'].includes(progress.rainbow);
+      return ahead ? copy.welcome.allParts(Math.ceil(formalCount / cfg.BLOCK_SIZE)) : copy.done.allTitle;
+    }
     if (index < warmupCount) return copy.record.practiceOf(index + 1, warmupCount);
     const formal = index - warmupCount;
     const block = Math.floor(formal / cfg.BLOCK_SIZE) + 1;
@@ -346,10 +359,12 @@ V2S.settings = (() => {
         control(t.set, setSelect)
       ], { foot: Object.values(cfg.SETS).map(set => `${set.label}: ${set.about}.`).join(' '), id: 'settingsProgressStatus' })
     ];
-    if (state.participantId && state.progress && state.material) {
-      const total = state.material.formalCount;
-      const warmup = state.material.warmupCount;
-      const index = state.progress.currentIndex;
+    // Moving around acts on what is being recorded (with the passage under way, its sentences).
+    const list = activeList(state);
+    if (state.participantId && list.progress && list.material) {
+      const total = list.material.formalCount;
+      const warmup = list.material.warmupCount;
+      const index = list.progress.currentIndex;
       const go = async (target, extra = {}, event = 'settings_jump') => {
         logEvent(event, { from: index, to: target });
         close();
@@ -374,11 +389,12 @@ V2S.settings = (() => {
           action(t.next, async () => {
             // A mis-tap must not leave a sentence unrecorded without anyone noticing.
             if (!(await V2S.ui.confirm({ title: t.next, body: t.skipConfirm }))) return;
-            await go(Math.min(state.material.all.length - 1, index + 1), {}, 'settings_next');
+            await go(Math.min(list.material.all.length - 1, index + 1), {}, 'settings_next');
           }),
           jumpRow
         ], { title: t.moveTitle }),
-        group([
+        // Practice belongs to the sentence set, not to the passage.
+        list.passage ? null : group([
           index < warmup
             // During "Practise again", skipping goes back to where they were.
             ? action(t.skipPractice, () => go(Number.isInteger(state.progress.resumeIndex) ? state.progress.resumeIndex : warmup, { coachDone: true, howtoSeen: true, resumeIndex: null }, 'settings_skip_practice'))
@@ -391,6 +407,19 @@ V2S.settings = (() => {
         ], { title: t.practiceTitle }),
         group([control(t.holdLabel, hold)], { title: t.holdTitle, foot: t.holdNote })
       );
+    }
+    // The Rainbow Passage question answered (No, or Yes and not finished): the research
+    // team can have it asked again, for a wrong answer.
+    const answer = state.setKey === cfg.RAINBOW.afterSet && state.progress && state.progress.completed ? state.progress.rainbow : null;
+    if (['declined', 'reading'].includes(answer)) {
+      parts.push(group([
+        action(t.rainbowAgain, async () => {
+          if (!(await V2S.ui.confirm({ title: t.rainbowAgain.replace('…', ''), body: t.rainbowConfirm, yes: t.confirm }))) return;
+          logEvent('settings_rainbow_again', { answer });
+          close();
+          await api.askRainbowAgain();
+        })
+      ], { title: t.rainbowTitle, foot: `${t.rainbowAnswer(answer)} ${t.rainbowNote}`, id: 'settingsRainbow' }));
     }
     parts.push(group([
       action(t.switchParticipant, switchParticipant),

@@ -185,9 +185,21 @@ V2S.session = (() => {
 
   // After a part's last sentence: that sentence stays on screen ("Saved"), Redo is still
   // possible, and one button goes on to the break (or practice done / the end).
+  // The note at a part's end. The set's last sentence with the Rainbow Passage still ahead
+  // ends its last part like any part ("…of part 7."): not "the very last sentence". The
+  // practice's end has none (it is coached).
+  function partEndNote(kind) {
+    if (kind === 'practice') return null;
+    if (kind === 'part') return copy.record.partEndPart(partEnd.block);
+    if (ctx.setKey === cfg.RAINBOW.key) return copy.record.partEndRainbow;
+    const passageAhead = ctx.setKey === cfg.RAINBOW.afterSet && !['declined', 'done'].includes(ctx.progress.rainbow);
+    return passageAhead ? copy.record.partEndPart(position(lastAccepted.index).block) : copy.record.partEndAll;
+  }
+
   function partEndView() {
     const coach = coachView('partEnd');
     const kind = partEnd.kind;
+    const note = partEndNote(kind);
     return {
       state: 'ready',
       saved: false,
@@ -196,7 +208,7 @@ V2S.session = (() => {
       where: { ...whereView(lastAccepted.index), progress: 1 },
       main: { label: kind === 'practice' ? copy.record.toPracticeDone : kind === 'all' ? copy.record.toAllDone : copy.record.toBreak(partEnd.block), icon: 'next', disabled: false },
       redo: { visible: true, label: copy.record.redo, caption: copy.record.redoThis },
-      message: coach ? null : { text: kind === 'part' ? copy.record.partEndPart(partEnd.block) : ctx.setKey === cfg.RAINBOW.key ? copy.record.partEndRainbow : copy.record.partEndAll, tone: 'note' },
+      message: coach || !note ? null : { text: note, tone: 'note' },
       coach,
       pulse: pulseFor(coach, true)
     };
@@ -916,6 +928,8 @@ V2S.session = (() => {
       ctx.progress.currentIndex = nextIndex;
     }
     const progressSnapshot = snapshot(ctx.progress);
+    // The take's own set and participant, whatever the session shows when it is written.
+    const { setKey, participantId } = ctx;
 
     enqueue(async () => {
       let record = null;
@@ -925,12 +939,12 @@ V2S.session = (() => {
           arrayBuffer: await recording.blob.arrayBuffer(),
           mimeType: recording.mimeType,
           sentence: current.sentence,
-          sentenceSet: ctx.setKey,
+          sentenceSet: setKey,
           sentenceIndex: current.index,
           timestamp: new Date().toISOString(),
           size: recording.blob.size,
           metadata,
-          participantId: ctx.participantId,
+          participantId,
           status,
           takeId: current.id
         };
@@ -939,15 +953,15 @@ V2S.session = (() => {
         quotaHit = false;
         logEvent('take_saved', { index: current.index, status, fileName, qc: qc.code, speechMs: qc.metrics.speechMs, replaces: replaced && replaced.fileName });
         V2S.exporter.queueFolderWrite(id, record, recording.blob);
-        if (replaced) V2S.exporter.applySuperseded(ctx.participantId, ctx.setKey);
+        if (replaced) V2S.exporter.applySuperseded(participantId, setKey);
       } catch (error) {
         const quota = Boolean(error && error.name === 'QuotaExceededError');
         logEvent('take_store_failed', { fileName, quota, error: String(error && error.message || error) });
         // Folder mode: write it straight to the folder instead. Otherwise the participant
         // records that sentence again — the take is never silently lost or skipped.
         const rescued = await V2S.exporter.rescueTake(recording.blob, {
-          fileName, metadata, mimeType: recording.mimeType, participantId: ctx.participantId, status,
-          sentence: current.sentence, sentenceSet: ctx.setKey, sentenceIndex: current.index, size: recording.blob.size,
+          fileName, metadata, mimeType: recording.mimeType, participantId, status,
+          sentence: current.sentence, sentenceSet: setKey, sentenceIndex: current.index, size: recording.blob.size,
           timestamp: new Date().toISOString(), takeId: current.id
         }, replaced);
         if (rescued) {

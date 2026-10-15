@@ -144,6 +144,8 @@ V2S.app = (() => {
   // ---------- participant and material ----------
   async function loadMaterial() {
     app.material = await V2S.sentences.load(app.setKey);
+    // The Rainbow Passage is fetched with its set, so Yes never needs the network later.
+    if (app.setKey === cfg.RAINBOW.afterSet) V2S.sentences.loadRainbow().catch(() => {});
   }
 
   async function loadProgress() {
@@ -178,19 +180,33 @@ V2S.app = (() => {
 
   // ---------- the Rainbow Passage (once per round, after the 350-sentence set) ----------
   // Its own small sentence set with its own progress; recorded like any part.
-  const readingRainbow = () => app.setKey === cfg.RAINBOW.afterSet && Boolean(app.progress && app.progress.completed)
-    && app.progress.rainbow === 'reading';
-  // Everything recorded: the set is complete and the passage is not under way.
-  const allDone = () => Boolean(app.progress && app.progress.completed) && !readingRainbow();
+  // Still to come after the set's last sentence: until the question is answered (No) or the
+  // passage is read. Only an answer counts: if the page closed on the question, or before
+  // it (End for today on the last sentence), it is asked on the way back.
+  const rainbowAhead = () => app.setKey === cfg.RAINBOW.afterSet && Boolean(app.progress && app.progress.completed)
+    && !['declined', 'done'].includes(app.progress.rainbow);
+  const readingRainbow = () => rainbowAhead() && app.progress.rainbow === 'reading';
+  const rainbowUnanswered = () => rainbowAhead() && app.progress.rainbow !== 'reading';
+  // Everything recorded: the set is complete and nothing of the passage is ahead.
+  const allDone = () => Boolean(app.progress && app.progress.completed) && !rainbowAhead();
 
   // Its material and progress, in the same round as the set (a new round starts it again).
+  // Returns false if it was already read to its end in this round (left on its Finish):
+  // then it is done, and never read again in this round.
   async function loadRainbow() {
     const material = await V2S.sentences.loadRainbow();
     const key = V2S.storage.progressKey(app.participantId, cfg.RAINBOW.key);
     let progress = await V2S.storage.getProgress(key);
     if (!progress) progress = await V2S.storage.createParticipantProgress(app.participantId, cfg.RAINBOW.key, null);
     const round = V2S.storage.roundOf(app.progress);
-    if (V2S.storage.roundOf(progress) !== round || progress.completed) {
+    if (V2S.storage.roundOf(progress) === round && progress.completed) {
+      leaveRainbow();
+      app.progress.rainbow = 'done';
+      await V2S.storage.saveParticipantProgress(app.progress);
+      logEvent('rainbow_done', { onReturn: true });
+      return false;
+    }
+    if (V2S.storage.roundOf(progress) !== round) {
       Object.assign(progress, { currentIndex: 0, completed: false, completedAt: null, round, usable: {}, takeCounts: {} });
       delete progress.pendingRedo;
     }
@@ -199,6 +215,7 @@ V2S.app = (() => {
     await V2S.storage.saveParticipantProgress(progress);
     app.rainbow = { material, progress };
     app.recordingRainbow = true;
+    return true;
   }
 
   // Back to the sentence set (Settings moved within it, or another participant or set).
@@ -207,41 +224,54 @@ V2S.app = (() => {
     app.rainbow = null;
   }
 
-  // The set's last sentence is done: asked once — and only once — whether to read it.
+  // The set's last sentence is done: asked once whether to read it (until answered).
   async function showRainbowAsk() {
     V2S.input.setEnabled(false);
+    // Every take of the set is stored first: a take's progress, saved with it, must never
+    // land after the answer (and erase it), and the passage must not begin before then.
+    await V2S.session.flush();
+    // The last take could not be stored after all: back to it (recorded again) first.
+    if (!rainbowUnanswered()) return app.sessionStarted ? showRecord() : showWelcome();
     app.progress.rainbow = 'asked';
-    await V2S.storage.saveParticipantProgress(app.progress);
     logEvent('rainbow_asked', {});
-    ui.setText('rainbowEyebrow', copy.rainbow.eyebrow);
+    ui.setText('rainbowEyebrow', copy.rainbow.eyebrow(partCount()));
     ui.setText('rainbowTitle', copy.rainbow.title);
     ui.setSentences('rainbowLead', copy.rainbow.lead(cfg.RAINBOW.count));
     ui.setText('rainbowYes', copy.rainbow.yes);
     ui.setText('rainbowNo', copy.rainbow.no);
     ui.show('rainbow');
+    // Both answers are final, and Yes sits where Finish was: they count only after a
+    // second, like the questions in dialogs that are answered after reading.
+    V2S.input.holdClicks(cfg.ANSWER_ARM_MS);
     if (usesKeys()) el('rainbowYes').focus({ preventScroll: true });
+    await V2S.storage.saveParticipantProgress(app.progress).catch(error => logEvent('rainbow_save_failed', { error: String(error) }));
   }
 
-  async function onRainbowYes() {
-    if (ui.screen() !== 'rainbow') return;
-    app.progress.rainbow = 'reading';
-    await V2S.storage.saveParticipantProgress(app.progress);
-    logEvent('rainbow_yes', {});
+  // One answer at a time (a double tap must not run it twice).
+  let answering = false;
+  async function answerRainbow(answer) {
+    if (ui.screen() !== 'rainbow' || answering || ui.isDialogOpen()) return;
+    answering = true;
     try {
-      await loadRainbow();
-    } catch (error) {
-      return showLoadError(error);
+      app.progress.rainbow = answer;
+      await V2S.storage.saveParticipantProgress(app.progress);
+      logEvent(answer === 'reading' ? 'rainbow_yes' : 'rainbow_no', {});
+      if (answer === 'declined') return await showDone({ allDone: true });
+      try {
+        if (!(await loadRainbow())) return await showDone({ allDone: true });
+      } catch (error) {
+        return showLoadError(error);
+      }
+      // Asked again after a return: the camera and microphone check first, as on every start
+      // (unless it was just done, from Settings on the question).
+      if (!app.sessionStarted && !V2S.media.getStream()) return await showCheck();
+      await showRecord();
+    } finally {
+      answering = false;
     }
-    await showRecord();
   }
-
-  async function onRainbowNo() {
-    if (ui.screen() !== 'rainbow') return;
-    app.progress.rainbow = 'declined';
-    await V2S.storage.saveParticipantProgress(app.progress);
-    logEvent('rainbow_no', {});
-    await showDone({ allDone: true });
-  }
+  const onRainbowYes = () => answerRainbow('reading');
+  const onRainbowNo = () => answerRainbow('declined');
 
   // The last sentence (of the set, or of the passage) is done.
   async function onAllDone() {
@@ -253,17 +283,15 @@ V2S.app = (() => {
       leaveRainbow();
       return showDone({ allDone: true });
     }
-    if (app.setKey === cfg.RAINBOW.afterSet && app.progress.completed) {
-      if (!app.progress.rainbow) return showRainbowAsk();
-      if (app.progress.rainbow === 'reading') {
-        // Started earlier and left: on where it was.
-        try {
-          await loadRainbow();
-        } catch (error) {
-          return showLoadError(error);
-        }
-        return showRecord();
+    if (rainbowUnanswered()) return showRainbowAsk();
+    if (readingRainbow()) {
+      // Started earlier and left: on where it was.
+      try {
+        if (!(await loadRainbow())) return showDone({ allDone: true });
+      } catch (error) {
+        return showLoadError(error);
       }
+      return showRecord();
     }
     return showDone({ allDone: true });
   }
@@ -406,26 +434,27 @@ V2S.app = (() => {
       return showLoadError(error);
     }
     const progress = app.progress;
-    const done = allDone();
     leaveRainbow();
     if (readingRainbow()) {
       try {
-        await loadRainbow();   // under way: Continue goes on with it
+        await loadRainbow();   // under way: Continue goes on with it (read to its end: done)
       } catch (error) {
         return showLoadError(error);
       }
     }
+    const done = allDone();
     const firstVisit = !progress.howtoSeen && !progress.coachDone && progress.currentIndex === 0;
     ui.setText('welcomeId', copy.welcome.participant(app.participantId));
     ui.setText('welcomeTitle', done ? copy.welcome.doneTitle : firstVisit ? copy.welcome.titleFirst : copy.welcome.titleBack);
     ui.setSentences('welcomeLead', firstVisit ? copy.welcome.leadFirst : copy.welcome.leadBack);
     el('welcomeStages').hidden = !firstVisit;
     el('welcomeJourney').hidden = firstVisit || done;
-    app.welcomeRule = !(firstVisit || needsPractice() || done);
+    app.welcomeRule = !(firstVisit || needsPractice() || done || rainbowUnanswered());
     el('welcomeRule').hidden = !app.welcomeRule;
     ui.setRich('welcomeRule', copy.rule(usesKeys()));
 
-    // Where they are, as the parts (or practice sentences) done, one segment each.
+    // Where they are, as the parts (or practice sentences, or the passage's sentences)
+    // done, one segment each.
     const p = positionFor(progress.currentIndex);
     const segments = (total, done, current) => {
       el('welcomeParts').replaceChildren(...Array.from({ length: total }, (_, i) => {
@@ -436,10 +465,16 @@ V2S.app = (() => {
       }));
     };
     if (app.recordingRainbow) {
+      // Under way: Continue goes on with it.
       const at = app.rainbow.progress.currentIndex;
       ui.setText('welcomePart', copy.welcome.rainbow);
-      ui.setText('welcomeCount', at > 0 ? copy.welcome.sentenceOf(at + 1, app.rainbow.material.all.length) : '');
-      segments(1, 0, 0);
+      ui.setText('welcomeCount', at > 0 ? copy.welcome.sentenceOf(at + 1, cfg.RAINBOW.count) : '');
+      segments(cfg.RAINBOW.count, at, at);
+    } else if (rainbowUnanswered()) {
+      // Every part done, the question not answered yet: Continue asks it.
+      ui.setText('welcomePart', copy.welcome.allParts(partCount()));
+      ui.setText('welcomeCount', '');
+      segments(partCount(), partCount(), -1);
     } else if (progress.completed) {
       ui.setText('welcomePart', copy.welcome.allDone);
       ui.setText('welcomeCount', '');
@@ -512,6 +547,7 @@ V2S.app = (() => {
         flushPendingToFolder();
       }
       V2S.storage.requestPersistence();
+      if (rainbowUnanswered()) return showRainbowAsk();   // not answered yet: the question first
       await showCheck();
     } finally {
       starting = false;
@@ -571,7 +607,7 @@ V2S.app = (() => {
   }
 
   async function showCheck({ returnTo = null } = {}) {
-    app.checkReturn = returnTo || (app.sessionStarted ? 'record' : null);
+    app.checkReturn = returnTo || (ui.screen() === 'rainbow' ? 'rainbow' : app.sessionStarted ? 'record' : null);
     if (['ready', 'partEnd'].includes(V2S.session.getState())) V2S.session.stop();
     V2S.input.setEnabled(false);
     ui.show('check');
@@ -837,6 +873,8 @@ V2S.app = (() => {
     if (ui.screen() !== 'check') return;
     resetTest();
     logEvent('mic_test_ok', V2S.media.current());
+    // Opened (from Settings) on the Rainbow Passage question: back to the question.
+    if (app.checkReturn === 'rainbow' && rainbowUnanswered()) return showRainbowAsk();
     // How to record is taught inside the practice, one step at a time; before it, the one
     // thing to remember.
     if (!app.progress.howtoSeen) {
@@ -875,13 +913,17 @@ V2S.app = (() => {
 
   // ---------- recording ----------
   async function showRecord() {
-    ui.show('record');
-    requestWakeLock();
-    V2S.input.setEnabled(true, { guard: true });
     const active = app.recordingRainbow
       ? { setKey: cfg.RAINBOW.key, material: app.rainbow.material, progress: app.rainbow.progress }
       : { setKey: app.setKey, material: app.material, progress: app.progress };
-    if (!app.sessionStarted || app.sessionSet !== active.setKey) {
+    const switching = !app.sessionStarted || app.sessionSet !== active.setKey;
+    // Another set (the passage after the set): every take until now is stored first, under
+    // its own set.
+    if (switching && app.sessionStarted) await V2S.session.flush();
+    ui.show('record');
+    requestWakeLock();
+    V2S.input.setEnabled(true, { guard: true });
+    if (switching) {
       app.sessionStarted = true;
       app.sessionSet = active.setKey;
       V2S.session.begin({ participantId: app.participantId, ...active });
@@ -909,6 +951,12 @@ V2S.app = (() => {
 
   async function onFinishToday() {
     if (ui.screen() === 'break') return endFromBreak();
+    if (ui.screen() === 'rainbow') {
+      // Not now: the question stays unanswered, so the next visit asks it again.
+      if (answering || ui.isDialogOpen()) return;
+      if (await confirmEnd()) await showDone({ allDone: false });
+      return;
+    }
     if (ui.screen() !== 'record' || !['ready', 'partEnd'].includes(V2S.session.getState())) return;
     if (!await confirmEnd()) return;
     V2S.session.stop();
@@ -1475,7 +1523,7 @@ V2S.app = (() => {
     if (error && error.code === 'permission') {
       return showError({ title: copy.error.permissionTitle, body: copy.error.permissionBody, help: ui.helpText(), actionLabel: copy.error.reload, action: () => window.location.reload() });
     }
-    return showError({ title: copy.error.deviceTitle, body: copy.error.deviceBody, help: ui.helpText(), actionLabel: copy.error.tryAgain, action: () => showCheck() });
+    return showError({ title: copy.error.deviceTitle, body: copy.error.deviceBody, help: ui.helpText(), actionLabel: copy.error.tryAgain, action: () => showCheck({ returnTo: app.checkReturn }) });
   }
 
   async function reconnectAndResume() {
@@ -1750,6 +1798,15 @@ V2S.app = (() => {
       app.setKey = setKey;
       await V2S.storage.setSetting('setKey', setKey);
     },
+    // Settings → Rainbow Passage → Ask the question again (a wrong answer): the next start
+    // asks it; the passage's recordings and its place are kept.
+    askRainbowAgain: async () => {
+      V2S.session.stop();
+      await V2S.session.flush();
+      delete app.progress.rainbow;
+      await V2S.storage.saveParticipantProgress(app.progress);
+      await api.restartSession();
+    },
     // Settings → Clear progress: back to the very start (Welcome, the check, practice),
     // after every pending write, so nothing older can overwrite it.
     clearProgress: async () => {
@@ -1764,20 +1821,23 @@ V2S.app = (() => {
     },
     // Settings → Previous / Next / Skip / Go to: during a session the screen just moves to
     // that sentence (no camera restart); otherwise the welcome screen shows the new place.
+    // With the Rainbow Passage under way they move within its sentences (Settings shows
+    // where it is); the sentence set is left as it is.
     jumpTo: async (index, extra = {}) => {
-      V2S.session.startNewRoundIfCompleted(app.progress);
-      Object.assign(app.progress, extra);
       if (app.recordingRainbow) {
-        // A move within the sentences sets the passage aside (after the set's last
-        // sentence it comes back where it was): the sentence set's session takes over.
-        V2S.session.stop();
-        await V2S.session.flush();
-        leaveRainbow();
-        Object.assign(app.progress, { currentIndex: index, completed: false, completedAt: null });
-        await V2S.storage.saveParticipantProgress(app.progress);
-        if (app.sessionStarted) return showRecord();
+        // The passage has no rounds of its own (it goes with the set's round): a move from
+        // its last sentence, read, is not a new round.
+        Object.assign(app.rainbow.progress, { completed: false, completedAt: null });
+        if (app.sessionStarted && app.sessionSet === cfg.RAINBOW.key && V2S.session.jumpTo(index)) {
+          if (ui.screen() !== 'record') await showRecord();
+          return;
+        }
+        Object.assign(app.rainbow.progress, { currentIndex: index });
+        await V2S.storage.saveParticipantProgress(app.rainbow.progress);
         return showWelcome();
       }
+      V2S.session.startNewRoundIfCompleted(app.progress);
+      Object.assign(app.progress, extra);
       if (app.sessionStarted && V2S.session.jumpTo(index)) {
         if (ui.screen() !== 'record') await showRecord();
         return;

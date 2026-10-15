@@ -87,7 +87,12 @@ it. Problems show as an amber notice right above the main button.
    asking.
 9. **The Rainbow Passage** (after the 350-sentence set, once per round): "Do you want to
    read the Rainbow Passage?" Yes: its 6 sentences, one at a time, recorded like any part;
-   No: done. Recordings go to `<participant>/rainbow/`.
+   No: done. Recordings go to `<participant>/rainbow/`. Only an answer counts: left on the
+   question (or ended on the set's last sentence), the next visit asks it; End for today is
+   on the question too. Answers count after a second. While it is under way, Settings moves
+   within its sentences; after No, Settings can have it asked again. It is shown in lines of
+   whole phrases, laid out by the page from the marks in `newset/rainbow_passage.txt`
+   (" || " between clauses, " | " between phrases).
 10. **Done**: "You can close this page" only when everything is saved; otherwise "Please
    save your recordings before you close this page." with **Save recordings**.
 

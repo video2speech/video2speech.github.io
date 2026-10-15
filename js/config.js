@@ -26,7 +26,17 @@ V2S.config = Object.freeze({
   DEFAULT_SET: '50words_350sentences',
   // The Rainbow Passage: offered once (per round) after the last sentence of `afterSet`,
   // read one sentence at a time like any part. Its recordings go to <ID>/rainbow/.
-  RAINBOW: Object.freeze({ key: 'rainbow', file: 'newset/rainbow_passage.txt', count: 6, afterSet: '50words_350sentences' }),
+  RAINBOW: Object.freeze({
+    key: 'rainbow', file: 'newset/rainbow_passage.txt', count: 6, afterSet: '50words_350sentences',
+    // Its size per screen: the largest up to `max` at which its longest sentence takes at
+    // most `lines` lines of whole phrases (full lines, never one phrase a line).
+    size: Object.freeze({
+      phone: Object.freeze({ max: 28, lines: 5 }),
+      flat: Object.freeze({ max: 26, lines: 5 }),
+      tall: Object.freeze({ max: 36, lines: 4 }),
+      wide: Object.freeze({ max: 40, lines: 3 })
+    })
+  }),
   BLOCK_SIZE: 50,              // one "part" of sentences between rests
 
   // Interaction (two presses: Start, then Stop).
@@ -43,6 +53,8 @@ V2S.config = Object.freeze({
   IDLE_SPEECH_HINT_COOLDOWN_MS: 6000,
   IDLE_SPEECH_GRACE_MS: 1500,  // after a take, speech in the first 1.5 s is not "reading before Start"
   ENTER_GUARD_MS: 400,         // presses this soon after the recording screen appears are ignored (a double press)
+  SENTENCE_FLOOR: 18,          // the smallest sentence size when a long sentence would otherwise reach the card's kept areas
+  ANSWER_ARM_MS: 1000,         // a final answer that sits where the last press was (the Rainbow Passage question) counts only after this
   // The camera and microphone test (automated browser tests shorten it via window.__V2S_TEST).
   TEST_RECORD_MS: (window.__V2S_TEST && window.__V2S_TEST.testRecordMs) || 5000,
 

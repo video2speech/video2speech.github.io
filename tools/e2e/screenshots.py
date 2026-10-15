@@ -78,6 +78,17 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
                clipped: [...document.querySelectorAll('.flow-body, .dialog-body, .check-panel')]
                  .filter(n => n.getClientRects().length && n.scrollHeight > n.clientHeight + 1)
                  .map(n => `${n.parentElement && n.parentElement.closest('[id]') ? n.parentElement.closest('[id]').id : ''}.${n.className}`),
+               // on the recording card: the sentence under the Recording sign or a message
+               card: (() => {
+                 if (document.body.dataset.screen !== 'record') return [];
+                 const box = id => document.getElementById(id).getBoundingClientRect();
+                 const shown = id => { const n = document.getElementById(id); const c = getComputedStyle(n); return c.visibility !== 'hidden' && c.display !== 'none' && !n.classList.contains('is-empty'); };
+                 const line = box('sentenceText');
+                 const hits = [];
+                 if (shown('cardStatus') && line.top < box('cardStatus').bottom + 2) hits.push('Recording sign');
+                 if (shown('message') && line.bottom > box('message').top - 2) hits.push('message');
+                 return hits;
+               })(),
                wide: wide.slice(0, 3).map(n => `${n.tagName}#${n.id}.${n.className}`),
                spill: spill.slice(0, 3).map(b => `${b.id || b.textContent.trim().slice(0, 20)}`) };
     }"""
@@ -95,6 +106,8 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
             print(f'  CLIPPED {name}-{theme}-{label}: {r["clipped"]}')
         if r['offscreen']:
             print(f'  OFFSCREEN {name}-{theme}-{label}: {r["offscreen"]}')
+        if r['card']:
+            print(f'  OVERLAP {name}-{theme}-{label}: the sentence under {r["card"]}')
 
     # Phones and tablets are driven by taps (their instructions name the buttons);
     # computers by the keyboard (their instructions name Space and ←).
@@ -280,6 +293,36 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.wait_for_selector('#screen-welcome:not([hidden])')
     await page.wait_for_timeout(300)
     await shot('26-welcome-back')
+
+    # The Rainbow Passage: the set's last sentence, the question, the passage and its end,
+    # then Welcome with the question not answered yet.
+    await t.set_progress(page, howtoSeen=True, coachDone=True, currentIndex=354, completed=False)
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    await t.start_session(page)
+    await take()
+    await shot('27-set-end')
+    await press_main()
+    await page.wait_for_selector('#screen-rainbow:not([hidden])')
+    await shot('28-rainbow-question')
+    await page.wait_for_timeout(700)   # its answers count after a second
+    await click(page, '#rainbowYes')
+    await t.wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
+    await shot('29-passage')
+    await take(stop=False)
+    await shot('30-passage-recording')
+    await finish_take()
+    await take()
+    await shot('30b-passage-third')   # the longest sentence: it sets the size
+    for _ in range(4):
+        await take()
+    await shot('31-passage-end')
+    await press_main()
+    await page.wait_for_selector('#screen-done:not([hidden])')
+    await t.set_progress(page, rainbow=None)
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    await shot('32-welcome-unanswered')
     print(name, theme, 'errors:', errors)
     await browser.close()
 

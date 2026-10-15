@@ -47,9 +47,9 @@ V2S.copy = {
   // Before the practice (first time only).
   // After the last sentence of the 350-sentence set, once: the Rainbow Passage?
   rainbow: {
-    eyebrow: 'All sentences done',
+    eyebrow: parts => `All ${parts} parts done`,
     title: 'Do you want to read the Rainbow\u00a0Passage?',
-    lead: n => `A short story in ${n} sentences, read one at a time, the same way.`,
+    lead: n => `A short story in ${n} sentences, one at a time, as\u00a0before.`,
     yes: 'Yes, read it',
     no: 'No, finish'
   },
@@ -78,6 +78,7 @@ V2S.copy = {
     part: (n, total) => `Part ${n} of ${total}`,
     partCount: (done, size) => `${done} of ${size} sentences done`,
     allDone: 'All sentences are done',
+    allParts: parts => `All ${parts} parts done`,
     rainbow: 'Rainbow Passage',
     doneTitle: 'All sentences done',
     doneLead: 'Thank you! There is nothing more to record. You can close this page.',
@@ -429,6 +430,11 @@ V2S.copy = {
     jumpInvalid: total => `Enter a number from 1 to ${total}.`,
     practiceAgain: 'Practice again',
     practiceConfirm: 'Go back to practice sentence 1 and show the coaching again? Afterwards recording continues from this sentence. Recordings are not deleted.',
+    rainbowTitle: 'Rainbow Passage',
+    rainbowAgain: 'Ask the question again…',
+    rainbowAnswer: answer => (answer === 'declined' ? 'The participant answered No.' : 'The participant answered Yes; it is not finished.'),
+    rainbowNote: 'For a wrong answer: the next start asks "Do you want to read the Rainbow Passage?" again. Recordings are kept.',
+    rainbowConfirm: 'Ask "Do you want to read the Rainbow Passage?" again at the next start? Recordings are kept.',
     reset: 'Reset progress…',
     resetConfirm: 'Go back to the very first sentence (practice 1) and coach the practice again? Recordings are not deleted. A sentence recorded again replaces its earlier recording, which moves to not_used.',
     resetConfirmNewRound: round => `Start again from the very first sentence (practice 1) and coach the practice again? Recordings are not deleted. New recordings are round ${round} ("repeat${round}" in file names).`,

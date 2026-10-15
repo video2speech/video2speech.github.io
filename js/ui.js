@@ -28,9 +28,9 @@ V2S.ui = (() => {
       document.body.classList.remove('is-redo-lesson');
       setRecording(false);
       setWhere(null);
-      // Breaks and Practice done keep End for today where it is on the recording screen
-      // (top left), never under their main button.
-      setFinishVisible(name === 'break');
+      // Breaks, Practice done and the Rainbow Passage question keep End for today where it
+      // is on the recording screen (top left), never under their main button.
+      setFinishVisible(name === 'break' || name === 'rainbow');
     }
     el('helpButton').hidden = name !== 'record';
     window.scrollTo(0, 0);
@@ -66,7 +66,10 @@ V2S.ui = (() => {
   // quote) followed by a capital or an opening quote, so a quoted sentence inside a line
   // (read “I need water.” again) stays in one piece.
   function setSentences(id, text) {
-    const node = el(id);
+    fillSentences(el(id), text);
+  }
+
+  function fillSentences(node, text) {
     if (!node) return;
     node.replaceChildren();
     const group = document.createElement('span');
@@ -162,7 +165,7 @@ V2S.ui = (() => {
       line.className = 'sentence-line';
       sentence.replaceChildren(line);
     }
-    line.textContent = phrased(view.sentence);
+    writeSentence(line, view.sentence);
 
     const main = el('mainButton');
     el('mainIcon').innerHTML = iconMarkup(view.main.icon);
@@ -226,6 +229,92 @@ V2S.ui = (() => {
   // my…) is kept with it, so a sentence never splits as "Please put the / water".
   const LEADING_WORDS = /\b(a|an|the|to|of|in|on|at|for|with|my|your|our|his|her|their|its|this|that|some|no)\s+/gi;
   const phrased = text => String(text || '').replace(LEADING_WORDS, (match, word) => `${word}\u00a0`);
+  const sentenceText = text => phrased(text);
+
+  // ---- the Rainbow Passage: lines of whole phrases ----
+  // It is read for its prosody, so its lines break only between its marked phrases, and the
+  // same in every browser: the fewest lines, then breaks after a comma (or between
+  // clauses), then lines as even as possible. Laid out by fitSentences for the screen;
+  // shown with a <br> between lines.
+  const PHRASE_COST = { line: 3, minor: 1, clauseNoComma: 0.3, spread: 1.5 };
+  let passageLines = new Map();   // sentence → its lines at the fitted size
+
+  // The best lines for one sentence. phrases: [{ text, major, w }] (w: its width at this
+  // size); null if a phrase is wider than a line.
+  function phraseLines(phrases, space, max) {
+    const n = phrases.length;
+    let best = null;
+    for (let mask = 0; mask < 1 << (n - 1); mask++) {
+      const lines = [];
+      let start = 0;
+      let breaks = 0;
+      let fits = true;
+      for (let i = 1; i <= n && fits; i++) {
+        if (i < n && !(mask & (1 << (i - 1)))) continue;
+        if (i < n) breaks += !phrases[i].major ? PHRASE_COST.minor : phrases[i - 1].text.endsWith(',') ? 0 : PHRASE_COST.clauseNoComma;
+        let w = 0;
+        for (let j = start; j < i; j++) w += phrases[j].w + (j > start ? space : 0);
+        fits = w <= max;
+        lines.push({ text: phrases.slice(start, i).map(phrase => phrase.text).join(' '), w });
+        start = i;
+      }
+      if (!fits) continue;
+      const widest = Math.max(...lines.map(line => line.w));
+      const spread = lines.reduce((sum, line) => sum + ((widest - line.w) / max) ** 2, 0);
+      const cost = lines.length * PHRASE_COST.line + breaks + spread * PHRASE_COST.spread;
+      if (!best || cost < best.cost) best = { lines: lines.map(line => line.text), cost };
+    }
+    return best;
+  }
+
+  // The passage's size: the largest (up to its screen's maximum) at which every sentence
+  // has lines of whole phrases, at most `lines` of them (full lines, never a phrase a line),
+  // within the room the card leaves. Returns { size, lines } and keeps each sentence's lines.
+  function fitPassage(probe, kind, width, pad, room) {
+    const rule = cfg.RAINBOW.size[kind];
+    Object.assign(probe.style, { whiteSpace: 'pre', width: 'auto', maxWidth: 'none' });
+    const measure = text => {
+      probe.textContent = text;
+      return probe.getBoundingClientRect().width;
+    };
+    // Measured at each size, not scaled: the system font is wider below about 20 px.
+    const layoutAt = px => {
+      probe.style.fontSize = `${px}px`;
+      const space = measure('a a') - measure('aa');
+      return fitList.map(text => phraseLines(V2S.sentences.phrasesOf(text).map(phrase => ({ ...phrase, w: measure(phrase.text) })), space, (width - pad * px) * 0.97));
+    };
+    let size = rule.max;
+    let layout = layoutAt(size);
+    const tallest = all => Math.max(...all.map(a => (a ? a.lines.length : Infinity)));
+    while (size > cfg.SENTENCE_FLOOR && (tallest(layout) > rule.lines || tallest(layout) * 1.2 * size > room)) {
+      size -= 1;
+      layout = layoutAt(size);
+    }
+    passageLines = new Map();
+    fitList.forEach((text, i) => { if (layout[i]) passageLines.set(text, layout[i].lines); });
+    return { size, lines: Math.min(tallest(layout), 12) };
+  }
+
+  // A sentence into the card's line: the Rainbow Passage in its lines, any other sentence
+  // as one text the browser wraps.
+  function writeSentence(node, text) {
+    node.dataset.text = text;
+    const lines = passageLines.get(text);
+    // Laid out here: the browser must not balance the lines again (Firefox narrows the
+    // whole block and would break a laid-out line).
+    if (node.parentElement) node.parentElement.classList.toggle('is-laid-out', Boolean(lines));
+    if (!lines) {
+      node.textContent = sentenceText(text);
+      return;
+    }
+    // Each line but the last ends in a space (not shown), so the text still reads as words.
+    const parts = [];
+    lines.forEach((line, i) => {
+      if (i) parts.push(document.createElement('br'));
+      parts.push(document.createTextNode(i < lines.length - 1 ? `${line} ` : line));
+    });
+    node.replaceChildren(...parts);
+  }
 
   // ---- sentence size ----
   // One size per screen and sentence set (see config.SENTENCE_SIZE), so the size never
@@ -256,6 +345,51 @@ V2S.ui = (() => {
     }
   }
 
+  // Every message the card can show on its bottom edge: the problems, the notes at a part's
+  // end, Redo's.
+  function cardMessages() {
+    const keys = document.documentElement.classList.contains('has-keyboard');
+    const text = entry => (typeof entry === 'function' ? entry(keys) : entry);
+    const r = copy.record;
+    return [...Object.values(copy.feedback).map(text), r.partEndPart(9), r.partEndAll, r.partEndRainbow, text(r.redoing)].filter(Boolean);
+  }
+
+  // The heights the card keeps free at its top (the Recording sign) and at its bottom (the
+  // tallest of its messages at this width, in either style, measured in place, unseen),
+  // each with some air; `reach` is how far down the sentence may go. While the practice
+  // coach is shown the card has no message (the coach below it speaks): the sentence is
+  // centred in the card, and on a short card it may reach down to its bottom.
+  function keptAreas(card) {
+    const air = 8;
+    const status = el('cardStatus');
+    const top = Math.ceil(status.offsetTop + status.offsetHeight + 14);   // a little more air under the sign
+    if (el('screen-record').classList.contains('is-coaching')) return { top, bottom: top, reach: air };
+    const probe = el('message').cloneNode(true);
+    probe.removeAttribute('id');
+    probe.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+    probe.setAttribute('aria-hidden', 'true');
+    probe.removeAttribute('aria-live');
+    probe.style.visibility = 'hidden';
+    probe.style.display = 'flex';            // also while the practice coach hides messages
+    const icon = probe.querySelector('.message-icon');
+    const text = probe.querySelector('.message-body').lastElementChild;
+    card.appendChild(probe);
+    let tallest = 0;
+    // A problem (icon, tinted) or a note (plain; larger type on some screens).
+    [['warn', ICONS.warn], ['note', '']].forEach(([tone, mark]) => {
+      probe.className = `message tone-${tone}`;
+      icon.innerHTML = mark;
+      cardMessages().forEach(message => {
+        fillSentences(text, message);
+        tallest = Math.max(tallest, probe.offsetHeight);
+      });
+    });
+    const below = card.clientHeight - probe.offsetTop - probe.offsetHeight;   // its distance from the card's edge
+    probe.remove();
+    const bottom = Math.ceil(below + tallest + air);
+    return { top, bottom, reach: bottom };
+  }
+
   function fitSentences(list) {
     if (list) fitList = list.slice();
     const screenEl = el('screen-record');
@@ -273,9 +407,31 @@ V2S.ui = (() => {
     probe.removeAttribute('id');
     Object.assign(probe.style, { position: 'absolute', visibility: 'hidden', left: '0', top: '0', whiteSpace: 'nowrap', width: 'auto', maxWidth: 'none', fontSize: '100px', transition: 'none' });
     document.body.appendChild(probe);
+    // The card keeps two areas free: the Recording sign on its top edge and the longest
+    // message on its bottom edge. The sentence sits between them and is never covered.
+    const card = el('card');
+    const keep = keptAreas(card);
+    card.style.setProperty('--keep-top', `${keep.top}px`);
+    card.style.setProperty('--keep-bottom', `${keep.bottom}px`);
+    const room = card.clientHeight - keep.top - keep.reach;
+    const apply = (size, lines) => {
+      screenEl.style.setProperty('--sentence-size', `${size}px`);
+      screenEl.style.setProperty('--sentence-lines', String(lines));
+      screenEl.dataset.fit = `${kind}:${size}:${lines}`;
+    };
+    // The Rainbow Passage: in lines of whole phrases (above).
+    if (fitList.every(text => V2S.sentences.phrasesOf(text))) {
+      const fit = fitPassage(probe, kind, width, pad, room);
+      probe.remove();
+      apply(fit.size, fit.lines);
+      const shown = el('sentenceText').firstElementChild;
+      if (shown && shown.dataset.text) writeSentence(shown, shown.dataset.text);
+      return;
+    }
+    passageLines = new Map();
     // Each sentence on one line at 100 px.
     const widths = fitList.map(text => {
-      probe.textContent = phrased(text);
+      probe.textContent = sentenceText(text);
       return probe.getBoundingClientRect().width;
     });
     const totalChars = fitList.reduce((sum, text) => sum + text.length, 0) || 1;
@@ -300,7 +456,7 @@ V2S.ui = (() => {
       const linesOf = (text, px) => {
         probe.style.fontSize = `${px}px`;
         probe.style.width = probe.style.maxWidth = `${width - pad * px}px`;
-        probe.textContent = phrased(text);
+        probe.textContent = sentenceText(text);
         return Math.round(probe.getBoundingClientRect().height / (px * 1.2));
       };
       const allowed = Math.floor(fitList.length * (1 - rule.twoLineShare));
@@ -319,7 +475,7 @@ V2S.ui = (() => {
       probe.style.fontSize = `${px}px`;
       probe.style.width = probe.style.maxWidth = `${width - pad * px}px`;
       return Math.max(...longest.map(text => {
-        probe.textContent = phrased(text);
+        probe.textContent = sentenceText(text);
         return Math.round(probe.getBoundingClientRect().height / (px * 1.2));
       }));
     };
@@ -328,16 +484,17 @@ V2S.ui = (() => {
       size -= 1;
       lines = linesAt(size);
     }
+    // Within the room the card leaves between its kept areas.
+    while (lines * 1.2 * size > room && size > cfg.SENTENCE_FLOOR) {
+      size -= 1;
+      lines = linesAt(size);
+    }
     probe.remove();
-    const apply = () => {
-      screenEl.style.setProperty('--sentence-size', `${size}px`);
-      screenEl.style.setProperty('--sentence-lines', String(lines));
-    };
-    apply();
+    apply(size, lines);
     // Very short screens (and the practice coach): the whole stack must still fit.
     for (let i = 0; i < 10 && screenEl.scrollHeight > screenEl.clientHeight + 1 && size > rule.min - 6; i++) {
       size -= 2;
-      apply();
+      apply(size, lines);
     }
     screenEl.dataset.fit = `${kind}:${size}:${lines}`;
   }
@@ -618,6 +775,9 @@ V2S.ui = (() => {
     renderRecord,
     fitSentences,
     phrased,
+    sentenceText,
+    writeSentence,
+    passageLayout: text => passageLines.get(text) || null,
     watchPreviewShape,
     dialog,
     confirm,
