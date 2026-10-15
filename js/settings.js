@@ -179,7 +179,7 @@ V2S.settings = (() => {
         unsaved ? strongAction(t.saveNow, () => saveAll(unsaved, 'main'), SAVE_ICON, 'mainSaveNow') : null,
         nav(t.savingOptions, folderMode ? t.modeFolder(V2S.exporter.folderName() || '?') : t.modeZip, 'settingsSaving')
       ], { title: t.saving, id: 'settingsSavingSummary' }),
-      group([themeRow(), holdRow()], id ? { title: t.forParticipant(id), foot: t.forParticipantNote, id: 'settingsOwn' } : { id: 'settingsOwn' }),
+      group([themeRow(), holdRow(), silentRow()], id ? { title: t.forParticipant(id), foot: t.forParticipantNote, id: 'settingsOwn' } : { id: 'settingsOwn' }),
       group([nav(t.participant, describePosition(state), 'settingsProgress')]),
       group([
         nav(t.devices, '', 'settingsDevices'),
@@ -191,6 +191,18 @@ V2S.settings = (() => {
         await api.signOut();
       }, true)])
     ]);
+  }
+
+  // Allow recordings without voice (laryngectomy): this participant's own, off by default.
+  function silentRow() {
+    const box = node('input', { type: 'checkbox', id: 'setSilent', checked: V2S.qc.allowsSilent() });
+    box.addEventListener('change', async () => {
+      V2S.qc.setAllowSilent(box.checked);
+      await V2S.storage.setSetting('allowSilent', box.checked);
+      await api.saveParticipantPrefs();
+      logEvent('settings_allow_silent', { allowSilent: box.checked });
+    });
+    return control(t.allowSilent, box);
   }
 
   // How long a press may be held before it counts as holding: this participant's own.

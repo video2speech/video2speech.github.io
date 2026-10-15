@@ -82,6 +82,7 @@ V2S.app = (() => {
     app.setKey = cfg.SETS[setKey] ? setKey : cfg.DEFAULT_SET;
     applyTheme(await V2S.storage.getSetting('theme', document.documentElement.getAttribute('data-theme') || 'light'));
     V2S.input.setHoldMs(await V2S.storage.getSetting('holdMs', cfg.HOLD_MS));
+    V2S.qc.setAllowSilent(await V2S.storage.getSetting('allowSilent', false));
   }
 
   function applyTheme(theme) {
@@ -106,7 +107,7 @@ V2S.app = (() => {
   async function saveParticipantPrefs() {
     if (!app.participantId) return;
     const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    await V2S.storage.setSetting(`prefs:${app.participantId}`, { theme, holdMs: V2S.input.getHoldMs() });
+    await V2S.storage.setSetting(`prefs:${app.participantId}`, { theme, holdMs: V2S.input.getHoldMs(), allowSilent: V2S.qc.allowsSilent() });
   }
 
   async function applyParticipantPrefs(participantId) {
@@ -117,6 +118,9 @@ V2S.app = (() => {
     await V2S.storage.setSetting('theme', theme);
     V2S.input.setHoldMs(holdMs);
     await V2S.storage.setSetting('holdMs', holdMs);
+    const allowSilent = Boolean(prefs && prefs.allowSilent);
+    V2S.qc.setAllowSilent(allowSilent);
+    await V2S.storage.setSetting('allowSilent', allowSilent);
   }
 
   // ---------- event log persistence ----------
@@ -841,7 +845,7 @@ V2S.app = (() => {
     const now = V2S.media.current();
     logEvent('mic_test', { pass: qc.pass, code: qc.code, speechMs: qc.metrics.speechMs, rms: qc.metrics.rms, microphone: now.microphone, sampleRate: now.sampleRate, size: recording.blob.size });
     if (!recording.blob.size) return showTestError(copy.check.testFailed);
-    if (qc.code === 'no_speech' || qc.code === 'no_audio') return showTestError(copy.check.testSilent);
+    if (qc.code === 'no_speech' || qc.code === 'no_audio') return showTestError(copy.check.testSilent);   // (passes when silence is allowed)
     await playTest(recording.blob);
   }
 

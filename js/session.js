@@ -849,7 +849,7 @@ V2S.session = (() => {
       qcIssue: qc.pass ? null : qc.code,
       qcFailuresInARow: failuresInARow,
       audioQualityWarning: qc.pass ? null : feedbackText(qc.code) || null,
-      qc: { pass: qc.pass, code: qc.code, ...qc.metrics, rules: V2S.qc.rules() },
+      qc: { pass: qc.pass, code: qc.code, silentAllowed: qc.silentAllowed || null, ...qc.metrics, rules: V2S.qc.rules() },
       audioQuality: {
         rms: qc.metrics.rms ?? null,
         peak: qc.metrics.peak ?? null,

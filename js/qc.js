@@ -6,7 +6,20 @@ window.V2S = window.V2S || {};
 V2S.qc = (() => {
   const Q = V2S.config.QC;
 
+  // Settings → Allow recordings without voice (owner, 2026-10-15: laryngectomy patients):
+  // silence (no speech, or no sound at all) no longer stops a take; it is kept and marked.
+  let allowSilent = false;
+  const setAllowSilent = value => { allowSilent = Boolean(value); };
+
   function evaluate(frames) {
+    const result = check(frames);
+    if (allowSilent && !result.pass && (result.code === 'no_speech' || result.code === 'no_audio')) {
+      return { pass: true, code: null, silentAllowed: result.code, metrics: result.metrics };
+    }
+    return result;
+  }
+
+  function check(frames) {
     // No analysed audio at all means the analysis was not running (not the speaker's
     // fault); it still cannot be accepted.
     if (!frames.length) {
@@ -48,5 +61,5 @@ V2S.qc = (() => {
     return { pass: true, code: null, metrics };
   }
 
-  return { evaluate, rules: () => ({ ...Q }) };
+  return { evaluate, setAllowSilent, allowsSilent: () => allowSilent, rules: () => ({ ...Q }) };
 })();
