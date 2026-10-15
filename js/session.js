@@ -71,6 +71,9 @@ V2S.session = (() => {
   function whereView(i) {
     const p = position(i);
     if (p.warmup) return { main: copy.record.practiceOf(p.pos, p.total), tiny: copy.record.whereTiny(p.pos, p.total), progress: (p.pos - 1) / p.total };
+    if (ctx.setKey === cfg.RAINBOW.key) {
+      return { main: copy.record.rainbowOf(p.pos, p.total), short: copy.record.rainbowShort(p.pos, p.total), tiny: copy.record.whereTiny(p.pos, p.total), progress: (p.pos - 1) / p.total };
+    }
     return {
       main: `${copy.record.partOf(p.block, p.blocks)} · ${copy.record.sentenceOf(p.inBlock, p.blockSize)}`,
       short: copy.record.whereShort(p.block, p.inBlock, p.blockSize),
@@ -193,7 +196,7 @@ V2S.session = (() => {
       where: { ...whereView(lastAccepted.index), progress: 1 },
       main: { label: kind === 'practice' ? copy.record.toPracticeDone : kind === 'all' ? copy.record.toAllDone : copy.record.toBreak(partEnd.block), icon: 'next', disabled: false },
       redo: { visible: true, label: copy.record.redo, caption: copy.record.redoThis },
-      message: coach ? null : { text: kind === 'part' ? copy.record.partEndPart(partEnd.block) : copy.record.partEndAll, tone: 'note' },
+      message: coach ? null : { text: kind === 'part' ? copy.record.partEndPart(partEnd.block) : ctx.setKey === cfg.RAINBOW.key ? copy.record.partEndRainbow : copy.record.partEndAll, tone: 'note' },
       coach,
       pulse: pulseFor(coach, true)
     };
@@ -890,7 +893,8 @@ V2S.session = (() => {
     counts[current.index] = takeNumber;
     const p = position(current.index);
     const round = ctx.progress.round;
-    const progressInfo = p.warmup ? `_warmup${p.pos}-${p.total}_repeat${round}` : `_${p.pos}-${p.total}_repeat${round}`;
+    const segment = p.warmup ? 'warmup' : ctx.setKey === cfg.RAINBOW.key ? 'rainbow' : '';
+    const progressInfo = `_${segment}${p.pos}-${p.total}_repeat${round}`;
     const fileName = uniqueName(`${sanitize(current.sentence)}${progressInfo}_${timestamp()}${takeNumber > 1 ? '_redo' : ''}.${recording.ext}`);
     current.fileName = fileName;
     const usable = status === 'accepted' || status === 'qc_overridden';
@@ -1029,6 +1033,7 @@ V2S.session = (() => {
     const round = V2S.storage.roundOf(progress) + 1;
     Object.assign(progress, { completed: false, completedAt: null, round, usable: {}, takeCounts: {} });
     delete progress.pendingRedo;
+    delete progress.rainbow;   // the Rainbow Passage is offered once per round
     logEvent('new_round', { round });
     return true;
   }

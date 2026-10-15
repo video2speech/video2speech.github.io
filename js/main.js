@@ -175,6 +175,98 @@ V2S.app = (() => {
   }
 
   const partCount = () => Math.ceil(app.material.formalCount / cfg.BLOCK_SIZE);
+
+  // ---------- the Rainbow Passage (once per round, after the 350-sentence set) ----------
+  // Its own small sentence set with its own progress; recorded like any part.
+  const readingRainbow = () => app.setKey === cfg.RAINBOW.afterSet && Boolean(app.progress && app.progress.completed)
+    && app.progress.rainbow === 'reading';
+  // Everything recorded: the set is complete and the passage is not under way.
+  const allDone = () => Boolean(app.progress && app.progress.completed) && !readingRainbow();
+
+  // Its material and progress, in the same round as the set (a new round starts it again).
+  async function loadRainbow() {
+    const material = await V2S.sentences.loadRainbow();
+    const key = V2S.storage.progressKey(app.participantId, cfg.RAINBOW.key);
+    let progress = await V2S.storage.getProgress(key);
+    if (!progress) progress = await V2S.storage.createParticipantProgress(app.participantId, cfg.RAINBOW.key, null);
+    const round = V2S.storage.roundOf(app.progress);
+    if (V2S.storage.roundOf(progress) !== round || progress.completed) {
+      Object.assign(progress, { currentIndex: 0, completed: false, completedAt: null, round, usable: {}, takeCounts: {} });
+      delete progress.pendingRedo;
+    }
+    progress.currentIndex = Math.min(Math.max(0, Number(progress.currentIndex) || 0), material.all.length - 1);
+    Object.assign(progress, { coachDone: true, howtoSeen: true });
+    await V2S.storage.saveParticipantProgress(progress);
+    app.rainbow = { material, progress };
+    app.recordingRainbow = true;
+  }
+
+  // Back to the sentence set (Settings moved within it, or another participant or set).
+  function leaveRainbow() {
+    app.recordingRainbow = false;
+    app.rainbow = null;
+  }
+
+  // The set's last sentence is done: asked once — and only once — whether to read it.
+  async function showRainbowAsk() {
+    V2S.input.setEnabled(false);
+    app.progress.rainbow = 'asked';
+    await V2S.storage.saveParticipantProgress(app.progress);
+    logEvent('rainbow_asked', {});
+    ui.setText('rainbowEyebrow', copy.rainbow.eyebrow);
+    ui.setText('rainbowTitle', copy.rainbow.title);
+    ui.setSentences('rainbowLead', copy.rainbow.lead(cfg.RAINBOW.count));
+    ui.setText('rainbowYes', copy.rainbow.yes);
+    ui.setText('rainbowNo', copy.rainbow.no);
+    ui.show('rainbow');
+    if (usesKeys()) el('rainbowYes').focus({ preventScroll: true });
+  }
+
+  async function onRainbowYes() {
+    if (ui.screen() !== 'rainbow') return;
+    app.progress.rainbow = 'reading';
+    await V2S.storage.saveParticipantProgress(app.progress);
+    logEvent('rainbow_yes', {});
+    try {
+      await loadRainbow();
+    } catch (error) {
+      return showLoadError(error);
+    }
+    await showRecord();
+  }
+
+  async function onRainbowNo() {
+    if (ui.screen() !== 'rainbow') return;
+    app.progress.rainbow = 'declined';
+    await V2S.storage.saveParticipantProgress(app.progress);
+    logEvent('rainbow_no', {});
+    await showDone({ allDone: true });
+  }
+
+  // The last sentence (of the set, or of the passage) is done.
+  async function onAllDone() {
+    const ctx = V2S.session.getContext();
+    if (ctx && ctx.setKey === cfg.RAINBOW.key) {
+      app.progress.rainbow = 'done';
+      await V2S.storage.saveParticipantProgress(app.progress);
+      logEvent('rainbow_done', {});
+      leaveRainbow();
+      return showDone({ allDone: true });
+    }
+    if (app.setKey === cfg.RAINBOW.afterSet && app.progress.completed) {
+      if (!app.progress.rainbow) return showRainbowAsk();
+      if (app.progress.rainbow === 'reading') {
+        // Started earlier and left: on where it was.
+        try {
+          await loadRainbow();
+        } catch (error) {
+          return showLoadError(error);
+        }
+        return showRecord();
+      }
+    }
+    return showDone({ allDone: true });
+  }
   const needsPractice = () => !app.progress.coachDone && app.progress.currentIndex < app.material.warmupCount;
 
   function folderLabel() {
@@ -314,13 +406,22 @@ V2S.app = (() => {
       return showLoadError(error);
     }
     const progress = app.progress;
+    const done = allDone();
+    leaveRainbow();
+    if (readingRainbow()) {
+      try {
+        await loadRainbow();   // under way: Continue goes on with it
+      } catch (error) {
+        return showLoadError(error);
+      }
+    }
     const firstVisit = !progress.howtoSeen && !progress.coachDone && progress.currentIndex === 0;
     ui.setText('welcomeId', copy.welcome.participant(app.participantId));
-    ui.setText('welcomeTitle', progress.completed ? copy.welcome.doneTitle : firstVisit ? copy.welcome.titleFirst : copy.welcome.titleBack);
+    ui.setText('welcomeTitle', done ? copy.welcome.doneTitle : firstVisit ? copy.welcome.titleFirst : copy.welcome.titleBack);
     ui.setSentences('welcomeLead', firstVisit ? copy.welcome.leadFirst : copy.welcome.leadBack);
     el('welcomeStages').hidden = !firstVisit;
-    el('welcomeJourney').hidden = firstVisit || Boolean(progress.completed);
-    app.welcomeRule = !(firstVisit || needsPractice() || Boolean(progress.completed));
+    el('welcomeJourney').hidden = firstVisit || done;
+    app.welcomeRule = !(firstVisit || needsPractice() || done);
     el('welcomeRule').hidden = !app.welcomeRule;
     ui.setRich('welcomeRule', copy.rule(usesKeys()));
 
@@ -334,7 +435,12 @@ V2S.app = (() => {
         return segment;
       }));
     };
-    if (progress.completed) {
+    if (app.recordingRainbow) {
+      const at = app.rainbow.progress.currentIndex;
+      ui.setText('welcomePart', copy.welcome.rainbow);
+      ui.setText('welcomeCount', at > 0 ? copy.welcome.sentenceOf(at + 1, app.rainbow.material.all.length) : '');
+      segments(1, 0, 0);
+    } else if (progress.completed) {
       ui.setText('welcomePart', copy.welcome.allDone);
       ui.setText('welcomeCount', '');
       segments(partCount(), partCount(), -1);
@@ -348,9 +454,9 @@ V2S.app = (() => {
       segments(p.blocks, p.block - 1, p.block - 1);
     }
     ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : copy.welcome.continue);
-    el('welcomeStart').hidden = Boolean(progress.completed);
+    el('welcomeStart').hidden = done;
     await refreshWelcomeNotice();
-    if (progress.completed) ui.setSentences('welcomeLead', el('welcomeNotice').hidden ? copy.welcome.doneLead : copy.welcome.doneLeadUnsaved);
+    if (done) ui.setSentences('welcomeLead', el('welcomeNotice').hidden ? copy.welcome.doneLead : copy.welcome.doneLeadUnsaved);
     ui.show('welcome');
     if (!el('welcomeStart').hidden) el('welcomeStart').focus({ preventScroll: true });
   }
@@ -367,15 +473,15 @@ V2S.app = (() => {
     el('welcomeRule').hidden = !app.welcomeRule || show;
     // The notice says what to do first; "Carry on where you left off." waits (a finished
     // set keeps its lead, which says to save).
-    el('welcomeLead').hidden = show && !(app.progress && app.progress.completed);
+    el('welcomeLead').hidden = show && !allDone();
     // A way on if saving cannot be done now (the recordings stay on the device).
-    el('welcomeLater').hidden = !show || Boolean(app.progress && app.progress.completed);
+    el('welcomeLater').hidden = !show || allDone();
     ui.setText('welcomeLater', copy.breakScreen.laterGo);
     if (show) {
       ui.setText('welcomeNoticeText', copy.welcome.pending(pending));
       ui.setText('welcomeStart', copy.welcome.saveFirst);
       el('welcomeStart').hidden = false;
-    } else if (app.progress && !app.progress.completed) {
+    } else if (app.progress && !allDone()) {
       const firstVisit = !app.progress.howtoSeen && !app.progress.coachDone && app.progress.currentIndex === 0;
       ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : copy.welcome.continue);
     } else {
@@ -391,7 +497,7 @@ V2S.app = (() => {
     if (app.welcomeSaveFirst && !skipSave) {
       await saveFromButton('welcomeStart', copy.welcome.saveFirst, ['welcomeLater']);
       await refreshWelcomeNotice();
-      if (app.progress.completed) ui.setSentences('welcomeLead', el('welcomeNotice').hidden ? copy.welcome.doneLead : copy.welcome.doneLeadUnsaved);
+      if (allDone()) ui.setSentences('welcomeLead', el('welcomeNotice').hidden ? copy.welcome.doneLead : copy.welcome.doneLeadUnsaved);
       if (!el('welcomeStart').hidden) el('welcomeStart').focus({ preventScroll: true });
       return;
     }
@@ -772,11 +878,15 @@ V2S.app = (() => {
     ui.show('record');
     requestWakeLock();
     V2S.input.setEnabled(true, { guard: true });
-    if (!app.sessionStarted) {
+    const active = app.recordingRainbow
+      ? { setKey: cfg.RAINBOW.key, material: app.rainbow.material, progress: app.rainbow.progress }
+      : { setKey: app.setKey, material: app.material, progress: app.progress };
+    if (!app.sessionStarted || app.sessionSet !== active.setKey) {
       app.sessionStarted = true;
-      V2S.session.begin({ participantId: app.participantId, setKey: app.setKey, material: app.material, progress: app.progress });
+      app.sessionSet = active.setKey;
+      V2S.session.begin({ participantId: app.participantId, ...active });
     } else {
-      ui.fitSentences(app.material.all);
+      ui.fitSentences(active.material.all);
       V2S.session.resume();
     }
   }
@@ -1511,6 +1621,8 @@ V2S.app = (() => {
     el('testRecord').addEventListener('click', onTestRecord);
     el('testYes').addEventListener('click', onTestYes);
     el('introStart').addEventListener('click', () => showRecord());
+    el('rainbowYes').addEventListener('click', onRainbowYes);
+    el('rainbowNo').addEventListener('click', onRainbowNo);
     el('testAgain').addEventListener('click', () => { resetTest(); showCheckStep('camera'); });
     el('testReplay').addEventListener('click', () => {
       const playback = el('checkPlayback');
@@ -1547,7 +1659,7 @@ V2S.app = (() => {
       if (ui.screen() === 'record') V2S.session.onDeviceFailure(code);
       else if (ui.screen() === 'check') showMediaError(Object.assign(new Error(code), { code: 'device' }));
     });
-    V2S.session.configure({ onWarmupDone, onBlockDone, onAllDone: () => showDone({ allDone: true }), onDeviceError, onStorageFull, onStartFailure, onStoreFailure });
+    V2S.session.configure({ onWarmupDone, onBlockDone, onAllDone, onDeviceError, onStorageFull, onStartFailure, onStoreFailure });
 
     V2S.media.registerPreview(el('checkPreview'));
     V2S.media.registerPreview(el('recordPreview'));
@@ -1627,6 +1739,7 @@ V2S.app = (() => {
       V2S.meter.detach();
       V2S.media.close();
       app.sessionStarted = false;
+      leaveRainbow();
       await showWelcome();
     },
     setParticipant: async participantId => {
@@ -1642,6 +1755,7 @@ V2S.app = (() => {
     clearProgress: async () => {
       V2S.session.stop();
       await V2S.session.flush();
+      leaveRainbow();
       V2S.session.startNewRoundIfCompleted(app.progress);
       Object.assign(app.progress, { currentIndex: 0, completed: false, completedAt: null, coachDone: false, howtoSeen: false, resumeIndex: null });
       delete app.progress.pendingRedo;
@@ -1653,6 +1767,17 @@ V2S.app = (() => {
     jumpTo: async (index, extra = {}) => {
       V2S.session.startNewRoundIfCompleted(app.progress);
       Object.assign(app.progress, extra);
+      if (app.recordingRainbow) {
+        // A move within the sentences sets the passage aside (after the set's last
+        // sentence it comes back where it was): the sentence set's session takes over.
+        V2S.session.stop();
+        await V2S.session.flush();
+        leaveRainbow();
+        Object.assign(app.progress, { currentIndex: index, completed: false, completedAt: null });
+        await V2S.storage.saveParticipantProgress(app.progress);
+        if (app.sessionStarted) return showRecord();
+        return showWelcome();
+      }
       if (app.sessionStarted && V2S.session.jumpTo(index)) {
         if (ui.screen() !== 'record') await showRecord();
         return;

@@ -47,5 +47,15 @@ V2S.sentences = (() => {
     return cache[setKey];
   }
 
-  return { load };
+  // The Rainbow Passage, one sentence at a time (no practice of its own).
+  async function loadRainbow() {
+    const key = cfg.RAINBOW.key;
+    if (cache[key]) return cache[key];
+    const list = await loadFile(cfg.RAINBOW.file);
+    validate('Rainbow Passage file', list, cfg.RAINBOW.count);
+    cache[key] = { setKey: key, warmupCount: 0, formalCount: list.length, all: list };
+    return cache[key];
+  }
+
+  return { load, loadRainbow };
 })();

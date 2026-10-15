@@ -12,7 +12,7 @@ V2S.ui = (() => {
     check: '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'
   };
 
-  const SCREENS = ['loading', 'setup', 'welcome', 'folder', 'check', 'intro', 'record', 'break', 'done', 'error'];
+  const SCREENS = ['loading', 'setup', 'welcome', 'folder', 'check', 'intro', 'record', 'break', 'rainbow', 'done', 'error'];
   let currentScreen = 'loading';
 
   // A screen (or a step on it) changed: a press carried over from the last one does

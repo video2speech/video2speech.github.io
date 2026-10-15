@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '214',
-  MATERIAL_VERSION: 'materials_v214',
+  APP_VERSION: '215',
+  MATERIAL_VERSION: 'materials_v215',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -24,6 +24,9 @@ V2S.config = Object.freeze({
     }
   },
   DEFAULT_SET: '50words_350sentences',
+  // The Rainbow Passage: offered once (per round) after the last sentence of `afterSet`,
+  // read one sentence at a time like any part. Its recordings go to <ID>/rainbow/.
+  RAINBOW: Object.freeze({ key: 'rainbow', file: 'newset/rainbow_passage.txt', count: 6, afterSet: '50words_350sentences' }),
   BLOCK_SIZE: 50,              // one "part" of sentences between rests
 
   // Interaction (two presses: Start, then Stop).

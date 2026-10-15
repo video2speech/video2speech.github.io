@@ -115,7 +115,8 @@ checked against all of them before it is shown.
 Sign in ─▶ [first time on this device: Set up — participant ID, save folder]
         ─▶ Welcome ─▶ Check: 1 camera position ─▶ 2 test recording (watch it back)
         ─▶ [first time: One thing to remember ─▶ Practice 1–5, coached ─▶ Practice done]
-        ─▶ Part n: 50 sentences ─▶ Break ─▶ … ─▶ All sentences done
+        ─▶ Part n: 50 sentences ─▶ Break ─▶ … ─▶ [350-sentence set, once per round:
+           the Rainbow Passage? ─▶ its 6 sentences] ─▶ All sentences done
 ```
 
 The "?" button shows How to record at any time (a short dialog over the screen).
@@ -318,6 +319,23 @@ itself is not changed." · **Cancel**, blue, is the default; "Remove the copy" i
 A full device offers no "Continue without saving" (Start would only bring this screen
 back), and its "almost full" message is gone once the recordings are saved.
 
+### The Rainbow Passage (after the 350-sentence set, once per round)
+After **Finish** on the set's last sentence, one question (owner, 2026-10-14): a neutral
+rainbow symbol · "All sentences done" · **Do you want to read the Rainbow Passage?** · "A
+short story in 6 sentences, read one at a time, the same way." · **Yes, read it** (blue) ·
+No, finish (text). It is asked once: shown is asked, whatever the answer (a new round
+asks again). Not after the 300-sentence set.
+
+Yes: the recording screen with the passage, one sentence at a time, exactly like a part
+(Start/Stop, Redo, the checks, every problem back to the same sentence; no coaching). The
+top bar says "Rainbow Passage · 3 of 6" ("Rainbow · 3 of 6" on phones). Its sentences are
+long, so the size is fitted to them alone (computers 40 px on three lines, iPads 36 px,
+phones 28 px on up to six lines, phones sideways 26 px). Its last sentence stays with "That
+was the last sentence of the Rainbow Passage." and **Finish**, then **All sentences done**
+(saving as usual). Left half-way (a reload, End for today), Welcome back shows "Rainbow
+Passage · Sentence 3 of 6" and Continue goes on there. Settings that move within the
+sentences set the passage aside; after the set's last sentence it comes back where it was.
+
 ### Done
 | | End for today | All sentences done |
 |---|---|---|
@@ -425,6 +443,7 @@ buttons under them.
 ```
 <folder>/<ID>/                  one usable recording per sentence and round (+ JSON sidecar)
 <folder>/<ID>/not_used/         failed checks, aborted takes, and recordings replaced by a newer one
+<folder>/<ID>/rainbow/          the Rainbow Passage (…_rainbow<n>-6_repeat<r>_…), with its own not_used/
 <folder>/<ID>/logs/             session-*.json (event log of each session), superseded.json
 <folder>/previous-page-recordings/   unsaved recordings the earlier page left on this device
 ```
@@ -432,7 +451,9 @@ buttons under them.
 A ZIP file has the same layout, plus `manifest.json` at the top.
 
 - File names are unchanged:
-  `<sentence>_<pos>-<total>_repeat<n>_<YYYYMMDD_HHMMSS>[_redo].<ext>`.
+  `<sentence>_<pos>-<total>_repeat<n>_<YYYYMMDD_HHMMSS>[_redo].<ext>` (practice
+  `_warmup<pos>-5_`, the Rainbow Passage `_rainbow<pos>-6_`; its sidecars say
+  `sentenceSet: "rainbow"`).
 - **Rounds:** `repeat<n>` is the pass through the sentence set. After the last sentence,
   anything recorded (Clear progress, Go to, Practice again) starts the next round. The
   last sentence can still be redone before that, within the same round.
@@ -459,7 +480,7 @@ A ZIP file has the same layout, plus `manifest.json` at the top.
 
 - `docs/recorder-checklist.md`: every feature of the earlier page, every requirement and
   every review finding, each with where it lives and how it is verified.
-- Browser scenario tests (52 in Chrome, 41 in WebKit, the iPad/iPhone engine, and in Firefox):
+- Browser scenario tests (54 in Chrome, 42 in WebKit, the iPad/iPhone engine, and in Firefox):
   - first-run flow end to end, including the test recording, practice and the Redo
     lesson;
   - every error path, Redo (also after a reload, and of a part's last sentence),

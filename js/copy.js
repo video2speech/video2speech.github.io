@@ -45,6 +45,15 @@ V2S.copy = {
     : 'Press **Start**, read the **green**\u00a0sentence out loud, then press **Stop**.'),
 
   // Before the practice (first time only).
+  // After the last sentence of the 350-sentence set, once: the Rainbow Passage?
+  rainbow: {
+    eyebrow: 'All sentences done',
+    title: 'Do you want to read the Rainbow\u00a0Passage?',
+    lead: n => `A short story in ${n} sentences, read one at a time, the same way.`,
+    yes: 'Yes, read it',
+    no: 'No, finish'
+  },
+
   intro: {
     eyebrow: 'Practice',
     title: 'One thing to remember',
@@ -69,6 +78,7 @@ V2S.copy = {
     part: (n, total) => `Part ${n} of ${total}`,
     partCount: (done, size) => `${done} of ${size} sentences done`,
     allDone: 'All sentences are done',
+    rainbow: 'Rainbow Passage',
     doneTitle: 'All sentences done',
     doneLead: 'Thank you! There is nothing more to record. You can close this page.',
     doneLeadUnsaved: 'Thank you! There is nothing more to record. Please save your recordings first.',
@@ -149,6 +159,9 @@ V2S.copy = {
     toAllDone: 'Finish',
     partEndPart: n => `That was the\u00a0last\u00a0sentence of part\u00a0${n}.`,
     partEndAll: 'That was the very last sentence.',
+    partEndRainbow: 'That was the last sentence of the Rainbow\u00a0Passage.',
+    rainbowOf: (n, total) => `Rainbow Passage · ${n} of ${total}`,
+    rainbowShort: (n, total) => `Rainbow · ${n} of ${total}`,
     practiceOf: (n, total) => `Practice ${n} of ${total}`,
     partOf: (n, total) => `Part ${n} of ${total}`,
     sentenceOf: (n, total) => `Sentence ${n} of ${total}`,

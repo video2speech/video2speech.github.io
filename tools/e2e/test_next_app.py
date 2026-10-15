@@ -1799,6 +1799,125 @@ LEGACY_LABELS = {
 }
 
 
+RAINBOW_FIRST = 'When the sunlight strikes raindrops in the air, they act like a prism and form a rainbow.'
+
+
+async def finish_set(page):
+    """The 350-sentence set's very last sentence, then Finish: the Rainbow Passage question."""
+    await record(page)
+    await press(page, 'Space')   # Finish
+    await page.wait_for_selector('#screen-rainbow:not([hidden])', timeout=10000)
+
+
+async def s_rainbow(pw, base):
+    c = Checks('Rainbow Passage (folder): asked once after the 350 sentences, read sentence by sentence, saved to <ID>/rainbow/')
+    browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST])
+    await setup_participant(page, base, save='folder')
+    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=354, completed=False)
+    await start_session(page)
+    await finish_set(page)
+    title = (await page.text_content('#rainbowTitle')).replace('\xa0', ' ')
+    c.check(title == 'Do you want to read the Rainbow Passage?' and await page.text_content('#rainbowYes') == 'Yes, read it'
+            and await page.text_content('#rainbowNo') == 'No, finish', 'after the last sentence: the question, Yes or No', title)
+    await click(page, '#rainbowYes')
+    await wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
+    s = await state(page)
+    sentence = (await page.text_content('#sentenceText')).replace('\xa0', ' ')
+    c.check(sentence == RAINBOW_FIRST and s['coach'] is None, 'the passage from its first sentence, one at a time, no coaching', sentence)
+    c.check(s['where'] == 'Rainbow Passage · 1 of 6', 'where you are: Rainbow Passage · 1 of 6', s['where'])
+    for _ in range(6):
+        await record(page)
+    s = await state(page)
+    c.check(s['state'] == 'partEnd' and s['main'] == 'Finish' and 'Rainbow' in (s['message'] or ''),
+            'its last sentence: stays with Finish (Redo still possible)', s)
+    await press(page, 'Space')
+    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
+    c.check(await page.text_content('#doneTitle') == 'All sentences done', 'then all done')
+    await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
+    files = await page.evaluate(LIST_OPFS_JS, 'picked')
+    videos = sorted(f for f in files if f.startswith('P017/rainbow/') and f.count('/') == 2 and f.endswith(('.mp4', '.webm')))
+    c.check(len(videos) == 6 and all(re.search(r'_rainbow[1-6]-6_repeat1_', f) for f in videos),
+            'six recordings in P017/rainbow/, named …_rainbow<n>-6_repeat1_…', videos)
+    c.check(all(f.rsplit('.', 1)[0] + '.json' in files for f in videos), 'each with its JSON sidecar')
+    meta = await page.evaluate(READ_OPFS_JSON, ['picked', videos[0].rsplit('.', 1)[0] + '.json'])
+    c.check(meta.get('sentenceSet') == 'rainbow' and meta.get('status') == 'accepted', 'the sidecar: sentenceSet rainbow, accepted', meta.get('sentenceSet'))
+    set_files = [f for f in files if f.startswith('P017/') and f.count('/') == 1 and f.endswith(('.mp4', '.webm'))]
+    c.check(len(set_files) == 1 and '_350-350_' in set_files[0], "the set's last sentence stays in P017/", set_files)
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    c.check(await page.text_content('#welcomeTitle') == 'All sentences done' and await page.is_hidden('#screen-rainbow'),
+            'coming back: all done, not asked again')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_rainbow_zip(pw, base):
+    c = Checks('Rainbow Passage (ZIP): a reload goes on where it was; saved under <ID>/rainbow/; No is remembered; not after the 300-sentence set')
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
+    await finish_set(page)
+    await click(page, '#rainbowYes')
+    await wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
+    await record(page)
+    await record(page)
+    await page.evaluate('V2S.session.flush()')
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    part = await page.text_content('#welcomePart')
+    count = await page.text_content('#welcomeCount')
+    c.check(await page.text_content('#welcomeTitle') == 'Welcome back' and part == 'Rainbow Passage' and count == 'Sentence 3 of 6',
+            'a reload mid-passage: Welcome back, Rainbow Passage, sentence 3 of 6', (part, count))
+    await start_session(page)
+    s = await state(page)
+    c.check(await page.evaluate("V2S.session.getContext().setKey") == 'rainbow' and s['index'] == 2 and s['where'] == 'Rainbow Passage · 3 of 6',
+            'it goes on with the passage, at sentence 3', s)
+    for _ in range(4):
+        await record(page)
+    await press(page, 'Space')   # Finish
+    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
+    async with page.expect_download() as info:
+        await click(page, '#doneSave')
+    download = await info.value
+    await dialog_ready(page)
+    await page.locator('#dialogActions button', has_text='Yes, I see it').click()
+    path = os.path.join(tempfile.mkdtemp(), download.suggested_filename)
+    await download.save_as(path)
+    with zipfile.ZipFile(path) as archive:
+        names = archive.namelist()
+    videos = [n for n in names if n.startswith('P017/rainbow/') and n.count('/') == 2 and n.endswith(('.mp4', '.webm'))]
+    c.check(len(videos) == 6 and all('_rainbow' in n and '-6_repeat1_' in n for n in videos), 'the ZIP holds the six under P017/rainbow/', videos)
+    c.check(any(n.startswith('P017/') and n.count('/') == 1 and '_350-350_' in n for n in names), "the set's last sentence at P017/", names)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
+    browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
+    await finish_set(page)
+    await click(page, '#rainbowNo')
+    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
+    answer = await page.evaluate("V2S.app.state().progress.rainbow")
+    c.check(await page.text_content('#doneTitle') == 'All sentences done' and answer == 'declined', '"No, finish": all done, remembered (asked once)', answer)
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    c.check(await page.text_content('#welcomeTitle') == 'All sentences done', 'not asked again')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+
+    browser, _, page, errors = await launch(pw, audio='speech', init_scripts=[FAST, NO_PICKERS])
+    await setup_participant(page, base)
+    await page.evaluate("async () => { await V2S.app.state(); await V2S.storage.setSetting('setKey', 'Open_300sentences'); }")
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=304, completed=False)
+    await start_session(page)
+    await record(page)
+    await press(page, 'Space')   # Finish
+    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
+    c.check(await page.is_hidden('#screen-rainbow'), 'the 300-sentence set: no Rainbow Passage question')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
 async def s_settings_parity(pw, base):
     c = Checks('Settings hold every option of the earlier page, and they work')
     browser, _, page, errors = await boot(pw, base, index=7, init_scripts=[NO_PICKERS])
@@ -1978,6 +2097,8 @@ async def s_rounds(pw, base):
     c.check([x['status'] for x in t] == ['superseded', 'accepted'] and all('_repeat1_' in x['fileName'] for x in t),
             'Redo of the last sentence: still repeat1, replaces the first take', t)
     await page.keyboard.press('Space')  # Finish
+    await page.wait_for_selector('#screen-rainbow:not([hidden])', timeout=10000)
+    await click(page, '#rainbowNo')        # the Rainbow Passage: not this time
     await page.wait_for_selector('#screen-done:not([hidden])')
     c.check(await page.text_content('#doneTitle') == 'All sentences done', 'all done')
     await page.evaluate('() => V2S.app.showWelcome()')
@@ -2282,6 +2403,8 @@ SCENARIOS = {
     'redo_reload': s_redo_reload,
     'practice_again': s_practice_again,
     'rounds': s_rounds,
+    'rainbow': s_rainbow,
+    'rainbow_zip': s_rainbow_zip,
     'zip_backups': s_zip_backups,
     'part_end_redo': s_part_end_redo,
     'two_tabs': s_two_tabs,
@@ -2295,7 +2418,7 @@ CROSS_ENGINE = ['first_run', 'normal', 'hold', 'no_speech', 'redo', 'speech_befo
                 'bluetooth', 'mic_test_silent', 'help', 'double_tap', 'held_keys', 'save_keys', 'camera_denied', 'card_stable', 'device', 'reload', 'break_zip', 'legacy', 'storage_full',
                 'finish_settings', 'signin', 'keyboard', 'clicker', 'too_loud', 'set_switch', 'no_audio', 'fit', 'settings_parity', 'settings_fit', 'redo_reload',
                 'practice_again', 'rounds', 'zip_backups', 'part_end_redo', 'two_tabs', 'long_take', 'store_failure',
-                'store_failure_late', 'stale_backups']
+                'store_failure_late', 'stale_backups', 'rainbow_zip']
 
 
 async def main(names):

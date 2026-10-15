@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '214';
+      var APP_VERSION = '215';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=214">
-  <link rel="stylesheet" href="css/app.css?v=214">
+  <link rel="stylesheet" href="css/base.css?v=215">
+  <link rel="stylesheet" href="css/app.css?v=215">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -343,6 +343,22 @@
       </section>
 
       <!-- Done -->
+      <!-- After the last sentence of the 350-sentence set, once: the Rainbow Passage? -->
+      <section class="screen screen-flow" id="screen-rainbow" hidden>
+        <div class="flow">
+          <div class="flow-body flow-center">
+            <div class="symbol symbol-neutral" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 18a9 9 0 0 1 18 0"/><path d="M7 18a5 5 0 0 1 10 0"/></svg></div>
+            <p class="eyebrow" id="rainbowEyebrow"></p>
+            <h1 id="rainbowTitle"></h1>
+            <p class="lead" id="rainbowLead"></p>
+          </div>
+          <div class="flow-actions">
+            <button class="btn btn-go btn-xl btn-block" id="rainbowYes" type="button"></button>
+            <button class="btn-text" id="rainbowNo" type="button"></button>
+          </div>
+        </div>
+      </section>
+
       <section class="screen screen-flow" id="screen-done" hidden>
         <div class="flow">
           <div class="flow-body flow-center">
@@ -399,20 +415,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=214"></script>
-  <script defer src="js/config.js?v=214"></script>
-  <script defer src="js/copy.js?v=214"></script>
-  <script defer src="js/util.js?v=214"></script>
-  <script defer src="js/storage.js?v=214"></script>
-  <script defer src="js/sentences.js?v=214"></script>
-  <script defer src="js/media.js?v=214"></script>
-  <script defer src="js/meter.js?v=214"></script>
-  <script defer src="js/qc.js?v=214"></script>
-  <script defer src="js/input.js?v=214"></script>
-  <script defer src="js/ui.js?v=214"></script>
-  <script defer src="js/export.js?v=214"></script>
-  <script defer src="js/session.js?v=214"></script>
-  <script defer src="js/settings.js?v=214"></script>
-  <script defer src="js/main.js?v=214"></script>
+  <script defer src="vendor/jszip.min.js?v=215"></script>
+  <script defer src="js/config.js?v=215"></script>
+  <script defer src="js/copy.js?v=215"></script>
+  <script defer src="js/util.js?v=215"></script>
+  <script defer src="js/storage.js?v=215"></script>
+  <script defer src="js/sentences.js?v=215"></script>
+  <script defer src="js/media.js?v=215"></script>
+  <script defer src="js/meter.js?v=215"></script>
+  <script defer src="js/qc.js?v=215"></script>
+  <script defer src="js/input.js?v=215"></script>
+  <script defer src="js/ui.js?v=215"></script>
+  <script defer src="js/export.js?v=215"></script>
+  <script defer src="js/session.js?v=215"></script>
+  <script defer src="js/settings.js?v=215"></script>
+  <script defer src="js/main.js?v=215"></script>
 </body>
 </html>

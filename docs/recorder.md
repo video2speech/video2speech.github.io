@@ -85,7 +85,10 @@ it. Problems show as an amber notice right above the main button.
    "Continue without saving" asks first too. A full device: save, and if it is still
    full, "Make room on this device" removes the copy of the last saved file, after
    asking.
-9. **Done**: "You can close this page" only when everything is saved; otherwise "Please
+9. **The Rainbow Passage** (after the 350-sentence set, once per round): "Do you want to
+   read the Rainbow Passage?" Yes: its 6 sentences, one at a time, recorded like any part;
+   No: done. Recordings go to `<participant>/rainbow/`.
+10. **Done**: "You can close this page" only when everything is saved; otherwise "Please
    save your recordings before you close this page." with **Save recordings**.
 
 The top bar shows where you are ("Part 2 of 7 · Sentence 14 of 50", a thin bar), **End
@@ -159,7 +162,8 @@ with **Use this tab instead**; the first copy then stops and says so.
 
 File names are unchanged from the legacy page:
 `<sentence>_<pos>-<total>_repeat<n>_<YYYYMMDD_HHMMSS>[_redo].<ext>`
-(`_warmup<pos>-5_` for practice sentences). Every video has a JSON sidecar.
+(`_warmup<pos>-5_` for practice sentences, `_rainbow<pos>-6_` for the Rainbow Passage).
+Every video has a JSON sidecar.
 
 The folder and the ZIP use the same layout:
 
@@ -167,6 +171,7 @@ The folder and the ZIP use the same layout:
 |---|---|
 | `<participant>/` | exactly one usable recording per sentence and round: `status` `accepted` or `qc_overridden` |
 | `<participant>/not_used/` | everything else: `qc_failed`, `aborted_hold`, `aborted_timeout`, `aborted_device`, `aborted_hidden`, and `superseded` (replaced by a newer recording of the same sentence, with `supersededBy`) |
+| `<participant>/rainbow/` | the Rainbow Passage (sidecar `sentenceSet: "rainbow"`), with its own `not_used/` |
 | `<participant>/logs/` | `session-*.json` (folder: the event log of each session), `superseded.json` (every replaced recording so far) |
 | `previous-page-recordings/` | recordings the earlier page left unsaved on this device (no participant ID) |
 | `manifest.json` (ZIP) | all records in the ZIP, the replaced list, and the event log |

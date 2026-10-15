@@ -46,11 +46,17 @@ V2S.exporter = (() => {
     return !(record.metadata && record.metadata.requiresRetry);
   }
 
-  // Where a take belongs, relative to the folder or ZIP root.
+  // Where a take belongs, relative to the folder or ZIP root: <ID>/ (the Rainbow Passage
+  // in <ID>/rainbow/), and not_used/ under it for takes that are not usable.
+  const isRainbow = setKey => setKey === cfg.RAINBOW.key;
+  function home(participantId, setKey) {
+    const base = participantId ? safeName(participantId) : LEGACY_FOLDER;
+    return isRainbow(setKey) ? [base, 'rainbow'] : [base];
+  }
+
   function destination(record) {
-    const owner = record.participantId || null;
-    const base = owner ? safeName(owner) : LEGACY_FOLDER;
-    return isUsable(record) ? [base] : [base, 'not_used'];
+    const parts = home(record.participantId || null, record.sentenceSet);
+    return isUsable(record) ? parts : [...parts, 'not_used'];
   }
 
   function sidecar(record) {
@@ -295,7 +301,7 @@ V2S.exporter = (() => {
       for (const item of open) {
         if (cached.has(item.fileName)) continue; // still on the device: it will go to not_used/
         try {
-          await moveToNotUsed(participantId, item.fileName, item.supersededBy);
+          await moveToNotUsed(participantId, item.fileName, item.supersededBy, setKey);
           finished.push(item.fileName);
         } catch (error) {
           noteWriteFailure(error, item.fileName);
@@ -334,18 +340,19 @@ V2S.exporter = (() => {
     };
   }
 
-  // Moves one file (and its sidecar) from <participant>/ to <participant>/not_used/.
-  // Nothing to do if it is not among the usable recordings (already moved, or never there).
-  async function moveToNotUsed(participantId, fileName, supersededBy) {
-    const base = participantId ? safeName(participantId) : LEGACY_FOLDER;
-    const source = await directoryFor([base]);
+  // Moves one file (and its sidecar) from <participant>/ to <participant>/not_used/ (for
+  // the Rainbow Passage, within <participant>/rainbow/). Nothing to do if it is not among
+  // the usable recordings (already moved, or never there).
+  async function moveToNotUsed(participantId, fileName, supersededBy, setKey) {
+    const parts = home(participantId, setKey);
+    const source = await directoryFor(parts);
     let fileHandle;
     try {
       fileHandle = await source.getFileHandle(fileName);
     } catch (error) {
       return false;
     }
-    const target = await directoryFor([base, 'not_used']);
+    const target = await directoryFor([...parts, 'not_used']);
     await writeFile(target, fileName, await fileHandle.getFile());
     const sideName = sidecarName(fileName);
     let meta = {};
@@ -367,7 +374,7 @@ V2S.exporter = (() => {
     try {
       await writeRecordToFolder({ ...info, mimeType: info.mimeType || blob.type }, blob);
       logEvent('rescue_folder', { fileName: info.fileName });
-      if (replaced && replaced.fileName) chain(() => moveToNotUsed(info.participantId, replaced.fileName, info.fileName), replaced.fileName);
+      if (replaced && replaced.fileName) chain(() => moveToNotUsed(info.participantId, replaced.fileName, info.fileName, info.sentenceSet), replaced.fileName);
       return true;
     } catch (error) {
       noteWriteFailure(error, info.fileName);

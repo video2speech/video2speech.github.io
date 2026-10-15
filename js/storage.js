@@ -127,11 +127,13 @@ V2S.storage = (() => {
   // Creates this participant's progress record. The first participant on a device
   // claims the legacy slot (optionally continuing from it); later ones start fresh.
   async function createParticipantProgress(participantId, setKey, legacy = null) {
-    // Someone who already learnt how it works (on another sentence set) is not taught again.
+    // Someone who already learnt how it works (on another sentence set) is not taught again;
+    // the Rainbow Passage comes after a whole set, so never with the practice.
     const others = await Promise.all(Object.keys(cfg.SETS).filter(key => key !== setKey)
       .map(key => getProgress(progressKey(participantId, key))));
-    const coached = others.some(other => other && other.coachDone);
-    const toldHow = others.some(other => other && other.howtoSeen);
+    const rainbow = setKey === cfg.RAINBOW.key;
+    const coached = rainbow || others.some(other => other && other.coachDone);
+    const toldHow = rainbow || others.some(other => other && other.howtoSeen);
     const record = {
       sentenceSet: progressKey(participantId, setKey),
       participantId,
@@ -151,7 +153,7 @@ V2S.storage = (() => {
       timestamp: new Date().toISOString()
     };
     await putProgress(record);
-    if (!(await getSetting(`legacyClaimedBy:${setKey}`))) {
+    if (!rainbow && !(await getSetting(`legacyClaimedBy:${setKey}`))) {
       await setSetting(`legacyClaimedBy:${setKey}`, participantId);
     }
     return record;
@@ -174,9 +176,12 @@ V2S.storage = (() => {
     await transact(videoDb, ['progress'], 'readwrite', tx => {
       const store = tx.objectStore('progress');
       store.put(record);
-      store.put(legacyMirror(record));
+      if (mirrors(record)) store.put(legacyMirror(record));
     });
   }
+
+  // The earlier page knows only the sentence sets (not the Rainbow Passage).
+  const mirrors = record => record.set !== cfg.RAINBOW.key;
 
   function legacyMirror(record) {
     return {
@@ -211,7 +216,7 @@ V2S.storage = (() => {
       const progressStore = tx.objectStore('progress');
       let newId = null;
       progressStore.put(progress);
-      progressStore.put(legacyMirror(progress));
+      if (mirrors(progress)) progressStore.put(legacyMirror(progress));
       const add = videos.add(record);
       add.onsuccess = () => { newId = add.result; };
       if (supersede && supersede.fileName) {
