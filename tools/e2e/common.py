@@ -154,10 +154,39 @@ async def launch(playwright, audio='speech', viewport=None, init_scripts=(), aut
         await context.add_init_script(FSA_SHIM)
     for script in init_scripts:
         await context.add_init_script(script)
+    # Closing several Chromes at once can hang (Chrome 155): close the context first, and
+    # never wait more than 15 s for the browser itself.
+    import asyncio
+    close_browser = browser.close
+
+    async def close(*args, **kwargs):
+        try:
+            await asyncio.wait_for(context.close(), 10)
+        except Exception:
+            pass
+        try:
+            await asyncio.wait_for(close_browser(*args, **kwargs), 15)
+        except Exception:
+            pass
+    browser.close = close
     page = await context.new_page()
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
     return browser, context, page, errors
+
+
+# Scenarios run side by side: each one's lines are kept together and printed when it
+# ends (or crashes), so the output never interleaves.
+import contextvars
+SCENARIO_LINES = contextvars.ContextVar('scenario_lines', default=None)
+
+
+def say(line):
+    lines = SCENARIO_LINES.get()
+    if lines is None:
+        print(line)
+    else:
+        lines.append(line)
 
 
 class Checks:
@@ -167,16 +196,16 @@ class Checks:
         self.title = title
         self.failed = []
         self.count = 0
-        print(f'\n== {title} ==')
+        say(f'\n== {title} ==')
 
     def check(self, ok, label, detail=''):
         self.count += 1
         mark = 'PASS' if ok else 'FAIL'
-        print(f'  [{mark}] {label}' + (f'  ({detail})' if detail else ''))
+        say(f'  [{mark}] {label}' + (f'  ({detail})' if detail else ''))
         if not ok:
             self.failed.append(label)
         return ok
 
     def done(self):
-        print(f'-- {self.title}: {self.count - len(self.failed)}/{self.count} passed')
+        say(f'-- {self.title}: {self.count - len(self.failed)}/{self.count} passed')
         return not self.failed

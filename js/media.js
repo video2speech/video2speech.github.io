@@ -63,7 +63,9 @@ V2S.media = (() => {
     const constraints = { frameRate: { ideal: Number(settings.fps) || 30 } };
     if (useDevice && settings.videoDeviceId) constraints.deviceId = { exact: settings.videoDeviceId };
     else constraints.facingMode = 'user';
-    const size = cfg.RESOLUTIONS[settings.resolution];
+    // Automated tests may ask for a smaller picture (window.__V2S_TEST.resolution) so many
+    // browsers can record side by side; the settings and sidecars stay as chosen.
+    const size = cfg.RESOLUTIONS[(window.__V2S_TEST && window.__V2S_TEST.resolution) || settings.resolution];
     if (size) {
       constraints.width = { ideal: size.width };
       constraints.height = { ideal: size.height };

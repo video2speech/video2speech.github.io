@@ -18,6 +18,7 @@ python3 -m venv ~/.venvs/v2s-e2e
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py --engine webkit   # Safari’s engine (iPad/iPhone stand-in), 43 scenarios
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py --engine firefox
 ~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py hold redo fit     # only these scenarios
+~/.venvs/v2s-e2e/bin/python tools/e2e/test_next_app.py -j 1              # one at a time (default: 4 side by side)
 ~/.venvs/v2s-e2e/bin/python tools/e2e/screenshots.py --engine webkit OUT_DIR --only phone ipad --theme light
 ```
 
@@ -67,3 +68,20 @@ so a screenshot never silently shows the wrong state. It also shoots the Rainbow
 
 `settings_parity` lists every option of the earlier page (`LEGACY_OPTIONS`); keep it in
 step with `docs/recorder-checklist.md`.
+
+## Speed and what it does not change
+
+A full run takes about 6–7 min in Chrome and 5 min in WebKit; the screenshots
+(every viewport × theme) about 7 min.
+
+- Scenarios run side by side (`-j`, default 4), each in its own browser; each one's
+  lines print together when it ends, then every failure again at the end. A scenario
+  over 5 min is a failure (`SCENARIO_LIMIT_S`), never a hang.
+- Functional scenarios record a 360p picture (`window.__V2S_TEST.resolution`) so several
+  browsers can encode at once. `file_integrity` records at the real settings (1080p,
+  15 Mbps) and runs alone after the others (`RUN_ALONE`): it decodes every saved file
+  with ffmpeg (picture and sound present, no frozen or dropped frames, no sound gaps or
+  digital silence, sound and picture aligned, length right, sidecar matches, ZIP intact).
+  It needs `ffmpeg` and `ffprobe` on the PATH.
+- Two limits are shortened in their own scenarios (`maxTakeMs` 4 s for the 2-min limit,
+  `timerAfterMs` 8 s for the 20-s clock); `normal` checks the real values.

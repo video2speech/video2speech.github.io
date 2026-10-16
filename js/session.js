@@ -418,8 +418,21 @@ V2S.session = (() => {
     logEvent('part_end', { kind: info.kind, index: lastAccepted && lastAccepted.index });
   }
 
-  function leavePartEnd() {
+  // The part's last take must be stored before the part ends (owner's rule: never lose a
+  // sentence). A write that fails late (it can take seconds) brings back that sentence, as
+  // anywhere else (storeFailed → backToUnstored), instead of a break or the Rainbow Passage.
+  let leaving = false;
+  async function leavePartEnd() {
     const info = partEnd;
+    if (leaving || !info) return;
+    leaving = true;
+    try {
+      await writeChain.catch(() => {});
+    } finally {
+      leaving = false;
+    }
+    if (partEnd !== info) return;   // the take was not stored: already back on its sentence
+    if (storeFailedAt !== null) return backToUnstored();
     partEnd = null;
     lastAccepted = null;  // Redo never reaches back into a finished part
     stop();

@@ -1,6 +1,7 @@
 // Recording check (thresholds in config.QC), as on the page before the redesign (v111):
 // too_loud when >= 1% of samples clip; no_speech only when the whole take is nearly
-// silent (RMS < 0.0025 and peak < 0.02). Speech frames are only recorded.
+// silent (RMS < 0.0025 and peak < 0.02, leaving out the first 250 ms, where the start cue
+// can be). Speech frames are only recorded.
 window.V2S = window.V2S || {};
 
 V2S.qc = (() => {
@@ -42,6 +43,18 @@ V2S.qc = (() => {
     const interval = frames.length > 1 && last > first ? (last - first) / (frames.length - 1) : 1000 / 60;
     const speechTimes = frames.filter(frame => frame.rms >= threshold).map(frame => frame.t);
     const clippingRate = samples ? clipped / samples : 0;
+    // Too quiet: the take after its first moments (where the start cue can be).
+    const late = frames.filter(frame => frame.t - first >= Q.QUIET_SKIP_MS);
+    const judged = late.length ? late : frames;
+    let lateSquares = 0;
+    let lateSamples = 0;
+    let latePeak = 0;
+    judged.forEach(frame => {
+      lateSquares += frame.rms * frame.rms * frame.samples;
+      lateSamples += frame.samples;
+      if (frame.peak > latePeak) latePeak = frame.peak;
+    });
+    const quietRms = lateSamples ? Math.sqrt(lateSquares / lateSamples) : 0;
     const metrics = {
       frames: frames.length,
       durationMs: Math.round(last - first),
@@ -54,10 +67,12 @@ V2S.qc = (() => {
       frameIntervalMs: Number(interval.toFixed(2)),
       speechMs: Math.round(speechTimes.length * interval),
       leadSilenceMs: speechTimes.length ? Math.round(speechTimes[0] - first) : null,
-      speechAtEnd: speechTimes.some(time => last - time <= Q.END_WINDOW_MS)
+      speechAtEnd: speechTimes.some(time => last - time <= Q.END_WINDOW_MS),
+      quietRms: Number(quietRms.toFixed(6)),
+      quietPeak: Number(latePeak.toFixed(6))
     };
     if (clippingRate >= Q.CLIPPING_RATE) return { pass: false, code: 'too_loud', metrics };
-    if (metrics.rms < Q.QUIET_RMS && metrics.peak < Q.QUIET_PEAK) return { pass: false, code: 'no_speech', metrics };
+    if (metrics.quietRms < Q.QUIET_RMS && metrics.quietPeak < Q.QUIET_PEAK) return { pass: false, code: 'no_speech', metrics };
     return { pass: true, code: null, metrics };
   }
 

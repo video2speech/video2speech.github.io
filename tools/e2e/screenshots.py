@@ -133,7 +133,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         if stop:
             await finish_take()
 
-    # Each take's outcome is printed, so a screenshot never silently shows the wrong state.
+    # A take that was not accepted is printed, so a screenshot never silently shows the wrong state.
     async def finish_take():
         await press_main()
         await t.wait_ready(page)
@@ -144,7 +144,8 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
           const q = (last && last.metadata && last.metadata.qc) || {};
           return { status: last && last.status, speechMs: q.speechMs, frames: q.frames, durationMs: q.durationMs, floor: q.noiseFloor, threshold: q.speechThreshold, interval: q.frameIntervalMs };
         }""")
-        print(f"  {name}-{theme} take: {event}")
+        if event.get('status') != 'accepted':
+            print(f"  {name}-{theme} take not accepted: {event}")
 
     await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
@@ -155,6 +156,9 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await shot('02-setup-confirm')
     await click(page, '#setupConfirmYes')
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
+    # The theme belongs to the participant (a new one starts light): set it for them.
+    await page.evaluate(f"V2S.app.setTheme('{theme}')")
+    await page.wait_for_timeout(200)
     await shot('03-welcome')
     await click(page, '#welcomeStart')
     await page.wait_for_selector('#screen-check:not([hidden])')
@@ -344,17 +348,25 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await browser.close()
 
 
-async def main(out, names, themes):
+async def main(out, names, themes, jobs=4):
+    """Every viewport x theme, `jobs` at a time (each in its own browser)."""
+    import time
+    started = time.time()
     os.makedirs(out, exist_ok=True)
+    gate = asyncio.Semaphore(jobs)
+
+    async def one(pw, base, name, theme):
+        async with gate:
+            viewport, mobile = VIEWPORTS[name]
+            try:
+                await capture(pw, base, out, name, viewport, mobile, theme)
+            except Exception as error:
+                print(name, theme, 'FAILED:', repr(error), flush=True)
+
     with static_server() as base:
         async with async_playwright() as pw:
-            for name in names:
-                viewport, mobile = VIEWPORTS[name]
-                for theme in themes:
-                    try:
-                        await capture(pw, base, out, name, viewport, mobile, theme)
-                    except Exception as error:
-                        print(name, theme, 'FAILED:', repr(error))
+            await asyncio.gather(*(one(pw, base, name, theme) for name in names for theme in themes))
+    print(f'shots done in {time.time() - started:.0f} s ({jobs} at a time)')
 
 
 if __name__ == '__main__':
@@ -364,7 +376,8 @@ if __name__ == '__main__':
     parser.add_argument('--only', nargs='*', help='viewport names, e.g. phone ipad')
     parser.add_argument('--theme', choices=['light', 'dark'], help='one theme only')
     parser.add_argument('out', nargs='?', default=os.path.join(os.path.dirname(__file__), 'shots'))
+    parser.add_argument('-j', '--jobs', type=int, default=4)
     args = parser.parse_args()
     ENGINE = args.engine
     t.ENGINE = args.engine
-    asyncio.run(main(args.out, args.only or list(VIEWPORTS), [args.theme] if args.theme else ['light', 'dark']))
+    asyncio.run(main(args.out, args.only or list(VIEWPORTS), [args.theme] if args.theme else ['light', 'dark'], args.jobs))

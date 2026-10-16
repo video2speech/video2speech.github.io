@@ -1009,7 +1009,7 @@ V2S.app = (() => {
     ui.setText('introEyebrow', copy.ready.eyebrow);
     ui.setText('introTitle', copy.ready.title(p.block, p.blocks));
     ui.setSentences('introLead', copy.ready.lead(cfg.BLOCK_SIZE));
-    ui.setText('introStart', copy.ready.start(p.block));
+    ui.setText('introStart', copy.ready.start(p.block, p.inBlock > 1));
     ui.show('intro');
     el('introStart').focus({ preventScroll: true });
     V2S.input.holdClicks(cfg.STEP_MIN_MS);

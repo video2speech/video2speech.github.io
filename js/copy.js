@@ -79,7 +79,7 @@ V2S.copy = {
     eyebrow: 'The real sentences',
     title: (n, total) => `Part ${n} of ${total}`,
     lead: n => `${n} sentences in each part. After each part you can rest, or stop for\u00a0today.`,
-    start: n => `Start part ${n}`
+    start: (n, resume) => (resume ? `Continue part ${n}` : `Start part ${n}`)
   },
 
   intro: {
@@ -285,7 +285,7 @@ V2S.copy = {
     startFailed: "The recording didn’t start.",
     stoppedEarly: 'Recording stopped unexpectedly.',
     hidden: 'Recording stopped because you left the page.',
-    timeout: 'That recording was over 1 minute.',
+    timeout: 'That recording was over 2 minutes.',
     storeFailed: 'That recording could not be stored.',
     storageFull: 'This device is almost full.',
     holdTip: 'Let go right after pressing.'
@@ -303,7 +303,7 @@ V2S.copy = {
     startFailed: k => `The recording didn’t start. Press ${k ? 'Space' : 'Start'} again.`,
     stoppedEarly: k => `Recording stopped unexpectedly. Press ${k ? 'Space' : 'Start'} again.`,
     hidden: k => `Recording stopped: you left the page. Press ${k ? 'Space' : 'Start'} again.`,
-    timeout: k => `That recording was over a minute. Press ${k ? 'Space' : 'Start'} again.`,
+    timeout: k => `That recording was over 2 minutes. Press ${k ? 'Space' : 'Start'} again.`,
     storeFailed: k => `That recording could not be stored. Press ${k ? 'Space' : 'Start'} again.`,
     storageFull: 'This device is almost full. Please save your recordings to go on.'
   },

@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '220',
-  MATERIAL_VERSION: 'materials_v220',
+  APP_VERSION: '221',
+  MATERIAL_VERSION: 'materials_v221',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -48,7 +48,7 @@ V2S.config = Object.freeze({
   START_TIMEOUT_MS: 600,       // the sentence turns green when the recorder reports it started; this is the fallback
   START_ATTEMPTS: 3,           // silent recorder restarts before the participant is told
   TAIL_MS: 700,                // keep recording this long after Stop (fixed; legacy page: 300 ms)
-  MAX_TAKE_MS: 120000,         // a take this long is aborted and the sentence restarts (2 min: slow speakers, long passage sentences)
+  MAX_TAKE_MS: (window.__V2S_TEST && window.__V2S_TEST.maxTakeMs) || 120000,         // a take this long is aborted and the sentence restarts (2 min: slow speakers, long passage sentences)
   STEP_MIN_MS: 1000,           // practice and a part's end: a step's instruction shows this long before a press counts
   SESSION_GAP_MS: 3 * 60 * 60 * 1000,   // recordings go to one session folder until a pause this long
   IDLE_SPEECH_HINT_MS: 500,    // speaking this long before Start shows a hint
@@ -87,6 +87,10 @@ V2S.config = Object.freeze({
   QC: Object.freeze({
     QUIET_RMS: 0.0025,
     QUIET_PEAK: 0.02,
+    // The start cue plays at the press and recording starts at once, so a speaker's cue can
+    // be in the first moments of a take: the quiet check leaves them out (v111 left out its
+    // first 200 ms the same way).
+    QUIET_SKIP_MS: 250,
     SPEECH_MIN_RMS: 0.004,
     SPEECH_NOISE_MULTIPLIER: 3,
     NOISE_FLOOR_PERCENTILE: 0.2,
@@ -136,7 +140,7 @@ V2S.config = Object.freeze({
   STORAGE_BLOCK_RATIO: 0.78,
   ZIP_MAX_TAKES: 60,            // per ZIP file (about one part), so phones and tablets cope
   SETTLE_TIMEOUT_MS: 20000,     // break/done screens stop waiting for the folder after this
-  TIMER_SHOW_AFTER_MS: 20000,   // the recording timer appears only on long takes
+  TIMER_SHOW_AFTER_MS: (window.__V2S_TEST && window.__V2S_TEST.timerAfterMs) || 20000,   // the recording timer appears only on long takes
   DB_NAME: 'VideoRecorderDB',   // shared with the legacy recorder; do not bump the version
   DB_VERSION: 2,
   STATE_DB_NAME: 'V2SAppState',

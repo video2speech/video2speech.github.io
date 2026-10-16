@@ -276,7 +276,15 @@ video.is-mirrored { transform: scaleX(-1); }
 .test-live-label .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF3B30; }
 /* Equal choices: same shape and colour, a title and one line each. */
 .choice-list { width: 100%; display: grid; gap: var(--s3); }
-/* Phones: the choices need the room; the picture is not needed to choose. */
+/* Phones and tablets upright, short phones sideways: the choices need the room; the
+   picture is not needed to choose. They follow the title. */
+@media (max-width: 1000px) and (orientation: portrait), (pointer: coarse) and (orientation: portrait) {
+  #screen-check.has-choices .check-media { display: none; }
+  #screen-check.has-choices .check { grid-template-rows: minmax(0, 1fr); align-content: center; }
+  #screen-check.has-choices .check-panel { justify-content: center; }
+  #screen-check.has-choices .check-panel::before { display: none; }
+  #testChoices { order: 0; margin-top: var(--s5); }
+}
 @media (orientation: landscape) and (max-height: 500px) {
   #screen-check.has-choices .check-media { display: none; }
   #screen-check.has-choices .check { grid-template-columns: 1fr; }
@@ -962,4 +970,10 @@ button.row:active { background: var(--fill-strong); }
   .coach-bubble .prompt-head { font-size: 19px; }
   .coach-bubble .prompt-detail { font-size: 13px; }
   .coach-bubble[data-beside="1"]::after { left: auto; right: 40px; }
+}
+
+/* Tablets sideways: the choices follow the title too (no spacer pushing them down). */
+@media (pointer: coarse) and (orientation: landscape) and (min-height: 501px) {
+  #screen-check.has-choices .check-panel::before { display: none; }
+  #screen-check.has-choices #testChoices { order: 0; margin-top: var(--s5); }
 }
