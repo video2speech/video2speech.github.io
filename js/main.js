@@ -175,7 +175,7 @@ V2S.app = (() => {
   async function loadMaterial() {
     app.material = await V2S.sentences.load(app.setKey);
     // The Rainbow Passage is fetched with its set, so Yes never needs the network later.
-    if (app.setKey === cfg.RAINBOW.afterSet) V2S.sentences.loadRainbow().catch(() => {});
+    if (cfg.SETS[app.setKey]) V2S.sentences.loadRainbow().catch(() => {});
   }
 
   async function loadProgress() {
@@ -215,7 +215,7 @@ V2S.app = (() => {
   // it (End for today on the last sentence), it is asked on the way back.
   // Owner, 2026-10-15: no question any more — the passage follows the 350 sentences as
   // part of them, and is read once (not again in a later round).
-  const rainbowAhead = () => app.setKey === cfg.RAINBOW.afterSet && Boolean(app.progress && app.progress.completed)
+  const rainbowAhead = () => Boolean(cfg.SETS[app.setKey]) && Boolean(app.progress && app.progress.completed)
     && app.progress.rainbow !== 'done';
   const readingRainbow = () => rainbowAhead();
   const rainbowUnanswered = () => false;
@@ -229,7 +229,13 @@ V2S.app = (() => {
     const material = await V2S.sentences.loadRainbow();
     const key = V2S.storage.progressKey(app.participantId, cfg.RAINBOW.key);
     let progress = await V2S.storage.getProgress(key);
-    if (!progress) progress = await V2S.storage.createParticipantProgress(app.participantId, cfg.RAINBOW.key, null);
+    // One passage per set: a passage that followed another set (or, before 2026-10-16,
+    // the first set) is not this set's; this set's starts from its first sentence.
+    if (progress && (progress.afterSet || cfg.RAINBOW.firstSet) !== app.setKey) progress = null;
+    if (!progress) {
+      progress = await V2S.storage.createParticipantProgress(app.participantId, cfg.RAINBOW.key, null);
+      Object.assign(progress, { currentIndex: 0, completed: false, completedAt: null, afterSet: app.setKey });
+    }
     const round = V2S.storage.roundOf(app.progress);
     if (progress.completed) {
       leaveRainbow();

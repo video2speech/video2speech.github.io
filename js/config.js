@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '221',
-  MATERIAL_VERSION: 'materials_v221',
+  APP_VERSION: '222',
+  MATERIAL_VERSION: 'materials_v222',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -21,13 +21,22 @@ V2S.config = Object.freeze({
       about: '300 open sentences',
       file: 'newset/sentence_set_style.txt',
       count: 300
+    },
+    'oct16-openVocab-350': {
+      label: 'oct16-openVocab-350',
+      about: '350 open-vocabulary sentences (2026-10-16)',
+      file: 'newset/oct16-openVocab-350.txt',
+      count: 350
     }
   },
   DEFAULT_SET: '50words_350sentences',
-  // The Rainbow Passage: offered once (per round) after the last sentence of `afterSet`,
-  // read one sentence at a time like any part. Its recordings go to <ID>/rainbow/.
+  // The Rainbow Passage: read once after the last sentence of every sentence set (owner,
+  // 2026-10-16), one sentence at a time like any part. Its recordings go to
+  // <ID>/<session>/rainbow/; its sidecars say which set it followed (rainbowAfterSet).
+  // `firstSet`: before 2026-10-16 it followed only this set (a passage read then counts
+  // for it).
   RAINBOW: Object.freeze({
-    key: 'rainbow', file: 'newset/rainbow_passage.txt', count: 6, afterSet: '50words_350sentences',
+    key: 'rainbow', file: 'newset/rainbow_passage.txt', count: 6, firstSet: '50words_350sentences',
     // Its size per screen: the largest up to `max` at which its longest sentence takes at
     // most `lines` lines of whole phrases (full lines, never one phrase a line).
     size: Object.freeze({

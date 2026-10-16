@@ -220,7 +220,7 @@ V2S.session = (() => {
     if (kind === 'practice') return null;
     if (kind === 'part') return copy.record.partEndPart(partEnd.block);
     if (ctx.setKey === cfg.RAINBOW.key) return copy.record.partEndRainbow;
-    const passageAhead = ctx.setKey === cfg.RAINBOW.afterSet && !['declined', 'done'].includes(ctx.progress.rainbow);
+    const passageAhead = Boolean(cfg.SETS[ctx.setKey]) && !['declined', 'done'].includes(ctx.progress.rainbow);
     return passageAhead ? copy.record.partEndPart(position(lastAccepted.index).block) : copy.record.partEndAll;
   }
 
@@ -235,7 +235,7 @@ V2S.session = (() => {
       : kind === 'part' ? copy.record.donePart(partEnd.block)
       : ctx.setKey === cfg.RAINBOW.key ? copy.record.doneRainbow
       : copy.record.doneAll(position(lastAccepted.index).blocks);
-    const passageAhead = kind === 'all' && ctx.setKey === cfg.RAINBOW.afterSet && ctx.progress.rainbow !== 'done';
+    const passageAhead = kind === 'all' && Boolean(cfg.SETS[ctx.setKey]) && ctx.progress.rainbow !== 'done';
     return {
       state: 'ready',
       saved: false,
@@ -971,6 +971,7 @@ V2S.session = (() => {
       status,
       usable,
       sentenceSet: ctx.setKey,
+      rainbowAfterSet: ctx.setKey === cfg.RAINBOW.key ? (ctx.progress.afterSet || cfg.RAINBOW.firstSet) : null,
       sentenceIndex: current.index,
       phase: p.warmup ? 'warmup' : 'formal',
       position: p.pos,

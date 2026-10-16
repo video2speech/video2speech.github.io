@@ -383,12 +383,16 @@ async def start_session(page):
     await page.wait_for_timeout(500)  # presses in the first 0.4 s are ignored (double press)
 
 
-async def boot(pw, base, audio='speech', save='zip', trained=True, index=None, init_scripts=(), progress=None, **kwargs):
+async def boot(pw, base, audio='speech', save='zip', trained=True, index=None, init_scripts=(), progress=None, set_key=None, **kwargs):
     """Set up P017 and open the recording screen. trained=True skips How to record and the
     practice coaching (most scenarios are about real sentences); index jumps there."""
     kwargs.setdefault('engine', ENGINE)
     browser, context, page, errors = await launch(pw, audio=audio, init_scripts=[FAST, *init_scripts], **kwargs)
     await setup_participant(page, base, save=save)
+    if set_key:   # another sentence set, as chosen in Settings
+        await page.evaluate("key => V2S.storage.setSetting('setKey', key)", set_key)
+        await page.reload()
+        await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
     fields = {}
     if trained:
         fields.update(howtoSeen=True, coachDone=True)
@@ -1986,7 +1990,7 @@ LEGACY_LABEL_PAGES = {'setSentenceSet': 'Sentences & progress', 'setResolution':
 
 # The earlier page's option texts, word for word.
 LEGACY_LABELS = {
-    'setSentenceSet': ['50words_350sentences', 'Open_300sentences'],
+    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350'],   # the earlier page's two, then the set added 2026-10-16
     'setResolution': ['720p (1280×720) - Standard', '1080p (1920×1080) - Recommended', '480p (854×480) - Standard', '360p (640×360) - Low Quality', 'Auto - Camera Default'],
     'setBitrate': ['8 Mbps - Compatibility', '12 Mbps - High Quality', '15 Mbps - Research Quality', '25 Mbps - Fast Motion', '40 Mbps - Maximum Quality'],
     'setFps': ['30 fps - Standard', '60 fps - Fast Motion'],
@@ -2146,7 +2150,7 @@ async def s_rainbow(pw, base):
 
 
 async def s_rainbow_zip(pw, base):
-    c = Checks('Rainbow Passage (ZIP): a reload goes on where it was; saved under <ID>/<session>/rainbow/; End for today before it; not after the 300-sentence set')
+    c = Checks('Rainbow Passage (ZIP): a reload goes on where it was; saved under <ID>/<session>/rainbow/; End for today before it; after every set, each its own')
     browser, _, page, errors = await boot(pw, base, index=354, init_scripts=[NO_PICKERS])
     await finish_set(page)
     await record(page)
@@ -2202,19 +2206,33 @@ async def s_rainbow_zip(pw, base):
     c.check(not errors, 'no page errors', errors)
     await browser.close()
 
+    # Every set ends with the Rainbow Passage (owner, 2026-10-16), each set its own: a passage
+    # read after the 350-sentence set (before 2026-10-16, without `afterSet`) does not count.
     browser, _, page, errors = await launch(pw, audio='speech', init_scripts=[FAST, NO_PICKERS])
     await setup_participant(page, base)
-    await page.evaluate("async () => { await V2S.app.state(); await V2S.storage.setSetting('setKey', 'Open_300sentences'); }")
+    await page.evaluate("""async () => {
+      const p = await V2S.storage.createParticipantProgress('P017', 'rainbow', null);
+      Object.assign(p, { currentIndex: 5, completed: true, completedAt: new Date().toISOString() });
+      await V2S.storage.saveParticipantProgress(p);
+      await V2S.storage.setSetting('setKey', 'Open_300sentences');
+    }""")
     await page.reload()
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=15000)
     await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=304, completed=False)
     await start_session(page)
     await record(page)
     s = await state(page)
-    c.check(not (s['prompt'] or {}).get('detail') and s['main'] == 'Finish', 'the 300-sentence set: no Rainbow Passage after it', s['prompt'])
-    await press(page, 'Space')   # Finish
-    await page.wait_for_selector('#screen-done:not([hidden])', timeout=10000)
-    c.check(await page.text_content('#doneTitle') == 'All sentences done', 'then all done')
+    pr = s['prompt'] or {}
+    c.check(pr.get('detail') == 'Next: the Rainbow Passage, 6 sentences.' and s['main'] == 'Continue',
+            'the 300-sentence set ends with the Rainbow Passage too', pr)
+    await press(page, 'Space')   # Continue
+    await wait_for(page, "() => V2S.session.getState() === 'ready' && V2S.session.getContext().setKey === 'rainbow'")
+    s = await state(page)
+    c.check(s['where'] == 'Rainbow Passage · 1 of 6', "its own passage, from sentence 1 (the 350 set's earlier one does not count)", s['where'])
+    await record(page)
+    meta = await page.evaluate(LAST_META_JS)
+    c.check(meta['sentenceSet'] == 'rainbow' and meta['rainbowAfterSet'] == 'Open_300sentences',
+            'the sidecar says which set the passage followed', (meta['sentenceSet'], meta.get('rainbowAfterSet')))
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
@@ -2295,20 +2313,22 @@ async def s_rainbow_edges(pw, base):
 
 
 async def s_card_room(pw, base):
-    c = Checks('The card keeps its top (Recording) and bottom (the longest message) free: no sentence of either set reaches them')
+    c = Checks('The card keeps its top (Recording) and bottom (the longest message) free: no sentence of any set reaches them')
     shapes = [(375, 553), (320, 568), (360, 640), (390, 664), (667, 330), (750, 340), (820, 1180), (1440, 900)]
-    for w, h in shapes:
-        mobile = w < 1000
-        browser, _, page, errors = await boot(pw, base, index=100, init_scripts=[NO_PICKERS], viewport={'width': w, 'height': h},
-                                              has_touch=mobile, is_mobile=mobile)
-        r = await page.evaluate(CARD_ROOM_JS)
-        for name in ('main', 'rainbow'):
-            x = r[name]
-            c.check(not x['hits'], f'{w}×{h} {name}: {x["fit"]}, every sentence clear of the Recording sign and the longest message', x['hits'][:2])
-        breaks = await page.evaluate(PHRASE_BREAKS_JS)   # fitted to the passage last
-        c.check(not breaks['bad'], f'{w}×{h}: the passage\'s lines end only between its phrases ({breaks["lines"]} lines)', breaks['bad'][:3])
-        c.check(not errors, f'{w}×{h}: no page errors', errors)
-        await browser.close()
+    for set_key in [None, 'oct16-openVocab-350']:   # the default set (and the passage); the set with the longest sentences
+        for w, h in shapes:
+            mobile = w < 1000
+            browser, _, page, errors = await boot(pw, base, index=100, init_scripts=[NO_PICKERS], viewport={'width': w, 'height': h},
+                                                  has_touch=mobile, is_mobile=mobile, set_key=set_key)
+            r = await page.evaluate(CARD_ROOM_JS)
+            label = set_key or 'main'
+            for name in ('main', 'rainbow'):
+                x = r[name]
+                c.check(not x['hits'], f'{w}×{h} {label if name == "main" else name}: {x["fit"]}, every sentence clear of the Recording sign and the longest message', x['hits'][:2])
+            breaks = await page.evaluate(PHRASE_BREAKS_JS)   # fitted to the passage last
+            c.check(not breaks['bad'], f'{w}×{h}: the passage\'s lines end only between its phrases ({breaks["lines"]} lines)', breaks['bad'][:3])
+            c.check(not errors, f'{w}×{h}: no page errors', errors)
+            await browser.close()
     # The practice: the coach speaks below the card, which shows no message then; the
     # sentence is in the middle of the card, clear of the Recording sign (on a short card
     # it starts just below the sign).
@@ -2884,6 +2904,19 @@ async def s_fit(pw, base):
             # never "keywords one by one": most sentences on at most two lines
             c.check(r['twoLines'] >= 0.975, f'{name}: {r["twoLines"]:.1%} of sentences on at most two lines', r)
         c.check(not errors, f'{name}: no page errors', errors)
+        await browser.close()
+    # The open-vocabulary set has much longer sentences (up to 88 characters): the size stays
+    # in the same range; every sentence fits the card, within the lines the layout allows.
+    for name, viewport, kind in FIT_VIEWPORTS:
+        browser, _, page, errors = await boot(pw, base, index=5, viewport=viewport, has_touch=kind != 'wide' and ENGINE != 'firefox',
+                                              is_mobile=kind in ('phone', 'flat'), set_key='oct16-openVocab-350')
+        r = await page.evaluate(FIT_JS)
+        low, high, _ = FIT_RULES[kind]
+        allowed = int(r['fit'].split(':')[2])
+        c.check(r['fit'].startswith(kind) and low <= r['size'] <= high and r['worst'] <= min(allowed, 5) and r['cardFits'] and r['overflow'] <= 1,
+                f'{name} (oct16-openVocab-350): size {r["size"]} px within {low}–{high}, at most {min(allowed, 5)} lines, inside the card', r)
+        c.check(kind == 'phone' or r['twoLines'] >= 0.95, f'{name} (oct16-openVocab-350): {r["twoLines"]:.0%} on at most two lines (phones excepted)', r)
+        c.check(not errors, f'{name} (oct16-openVocab-350): no page errors', errors)
         await browser.close()
     return c.done()
 

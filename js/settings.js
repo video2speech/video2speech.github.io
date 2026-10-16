@@ -398,7 +398,7 @@ V2S.settings = (() => {
     if (passage) return copy.record.rainbowOf(index + 1, material.all.length);
     if (progress.completed) {
       // With the Rainbow Passage still ahead (not answered, or not started): not "all done".
-      const ahead = state.setKey === cfg.RAINBOW.afterSet && !['declined', 'done'].includes(progress.rainbow);
+      const ahead = Boolean(cfg.SETS[state.setKey]) && !['declined', 'done'].includes(progress.rainbow);
       return ahead ? copy.welcome.allParts(Math.ceil(formalCount / cfg.BLOCK_SIZE)) : copy.done.allTitle;
     }
     if (index < warmupCount) return copy.record.practiceOf(index + 1, warmupCount);
@@ -478,7 +478,7 @@ V2S.settings = (() => {
     }
     // The Rainbow Passage question answered (No, or Yes and not finished): the research
     // team can have it asked again, for a wrong answer.
-    const answer = state.setKey === cfg.RAINBOW.afterSet && state.progress && state.progress.completed ? state.progress.rainbow : null;
+    const answer = Boolean(cfg.SETS[state.setKey]) && state.progress && state.progress.completed ? state.progress.rainbow : null;
     if (false && ['declined', 'reading'].includes(answer)) {   // (no question any more: owner, 2026-10-15)
       parts.push(group([
         action(t.rainbowAgain, async () => {
