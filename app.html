@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '218';
+      var APP_VERSION = '219';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=218">
-  <link rel="stylesheet" href="css/app.css?v=218">
+  <link rel="stylesheet" href="css/base.css?v=219">
+  <link rel="stylesheet" href="css/app.css?v=219">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -317,10 +317,11 @@
              normal screen is seen), the control to press lifted above the dimming. -->
         <div class="coach-mark" id="cardPrompt" hidden aria-live="polite">
           <div class="coach-bubble">
-            <p class="prompt-ack" id="promptAck"></p>
-            <div class="prompt-cue" id="promptCue" aria-hidden="true"></div>
-            <p class="prompt-text" id="promptText"></p>
+            <p class="prompt-label" id="promptLabel"></p>
+            <p class="prompt-head" id="promptHead"></p>
+            <p class="prompt-action" id="promptText"></p>
             <p class="prompt-detail" id="promptDetail"></p>
+            <p class="prompt-note" id="promptNote"></p>
           </div>
         </div>
       </section>
@@ -427,20 +428,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=218"></script>
-  <script defer src="js/config.js?v=218"></script>
-  <script defer src="js/copy.js?v=218"></script>
-  <script defer src="js/util.js?v=218"></script>
-  <script defer src="js/storage.js?v=218"></script>
-  <script defer src="js/sentences.js?v=218"></script>
-  <script defer src="js/media.js?v=218"></script>
-  <script defer src="js/meter.js?v=218"></script>
-  <script defer src="js/qc.js?v=218"></script>
-  <script defer src="js/input.js?v=218"></script>
-  <script defer src="js/ui.js?v=218"></script>
-  <script defer src="js/export.js?v=218"></script>
-  <script defer src="js/session.js?v=218"></script>
-  <script defer src="js/settings.js?v=218"></script>
-  <script defer src="js/main.js?v=218"></script>
+  <script defer src="vendor/jszip.min.js?v=219"></script>
+  <script defer src="js/config.js?v=219"></script>
+  <script defer src="js/copy.js?v=219"></script>
+  <script defer src="js/util.js?v=219"></script>
+  <script defer src="js/storage.js?v=219"></script>
+  <script defer src="js/sentences.js?v=219"></script>
+  <script defer src="js/media.js?v=219"></script>
+  <script defer src="js/meter.js?v=219"></script>
+  <script defer src="js/qc.js?v=219"></script>
+  <script defer src="js/input.js?v=219"></script>
+  <script defer src="js/ui.js?v=219"></script>
+  <script defer src="js/export.js?v=219"></script>
+  <script defer src="js/session.js?v=219"></script>
+  <script defer src="js/settings.js?v=219"></script>
+  <script defer src="js/main.js?v=219"></script>
 </body>
 </html>

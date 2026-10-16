@@ -894,3 +894,23 @@ button.row:active { background: var(--fill-strong); }
 /* A part's end: "Part 1 done." is the big line; the key and what it does come after. */
 .coach-mark.cue-after .prompt-cue { order: 3; }
 .coach-mark.cue-after .prompt-detail { order: 4; }
+
+/* The guide's type, by weight: label (what this step is) · action (largest, the key in it)
+   · what it does · a small note. A part's end leads with its headline. */
+.prompt-label { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--blue-text); }
+.prompt-label:empty, .prompt-head:empty, .prompt-note:empty { display: none; }
+.prompt-head { margin: 0; font-size: 30px; font-weight: 700; color: var(--ink); }
+.prompt-action { margin: 0; font-size: 26px; line-height: 1.35; font-weight: 700; color: var(--ink); text-wrap: balance; }
+.has-head .prompt-action { font-size: 19px; font-weight: 600; color: var(--ink-2); }
+.prompt-action .prompt-key { font-size: .85em; padding: 2px 12px; border-width: 2px; border-radius: 10px; box-shadow: 0 3px 0 var(--blue); vertical-align: 2px; animation: none; }
+.prompt-action .prompt-key.is-space { min-width: 4.5em; }
+.prompt-button { color: var(--blue-text); }
+.prompt-detail { font-size: 17px; color: var(--ink-2); }
+.prompt-note { margin: 0; font-size: 14px; color: var(--ink-3); text-wrap: balance; }
+
+/* While reading (practice): the guide for ending floats over Stop, nothing dimmed. */
+.coach-mark.is-open::before { display: none; }
+.coach-mark.is-open .coach-bubble { box-shadow: 0 10px 30px rgba(0, 0, 0, .18), 0 0 0 2px var(--blue); }
+
+.rule-line { display: block; }
+.rule-more { margin-top: var(--s3); font-size: .85em; color: var(--ink-2); }

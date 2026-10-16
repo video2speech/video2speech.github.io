@@ -118,18 +118,26 @@ V2S.session = (() => {
     if (phase !== 'ready') return { ack: null, action: c.readNow(k), target: null };
     const p = index();
     let view;
+    // `step`: the floating guide, in order of weight (owner, 2026-10-15): a small label
+    // (what this step teaches), the action — largest, with the key in it —, one line on
+    // what it does and when, and a small note.
+    const S = c.steps;
+    const key = k ? 'Space' : 'Start';
     if (redoPending()) {
-      view = { ack: { text: c.backToLast, tone: 'info' }, action: c.startAgain(k), detail: c.cancelHint(k), target: 'main' };
+      view = { ack: { text: c.backToLast, tone: 'info' }, action: c.startAgain(k), detail: c.cancelHint(k), target: 'main',
+        step: { label: S.redoingLabel, key, tail: S.readAgain, detail: '', note: c.cancelHint(k) } };
     } else if (lessonJustDone) {
-      view = { ack: { text: c.redoDone, tone: 'ok' }, action: c.carryOn(k), target: 'main' };
+      view = { ack: { text: c.redoDone, tone: 'ok' }, action: c.carryOn(k), target: 'main',
+        step: { label: S.redoDoneLabel, key, tail: S.forNext, detail: S.redoDoneDetail, note: '' } };
     } else if ((p === 2 || p === 3) && redoLesson !== 'done' && canRedo()) {
-      // The Redo lesson says first that it is a lesson (nothing went wrong), then what
-      // to press, then what Redo is for.
-      view = { ack: { text: c.redoLesson, tone: 'plain' }, action: c.tryRedo(k), detail: c.redoWhat(), target: 'redo', quietMain: true };
+      view = { ack: { text: c.redoLesson, tone: 'plain' }, action: c.tryRedo(k), detail: c.redoWhat(), target: 'redo', quietMain: true,
+        step: { label: S.redoLabel, key: k ? '←' : 'Redo last sentence', tail: k ? S.redoTailKeys : S.redoTailTouch, detail: S.redoDetail(k), note: c.redoLesson } };
     } else if (p === 0) {
-      view = { ack: null, action: c.pressStart(k), detail: c.startWhat(k), target: 'main' };
+      view = { ack: null, action: c.pressStart(k), detail: c.startWhat(k), target: 'main',
+        step: { label: S.startLabel, key, tail: S.toStart, detail: S.startDetail(k), note: '' } };
     } else if (p === 1) {
-      view = { ack: justRecorded ? { text: c.recordedFirst, tone: 'ok' } : null, action: c.nextSentence(k), target: 'main' };
+      view = { ack: justRecorded ? { text: c.recordedFirst, tone: 'ok' } : null, action: c.nextSentence(k), target: 'main',
+        step: { label: S.againLabel, key, tail: S.toStart, detail: S.againDetail, note: '' } };
     } else {
       const left = ctx.material.warmupCount - p;
       view = { ack: null, action: left === 1 ? c.lastOne(k) : c.more(MORE[left] || String(left), k), target: 'main' };
@@ -141,6 +149,7 @@ V2S.session = (() => {
       // about speaking before Start, where the action already says what to press).
       const hint = feedback.key === 'speechBeforeStart';
       if (feedback.tone === 'warn' && !hint && view.target === 'main' && !redoPending()) view.action = c.startAgain(k);
+      if (view.step) view.step = { ...view.step, note: text, ...(feedback.tone === 'warn' && !hint && view.target === 'main' ? { tail: S.readAgain } : {}) };
     }
     return view;
   }
@@ -168,16 +177,8 @@ V2S.session = (() => {
   // computer) or an arrow to the button (touch), and a few words. In practice the
   // sentence shows only once recording starts, so nobody reads before pressing.
   function promptFor(coach, target) {
-    const k = usesKeys();
-    return {
-      target,
-      ack: coach && coach.ack ? coach.ack.text : '',
-      tone: coach && coach.ack ? coach.ack.tone : 'plain',
-      key: k ? (target === 'redo' ? '←' : 'Space') : null,
-      arrow: k ? null : (target === 'redo' ? 'up' : 'down'),
-      text: coach ? coach.action : '',
-      detail: coach ? coach.detail || '' : ''
-    };
+    const step = coach.step || { label: '', key: usesKeys() ? 'Space' : 'Start', tail: '', detail: coach.detail || '', note: '' };
+    return { target, keys: usesKeys(), ...step };
   }
 
   // Practice after the Redo lesson: like the real sentences (grey sentence, then Start).
@@ -245,17 +246,16 @@ V2S.session = (() => {
       redo: { visible: true, label: copy.record.redo, caption: copy.record.redoCaption(lastAccepted.sentence) },
       message: null,
       coach: coach ? { ack: null, action: '', detail: '' } : null,
-      // "Part 1 done." is the big line; then the key, and what it does.
+      // "Part 1 done." is the headline; then what to press, and what comes next.
       prompt: {
-        ack: '',
-        tone: 'ok',
-        cueAfter: true,
-        key: k ? 'Space' : null,
-        arrow: k ? null : 'down',
-        text: title,
-        detail: [kind === 'part' ? copy.record.pressBreak(k)
-          : k ? copy.record.pressEnterGo : copy.record.tapGo(kind === 'all' && !passageAhead ? copy.record.toAllDone : copy.record.toNext),
-        passageAhead ? copy.record.passageNext(cfg.RAINBOW.count) : ''].filter(Boolean).join(' ')
+        target: 'main',
+        keys: k,
+        head: title,
+        label: '',
+        key: k ? 'Space' : (kind === 'part' ? copy.record.toBreakShort : kind === 'all' && !passageAhead ? copy.record.toAllDone : copy.record.toNext),
+        tail: !k ? '' : kind === 'part' ? copy.record.tailBreak : copy.record.tailGo,
+        detail: passageAhead ? copy.record.passageNext(cfg.RAINBOW.count) : '',
+        note: ''
       },
       pulse: 'main'
     };
@@ -280,6 +280,11 @@ V2S.session = (() => {
   // long take (a forgotten Stop) the clock shows and Stop pulses, away from the sentence.
   function recordingView() {
     const coach = coachView('recording');
+    const k = usesKeys();
+    // Practice: ending is taught at the moment it is needed, next to Stop, with nothing
+    // dimmed (the sentence is being read).
+    const endStep = coach ? { target: 'main', keys: k, open: true, label: copy.coach.steps.endLabel, verb: copy.coach.steps.endVerb(k),
+      key: k ? 'Space' : 'Stop', tail: copy.coach.steps.toEnd, detail: '', note: '' } : null;
     return {
       state: 'recording',
       saved: false,
@@ -288,8 +293,10 @@ V2S.session = (() => {
       where: whereView(index()),
       main: { label: copy.record.stop, icon: 'stop', disabled: false },
       redo: { visible: false },
+      // Nothing appears near the sentence while it is read (owner, 2026-10-15).
       message: null,
-      coach,
+      coach: coach ? { ack: null, action: '', detail: '' } : null,
+      prompt: endStep,
       // Nothing moves while someone reads (the coach line already says "then press
       // Stop"); only a long take (a forgotten Stop) makes Stop pulse.
       pulse: (take && take.longTake) || coaching() ? 'main' : null,

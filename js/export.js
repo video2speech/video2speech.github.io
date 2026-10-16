@@ -50,14 +50,18 @@ V2S.exporter = (() => {
   // (owner, 2026-10-15: each visit apart; takes from before have none: <ID>/), the Rainbow
   // Passage in rainbow/ there, and not_used/ under it for takes that are not usable.
   const isRainbow = setKey => setKey === cfg.RAINBOW.key;
-  function home(participantId, setKey, folder = null) {
+  // Practice takes (file names with "_warmup") go to practice/ (owner, 2026-10-15: not
+  // mixed with the real sentences).
+  const isPractice = fileName => /_warmup\d+-\d+_/.test(String(fileName || ''));
+  function home(participantId, setKey, folder = null, fileName = '') {
     const base = participantId ? safeName(participantId) : LEGACY_FOLDER;
     const parts = folder ? [base, safeName(folder)] : [base];
-    return isRainbow(setKey) ? [...parts, 'rainbow'] : parts;
+    if (isRainbow(setKey)) return [...parts, 'rainbow'];
+    return isPractice(fileName) ? [...parts, 'practice'] : parts;
   }
 
   function destination(record) {
-    const parts = home(record.participantId || null, record.sentenceSet, record.sessionFolder || null);
+    const parts = home(record.participantId || null, record.sentenceSet, record.sessionFolder || null, record.fileName);
     return isUsable(record) ? parts : [...parts, 'not_used'];
   }
 
@@ -346,7 +350,7 @@ V2S.exporter = (() => {
   // the Rainbow Passage, within <participant>/rainbow/). Nothing to do if it is not among
   // the usable recordings (already moved, or never there).
   async function moveToNotUsed(participantId, fileName, supersededBy, setKey, folder = null) {
-    const parts = home(participantId, setKey, folder);
+    const parts = home(participantId, setKey, folder, fileName);
     const source = await directoryFor(parts);
     let fileHandle;
     try {

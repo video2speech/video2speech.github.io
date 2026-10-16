@@ -1292,6 +1292,7 @@ V2S.app = (() => {
     // after every part), and only then the real sentences are introduced. Folder mode: the
     // screen says where every recording goes.
     el('breakRule').hidden = true;
+    el('breakLead').hidden = false;
     if (practice) {
       const folder = exporter.getSaveMode() === 'folder';
       if (!folder && pending > 0) {
@@ -1302,10 +1303,13 @@ V2S.app = (() => {
         setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, null, null);
         return;
       }
-      ui.setSentences('breakLead', copy.practiceDone.body);
+      // Uncrowded (owner, 2026-10-15): the title, where recordings go, the one thing to
+      // remember; Continue to part 1 says what comes next.
+      ui.setSentences('breakLead', '');
+      el('breakLead').hidden = true;
       ui.setRich('breakRule', copy.rule(usesKeys()));
       el('breakRule').hidden = false;
-      el('breakParts').hidden = false;
+      el('breakParts').hidden = true;
       // ZIP: "Yes, I see it" has just said it is saved. Folder: saving is taught here, so
       // the screen says where every recording goes.
       el('breakSave').hidden = !folder;

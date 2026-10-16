@@ -90,8 +90,13 @@ def _free_port():
 @contextlib.contextmanager
 def static_server():
     port = _free_port()
+    # A larger connection queue than http.server's 5: a browser opens many connections at
+    # once, and older Pythons reset the ones that do not fit.
+    server = ('import functools, http.server as h\n'
+              'class S(h.ThreadingHTTPServer):\n    request_queue_size = 256\n    daemon_threads = True\n'
+              f'S(("127.0.0.1", {port}), functools.partial(h.SimpleHTTPRequestHandler, directory={str(REPO)!r})).serve_forever()\n')
     proc = subprocess.Popen(
-        [sys.executable, '-m', 'http.server', str(port), '--bind', '127.0.0.1', '--directory', REPO],
+        [sys.executable, '-c', server],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f'http://127.0.0.1:{port}'
     try:

@@ -89,11 +89,23 @@ V2S.ui = (() => {
     node.appendChild(group);
   }
 
-  // Text with **bold** parts, built without innerHTML.
+  // Text with **bold** parts, built without innerHTML. A line break starts a new line of
+  // its own (the rule: what to do, then a mistake, smaller).
   function setRich(id, text) {
     const node = el(id);
     if (!node) return;
     node.replaceChildren();
+    const lines = String(text || '').split('\n');
+    if (lines.length > 1) {
+      lines.forEach((line, i) => {
+        const span = document.createElement('span');
+        span.className = i ? 'rule-line rule-more' : 'rule-line';
+        span.id = `${id}-l${i}`;
+        node.appendChild(span);
+        setRich(span.id, line);
+      });
+      return;
+    }
     String(text || '').split('**').forEach((part, index) => {
       if (!part) return;
       if (index % 2) {
@@ -204,15 +216,20 @@ V2S.ui = (() => {
     // The control the guide points at is lifted above the dimming.
     el('mainButton').classList.toggle('is-spotlit', Boolean(prompt) && prompt.target !== 'redo');
     el('redoButton').classList.toggle('is-spotlit', Boolean(prompt) && prompt.target === 'redo' && redoVisible);
-    el('cardPrompt').classList.toggle('cue-after', Boolean(prompt && prompt.cueAfter));
+    el('cardPrompt').classList.toggle('has-head', Boolean(prompt && prompt.head));
+    el('cardPrompt').classList.toggle('is-open', Boolean(prompt && prompt.open));
     if (prompt) {
-      setText('promptAck', prompt.ack || '');
-      // On a computer the key to press; on touch the bubble's pointer and the lifted
-      // button show where to tap.
-      el('promptCue').innerHTML = prompt.key ? `<kbd class="prompt-key${prompt.key === 'Space' ? ' is-space' : ''}">${prompt.key}</kbd>` : '';
-      el('promptCue').hidden = !prompt.key;
-      setSentences('promptText', prompt.text || '');
-      setSentences('promptDetail', prompt.detail || '');
+      setText('promptLabel', prompt.label || '');
+      setText('promptHead', prompt.head || '');
+      // The action: "Press [Space] to start recording" — the key drawn as a key on a
+      // computer, the button's name in bold on touch.
+      const action = el('promptText');
+      const keyNode = document.createElement(prompt.keys ? 'kbd' : 'b');
+      keyNode.className = prompt.keys ? `prompt-key${prompt.key === 'Space' ? ' is-space' : ''}` : 'prompt-button';
+      keyNode.textContent = prompt.key;
+      action.replaceChildren(document.createTextNode(`${prompt.verb || (prompt.keys ? 'Press' : 'Tap')} `), keyNode, document.createTextNode(prompt.tail ? ` ${prompt.tail}` : ''));
+      setText('promptDetail', prompt.detail || '');
+      setText('promptNote', prompt.note || '');
     }
     setText('redoKey', redoView.cancel ? '→' : '←');
     if (prompt) requestAnimationFrame(() => placeBubble(prompt.target === 'redo' && redoVisible ? redo : main));
