@@ -18,7 +18,7 @@
         if (theme === 'dark' || theme === 'light') document.documentElement.setAttribute('data-theme', theme);
       } catch (error) { /* storage unavailable */ }
 
-      var APP_VERSION = '219';
+      var APP_VERSION = '220';
       var path = window.location.pathname;
       if (sessionStorage.getItem('v2s_auth_ok') !== '1') {
         window.location.replace('/index.html?next=' + encodeURIComponent(path + window.location.search + window.location.hash));
@@ -42,8 +42,8 @@
         });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=219">
-  <link rel="stylesheet" href="css/app.css?v=219">
+  <link rel="stylesheet" href="css/base.css?v=220">
+  <link rel="stylesheet" href="css/app.css?v=220">
 </head>
 <body data-screen="loading" data-rec="off">
   <div class="app" id="app">
@@ -210,6 +210,7 @@
               <p class="eyebrow" id="checkMicStep"></p>
               <h1 id="checkMicTitle"></h1>
               <p class="check-text" id="checkMicText"></p>
+              <p class="test-say" id="testSayBlock"><span class="test-say-phrase" id="testSay"></span></p>
               <div class="notice notice-warn" id="micWarning" hidden>
                 <p id="micWarningText"></p>
               </div>
@@ -221,11 +222,15 @@
                 <div class="notice notice-warn" id="testError" role="alert" hidden>
                   <p id="testErrorText"></p>
                 </div>
-                <button class="btn btn-ghost btn-xl btn-block" id="testNoVoice" type="button" hidden></button>
-                <button class="btn-text" id="testChooseMic" type="button" hidden></button>
+                <!-- Nothing heard: three equal choices, each a title and one line. -->
+                <div class="choice-list" id="testChoices" hidden>
+                  <button class="choice" id="testRetry" type="button"><span class="choice-title" id="testRetryTitle"></span><span class="choice-text" id="testRetryText"></span></button>
+                  <button class="choice" id="testChooseMic" type="button"><span class="choice-title" id="testChooseMicTitle"></span><span class="choice-text" id="testChooseMicText"></span></button>
+                  <button class="choice" id="testNoVoice" type="button"><span class="choice-title" id="testNoVoiceTitle"></span><span class="choice-text" id="testNoVoiceText"></span></button>
+                </div>
                 <button class="btn btn-start btn-xl btn-block" id="testRecord" type="button"><span class="btn-icon"><span class="dot-go"></span></span><span id="testRecordLabel"></span></button>
                 <div class="test-live" id="testLive" hidden>
-                  <p class="test-say"><span class="test-say-label" id="testSayLabel"></span> <span class="test-say-phrase" id="testSay"></span></p>
+                  <p class="test-live-label"><span class="rec-dot"></span><span id="testSayLabel"></span></p>
                   <div class="bar bar-strong" aria-hidden="true"><div class="bar-fill" id="testBar"></div></div>
                 </div>
                 <p class="test-status" id="testStatus" hidden></p>
@@ -428,20 +433,20 @@
     </aside>
   </div>
 
-  <script defer src="vendor/jszip.min.js?v=219"></script>
-  <script defer src="js/config.js?v=219"></script>
-  <script defer src="js/copy.js?v=219"></script>
-  <script defer src="js/util.js?v=219"></script>
-  <script defer src="js/storage.js?v=219"></script>
-  <script defer src="js/sentences.js?v=219"></script>
-  <script defer src="js/media.js?v=219"></script>
-  <script defer src="js/meter.js?v=219"></script>
-  <script defer src="js/qc.js?v=219"></script>
-  <script defer src="js/input.js?v=219"></script>
-  <script defer src="js/ui.js?v=219"></script>
-  <script defer src="js/export.js?v=219"></script>
-  <script defer src="js/session.js?v=219"></script>
-  <script defer src="js/settings.js?v=219"></script>
-  <script defer src="js/main.js?v=219"></script>
+  <script defer src="vendor/jszip.min.js?v=220"></script>
+  <script defer src="js/config.js?v=220"></script>
+  <script defer src="js/copy.js?v=220"></script>
+  <script defer src="js/util.js?v=220"></script>
+  <script defer src="js/storage.js?v=220"></script>
+  <script defer src="js/sentences.js?v=220"></script>
+  <script defer src="js/media.js?v=220"></script>
+  <script defer src="js/meter.js?v=220"></script>
+  <script defer src="js/qc.js?v=220"></script>
+  <script defer src="js/input.js?v=220"></script>
+  <script defer src="js/ui.js?v=220"></script>
+  <script defer src="js/export.js?v=220"></script>
+  <script defer src="js/session.js?v=220"></script>
+  <script defer src="js/settings.js?v=220"></script>
+  <script defer src="js/main.js?v=220"></script>
 </body>
 </html>

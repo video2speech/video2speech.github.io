@@ -1,6 +1,6 @@
-// Recording check (rules approved 2026-10-03, thresholds in config.QC):
-// too_loud when >= 1% of samples clip; no_speech when under 300 ms of frames reach
-// max(0.004, 3 x the take's 20th-percentile frame RMS). Everything else is only recorded.
+// Recording check (thresholds in config.QC), as on the page before the redesign (v111):
+// too_loud when >= 1% of samples clip; no_speech only when the whole take is nearly
+// silent (RMS < 0.0025 and peak < 0.02). Speech frames are only recorded.
 window.V2S = window.V2S || {};
 
 V2S.qc = (() => {
@@ -57,7 +57,7 @@ V2S.qc = (() => {
       speechAtEnd: speechTimes.some(time => last - time <= Q.END_WINDOW_MS)
     };
     if (clippingRate >= Q.CLIPPING_RATE) return { pass: false, code: 'too_loud', metrics };
-    if (metrics.speechMs < Q.SPEECH_MIN_MS) return { pass: false, code: 'no_speech', metrics };
+    if (metrics.rms < Q.QUIET_RMS && metrics.peak < Q.QUIET_PEAK) return { pass: false, code: 'no_speech', metrics };
     return { pass: true, code: null, metrics };
   }
 

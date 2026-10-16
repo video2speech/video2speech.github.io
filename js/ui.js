@@ -99,7 +99,7 @@ V2S.ui = (() => {
     if (lines.length > 1) {
       lines.forEach((line, i) => {
         const span = document.createElement('span');
-        span.className = i ? 'rule-line rule-more' : 'rule-line';
+        span.className = i && i === lines.length - 1 ? 'rule-line rule-more' : 'rule-line';
         span.id = `${id}-l${i}`;
         node.appendChild(span);
         setRich(span.id, line);
@@ -260,8 +260,12 @@ V2S.ui = (() => {
     } else {
       bubble.style.top = '';
       bubble.style.bottom = `${Math.round(box.bottom - t.top + 16)}px`;
-      bubble.style.left = '';
-      bubble.style.transform = '';
+      // Short landscape phones put the button beside the card: the bubble sits over the
+      // button's column, right-aligned with it, so it leaves the sentence free.
+      const beside = t.left - box.left > box.width / 2;
+      bubble.dataset.beside = beside ? '1' : '';
+      bubble.style.left = beside ? `${Math.round(Math.max(16, t.right - box.left - bubble.offsetWidth))}px` : '';
+      bubble.style.transform = beside ? 'none' : '';
     }
   }
 

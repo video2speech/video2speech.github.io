@@ -58,6 +58,12 @@ V2S.app = (() => {
       testRecordLabel: copy.check.testRecord,
       testSayLabel: copy.check.testSayLabel,
       testSay: copy.check.testSay,
+      testRetryTitle: copy.check.retryTitle,
+      testRetryText: copy.check.retryText,
+      testChooseMicTitle: copy.check.chooseMicTitle,
+      testChooseMicText: copy.check.chooseMicText,
+      testNoVoiceTitle: copy.check.noVoiceChoiceTitle,
+      testNoVoiceText: copy.check.noVoiceChoiceText,
       testQuestion: copy.check.testQuestion,
       testYes: copy.check.testYes,
       testAgain: copy.check.testAgain,
@@ -70,7 +76,7 @@ V2S.app = (() => {
     ui.setSentences('setupLead', copy.setup.lead);
     ui.setSentences('setupFolderLead', copy.setup.folderLead);
     ui.setSentences('checkCameraText', copy.check.cameraText);
-    ui.setSentences('checkMicText', copy.check.micText);
+    ui.setSentences('checkMicText', usesKeys() ? copy.check.micText : copy.check.micTextTouch);
     el('setupId').placeholder = copy.setup.idPlaceholder;
   }
 
@@ -754,7 +760,7 @@ V2S.app = (() => {
   // nothing): the step shows only the problem and its fix, without the instructions and
   // the help link (one thing at a time; it also fits a small phone).
   function markMicProblem() {
-    el('screen-check').classList.toggle('has-problem', !el('micChoice').hidden || !el('testError').hidden);
+    el('screen-check').classList.toggle('has-problem', !el('micChoice').hidden || !el('testError').hidden || !el('testChoices').hidden);
   }
 
   function resetTest() {
@@ -771,28 +777,37 @@ V2S.app = (() => {
     el('checkFrame').classList.remove('is-playing');
     el('testRecord').hidden = false;
     el('checkMicText').hidden = false;
+    el('testSayBlock').hidden = false;
+    el('testChoices').hidden = true;
+    ui.setText('checkMicTitle', copy.check.micTitle);
     el('testRecord').setAttribute('aria-disabled', 'false');
     el('testLive').hidden = true;
     el('testStatus').hidden = true;
     el('testAsk').hidden = true;
     el('testHint').hidden = true;
     el('testError').hidden = true;
-    el('testChooseMic').hidden = true;
-    el('testNoVoice').hidden = true;
+    el('screen-check').classList.remove('has-choices');
     el('checkHelp').hidden = false;
     el('screen-check').classList.remove('is-asking');
     markMicProblem();
   }
 
-  function showTestError(text) {
+  // A test that heard nothing (silent) or failed: the title names it, then equal choices.
+  // Only a silent test offers going on without sound.
+  function showTestError(text, silent = false) {
     resetTest();
+    ui.setText('checkMicTitle', silent ? copy.check.silentTitle : copy.check.failedTitle);
     ui.setSentences('testErrorText', text);
-    ui.setText('testChooseMic', copy.check.chooseMic);
-    el('testError').hidden = false;
-    el('testChooseMic').hidden = false;
+    el('testError').hidden = silent;
+    el('screen-check').classList.add('has-choices');
+    el('testSayBlock').hidden = true;
+    el('testRecord').hidden = true;
+    el('testChoices').hidden = false;
+    el('testNoVoice').hidden = !silent;
     markMicProblem();
     setBadge('live');
-    el('testRecord').focus({ preventScroll: true });
+    ui.pauseClicks();
+    el('testRetry').focus({ preventScroll: true });
   }
 
   // Records TEST_RECORD_MS with the real recording settings, then plays it back.
@@ -847,11 +862,9 @@ V2S.app = (() => {
     logEvent('mic_test', { pass: qc.pass, code: qc.code, speechMs: qc.metrics.speechMs, rms: qc.metrics.rms, microphone: now.microphone, sampleRate: now.sampleRate, size: recording.blob.size });
     if (!recording.blob.size) return showTestError(copy.check.testFailed);
     if (qc.code === 'no_speech' || qc.code === 'no_audio') {
-      showTestError(copy.check.testSilent);
-      // Someone who cannot use their voice (a laryngectomy) goes on from here, after a yes.
-      ui.setText('testNoVoice', copy.check.noVoice);
-      el('testNoVoice').hidden = false;
-      return;
+      // Someone whose condition stops them making enough sound (a laryngectomy) goes on
+      // from here, after a yes.
+      return showTestError(copy.check.testSilent, true);
     }
     await playTest(recording.blob);
   }
@@ -883,9 +896,11 @@ V2S.app = (() => {
     playback.hidden = false;
     el('checkFrame').classList.add('is-playing');
     el('testLive').hidden = true;
+    el('testSayBlock').hidden = true;
     setBadge('playing');
     const ask = () => {
       app.test.running = false;
+      ui.setText('checkMicTitle', copy.check.askTitle);
       el('testAsk').hidden = false;
       el('screen-check').classList.add('is-asking');
       el('checkHelp').hidden = true;
@@ -941,12 +956,13 @@ V2S.app = (() => {
   // How it works, for a returning participant: each line is confirmed in turn (Enter or
   // the button), with a moment to read it; then recording starts.
   let reviewStep = 0;
-  function showReview() {
+  function showReview(mode = 'back') {
     V2S.input.setEnabled(false);
     const lines = copy.review.lines(usesKeys());
     reviewStep = 0;
-    ui.setText('introEyebrow', copy.review.eyebrow);
-    ui.setText('introTitle', copy.review.title);
+    app.reviewMode = mode;
+    ui.setText('introEyebrow', mode === 'afterPractice' ? copy.review.eyebrowPractice : copy.review.eyebrow);
+    ui.setText('introTitle', mode === 'afterPractice' ? copy.review.titlePractice : copy.review.title);
     el('introRule').hidden = true;
     el('introLead').hidden = true;
     const list = el('introReview');
@@ -977,11 +993,33 @@ V2S.app = (() => {
       item.classList.toggle('is-done', i < reviewStep);
       item.classList.toggle('is-current', i === reviewStep);
     });
-    ui.setText('introStart', reviewStep >= items.length - 1 ? copy.review.last : copy.review.next);
+    el('introReview').dataset.step = copy.review.count(reviewStep + 1, items.length);
+    ui.setText('introStart', reviewStep >= items.length - 1 ? (app.reviewMode === 'afterPractice' ? copy.review.next : copy.review.last) : copy.review.next);
+    V2S.input.holdClicks(cfg.STEP_MIN_MS);
+  }
+
+  // Before part 1: a page only to get ready.
+  function showReady() {
+    V2S.input.setEnabled(false);
+    app.readying = true;
+    const p = positionFor(app.progress.currentIndex);
+    el('introReview').hidden = true;
+    el('introRule').hidden = true;
+    el('introLead').hidden = false;
+    ui.setText('introEyebrow', copy.ready.eyebrow);
+    ui.setText('introTitle', copy.ready.title(p.block, p.blocks));
+    ui.setSentences('introLead', copy.ready.lead(cfg.BLOCK_SIZE));
+    ui.setText('introStart', copy.ready.start(p.block));
+    ui.show('intro');
+    el('introStart').focus({ preventScroll: true });
     V2S.input.holdClicks(cfg.STEP_MIN_MS);
   }
 
   function onIntroStart() {
+    if (app.readying) {
+      app.readying = false;
+      return showRecord();
+    }
     if (!app.reviewing) return showRecord();
     const total = el('introReview').children.length;
     reviewStep += 1;
@@ -991,7 +1029,7 @@ V2S.app = (() => {
     el('introReview').hidden = true;
     el('introRule').hidden = false;
     el('introLead').hidden = false;
-    return showRecord();
+    return app.reviewMode === 'afterPractice' ? showReady() : showRecord();
   }
 
   const usesKeys = () => document.documentElement.classList.contains('has-keyboard');
@@ -1001,6 +1039,7 @@ V2S.app = (() => {
   function showIntro() {
     V2S.input.setEnabled(false);
     app.reviewing = false;
+    app.readying = false;
     el('introReview').hidden = true;
     el('introRule').hidden = false;
     el('introLead').hidden = false;
@@ -1303,18 +1342,18 @@ V2S.app = (() => {
         setBreakButtons({ label: copy.breakScreen.saveButton, action: saveZipFromBreak }, null, null);
         return;
       }
-      // Uncrowded (owner, 2026-10-15): the title, where recordings go, the one thing to
-      // remember; Continue to part 1 says what comes next.
+      // One page, one purpose (owner, 2026-10-15): this page only says the practice is
+      // done (and saved). How it works is confirmed on its own page next, then a page to
+      // get ready for part 1.
       ui.setSentences('breakLead', '');
       el('breakLead').hidden = true;
-      ui.setRich('breakRule', copy.rule(usesKeys()));
-      el('breakRule').hidden = false;
+      el('breakRule').hidden = true;
       el('breakParts').hidden = true;
       // ZIP: "Yes, I see it" has just said it is saved. Folder: saving is taught here, so
       // the screen says where every recording goes.
-      el('breakSave').hidden = !folder;
-      if (folder) setSavePanel('breakSave', 'breakSaveText', copy.practiceDone.savedFolder(folderLabel()), 'ok');
-      setBreakButtons(cont, null, null);
+      el('breakSave').hidden = false;
+      setSavePanel('breakSave', 'breakSaveText', folder ? copy.practiceDone.savedFolder(folderLabel()) : copy.practiceDone.saved, 'ok');
+      setBreakButtons({ label: copy.practiceDone.continue, action: () => showReview('afterPractice') }, null, null);
       return;
     }
     if (exporter.getSaveMode() === 'folder') {
@@ -1832,6 +1871,7 @@ V2S.app = (() => {
     el('testYes').addEventListener('click', onTestYes);
     el('introStart').addEventListener('click', onIntroStart);
     el('testNoVoice').addEventListener('click', onNoVoice);
+    el('testRetry').addEventListener('click', onTestRecord);
     el('rainbowYes').addEventListener('click', onRainbowYes);
     el('rainbowNo').addEventListener('click', onRainbowNo);
     el('testAgain').addEventListener('click', () => { resetTest(); showCheckStep('camera'); });

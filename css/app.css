@@ -270,6 +270,29 @@ video.is-mirrored { transform: scaleX(-1); }
 .check-help { align-self: flex-start; margin-top: var(--s5); padding-left: 0; font-size: var(--t-small); }
 /* A problem to fix: the problem and its fix only (see main.js markMicProblem). */
 #screen-check.has-problem #checkMicText, #screen-check.has-problem .check:not(.is-camera-step) #checkHelp { display: none; }
+/* The words to say: large, on the reading highlight, under the instruction. */
+#testSayBlock { margin-top: var(--s3); font-size: 26px; line-height: 1.3; }
+.test-live-label { display: flex; align-items: center; gap: 8px; font-size: var(--t-label); font-weight: 600; color: var(--ink); }
+.test-live-label .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF3B30; }
+/* Equal choices: same shape and colour, a title and one line each. */
+.choice-list { width: 100%; display: grid; gap: var(--s3); }
+/* Phones: the choices need the room; the picture is not needed to choose. */
+@media (orientation: landscape) and (max-height: 500px) {
+  #screen-check.has-choices .check-media { display: none; }
+  #screen-check.has-choices .check { grid-template-columns: 1fr; }
+  .choice-list { grid-template-columns: repeat(3, 1fr); }
+  .choice { padding: 10px 14px; align-content: start; }
+}
+@media (orientation: portrait) and (max-width: 700px) {
+  #screen-check.has-choices .check-media { display: none; }
+  #screen-check.has-choices .check-panel { justify-content: flex-end; }
+  #testSayBlock { font-size: 22px; margin-top: var(--s2); }
+}
+.choice { display: grid; gap: 4px; width: 100%; padding: 14px 18px; border: 1.5px solid var(--line-strong); border-radius: 14px; background: var(--bg); color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
+.choice:hover { border-color: var(--ink-4); }
+.choice:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.choice-title { font-size: var(--t-label); font-weight: 600; line-height: 1.3; }
+.choice-text { font-size: var(--t-small); line-height: 1.35; color: var(--ink-3); }
 
 /* ---------- recording screen ---------- */
 /* The sentence card is the one place to look: a white card on the grey page (in dark mode
@@ -597,9 +620,9 @@ button.row:active { background: var(--fill-strong); }
   #testLive, #testStatus { order: 0; margin-top: var(--s2); }
   /* The question is the step's words at that moment: under the title; its answers below. */
   .test-question { order: 0; margin: var(--s2) 0 0; }
-  #testError, #testChooseMic, .test-links, .test-hint { order: 3; }
-  #testChooseMic, .test-links { margin: 0 0 var(--s5); }
-  #testChooseMic { align-self: flex-start; padding-left: 0; }
+  #testError, .test-links, .test-hint { order: 3; }
+  .test-links { margin: 0 0 var(--s5); }
+  #testChoices { order: 4; }
   .test-hint { margin: calc(-1 * var(--s3)) 0 var(--s4); }
   #testRecord, #testYes { order: 4; }
   .test-say { font-size: 26px; line-height: 1.3; }
@@ -629,9 +652,9 @@ button.row:active { background: var(--fill-strong); }
   .check-actions, .test-ask { justify-items: center; }
   .test-live { text-align: center; }
   .test-links { justify-content: center; }
-  .check-help, #testChooseMic { align-self: center; }
+  .check-help { align-self: center; }
   .test-question { text-align: center; }
-  .check-actions, .check-step > .notice-warn, #testError, #testRecord, #testYes, #testLive { width: min(400px, 100%); }
+  .check-actions, .check-step > .notice-warn, #testError, #testRecord, #testYes, #testLive, #testChoices { width: min(400px, 100%); }
 }
 
 /* ============ the check on tablets held sideways ============ */
@@ -716,6 +739,7 @@ button.row:active { background: var(--fill-strong); }
   /* The picture takes what the step's words and buttons leave (an upright camera on a
      6.1" iPhone in Safari gets ~240 px, on an SE ~175 px); a problem takes some of it. */
   #screen-check { --pic-h: min(36dvh, calc(100dvh - 380px)); }
+  #screen-check:has(#checkStepMic:not([hidden])) { --pic-h: min(36dvh, calc(100dvh - 395px)); }
   #screen-check.has-problem { --pic-h: min(20dvh, calc(100dvh - 450px)); }
   .check-media .preview-frame { width: min(100%, calc(var(--pic-h) * 16 / 9)); }
   .check-media .preview-frame.is-portrait { width: auto; height: var(--pic-h); }
@@ -886,6 +910,12 @@ button.row:active { background: var(--fill-strong); }
 .review li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border-radius: 14px; font-size: 19px; line-height: 1.4; color: var(--ink-4); }
 .review li.is-current { color: var(--ink); background: var(--surface-2); box-shadow: inset 4px 0 0 var(--blue); }
 .review li.is-done { color: var(--ink-3); }
+.review::before { display: none; }
+/* Phones: one line at a time, with how many there are. */
+@media (orientation: portrait) and (max-width: 700px), (max-height: 500px) {
+  .review li:not(.is-current) { display: none; }
+  .review::before { content: attr(data-step); display: block; font-size: var(--t-small); color: var(--ink-3); text-align: center; margin-bottom: var(--s2); }
+}
 .review-mark { width: 24px; height: 24px; margin-top: 2px; border-radius: 50%; border: 2px solid currentColor; display: grid; place-items: center; }
 .review li.is-done .review-mark { border-color: var(--ink-3); background: var(--ink-3); }
 .review li.is-done .review-mark::after { content: ''; width: 6px; height: 11px; border: solid var(--surface); border-width: 0 2.5px 2.5px 0; transform: translateY(-1px) rotate(45deg); }
@@ -914,3 +944,22 @@ button.row:active { background: var(--fill-strong); }
 
 .rule-line { display: block; }
 .rule-more { margin-top: var(--s3); font-size: .85em; color: var(--ink-2); }
+
+/* Short landscape phones: the intro keeps the rule and its button (the button says it is
+   practice); the review its one line. */
+@media (orientation: landscape) and (max-height: 500px) {
+  #screen-intro:has(#introRule:not([hidden])) #introLead { display: none; }
+  .review { margin-top: var(--s2); }
+  .review::before { margin-bottom: var(--s1); }
+}
+
+/* Short landscape phones: the coach bubble is compact and sits over the button's column
+   (ui.placeBubble), never over the sentence. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .coach-bubble { width: min(250px, calc(100% - 32px)); gap: 6px; padding: 12px 14px; border-radius: 18px; }
+  .coach-bubble .prompt-label, .coach-bubble .prompt-note { display: none; }
+  .coach-bubble .prompt-action { font-size: 17px; }
+  .coach-bubble .prompt-head { font-size: 19px; }
+  .coach-bubble .prompt-detail { font-size: 13px; }
+  .coach-bubble[data-beside="1"]::after { left: auto; right: 40px; }
+}

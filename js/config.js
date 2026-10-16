@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '219',
-  MATERIAL_VERSION: 'materials_v219',
+  APP_VERSION: '220',
+  MATERIAL_VERSION: 'materials_v220',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -81,7 +81,12 @@ V2S.config = Object.freeze({
   // speech when its RMS is at least max(SPEECH_MIN_RMS, SPEECH_NOISE_MULTIPLIER x noise
   // floor); the noise floor is the 20th percentile of frame RMS in the take.
   // Speech in the last END_WINDOW_MS is only recorded (speechAtEnd), never used to reject.
+  // Since v220 (owner, 2026-10-15: "too strict, many patients cannot speak at a normal
+  // volume"), the speech frames are only recorded; a take is too quiet, as on the page
+  // before the redesign (v111), only when its RMS < QUIET_RMS and its peak < QUIET_PEAK.
   QC: Object.freeze({
+    QUIET_RMS: 0.0025,
+    QUIET_PEAK: 0.02,
     SPEECH_MIN_RMS: 0.004,
     SPEECH_NOISE_MULTIPLIER: 3,
     NOISE_FLOOR_PERCENTILE: 0.2,
