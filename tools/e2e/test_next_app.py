@@ -1990,7 +1990,7 @@ LEGACY_LABEL_PAGES = {'setSentenceSet': 'Sentences & progress', 'setResolution':
 
 # The earlier page's option texts, word for word.
 LEGACY_LABELS = {
-    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350'],   # the earlier page's two, then the set added 2026-10-16
+    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350', 'open-vocab-350-oct17'],   # the earlier page's two, then the sets added 2026-10-16/17
     'setResolution': ['720p (1280×720) - Standard', '1080p (1920×1080) - Recommended', '480p (854×480) - Standard', '360p (640×360) - Low Quality', 'Auto - Camera Default'],
     'setBitrate': ['8 Mbps - Compatibility', '12 Mbps - High Quality', '15 Mbps - Research Quality', '25 Mbps - Fast Motion', '40 Mbps - Maximum Quality'],
     'setFps': ['30 fps - Standard', '60 fps - Fast Motion'],

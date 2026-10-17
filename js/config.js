@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '223',
-  MATERIAL_VERSION: 'materials_v223',
+  APP_VERSION: '224',
+  MATERIAL_VERSION: 'materials_v224',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -26,6 +26,12 @@ V2S.config = Object.freeze({
       label: 'oct16-openVocab-350',
       about: '350 open-vocabulary sentences (2026-10-16)',
       file: 'newset/oct16-openVocab-350.txt',
+      count: 350
+    },
+    'open-vocab-350-oct17': {
+      label: 'open-vocab-350-oct17',
+      about: '350 open-vocabulary sentences (2026-10-17 update)',
+      file: 'newset/open-vocab-350-oct17.txt',
       count: 350
     }
   },
