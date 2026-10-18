@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '224',
-  MATERIAL_VERSION: 'materials_v224',
+  APP_VERSION: '225',
+  MATERIAL_VERSION: 'materials_v225',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -33,6 +33,18 @@ V2S.config = Object.freeze({
       about: '350 open-vocabulary sentences (2026-10-17 update)',
       file: 'newset/open-vocab-350-oct17.txt',
       count: 350
+    },
+    // v3 (owner, 2026-10-18): 10,000 sentences in 200 parts of 50. Parts 1-7 (350) are read
+    // by everyone; then each participant goes on from their own part and round the rest
+    // (after part 200 comes part 8). Participant n (SEMG<n+1>, enrolled n-th from 0) starts
+    // at part 8 + 13n. 1-3 word sentences may appear up to 3 times.
+    'open-vocab-v3': {
+      label: 'open-vocab-v3',
+      about: '10,000 open-vocabulary sentences (v3, 2026-10-18), read in rotation',
+      file: 'newset/open-vocab-v3-10000.txt',
+      count: 10000,
+      shortRepeats: 3,
+      rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' })
     }
   },
   DEFAULT_SET: '50words_350sentences',

@@ -23,6 +23,7 @@ V2S.copy = {
     idPlaceholder: 'e.g. SEMG1',
     idHint: 'Letters, numbers and dashes. Saved in capitals.',
     idInvalid: 'Please use only letters, numbers or dashes.',
+    idNeedsNumber: 'This sentence set needs an ID like SEMG1, SEMG2 or SEMG3.',
     next: 'Continue',
     confirmTitle: 'Is this ID correct?',
     confirmYes: "Yes, it’s correct",

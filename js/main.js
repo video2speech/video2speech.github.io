@@ -172,8 +172,8 @@ V2S.app = (() => {
   });
 
   // ---------- participant and material ----------
-  async function loadMaterial() {
-    app.material = await V2S.sentences.load(app.setKey);
+  async function loadMaterial(participantId = app.participantId) {
+    app.material = await V2S.sentences.load(app.setKey, participantId);
     // The Rainbow Passage is fetched with its set, so Yes never needs the network later.
     if (cfg.SETS[app.setKey]) V2S.sentences.loadRainbow().catch(() => {});
   }
@@ -182,6 +182,11 @@ V2S.app = (() => {
     const key = V2S.storage.progressKey(app.participantId, app.setKey);
     let record = await V2S.storage.getProgress(key);
     if (!record) record = await V2S.storage.createParticipantProgress(app.participantId, app.setKey, null);
+    // A rotating set (v3): the part this participant starts from is kept with their progress.
+    if (app.material.startPart && record.startPart !== app.material.startPart) {
+      record.startPart = app.material.startPart;
+      await V2S.storage.saveParticipantProgress(record);
+    }
     const last = app.material.all.length - 1;
     record.currentIndex = Math.min(Math.max(0, Number(record.currentIndex) || 0), last);
     app.progress = record;
@@ -369,6 +374,12 @@ V2S.app = (() => {
       el('setupHint').hidden = true;
       return;
     }
+    if (cfg.SETS[app.setKey].rotation && V2S.sentences.startPart(app.setKey, value) === null) {
+      ui.setText('setupError', copy.setup.idNeedsNumber);
+      el('setupError').hidden = false;
+      el('setupHint').hidden = true;
+      return;
+    }
     el('setupError').hidden = true;
     el('setupHint').hidden = false;
     const existing = await V2S.storage.getProgress(V2S.storage.progressKey(value, app.setKey));
@@ -377,7 +388,7 @@ V2S.app = (() => {
     ui.setText('setupConfirmId', value);
     el('setupLegacy').hidden = true;
     if (legacy) {
-      await loadMaterial();
+      await loadMaterial(value);
       const index = Math.min(Number(legacy.currentIndex) || 0, app.material.all.length - 1);
       const place = index < app.material.warmupCount
         ? `practice sentence ${index + 1}`
@@ -1087,7 +1098,7 @@ V2S.app = (() => {
       app.sessionSet = active.setKey;
       V2S.session.begin({ participantId: app.participantId, ...active, sessionFolder: await sessionFolder() });
     } else {
-      ui.fitSentences(active.material.all);
+      ui.fitSentences(active.material.fitList || active.material.all);
       V2S.session.resume();
     }
   }

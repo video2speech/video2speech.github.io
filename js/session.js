@@ -386,7 +386,7 @@ V2S.session = (() => {
     qcFailures = { index: null, count: 0 };
     consecutiveStartFailures = 0;
     deviceFailureActive = false;
-    V2S.ui.fitSentences(material.all);
+    V2S.ui.fitSentences(material.fitList || material.all);
     logEvent('session_begin', { participantId, setKey, index: progress.currentIndex, coaching: coaching() });
     enterReady();
   }
@@ -976,6 +976,8 @@ V2S.session = (() => {
       phase: p.warmup ? 'warmup' : 'formal',
       position: p.pos,
       total: p.total,
+      materialLine: !p.warmup && ctx.material.lines ? ctx.material.lines[p.pos - 1] : null,
+      rotationStartPart: ctx.material.startPart || null,
       blockIndex: p.warmup ? null : p.block,
       positionInBlock: p.warmup ? null : p.inBlock,
       sentence: current.sentence,
@@ -1044,7 +1046,9 @@ V2S.session = (() => {
     const p = position(current.index);
     const round = ctx.progress.round;
     const segment = p.warmup ? 'warmup' : ctx.setKey === cfg.RAINBOW.key ? 'rainbow' : '';
-    const progressInfo = `_${segment}${p.pos}-${p.total}_repeat${round}`;
+    // A rotating set (v3) names the sentence by its line in the set file, whatever the order.
+    const line = !p.warmup && ctx.material.lines ? ctx.material.lines[p.pos - 1] : p.pos;
+    const progressInfo = `_${segment}${line}-${p.total}_repeat${round}`;
     const fileName = uniqueName(`${sanitize(current.sentence)}${progressInfo}_${timestamp()}${takeNumber > 1 ? '_redo' : ''}.${recording.ext}`);
     current.fileName = fileName;
     const usable = status === 'accepted' || status === 'qc_overridden';

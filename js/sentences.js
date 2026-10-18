@@ -27,24 +27,62 @@ V2S.sentences = (() => {
     return [...duplicates];
   }
 
-  function validate(label, list, expected) {
+  // `shortRepeats`: sentences of 1-3 words may appear this many times (v3).
+  function validate(label, list, expected, shortRepeats = 1) {
     if (list.length !== expected) throw new Error(`${label} must contain ${expected} sentences, but has ${list.length}.`);
-    const duplicates = findDuplicates(list);
+    const counts = new Map();
+    list.forEach(s => counts.set(s.toLowerCase(), (counts.get(s.toLowerCase()) || 0) + 1));
+    const words = s => s.split(/\s+/).filter(Boolean).length;
+    const duplicates = shortRepeats > 1
+      ? list.filter(s => counts.get(s.toLowerCase()) > (words(s) <= 3 ? shortRepeats : 1))
+      : findDuplicates(list);
     if (duplicates.length) throw new Error(`${label} has duplicate sentences: ${duplicates.slice(0, 3).join(' | ')}`);
   }
 
-  // Returns { setKey, warmupCount, formalCount, all } where all = warm-up + formal.
-  async function load(setKey) {
-    if (cache[setKey]) return cache[setKey];
+  // A rotating set (v3): the part this participant starts from after the shared parts, from
+  // the number in their ID (SEMG1 -> part 8, SEMG2 -> part 21, ...); null if the ID has none.
+  function startPart(setKey, participantId) {
+    const rot = (cfg.SETS[setKey] || {}).rotation;
+    if (!rot) return null;
+    const match = new RegExp(rot.idPattern).exec(String(participantId || ''));
+    if (!match) return null;
+    const span = rot.lastPart - rot.firstPart + 1;
+    return rot.firstPart + ((Number(match[1]) - 1) * rot.step) % span;
+  }
+
+  // Returns { setKey, warmupCount, formalCount, all } where all = warm-up + formal. A rotating
+  // set is in this participant's reading order and also gives `lines` (each formal sentence's
+  // line in the file, 1-based), `startPart` and `fitList` (a sample to size the text by).
+  async function load(setKey, participantId = null) {
     const set = cfg.SETS[setKey];
     if (!set) throw new Error(`Unknown sentence set: ${setKey}`);
+    const start = set.rotation ? startPart(setKey, participantId) : null;
+    if (set.rotation && start === null) throw new Error(`The sentence set ${set.label} needs a participant ID like SEMG1, SEMG2, ... (this one is ${participantId || 'not set'}).`);
+    const cacheKey = start === null ? setKey : `${setKey}@${start}`;
+    if (cache[cacheKey]) return cache[cacheKey];
     const [warmup, formal] = await Promise.all([loadFile(cfg.WARMUP_FILE), loadFile(set.file)]);
     validate('Warm-up file', warmup, cfg.WARMUP_COUNT);
-    validate('Sentence file', formal, set.count);
-    const combined = findDuplicates([...warmup, ...formal]);
+    validate('Sentence file', formal, set.count, set.shortRepeats || 1);
+    const combined = findDuplicates([...warmup, ...new Set(formal)]);
     if (combined.length) throw new Error(`Warm-up and sentence files overlap: ${combined.slice(0, 3).join(' | ')}`);
-    cache[setKey] = { setKey, warmupCount: warmup.length, formalCount: formal.length, all: [...warmup, ...formal] };
-    return cache[setKey];
+    let order = formal.map((_, i) => i);
+    if (start !== null) {
+      const { sharedParts, firstPart, lastPart } = set.rotation;
+      const size = cfg.BLOCK_SIZE;
+      const parts = [];
+      for (let p = 1; p <= sharedParts; p += 1) parts.push(p);
+      for (let i = 0; i <= lastPart - firstPart; i += 1) parts.push(firstPart + (start - firstPart + i) % (lastPart - firstPart + 1));
+      order = parts.flatMap(p => Array.from({ length: size }, (_, j) => (p - 1) * size + j));
+    }
+    const ordered = order.map(i => formal[i]);
+    const material = { setKey, warmupCount: warmup.length, formalCount: formal.length, all: [...warmup, ...ordered] };
+    if (start !== null) {
+      material.lines = order.map(i => i + 1);
+      material.startPart = start;
+      material.fitList = [...warmup, ...ordered.slice(0, 1000)];
+    }
+    cache[cacheKey] = material;
+    return material;
   }
 
   // The Rainbow Passage, one sentence at a time (no practice of its own). Its file marks
@@ -73,5 +111,5 @@ V2S.sentences = (() => {
   // `major` when a clause boundary comes before it; otherwise null.
   const phrasesOf = sentence => phraseMap.get(sentence) || null;
 
-  return { load, loadRainbow, phrasesOf };
+  return { load, loadRainbow, phrasesOf, startPart };
 })();
