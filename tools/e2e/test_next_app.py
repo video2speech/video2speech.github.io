@@ -1990,7 +1990,7 @@ LEGACY_LABEL_PAGES = {'setSentenceSet': 'Sentences & progress', 'setResolution':
 
 # The earlier page's option texts, word for word.
 LEGACY_LABELS = {
-    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350', 'open-vocab-350-oct17', 'open-vocab-v3'],   # the earlier page's two, then the sets added 2026-10-16/17/18
+    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350', 'open-vocab-350-oct17', 'open-vocab-v3', 'open-vocab-v3.1'],   # the earlier page's two, then the sets added 2026-10-16/17/18
     'setResolution': ['720p (1280×720) - Standard', '1080p (1920×1080) - Recommended', '480p (854×480) - Standard', '360p (640×360) - Low Quality', 'Auto - Camera Default'],
     'setBitrate': ['8 Mbps - Compatibility', '12 Mbps - High Quality', '15 Mbps - Research Quality', '25 Mbps - Fast Motion', '40 Mbps - Maximum Quality'],
     'setFps': ['30 fps - Standard', '60 fps - Fast Motion'],
@@ -2991,17 +2991,23 @@ async def s_file_integrity(pw, base):
     return c.done()
 
 async def s_rotation(pw, base):
-    c = Checks('v3 (10,000 sentences): the ID decides where after the shared 350 each participant goes on; files name the set\'s line')
+    c = Checks('v3 / v3.1 (10,000 sentences): the ID decides where after the shared 350 each participant goes on; files name the set\'s line')
+    for set_key, set_file in (('open-vocab-v3', 'open-vocab-v3-10000.txt'), ('open-vocab-v3.1', 'open-vocab-v3.1-10000.txt')):
+        await rotation_checks(pw, base, c, set_key, set_file)
+    return c.done()
+
+
+async def rotation_checks(pw, base, c, set_key, set_file):
     browser, _, page, errors = await launch(pw, audio='speech', init_scripts=[FAST, NO_PICKERS], engine=ENGINE)
     await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
-    await page.evaluate("V2S.storage.setSetting('setKey', 'open-vocab-v3')")
+    await page.evaluate("key => V2S.storage.setSetting('setKey', key)", set_key)
     await page.reload()
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
     await page.fill('#setupId', 'P01')
     await click(page, '#setupNext')
     await page.wait_for_selector('#setupError:not([hidden])')
-    c.check('SEMG1' in (await page.text_content('#setupError')), 'an ID without the number (P01): asked for one like SEMG1', await page.text_content('#setupError'))
+    c.check('SEMG1' in (await page.text_content('#setupError')), f'{set_key}: an ID without the number (P01): asked for one like SEMG1', await page.text_content('#setupError'))
     await page.fill('#setupId', 'semg2')
     await click(page, '#setupNext')
     await page.wait_for_selector('#setupStepConfirm:not([hidden])')
@@ -3012,29 +3018,28 @@ async def s_rotation(pw, base):
     except Exception:
         pass
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
-    file_lines = (await page.evaluate("fetch('newset/open-vocab-v3-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
+    file_lines = (await page.evaluate("f => fetch('newset/' + f).then(r => r.text())", set_file)).rstrip('\n').split('\n')
     m = await page.evaluate("""() => { const a = V2S.app.state(); const m = a.material;
       return { start: m.startPart, kept: a.progress.startPart, n: m.formalCount, w: m.warmupCount, first: m.all[m.warmupCount],
                s350: m.all[m.warmupCount + 349], s351: m.all[m.warmupCount + 350], last: m.all[m.all.length - 1],
                l351: m.lines[350], lLast: m.lines[m.lines.length - 1], uniq: new Set(m.lines).size }; }""")
-    c.check(m['start'] == 21 and m['kept'] == 21, 'SEMG2 goes on from part 21 after the shared parts; kept with the progress', (m['start'], m['kept']))
-    c.check(m['n'] == 10000 and m['uniq'] == 10000, 'all 10,000 sentences, each once', (m['n'], m['uniq']))
-    c.check(m['first'] == file_lines[0] and m['s350'] == file_lines[349], 'the shared 350 first, in their own order')
-    c.check(m['s351'] == file_lines[1000] and m['l351'] == 1001, 'then part 21 (line 1,001)', (m['s351'], m['l351']))
-    c.check(m['lLast'] == 1000 and m['last'] == file_lines[999], 'round the rest: part 20 last (line 1,000)', m['lLast'])
+    c.check(m['start'] == 21 and m['kept'] == 21, f'{set_key}: SEMG2 goes on from part 21 after the shared parts; kept with the progress', (m['start'], m['kept']))
+    c.check(m['n'] == 10000 and m['uniq'] == 10000, f'{set_key}: all 10,000 sentences, each once', (m['n'], m['uniq']))
+    c.check(m['first'] == file_lines[0] and m['s350'] == file_lines[349], f'{set_key}: the shared 350 first, in their own order')
+    c.check(m['s351'] == file_lines[1000] and m['l351'] == 1001, f'{set_key}: then part 21 (line 1,001)', (m['s351'], m['l351']))
+    c.check(m['lLast'] == 1000 and m['last'] == file_lines[999], f'{set_key}: round the rest: part 20 last (line 1,000)', m['lLast'])
     await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=m['w'] + 350, completed=False)
     await start_session(page)
     s = await state(page)
-    c.check(s['sentence'].replace('\xa0', ' ') == file_lines[1000], 'the first sentence after the shared 350 is line 1,001', s['sentence'])
+    c.check(s['sentence'].replace('\xa0', ' ') == file_lines[1000], f'{set_key}: the first sentence after the shared 350 is line 1,001', s['sentence'])
     await record(page)
     meta = await page.evaluate("""async () => { await V2S.session.flush(); const out = [];
       await V2S.storage.forEachTake(r => out.push({ f: r.fileName, line: r.metadata.materialLine, start: r.metadata.rotationStartPart, pos: r.metadata.position }));
       return out; }""")
     c.check(len(meta) == 1 and '_1001-10000_' in meta[0]['f'] and meta[0]['line'] == 1001 and meta[0]['start'] == 21 and meta[0]['pos'] == 351,
             'its file is named by line 1,001 of 10,000; the sidecar has the line, the start part and the reading position', meta)
-    c.check(not errors, 'no page errors', errors)
+    c.check(not errors, f'{set_key}: no page errors', errors)
     await browser.close()
-    return c.done()
 
 
 SCENARIOS = {

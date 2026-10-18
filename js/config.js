@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '225',
-  MATERIAL_VERSION: 'materials_v225',
+  APP_VERSION: '226',
+  MATERIAL_VERSION: 'materials_v226',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -42,6 +42,16 @@ V2S.config = Object.freeze({
       label: 'open-vocab-v3',
       about: '10,000 open-vocabulary sentences (v3, 2026-10-18), read in rotation',
       file: 'newset/open-vocab-v3-10000.txt',
+      count: 10000,
+      shortRepeats: 3,
+      rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' })
+    },
+    // v3.1 (owner, 2026-10-18): v3 with contractions written out (I'll -> I will, it's -> it is, can't ->
+    // cannot, won't -> will not; other n't, let's and possessive 's kept). Same rotation.
+    'open-vocab-v3.1': {
+      label: 'open-vocab-v3.1',
+      about: '10,000 open-vocabulary sentences (v3.1, contractions written out), read in rotation',
+      file: 'newset/open-vocab-v3.1-10000.txt',
       count: 10000,
       shortRepeats: 3,
       rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' })
