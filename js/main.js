@@ -189,6 +189,11 @@ V2S.app = (() => {
     }
     const last = app.material.all.length - 1;
     record.currentIndex = Math.min(Math.max(0, Number(record.currentIndex) || 0), last);
+    // A set read a few parts a day: a new day's "Part 1" is the part being read now.
+    if (V2S.sentences.startDay(app.setKey, app.material, record)) {
+      await V2S.storage.saveParticipantProgress(record);
+      logEvent('day_start', { setKey: app.setKey, ...record.day });
+    }
     app.progress = record;
     return record;
   }
@@ -202,16 +207,22 @@ V2S.app = (() => {
     const formal = index - warmupCount;
     const block = Math.floor(formal / cfg.BLOCK_SIZE);
     const blockStart = block * cfg.BLOCK_SIZE;
+    const shown = V2S.sentences.partView(app.setKey, app.material, app.progress, block + 1);
     return {
       warmup: false,
-      block: block + 1,
-      blocks: Math.ceil(formalCount / cfg.BLOCK_SIZE),
+      block: shown.block,
+      blocks: shown.blocks,     // null after today's parts (a set read a few parts a day)
       inBlock: formal - blockStart + 1,
       blockSize: Math.min(cfg.BLOCK_SIZE, formalCount - blockStart)
     };
   }
 
-  const partCount = () => Math.ceil(app.material.formalCount / cfg.BLOCK_SIZE);
+  const partCount = () => {
+    const daily = V2S.sentences.dailyOf(app.setKey);
+    return daily ? daily.parts : Math.ceil(app.material.formalCount / cfg.BLOCK_SIZE);
+  };
+  // A set read a few parts a day: today's parts are read (the next one would be extra).
+  const todayDone = p => Boolean(V2S.sentences.dailyOf(app.setKey)) && !p.warmup && p.blocks === null && p.inBlock === 1;
 
   // ---------- the Rainbow Passage (once per round, after the 350-sentence set) ----------
   // Its own small sentence set with its own progress; recorded like any part.
@@ -220,7 +231,7 @@ V2S.app = (() => {
   // it (End for today on the last sentence), it is asked on the way back.
   // Owner, 2026-10-15: no question any more — the passage follows the 350 sentences as
   // part of them, and is read once (not again in a later round).
-  const rainbowAhead = () => Boolean(cfg.SETS[app.setKey]) && Boolean(app.progress && app.progress.completed)
+  const rainbowAhead = () => V2S.sentences.hasRainbow(app.setKey) && Boolean(app.progress && app.progress.completed)
     && app.progress.rainbow !== 'done';
   const readingRainbow = () => rainbowAhead();
   const rainbowUnanswered = () => false;
@@ -536,12 +547,20 @@ V2S.app = (() => {
       ui.setText('welcomePart', copy.welcome.practice);
       ui.setText('welcomeCount', copy.welcome.practiceCount(p.pos - 1, p.total));
       segments(p.total, p.pos - 1, p.pos - 1);
+    } else if (todayDone(p)) {
+      // Today's parts are read: one more part only if they want.
+      ui.setSentences('welcomeLead', copy.today.lead);
+      ui.setText('welcomePart', copy.today.doneTitle(partCount()));
+      ui.setText('welcomeCount', '');
+      segments(partCount(), partCount(), -1);
     } else {
       ui.setText('welcomePart', copy.welcome.part(p.block, p.blocks));
       ui.setText('welcomeCount', p.inBlock > 1 ? copy.welcome.sentenceOf(p.inBlock, p.blockSize) : '');
-      segments(p.blocks, p.block - 1, p.block - 1);
+      // After today's parts (Part 8, ...): today's segments, all done.
+      if (p.blocks) segments(p.blocks, p.block - 1, p.block - 1);
+      else segments(partCount(), partCount(), -1);
     }
-    ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : copy.welcome.continue);
+    ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : todayDone(p) ? copy.today.more : copy.welcome.continue);
     el('welcomeStart').hidden = done;
     await refreshWelcomeNotice();
     if (done) ui.setSentences('welcomeLead', el('welcomeNotice').hidden ? copy.welcome.doneLead : copy.welcome.doneLeadUnsaved);
@@ -571,7 +590,7 @@ V2S.app = (() => {
       el('welcomeStart').hidden = false;
     } else if (app.progress && !allDone()) {
       const firstVisit = !app.progress.howtoSeen && !app.progress.coachDone && app.progress.currentIndex === 0;
-      ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : copy.welcome.continue);
+      ui.setText('welcomeStart', firstVisit ? copy.welcome.begin : todayDone(positionFor(app.progress.currentIndex)) ? copy.today.more : copy.welcome.continue);
     } else {
       el('welcomeStart').hidden = true;
     }
@@ -593,6 +612,15 @@ V2S.app = (() => {
     starting = true;
     try {
       V2S.meter.resume(); // a user gesture: lets audio run on iOS
+      // Is this the right sentence set? (owner, 2026-10-21). Its Yes is a click of its own,
+      // so the folder permission below still comes from a user action.
+      if (cfg.SET_CHECK) {
+        const answer = await askSetCheck();
+        if (answer !== 'yes') {
+          if (answer === 'change') await V2S.settings.open('settingsProgress');
+          return;
+        }
+      }
       if (exporter.getSaveMode() === 'folder') {
         let permission = await exporter.checkPermission();
         if (permission !== 'granted') permission = await exporter.requestFolderPermission();
@@ -605,6 +633,34 @@ V2S.app = (() => {
     } finally {
       starting = false;
     }
+  }
+
+  // Before every session: the set's name, and where this participant is (as on Welcome:
+  // never the size of the whole set).
+  // Resolves 'yes', 'change' (Settings → Sentences & progress, where the set is chosen) or
+  // 'cancel' (Esc: stays on Welcome). Nothing is pre-chosen and its answers count after
+  // 1 s: the Begin / Continue press that opened it cannot answer it.
+  function askSetCheck() {
+    const set = cfg.SETS[app.setKey];
+    const name = document.createElement('p');
+    name.className = 'set-name';
+    name.textContent = set.label;
+    const where = el('welcomePart').textContent;
+    logEvent('set_check_shown', { setKey: app.setKey });
+    return ui.dialog({
+      title: copy.setCheck.title,
+      body: [name, copy.setCheck.place(copy.welcome.participant(app.participantId), where)],
+      actions: [
+        { label: copy.setCheck.yes, value: 'yes', variant: 'go' },
+        { label: copy.setCheck.change, value: 'change', variant: 'plain' }
+      ],
+      dismissValue: 'cancel',
+      focus: false,
+      armMs: cfg.ANSWER_ARM_MS
+    }).then(answer => {
+      logEvent('set_check', { setKey: app.setKey, answer });
+      return answer;
+    });
   }
 
   // ---------- folder permission screen ----------
@@ -1234,6 +1290,16 @@ V2S.app = (() => {
   async function onBlockDone({ block, blocks }) {
     breakState.mode = 'block';
     breakState.block = block;
+    // A set read a few parts a day: after today's last part (and after each one read on
+    // top), "Read one more part" or End for today.
+    const daily = V2S.sentences.dailyOf(app.setKey);
+    breakState.todayDone = Boolean(daily) && (!blocks || block >= blocks);
+    if (breakState.todayDone) {
+      breakState.next = null;
+      const title = block === daily.parts ? copy.today.doneTitle(daily.parts) : copy.breakScreen.title(block);
+      await showBreak(title, copy.today.lead, { done: daily.parts, total: daily.parts });
+      return;
+    }
     breakState.next = block < blocks ? block + 1 : null;
     await showBreak(copy.breakScreen.title(block), copy.breakScreen.lead, { done: block, total: blocks });
   }
@@ -1342,8 +1408,12 @@ V2S.app = (() => {
       );
       return;
     }
-    const contLabel = practice ? breakState.continueLabel : (breakState.next ? copy.breakScreen.continueTo(breakState.next) : copy.breakScreen.continue);
+    const today = !practice && breakState.mode === 'block' && breakState.todayDone;
+    const contLabel = practice ? breakState.continueLabel : today ? copy.today.more
+      : (breakState.next ? copy.breakScreen.continueTo(breakState.next) : copy.breakScreen.continue);
     const cont = { label: contLabel, action: () => showRecord() };
+    // Today's parts done: End for today is a choice of its own, under Read one more part.
+    const endToday = today ? { label: copy.breakScreen.finish, action: endFromBreak } : null;
     // Practice done. ZIP mode: saving is learnt here by doing it once (the same steps as
     // after every part), and only then the real sentences are introduced. Folder mode: the
     // screen says where every recording goes.
@@ -1380,12 +1450,12 @@ V2S.app = (() => {
         // Still writing (a slow folder): carrying on is safe, the writes continue — except
         // on a full device, where Continue would only come back here.
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.stillSaving(pending));
-        setBreakButtons(storage ? null : cont, null, null);
+        setBreakButtons(storage ? null : cont, storage ? null : endToday, null);
         setTimeout(() => { if (ui.screen() === 'break') refreshBreakSave(); }, 1500);
       } else if (pending === 0) {
         // Everything is in the folder: nothing to say (a problem would be said).
         el('breakSave').hidden = true;
-        setBreakButtons(cont, null, null);
+        setBreakButtons(cont, endToday, null);
       } else {
         setSavePanel('breakSave', 'breakSaveText', copy.breakScreen.folderProblem(pending), 'warn');
         setBreakButtons({ label: copy.breakScreen.allowFolder, action: fixFolderFromBreak }, storage ? null : cont, null);
@@ -1408,7 +1478,7 @@ V2S.app = (() => {
       // Saved: "Yes, I see it" has just said so; now only the rest and Continue.
       ui.setSentences('breakLead', breakState.lead);
       el('breakSave').hidden = true;
-      setBreakButtons(cont, null, null);
+      setBreakButtons(cont, endToday, null);
     } else {
       // One instruction: save, then rest.
       ui.setSentences('breakLead', copy.breakScreen.leadSave);
@@ -2092,6 +2162,12 @@ V2S.app = (() => {
       }
       V2S.session.startNewRoundIfCompleted(app.progress);
       Object.assign(app.progress, extra);
+      // A set read a few parts a day: Go to a sentence further away than the next part
+      // starts today's count there (Previous / Next keep it).
+      const parts = [app.progress.currentIndex, index].map(i => V2S.sentences.readingPart(app.material, i));
+      if (V2S.sentences.dailyOf(app.setKey) && Math.abs(parts[1] - parts[0]) > 1) {
+        app.progress.day = { date: V2S.sentences.today(), startPart: parts[1] };
+      }
       if (app.sessionStarted && V2S.session.jumpTo(index)) {
         if (ui.screen() !== 'record') await showRecord();
         return;

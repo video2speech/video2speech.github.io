@@ -58,13 +58,16 @@ V2S.session = (() => {
     const block = Math.floor(formal / cfg.BLOCK_SIZE);
     const blockStart = block * cfg.BLOCK_SIZE;
     const blockSize = Math.min(cfg.BLOCK_SIZE, formalCount - blockStart);
+    // `part`: in reading order; `block` / `blocks`: as shown (a set read a few parts a day
+    // counts today's parts: "Part 2 of 7", then Part 8 with no total).
+    const shown = V2S.sentences.partView(ctx.setKey, ctx.material, ctx.progress, block + 1);
     return {
       warmup: false,
       pos: formal + 1,
       total: formalCount,
       part: block + 1,
-      block: block + 1,
-      blocks: Math.ceil(formalCount / cfg.BLOCK_SIZE),
+      block: shown.block,
+      blocks: shown.blocks,
       inBlock: formal - blockStart + 1,
       blockSize
     };
@@ -220,7 +223,7 @@ V2S.session = (() => {
     if (kind === 'practice') return null;
     if (kind === 'part') return copy.record.partEndPart(partEnd.block);
     if (ctx.setKey === cfg.RAINBOW.key) return copy.record.partEndRainbow;
-    const passageAhead = Boolean(cfg.SETS[ctx.setKey]) && !['declined', 'done'].includes(ctx.progress.rainbow);
+    const passageAhead = V2S.sentences.hasRainbow(ctx.setKey) && !['declined', 'done'].includes(ctx.progress.rainbow);
     return passageAhead ? copy.record.partEndPart(position(lastAccepted.index).block) : copy.record.partEndAll;
   }
 
@@ -235,7 +238,7 @@ V2S.session = (() => {
       : kind === 'part' ? copy.record.donePart(partEnd.block)
       : ctx.setKey === cfg.RAINBOW.key ? copy.record.doneRainbow
       : copy.record.doneAll(position(lastAccepted.index).blocks);
-    const passageAhead = kind === 'all' && Boolean(cfg.SETS[ctx.setKey]) && ctx.progress.rainbow !== 'done';
+    const passageAhead = kind === 'all' && V2S.sentences.hasRainbow(ctx.setKey) && ctx.progress.rainbow !== 'done';
     return {
       state: 'ready',
       saved: false,
@@ -978,7 +981,9 @@ V2S.session = (() => {
       total: p.total,
       materialLine: !p.warmup && ctx.material.lines ? ctx.material.lines[p.pos - 1] : null,
       rotationStartPart: ctx.material.startPart || null,
-      blockIndex: p.warmup ? null : p.block,
+      blockIndex: p.warmup ? null : p.part,
+      dayPart: p.warmup || !V2S.sentences.dailyOf(ctx.setKey) ? null : p.block,
+      dayDate: V2S.sentences.dailyOf(ctx.setKey) && ctx.progress.day ? ctx.progress.day.date : null,
       positionInBlock: p.warmup ? null : p.inBlock,
       sentence: current.sentence,
       redo: takeNumber > 1,

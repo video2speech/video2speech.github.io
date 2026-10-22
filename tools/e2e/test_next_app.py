@@ -28,7 +28,10 @@ SCENARIO_LIMIT_S = 300
 RUN_ALONE = {'file_integrity'}
 # A short microphone test and a small picture (many browsers record side by side; the
 # file_integrity scenario records at the real settings).
-FAST = "window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p' };"
+# Scenarios about other things keep the earlier default set and skip the sentence-set
+# question before each session (s_set_check tests both as the page really is).
+CLASSIC = "defaultSet: '50words_350sentences', setCheck: false"
+FAST = "window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p', " + CLASSIC + " };"
 NO_PICKERS = 'delete window.showDirectoryPicker; delete window.showSaveFilePicker;'
 
 STATE_JS = """() => {
@@ -377,6 +380,10 @@ async def start_session(page):
         await page.locator('#dialogActions button', has_text='Continue without saving').click()
     else:
         await click(page, '#welcomeStart')
+    if await page.evaluate('() => V2S.config.SET_CHECK'):   # the page as it really is: confirm the set
+        await wait_for(page, '() => V2S.ui.isDialogOpen()', timeout=20000)
+        await dialog_ready(page)
+        await page.locator('#dialogActions button', has_text='Yes, start').click()
     await pass_check(page)
     await page.wait_for_selector('#screen-record:not([hidden])')
     await wait_for(page, "() => V2S.session.getState() === 'ready'")
@@ -1530,7 +1537,7 @@ async def s_folder_legacy(pw, base):
 
 async def s_real_picker(pw, base):
     c = Checks('Real Chrome folder picker opens from the click (CDP intercept)')
-    browser, context, page, errors = await launch(pw, audio='speech')
+    browser, context, page, errors = await launch(pw, audio='speech', init_scripts=['window.__V2S_TEST = { ' + CLASSIC + ' };'])
     cdp = await context.new_cdp_session(page)
     opened = []
     cdp.on('Page.fileChooserOpened', lambda event: opened.append(event))
@@ -1948,7 +1955,7 @@ async def s_no_audio(pw, base):
 
 async def s_timeout(pw, base):
     c = Checks('A take longer than the limit (2 min; 4 s here) restarts the same sentence')
-    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=["window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p', maxTakeMs: 4000 };"])
+    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=["window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p', maxTakeMs: 4000, " + CLASSIC + " };"])
     await press(page, 'Space')
     await page.wait_for_timeout(5500)
     await wait_ready(page)
@@ -1990,7 +1997,7 @@ LEGACY_LABEL_PAGES = {'setSentenceSet': 'Sentences & progress', 'setResolution':
 
 # The earlier page's option texts, word for word.
 LEGACY_LABELS = {
-    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350', 'open-vocab-350-oct17', 'open-vocab-v3', 'open-vocab-v3.1'],   # the earlier page's two, then the sets added 2026-10-16/17/18
+    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350', 'open-vocab-350-oct17', 'open-vocab-v3', 'open-vocab-v3.1', 'open-vocab-v3.3'],   # the earlier page's two, then the sets added 2026-10-16/17/18/21
     'setResolution': ['720p (1280×720) - Standard', '1080p (1920×1080) - Recommended', '480p (854×480) - Standard', '360p (640×360) - Low Quality', 'Auto - Camera Default'],
     'setBitrate': ['8 Mbps - Compatibility', '12 Mbps - High Quality', '15 Mbps - Research Quality', '25 Mbps - Fast Motion', '40 Mbps - Maximum Quality'],
     'setFps': ['30 fps - Standard', '60 fps - Fast Motion'],
@@ -2784,7 +2791,7 @@ async def s_long_take(pw, base):
     # The camera health check runs on real time (12 s here); the clock threshold is
     # shortened from 20 s to 8 s.
     c = Checks('A long take (13 s): no false camera failure; the clock appears only on long takes')
-    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=["window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p', timerAfterMs: 8000 };"])
+    browser, _, page, errors = await boot(pw, base, index=5, init_scripts=["window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p', timerAfterMs: 8000, " + CLASSIC + " };"])
     await press(page, 'Space')
     await wait_for(page, "() => V2S.session.getState() === 'recording'")
     await page.wait_for_timeout(6000)
@@ -2926,7 +2933,7 @@ async def s_file_integrity(pw, base):
     c = Checks('Saved files are complete: each plays with picture and sound, the right length, its sidecar matches')
     import base64
     # Folder mode: the files exactly as written to the chosen folder.
-    real = 'window.__V2S_TEST = { testRecordMs: 1200 };'   # the real picture size (1080p)
+    real = 'window.__V2S_TEST = { testRecordMs: 1200, ' + CLASSIC + ' };'   # the real picture size (1080p)
     browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[real])
     await setup_participant(page, base, save='folder')
     await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=5)
@@ -2991,8 +2998,8 @@ async def s_file_integrity(pw, base):
     return c.done()
 
 async def s_rotation(pw, base):
-    c = Checks('v3 / v3.1 (10,000 sentences): the ID decides where after the shared 350 each participant goes on; files name the set\'s line')
-    for set_key, set_file in (('open-vocab-v3', 'open-vocab-v3-10000.txt'), ('open-vocab-v3.1', 'open-vocab-v3.1-10000.txt')):
+    c = Checks('v3 / v3.1 / v3.3 (10,000 sentences): the ID decides where after the shared 350 each participant goes on; files name the set\'s line')
+    for set_key, set_file in (('open-vocab-v3', 'open-vocab-v3-10000.txt'), ('open-vocab-v3.1', 'open-vocab-v3.1-10000.txt'), ('open-vocab-v3.3', 'open-vocab-v3.3-10000.txt')):
         await rotation_checks(pw, base, c, set_key, set_file)
     return c.done()
 
@@ -3040,6 +3047,157 @@ async def rotation_checks(pw, base, c, set_key, set_file):
             'its file is named by line 1,001 of 10,000; the sidecar has the line, the start part and the reading position', meta)
     c.check(not errors, f'{set_key}: no page errors', errors)
     await browser.close()
+
+
+async def s_set_check(pw, base):
+    c = Checks('As the page really is (owner, 2026-10-21): open-vocab-v3.3 by default; before every session, "Is this the right sentence set?"')
+    browser, _, page, errors = await launch(pw, audio='speech', init_scripts=["window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p' };", NO_PICKERS], engine=ENGINE)
+    await page.goto(next_url(base))
+    await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
+    c.check(await page.evaluate("V2S.app.state().setKey") == 'open-vocab-v3.3', 'a new device uses open-vocab-v3.3')
+    await page.fill('#setupId', 'P01')
+    await click(page, '#setupNext')
+    await page.wait_for_selector('#setupError:not([hidden])')
+    c.check('SEMG' in (await page.text_content('#setupError')), 'it needs an ID like SEMG3', await page.text_content('#setupError'))
+    await page.fill('#setupId', 'semg3')
+    await click(page, '#setupNext')
+    await page.wait_for_selector('#setupStepConfirm:not([hidden])')
+    await click(page, '#setupConfirmYes')
+    try:
+        await page.locator('#setupStepFolder:not([hidden])').wait_for(timeout=1500)
+        await click(page, '#setupFolderZip')
+    except Exception:
+        pass
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
+    m = await page.evaluate("() => { const a = V2S.app.state(); return { id: a.participantId, start: a.material.startPart, n: a.material.formalCount }; }")
+    c.check(m == {'id': 'SEMG3', 'start': 34, 'n': 10000}, 'SEMG3: all 10,000, going on from part 34 after the shared 350', m)
+    file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.3-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
+    first = await page.evaluate("() => { const m = V2S.app.state().material; return [m.all[m.warmupCount], m.all[m.warmupCount + 350], m.lines[350]]; }")
+    c.check(first == [file_lines[0], file_lines[1650], 1651], 'first the shared line 1, then line 1,651 (part 34)', first)
+
+    # Begin: the question comes first, and the press that opened it cannot answer it.
+    await click(page, '#welcomeStart')
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    title = await page.text_content('#dialogTitle')
+    body = await page.text_content('#dialogBody')
+    c.check(title == 'Is this the right sentence set?', 'Begin asks about the sentence set', title)
+    c.check('open-vocab-v3.3' in body and 'SEMG3' in body and 'Practice' in body, 'it names the set, the participant and where they are', body)
+    # Pressed at once (in the page, so a slow test machine cannot make it late).
+    early = await page.evaluate("""() => { const armed = document.getElementById('dialog').dataset.armed || null;
+      [...document.querySelectorAll('#dialogActions button')].find(b => b.textContent === 'Yes, start').click();
+      return armed; }""")
+    await page.wait_for_timeout(200)
+    c.check(early is None and await page.evaluate('() => V2S.ui.isDialogOpen()') and await page.is_visible('#screen-welcome'), 'a press in its first second does nothing (a double press on Begin)', early)
+    # Change sentence set: Settings, where the set is chosen; closing it leaves Welcome as it was.
+    await dialog_ready(page)
+    await page.locator('#dialogActions button', has_text='Change sentence set').click()
+    await page.wait_for_selector('#settingsPanel:not([hidden])')
+    c.check(await page.is_visible('#setSentenceSet') and await page.input_value('#setSentenceSet') == 'open-vocab-v3.3', 'Change sentence set opens Settings at the set', await page.input_value('#setSentenceSet') if await page.is_visible('#setSentenceSet') else None)
+    await page.click('#settingsClose')
+    await page.wait_for_selector('#settingsPanel', state='hidden')
+    c.check(await page.is_visible('#screen-welcome'), 'closing Settings: back on Welcome, nothing started')
+    # Esc: stays on Welcome.
+    await click(page, '#welcomeStart')
+    await dialog_ready(page)
+    await page.keyboard.press('Escape')
+    await page.wait_for_timeout(300)
+    c.check(not await page.evaluate('() => V2S.ui.isDialogOpen()') and await page.is_visible('#screen-welcome'), 'Esc: no session, still on Welcome')
+    # Yes, start: on to the camera and microphone check.
+    await click(page, '#welcomeStart')
+    await dialog_ready(page)
+    await page.locator('#dialogActions button', has_text='Yes, start').click()
+    await page.wait_for_selector('#screen-check:not([hidden])', timeout=10000)
+    c.check(True, 'Yes, start goes on to the check')
+
+    # A device that chose another set earlier keeps it, and the question shows which.
+    await page.evaluate("V2S.storage.setSetting('setKey', 'open-vocab-v3.1')")
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
+    await click(page, '#welcomeStart')
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    body = await page.text_content('#dialogBody')
+    c.check('open-vocab-v3.1' in body, 'a device that chose open-vocab-v3.1 is asked about open-vocab-v3.1', body)
+    await dialog_ready(page)
+    await page.locator('#dialogActions button', has_text='Change sentence set').click()
+    await page.wait_for_selector('#settingsPanel:not([hidden])')
+    await page.select_option('#setSentenceSet', 'open-vocab-v3.3')
+    await confirm_dialog(page, 'Yes, continue')
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=10000)
+    await click(page, '#welcomeStart')
+    await wait_for(page, '() => V2S.ui.isDialogOpen()')
+    body = await page.text_content('#dialogBody')
+    c.check('open-vocab-v3.3' in body, 'switched there: the next question names open-vocab-v3.3', body)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_daily(pw, base):
+    c = Checks('open-vocab-v3.3, 7 parts a day (owner, 2026-10-21): today counts from Part 1 of 7; then "All 7 parts for today are done", one more part at a time; the next day Part 1 of 7 again, the sentences going on')
+    browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST], engine=ENGINE)
+    await setup_participant(page, base, participant='SEMG3', save='folder')
+    await page.evaluate("V2S.storage.setSetting('setKey', 'open-vocab-v3.3')")
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
+    file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.3-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
+    w = await page.evaluate('V2S.app.state().material.warmupCount')
+    today = await page.evaluate('V2S.sentences.today()')
+    welcome = "() => ({ part: document.getElementById('welcomePart').textContent, count: document.getElementById('welcomeCount').textContent, start: document.getElementById('welcomeStart').textContent, lead: document.getElementById('welcomeLead').textContent })"
+
+    async def reload_welcome():
+        await page.reload()
+        await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
+        return await page.evaluate(welcome)
+
+    # Today began at part 1; the last sentence of part 7 is next.
+    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=w + 6 * 50 + 49, completed=False, day={'date': today, 'startPart': 1})
+    v = await reload_welcome()
+    c.check(v['part'] == 'Part 7 of 7' and v['count'] == 'Sentence 50 of 50', 'Welcome: Part 7 of 7, sentence 50 (never 200 or 10,000)', v)
+    await start_session(page)
+    s = await state(page)
+    c.check(s['where'] == 'Part 7 of 7 · Sentence 50 of 50', 'recording: Part 7 of 7 · Sentence 50 of 50', s['where'])
+    await record(page)
+    await press(page, 'Space')   # to the break
+    await wait_for(page, "() => document.getElementById('breakPrimary').textContent === 'Read one more part'", timeout=20000)
+    b = await page.evaluate("() => ({ title: breakTitle.textContent, lead: breakLead.textContent, second: breakSecondary.hidden ? null : breakSecondary.textContent })")
+    c.check(b['title'] == 'All 7 parts for today are done' and b['second'] == 'End for today' and 'You can stop here' in b['lead'],
+            'after part 7: "All 7 parts for today are done", Read one more part or End for today', b)
+    await click(page, '#breakPrimary')
+    await wait_for(page, "() => V2S.session.getState() === 'ready'")
+    s = await state(page)
+    c.check(s['where'] == 'Part 8 · Sentence 1 of 50', 'Read one more part: Part 8, no total', s['where'])
+    c.check(s['sentence'].replace('\xa0', ' ') == file_lines[1650], 'SEMG3: after the shared 350 comes line 1,651 (part 34 of the file)', s['sentence'])
+    await end_for_today(page)
+    v = await reload_welcome()
+    c.check(v['part'] == 'All 7 parts for today are done' and v['start'] == 'Read one more part', 'the same day, Welcome: today is done; one more part if they want', v)
+
+    # The next day: Part 1 of 7 again, at the same sentence.
+    await set_progress(page, day={'date': '2000-01-01', 'startPart': 1})
+    v = await reload_welcome()
+    c.check(v['part'] == 'Part 1 of 7' and v['start'] == 'Continue', 'the next day: Part 1 of 7, Continue', v)
+    await start_session(page)
+    s = await state(page)
+    c.check(s['where'] == 'Part 1 of 7 · Sentence 1 of 50' and s['sentence'].replace('\xa0', ' ') == file_lines[1650], 'the next day starts where the last one stopped (line 1,651)', (s['where'], s['sentence']))
+    await record(page)
+    await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
+    files = await page.evaluate(LIST_OPFS_JS, 'picked')
+    side = [f for f in files if '_1651-10000_' in f and f.endswith('.json')]
+    m = await page.evaluate(READ_OPFS_JSON, ['picked', side[0]]) if side else {}
+    meta = {'f': side[0] if side else None, 'line': m.get('materialLine'), 'block': m.get('blockIndex'), 'dayPart': m.get('dayPart'), 'dayDate': m.get('dayDate')}
+    c.check(meta['f'] and meta['line'] == 1651 and meta['block'] == 8 and meta['dayPart'] == 1 and meta['dayDate'] == today,
+            "the file and sidecar keep the real place (line 1,651, part 8 in reading order) and today's part", meta)
+    # Stopped in the middle: the same day comes back to that sentence, still today's Part 1.
+    await end_for_today(page)
+    v = await reload_welcome()
+    c.check(v['part'] == 'Part 1 of 7' and v['count'] == 'Sentence 2 of 50', 'stopped mid-part: back at sentence 2 of today\'s Part 1', v)
+    # And on another day in the middle of a part: Part 1 of 7 · Sentence 2 of 50.
+    await set_progress(page, day={'date': '2000-01-02', 'startPart': 3})
+    v = await reload_welcome()
+    c.check(v['part'] == 'Part 1 of 7' and v['count'] == 'Sentence 2 of 50', 'a new day in the middle of a part: Part 1 of 7 at sentence 2', v)
+    c.check(await page.evaluate("V2S.sentences.hasRainbow('open-vocab-v3.3')") is False, 'no Rainbow Passage with this set')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
 
 
 SCENARIOS = {
@@ -3103,6 +3261,8 @@ SCENARIOS = {
     'timeout': s_timeout,
     'file_integrity': s_file_integrity,
     'rotation': s_rotation,
+    'set_check': s_set_check,
+    'daily': s_daily,
 }
 
 # Scenarios that make sense in every engine (no Chrome-only file dialogs, flags or sample rates).
@@ -3110,7 +3270,7 @@ CROSS_ENGINE = ['first_run', 'normal', 'hold', 'no_speech', 'redo', 'speech_befo
                 'bluetooth', 'mic_test_silent', 'help', 'double_tap', 'held_keys', 'save_keys', 'camera_denied', 'card_stable', 'device', 'reload', 'break_zip', 'legacy', 'storage_full',
                 'finish_settings', 'signin', 'keyboard', 'clicker', 'too_loud', 'set_switch', 'no_audio', 'fit', 'settings_parity', 'settings_fit', 'redo_reload',
                 'practice_again', 'rounds', 'zip_backups', 'part_end_redo', 'two_tabs', 'long_take', 'store_failure',
-                'store_failure_late', 'stale_backups', 'rainbow_zip', 'card_room', 'new_participant', 'rotation']
+                'store_failure_late', 'stale_backups', 'rainbow_zip', 'card_room', 'new_participant', 'rotation', 'set_check']
 
 
 async def main(names, jobs):

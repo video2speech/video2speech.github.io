@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '226',
-  MATERIAL_VERSION: 'materials_v226',
+  APP_VERSION: '227',
+  MATERIAL_VERSION: 'materials_v227',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -55,9 +55,31 @@ V2S.config = Object.freeze({
       count: 10000,
       shortRepeats: 3,
       rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' })
+    },
+    // v3.3 (owner, 2026-10-21): the reviewed 10,000 (material_design/open-vocab-v3.3). Same
+    // rotation: parts 1-7 shared, then SEMG<n> goes on from part 8 + 13(n - 1). The default.
+    // Patients never see the whole set: each day counts its parts from 1 ("Part 1 of 7"),
+    // the sentences going on from where the last day stopped; after 7 parts, "All 7 parts
+    // for today are done." and one more part at a time if they want (Part 8, 9, ...). No
+    // Rainbow Passage with this set.
+    'open-vocab-v3.3': {
+      label: 'open-vocab-v3.3',
+      about: 'Open-vocabulary sentences (v3.3, 2026-10-21), 7 parts a day',
+      file: 'newset/open-vocab-v3.3-10000.txt',
+      count: 10000,
+      shortRepeats: 3,
+      daily: Object.freeze({ parts: 7 }),
+      rainbow: false,
+      rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' })
     }
   },
-  DEFAULT_SET: '50words_350sentences',
+  // The set a device uses until one is chosen in Settings (owner, 2026-10-21: v3.3). A device
+  // that chose a set keeps it; the question before each session shows which one it is.
+  // (Automated tests of other things keep the earlier default through window.__V2S_TEST.)
+  DEFAULT_SET: (window.__V2S_TEST && window.__V2S_TEST.defaultSet) || 'open-vocab-v3.3',
+  // Before every session (Begin / Continue on Welcome), ask whether the sentence set is the
+  // right one (owner, 2026-10-21).
+  SET_CHECK: !(window.__V2S_TEST && window.__V2S_TEST.setCheck === false),
   // The Rainbow Passage: read once after the last sentence of every sentence set (owner,
   // 2026-10-16), one sentence at a time like any part. Its recordings go to
   // <ID>/<session>/rainbow/; its sidecars say which set it followed (rainbowAfterSet).

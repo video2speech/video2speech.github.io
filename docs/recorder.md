@@ -29,6 +29,15 @@ it. Problems show as an amber notice right above the main button.
      to remember, and **Continue**. In ZIP mode with unsaved recordings the main button
      saves them first (**Save recordings**; "Continue without saving" is a quiet link).
    - Everything recorded: "All sentences done", nothing more to record.
+   - **Begin** / **Continue** first asks "Is this the right sentence set?" (owner,
+     2026-10-21), with the set's name, what it is, the participant and where they are:
+     **Yes, start** goes on; **Change sentence set** opens Settings → Sentences &
+     progress. Nothing pre-chosen; its answers count after 1 s. A device that has not
+     chosen a set uses `open-vocab-v3.3`.
+   - `open-vocab-v3.3` is read **7 parts a day**: each day counts from "Part 1 of 7" (the
+     sentences go on from where the last day stopped); after the 7th, "All 7 parts for
+     today are done" with **Read one more part** / End for today, and the same after each
+     extra part (Part 8, 9, …). It has no Rainbow Passage.
    - In folder mode the browser must be allowed to write to the folder again in each
      new browser session; **Begin** / **Continue** asks for it. If permission is not
      given, a screen offers **Allow**, **Choose a different folder** or **Save as ZIP

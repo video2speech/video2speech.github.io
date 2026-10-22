@@ -506,6 +506,8 @@ body.has-dialog .screens, body.has-dialog .topbar { filter: saturate(0); opacity
 .dialog-body { font-size: 17px; line-height: 1.45; color: var(--ink-2); text-wrap: balance; }
 .dialog-body p + p, .dialog-body p + .field, .dialog-body .field + p { margin-top: var(--s3); }
 .dialog-body .field { text-align: left; }
+/* The sentence set asked about before each session: its name stands out. */
+.dialog-body .set-name { font-size: 24px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
 .dialog-actions { display: grid; gap: var(--s3); margin-top: var(--s5); }
 /* a text answer under the main one keeps 24 px (a slip must not press it) */
 .dialog-actions .dialog-link { margin-top: var(--s3); }

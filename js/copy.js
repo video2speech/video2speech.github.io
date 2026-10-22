@@ -78,7 +78,7 @@ V2S.copy = {
   // Before part 1: only to get ready.
   ready: {
     eyebrow: 'The real sentences',
-    title: (n, total) => `Part ${n} of ${total}`,
+    title: (n, total) => (total ? `Part ${n} of ${total}` : `Part ${n}`),
     lead: n => `${n} sentences in each part. After each part you can rest, or stop for\u00a0today.`,
     start: (n, resume) => (resume ? `Continue part ${n}` : `Start part ${n}`)
   },
@@ -104,7 +104,7 @@ V2S.copy = {
     participant: id => `Participant ${id}`,
     practice: 'Practice',
     practiceCount: (done, total) => `${done} of ${total} done`,
-    part: (n, total) => `Part ${n} of ${total}`,
+    part: (n, total) => (total ? `Part ${n} of ${total}` : `Part ${n}`),
     partCount: (done, size) => `${done} of ${size} sentences done`,
     allDone: 'All sentences are done',
     allParts: parts => `All ${parts} parts done`,
@@ -117,6 +117,22 @@ V2S.copy = {
     saveNow: 'Save now',
     partsDone: (n, total) => `${n} of ${total} parts done`,
     sentenceOf: (n, total) => `Sentence ${n} of ${total}`
+  },
+
+  // A set read a few parts a day (open-vocab-v3.3; owner, 2026-10-21): after today's parts,
+  // and after each part read on top of them.
+  today: {
+    doneTitle: n => `All ${n} parts for today are done`,
+    lead: 'Thank you! You can stop here.',
+    more: 'Read one more part'
+  },
+
+  // Before every session (owner, 2026-10-21): is this the right sentence set?
+  setCheck: {
+    title: 'Is this the right sentence set?',
+    place: (participant, where) => `${participant} · ${where}`,
+    yes: 'Yes, start',
+    change: 'Change sentence set'
   },
 
   folder: {
@@ -223,7 +239,8 @@ V2S.copy = {
     rainbowOf: (n, total) => `Rainbow Passage · ${n} of ${total}`,
     rainbowShort: (n, total) => `Rainbow · ${n} of ${total}`,
     practiceOf: (n, total) => `Practice ${n} of ${total}`,
-    partOf: (n, total) => `Part ${n} of ${total}`,
+    // `total` is null for the parts after today's (a set read a few parts a day): "Part 8".
+    partOf: (n, total) => (total ? `Part ${n} of ${total}` : `Part ${n}`),
     sentenceOf: (n, total) => `Sentence ${n} of ${total}`,
     whereShort: (part, n, total) => `Part ${part} · ${n} of ${total}`,
     // The narrowest screens (a phone with larger text): only the place in the part.

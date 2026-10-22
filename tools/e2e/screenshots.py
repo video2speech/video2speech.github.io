@@ -27,6 +27,9 @@ VIEWPORTS = {
 }
 
 ENGINE = 'chrome'
+# The page as patients get it: the default sentence set (open-vocab-v3.3) and the question
+# about the set before each session (t.FAST would keep the earlier default and skip it).
+REAL_DEFAULTS = "window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p' };"
 EXTRA_INIT = []   # more scripts before the page loads (e.g. an upright camera)
 
 
@@ -46,7 +49,7 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
         print(f'  OFFSCREEN {name}-{theme}-00-signin: Sign in')
     await browser.close()
 
-    browser, _, page, errors = await launch(pw, audio='speech', media='shim', init_scripts=[theme_js, t.NO_PICKERS, t.FAST, *EXTRA_INIT], **common)
+    browser, _, page, errors = await launch(pw, audio='speech', media='shim', init_scripts=[theme_js, t.NO_PICKERS, REAL_DEFAULTS, *EXTRA_INIT], **common)
 
     # Anything wider than the screen (or the settings panel) is printed as a problem.
     overflow_js = """() => {
@@ -161,6 +164,11 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.wait_for_timeout(200)
     await shot('03-welcome')
     await click(page, '#welcomeStart')
+    # Before every session: is this the right sentence set? (owner, 2026-10-21)
+    await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await t.dialog_ready(page)
+    await shot('03b-set-check')
+    await page.locator('#dialogActions button', has_text='Yes, start').click()
     await page.wait_for_selector('#screen-check:not([hidden])')
     await t.wait_for(page, "() => V2S.media.getStream() && document.getElementById('checkBadge').textContent === ''")
     await shot('04-check')
@@ -319,8 +327,36 @@ async def capture(pw, base, out, name, viewport, mobile, theme):
     await page.wait_for_timeout(300)
     await shot('26-welcome-back')
 
-    # The Rainbow Passage: the set's last sentence, the question, the passage and its end,
-    # then Welcome with the question not answered yet.
+    # open-vocab-v3.3 is read 7 parts a day: after today's 7th part, "All 7 parts for today
+    # are done" with Read one more part / End for today; then Part 8 (no total).
+    today = await page.evaluate('V2S.sentences.today()')
+    await t.set_progress(page, howtoSeen=True, coachDone=True, currentIndex=5 + 349, completed=False, day={'date': today, 'startPart': 1})
+    await page.evaluate('() => V2S.app.showWelcome()')
+    await page.wait_for_selector('#screen-welcome:not([hidden])')
+    await t.start_session(page)
+    await take()
+    await press_main()
+    await page.wait_for_selector('#screen-break:not([hidden])')
+    await t.wait_for(page, "() => !document.getElementById('breakPrimary').hidden")
+    async with page.expect_download():
+        await click(page, '#breakPrimary')
+    await t.wait_for(page, '() => V2S.ui.isDialogOpen()')
+    await t.dialog_ready(page)
+    await page.get_by_role('button', name='Yes, I see it').click()
+    await t.wait_for(page, "() => document.getElementById('breakPrimary').textContent === 'Read one more part'")
+    await page.wait_for_timeout(300)
+    await shot('26b-today-done')
+    await click(page, '#breakPrimary')
+    await t.wait_for(page, "() => V2S.session.getState() === 'ready'")
+    await page.evaluate("window.__v2sAudio.set('silence')")
+    await shot('26c-part-8')
+    await page.evaluate("window.__v2sAudio.set('speech')")
+
+    # The Rainbow Passage follows the 350-sentence sets (not open-vocab-v3.3): the set's last
+    # sentence, the passage and its end, then Welcome.
+    await page.evaluate("V2S.storage.setSetting('setKey', '50words_350sentences')")
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
     await t.set_progress(page, howtoSeen=True, coachDone=True, currentIndex=354, completed=False)
     await page.evaluate('() => V2S.app.showWelcome()')
     await page.wait_for_selector('#screen-welcome:not([hidden])')

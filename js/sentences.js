@@ -111,5 +111,47 @@ V2S.sentences = (() => {
   // `major` when a clause boundary comes before it; otherwise null.
   const phrasesOf = sentence => phraseMap.get(sentence) || null;
 
-  return { load, loadRainbow, phrasesOf, startPart };
+  // ---- a set read a few parts a day (v3.3: 7; owner, 2026-10-21) ----
+  // Patients see only today's parts: "Part 1 of 7" each day, the sentences going on from
+  // where they stopped (also in the middle of a part). After the 7th, more parts are read
+  // one at a time on request, shown without a total (Part 8, 9, ...). The progress record
+  // keeps `day` = { date (the device's calendar day), startPart (the part in reading order,
+  // from 1, that today's "Part 1" is) }.
+  const dailyOf = setKey => (cfg.SETS[setKey] || {}).daily || null;
+  const hasRainbow = setKey => Boolean(cfg.SETS[setKey]) && cfg.SETS[setKey].rainbow !== false;
+
+  function today() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  // The part (in reading order, from 1) a sentence index is in; practice counts as part 1.
+  function readingPart(material, index) {
+    return Math.floor(Math.max(0, index - material.warmupCount) / cfg.BLOCK_SIZE) + 1;
+  }
+
+  // On a new day (or after moving back before today's start), today's "Part 1" is the part
+  // being read now. `force`: start the count here (Settings moved the place). True if
+  // the record changed (to be saved).
+  function startDay(setKey, material, progress, { force = false } = {}) {
+    if (!dailyOf(setKey) || !progress) return false;
+    const part = readingPart(material, progress.currentIndex);
+    const day = progress.day;
+    if (!force && day && day.date === today() && day.startPart <= part) return false;
+    progress.day = { date: today(), startPart: part };
+    return true;
+  }
+
+  // What a part is shown as: { block, blocks } (blocks null after today's parts).
+  // `part`: in reading order, from 1.
+  function partView(setKey, material, progress, part) {
+    const daily = dailyOf(setKey);
+    if (!daily) return { block: part, blocks: Math.ceil(material.formalCount / cfg.BLOCK_SIZE) };
+    const start = progress && progress.day && progress.day.startPart <= part ? progress.day.startPart : part;
+    const block = part - start + 1;
+    return { block, blocks: block <= daily.parts ? daily.parts : null };
+  }
+
+  return { load, loadRainbow, phrasesOf, startPart, dailyOf, hasRainbow, startDay, partView, readingPart, today };
 })();
