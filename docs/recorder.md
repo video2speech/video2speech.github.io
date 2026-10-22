@@ -46,7 +46,7 @@ it. Problems show as an amber notice right above the main button.
    picture:
    1. **Position the camera**: one head oval in the middle; "Put your face inside the
       oval." **Next**.
-   2. **Test the microphone**: "Press Record and say “Hello, this is my voice.” Then
+   2. **Test the microphone**: "Press Record and say “Hello, how are you today?” Then
       watch it back." **Record a 5-second test**; the clip plays back (picture and
       sound), then "Can you see your face and hear yourself clearly?" **Yes, continue**
       / Play it again / No, try again (back to step 1). A Bluetooth microphone gets a

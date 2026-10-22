@@ -164,7 +164,7 @@ V2S.copy = {
     useDevice: name => `Use ${name}`,
     testRecord: 'Start the 5-second test',
     testSayLabel: 'Recording — say it now',
-    testSay: '“Hello, this is my voice.”',
+    testSay: '“Hello, how are you today?”',
     testRecording: 'Recording',
     testPlaying: 'Playing your test',
     askTitle: 'Did the test work?',
