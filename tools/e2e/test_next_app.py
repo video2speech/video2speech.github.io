@@ -3133,7 +3133,7 @@ async def s_set_check(pw, base):
 
 
 async def s_daily(pw, base):
-    c = Checks('open-vocab-v3.3, 7 parts a day (owner, 2026-10-21): today counts from Part 1 of 7; then "All 7 parts for today are done", one more part at a time; the next day Part 1 of 7 again, the sentences going on')
+    c = Checks('open-vocab-v3.3, a few parts a day (owner: 7 on 2026-10-21, 5 since 2026-10-23): today counts from Part 1; then "All 5 parts for today are done", one more part at a time; the next day Part 1 again, the sentences going on')
     browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST], engine=ENGINE)
     await setup_participant(page, base, participant='SEMG3', save='folder')
     await page.evaluate("V2S.storage.setSetting('setKey', 'open-vocab-v3.3')")
@@ -3142,6 +3142,7 @@ async def s_daily(pw, base):
     file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.3-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
     w = await page.evaluate('V2S.app.state().material.warmupCount')
     today = await page.evaluate('V2S.sentences.today()')
+    D = await page.evaluate("V2S.config.SETS['open-vocab-v3.3'].daily.parts")   # parts a day (5)
     welcome = "() => ({ part: document.getElementById('welcomePart').textContent, count: document.getElementById('welcomeCount').textContent, start: document.getElementById('welcomeStart').textContent, lead: document.getElementById('welcomeLead').textContent })"
 
     async def reload_welcome():
@@ -3150,50 +3151,50 @@ async def s_daily(pw, base):
         return await page.evaluate(welcome)
 
     # Today began at part 1; the last sentence of part 7 is next.
-    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=w + 6 * 50 + 49, completed=False, day={'date': today, 'startPart': 1})
+    await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=w + (D - 1) * 50 + 49, completed=False, day={'date': today, 'startPart': 1})
     v = await reload_welcome()
-    c.check(v['part'] == 'Part 7 of 7' and v['count'] == 'Sentence 50 of 50', 'Welcome: Part 7 of 7, sentence 50 (never 200 or 10,000)', v)
+    c.check(v['part'] == f'Part {D} of {D}' and v['count'] == 'Sentence 50 of 50', 'Welcome: today\'s last part, sentence 50 (never 200 or 10,000)', v)
     await start_session(page)
     s = await state(page)
-    c.check(s['where'] == 'Part 7 of 7 · Sentence 50 of 50', 'recording: Part 7 of 7 · Sentence 50 of 50', s['where'])
+    c.check(s['where'] == f'Part {D} of {D} · Sentence 50 of 50', 'recording: today\'s last part · Sentence 50 of 50', s['where'])
     await record(page)
     await press(page, 'Space')   # to the break
     await wait_for(page, "() => document.getElementById('breakPrimary').textContent === 'Read one more part'", timeout=20000)
     b = await page.evaluate("() => ({ title: breakTitle.textContent, lead: breakLead.textContent, second: breakSecondary.hidden ? null : breakSecondary.textContent })")
-    c.check(b['title'] == 'All 7 parts for today are done' and b['second'] == 'End for today' and 'You can stop here' in b['lead'],
-            'after part 7: "All 7 parts for today are done", Read one more part or End for today', b)
+    c.check(b['title'] == f'All {D} parts for today are done' and b['second'] == 'End for today' and 'You can stop here' in b['lead'],
+            'after today\'s last part: "All 5 parts for today are done", Read one more part or End for today', b)
     await click(page, '#breakPrimary')
     await wait_for(page, "() => V2S.session.getState() === 'ready'")
     s = await state(page)
-    c.check(s['where'] == 'Part 8 · Sentence 1 of 50', 'Read one more part: Part 8, no total', s['where'])
-    c.check(s['sentence'].replace('\xa0', ' ') == file_lines[1650], 'SEMG3: after the shared 350 comes line 1,651 (part 34 of the file)', s['sentence'])
+    c.check(s['where'] == f'Part {D + 1} · Sentence 1 of 50', 'Read one more part: the next part, no total', s['where'])
+    c.check(s['sentence'].replace('\xa0', ' ') == file_lines[D * 50], 'the next part in reading order', s['sentence'])
     await end_for_today(page)
     v = await reload_welcome()
-    c.check(v['part'] == 'All 7 parts for today are done' and v['start'] == 'Read one more part', 'the same day, Welcome: today is done; one more part if they want', v)
+    c.check(v['part'] == f'All {D} parts for today are done' and v['start'] == 'Read one more part', 'the same day, Welcome: today is done; one more part if they want', v)
 
-    # The next day: Part 1 of 7 again, at the same sentence.
+    # The next day: Part 1 again, at the same sentence.
     await set_progress(page, day={'date': '2000-01-01', 'startPart': 1})
     v = await reload_welcome()
-    c.check(v['part'] == 'Part 1 of 7' and v['start'] == 'Continue', 'the next day: Part 1 of 7, Continue', v)
+    c.check(v['part'] == f'Part 1 of {D}' and v['start'] == 'Continue', 'the next day: Part 1 again, Continue', v)
     await start_session(page)
     s = await state(page)
-    c.check(s['where'] == 'Part 1 of 7 · Sentence 1 of 50' and s['sentence'].replace('\xa0', ' ') == file_lines[1650], 'the next day starts where the last one stopped (line 1,651)', (s['where'], s['sentence']))
+    c.check(s['where'] == f'Part 1 of {D} · Sentence 1 of 50' and s['sentence'].replace('\xa0', ' ') == file_lines[D * 50], 'the next day starts where the last one stopped', (s['where'], s['sentence']))
     await record(page)
     await page.evaluate('V2S.session.flush().then(() => V2S.exporter.flushFolderWrites())')
     files = await page.evaluate(LIST_OPFS_JS, 'picked')
-    side = [f for f in files if '_1651-10000_' in f and f.endswith('.json')]
+    side = [f for f in files if f'_{D * 50 + 1}-10000_' in f and f.endswith('.json')]
     m = await page.evaluate(READ_OPFS_JSON, ['picked', side[0]]) if side else {}
     meta = {'f': side[0] if side else None, 'line': m.get('materialLine'), 'block': m.get('blockIndex'), 'dayPart': m.get('dayPart'), 'dayDate': m.get('dayDate')}
-    c.check(meta['f'] and meta['line'] == 1651 and meta['block'] == 8 and meta['dayPart'] == 1 and meta['dayDate'] == today,
-            "the file and sidecar keep the real place (line 1,651, part 8 in reading order) and today's part", meta)
+    c.check(meta['f'] and meta['line'] == D * 50 + 1 and meta['block'] == D + 1 and meta['dayPart'] == 1 and meta['dayDate'] == today,
+            "the file and sidecar keep the real place (its line and part in reading order) and today's part", meta)
     # Stopped in the middle: the same day comes back to that sentence, still today's Part 1.
     await end_for_today(page)
     v = await reload_welcome()
-    c.check(v['part'] == 'Part 1 of 7' and v['count'] == 'Sentence 2 of 50', 'stopped mid-part: back at sentence 2 of today\'s Part 1', v)
-    # And on another day in the middle of a part: Part 1 of 7 · Sentence 2 of 50.
+    c.check(v['part'] == f'Part 1 of {D}' and v['count'] == 'Sentence 2 of 50', 'stopped mid-part: back at sentence 2 of today\'s Part 1', v)
+    # And on another day in the middle of a part: Part 1 · Sentence 2 of 50.
     await set_progress(page, day={'date': '2000-01-02', 'startPart': 3})
     v = await reload_welcome()
-    c.check(v['part'] == 'Part 1 of 7' and v['count'] == 'Sentence 2 of 50', 'a new day in the middle of a part: Part 1 of 7 at sentence 2', v)
+    c.check(v['part'] == f'Part 1 of {D}' and v['count'] == 'Sentence 2 of 50', 'a new day in the middle of a part: Part 1 at sentence 2', v)
     c.check(await page.evaluate("V2S.sentences.hasRainbow('open-vocab-v3.3')") is False, 'no Rainbow Passage with this set')
     c.check(not errors, 'no page errors', errors)
     await browser.close()

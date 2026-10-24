@@ -34,10 +34,10 @@ it. Problems show as an amber notice right above the main button.
      **Yes, start** goes on; **Change sentence set** opens Settings → Sentences &
      progress. Nothing pre-chosen; its answers count after 1 s. A device that has not
      chosen a set uses `open-vocab-v3.3`.
-   - `open-vocab-v3.3` is read **7 parts a day**: each day counts from "Part 1 of 7" (the
-     sentences go on from where the last day stopped); after the 7th, "All 7 parts for
+   - `open-vocab-v3.3` is read **5 parts a day** (7 until 2026-10-23): each day counts from "Part 1 of 5" (the
+     sentences go on from where the last day stopped); after the 5th, "All 5 parts for
      today are done" with **Read one more part** / End for today, and the same after each
-     extra part (Part 8, 9, …). It has no Rainbow Passage.
+     extra part (Part 6, 7, …). It has no Rainbow Passage.
    - In folder mode the browser must be allowed to write to the folder again in each
      new browser session; **Begin** / **Continue** asks for it. If permission is not
      given, a screen offers **Allow**, **Choose a different folder** or **Save as ZIP

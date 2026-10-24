@@ -111,10 +111,10 @@ V2S.sentences = (() => {
   // `major` when a clause boundary comes before it; otherwise null.
   const phrasesOf = sentence => phraseMap.get(sentence) || null;
 
-  // ---- a set read a few parts a day (v3.3: 7; owner, 2026-10-21) ----
-  // Patients see only today's parts: "Part 1 of 7" each day, the sentences going on from
-  // where they stopped (also in the middle of a part). After the 7th, more parts are read
-  // one at a time on request, shown without a total (Part 8, 9, ...). The progress record
+  // ---- a set read a few parts a day (v3.3: 5; owner, 2026-10-21, 5 since 2026-10-23) ----
+  // Patients see only today's parts: "Part 1 of 5" each day, the sentences going on from
+  // where they stopped (also in the middle of a part). After the 5th, more parts are read
+  // one at a time on request, shown without a total (Part 6, 7, ...). The progress record
   // keeps `day` = { date (the device's calendar day), startPart (the part in reading order,
   // from 1, that today's "Part 1" is) }.
   const dailyOf = setKey => (cfg.SETS[setKey] || {}).daily || null;

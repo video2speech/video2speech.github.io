@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '229',
-  MATERIAL_VERSION: 'materials_v229',
+  APP_VERSION: '230',
+  MATERIAL_VERSION: 'materials_v230',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -58,17 +58,17 @@ V2S.config = Object.freeze({
     },
     // v3.3 (owner, 2026-10-21): the reviewed 10,000 (material_design/open-vocab-v3.3). Same
     // rotation: parts 1-7 shared, then SEMG<n> goes on from part 8 + 13(n - 1). The default.
-    // Patients never see the whole set: each day counts its parts from 1 ("Part 1 of 7"),
-    // the sentences going on from where the last day stopped; after 7 parts, "All 7 parts
-    // for today are done." and one more part at a time if they want (Part 8, 9, ...). No
+    // Patients never see the whole set: each day counts its parts from 1 ("Part 1 of 5"),
+    // the sentences going on from where the last day stopped; after 5 parts, "All 5 parts
+    // for today are done." and one more part at a time if they want (Part 6, 7, ...). No
     // Rainbow Passage with this set.
     'open-vocab-v3.3': {
       label: 'open-vocab-v3.3',
-      about: 'Open-vocabulary sentences (v3.3, 2026-10-21), 7 parts a day',
+      about: 'Open-vocabulary sentences (v3.3, 2026-10-21), 5 parts a day',
       file: 'newset/open-vocab-v3.3-10000.txt',
       count: 10000,
       shortRepeats: 3,
-      daily: Object.freeze({ parts: 7 }),
+      daily: Object.freeze({ parts: 5 }),   // owner, 2026-10-23: 5 parts a day (was 7)
       rainbow: false,
       rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' })
     }
