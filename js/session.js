@@ -1053,7 +1053,8 @@ V2S.session = (() => {
     const segment = p.warmup ? 'warmup' : ctx.setKey === cfg.RAINBOW.key ? 'rainbow' : '';
     // A rotating set (v3) names the sentence by its line in the set file, whatever the order.
     const line = !p.warmup && ctx.material.lines ? ctx.material.lines[p.pos - 1] : p.pos;
-    const progressInfo = `_${segment}${line}-${p.total}_repeat${round}`;
+    const total = !p.warmup && ctx.material.lines ? ctx.material.fileCount || p.total : p.total;
+    const progressInfo = `_${segment}${line}-${total}_repeat${round}`;
     const fileName = uniqueName(`${sanitize(current.sentence)}${progressInfo}_${timestamp()}${takeNumber > 1 ? '_redo' : ''}.${recording.ext}`);
     current.fileName = fileName;
     const usable = status === 'accepted' || status === 'qc_overridden';

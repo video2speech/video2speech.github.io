@@ -33,8 +33,13 @@ it. Problems show as an amber notice right above the main button.
      2026-10-21), with the set's name, what it is, the participant and where they are:
      **Yes, start** goes on; **Change sentence set** opens Settings → Sentences &
      progress. Nothing pre-chosen; its answers count after 1 s. A device that has not
-     chosen a set uses `open-vocab-v3.3`.
-   - `open-vocab-v3.3` is read **5 parts a day** (7 until 2026-10-23): each day counts from "Part 1 of 5" (the
+     chosen a set uses `open-vocab-v3.4` (since 2026-10-24; `open-vocab-v3.3` before). A device
+     still on `open-vocab-v3.3` moves to `open-vocab-v3.4` when the page opens.
+   - `open-vocab-v3.4`: SEMG3 does not read again the 316 sentences he recorded in v3.3 (the 301
+     shared ones kept word for word, 15 moved to later parts; `newset/open-vocab-v3.4-already-read-SEMG3.txt`).
+     He starts at the 49 shared sentences new to him, without the Practice, then goes on from part 34.
+     File names keep the line of 10,000; sidecars keep `materialLine`.
+   - `open-vocab-v3.3` and `open-vocab-v3.4` are read **5 parts a day** (7 until 2026-10-23): each day counts from "Part 1 of 5" (the
      sentences go on from where the last day stopped); after the 5th, "All 5 parts for
      today are done" with **Read one more part** / End for today, and the same after each
      extra part (Part 6, 7, …). It has no Rainbow Passage.

@@ -138,7 +138,9 @@ V2S.storage = (() => {
       sentenceSet: progressKey(participantId, setKey),
       participantId,
       set: setKey,
-      currentIndex: legacy ? Math.max(0, Number(legacy.currentIndex) || 0) : 0,
+      // Someone who already recorded part of this set elsewhere (alreadyRead) starts after the Practice.
+      currentIndex: legacy ? Math.max(0, Number(legacy.currentIndex) || 0)
+        : ((cfg.SETS[setKey] || {}).alreadyRead || {})[participantId] && coached ? cfg.WARMUP_COUNT : 0,
       repetitionCount: legacy ? Number(legacy.repetitionCount) || 0 : 0,
       round: legacy ? roundOf(legacy) : 1,
       completed: legacy ? Boolean(legacy.completed) : false,

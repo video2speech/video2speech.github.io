@@ -527,7 +527,7 @@ async def s_first_run(pw, base):
     c.check(True, 'plays the test back, picture and sound')
     await wait_for(page, "() => !document.getElementById('testAsk').hidden", timeout=10000)
     question = await page.text_content('#testQuestion')
-    c.check(question == 'Could you see your face and hear your voice clearly?' and await page.text_content('#checkMicTitle') == 'Did the test work?',
+    c.check(question == 'Could you see your face clearly, and hear any sound you made?' and await page.text_content('#checkMicTitle') == 'Did the test work?',
             'after the playback: the title asks, then whether the face is visible and the sound is clear', question)
     # iPhone/iPad with the microphone on turn a video's own sound down (or to the earpiece):
     # the test plays through the audio context, from the speaker, like the cue sounds.
@@ -1023,7 +1023,7 @@ async def s_mic_test_silent(pw, base):
     await click(page, '#testRecord')
     await wait_for(page, "() => !document.getElementById('testChoices').hidden", timeout=10000)
     titles = await page.locator('#testChoices .choice-title').all_text_contents()
-    c.check(await page.text_content('#checkMicTitle') == 'We couldn’t hear you'
+    c.check(await page.text_content('#checkMicTitle') == 'The test had no sound'
             and titles == ['Try again', 'Use another microphone', 'My condition stops me making enough sound'],
             'the title says nothing was heard; three choices', titles)
     await page.mouse.move(1, 1)   # no pointer resting on one of them (hover)
@@ -1997,7 +1997,7 @@ LEGACY_LABEL_PAGES = {'setSentenceSet': 'Sentences & progress', 'setResolution':
 
 # The earlier page's option texts, word for word.
 LEGACY_LABELS = {
-    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350', 'open-vocab-350-oct17', 'open-vocab-v3', 'open-vocab-v3.1', 'open-vocab-v3.3'],   # the earlier page's two, then the sets added 2026-10-16/17/18/21
+    'setSentenceSet': ['50words_350sentences', 'Open_300sentences', 'oct16-openVocab-350', 'open-vocab-350-oct17', 'open-vocab-v3', 'open-vocab-v3.1', 'open-vocab-v3.3', 'open-vocab-v3.4'],   # the earlier page's two, then the sets added 2026-10-16/17/18/21/24
     'setResolution': ['720p (1280×720) - Standard', '1080p (1920×1080) - Recommended', '480p (854×480) - Standard', '360p (640×360) - Low Quality', 'Auto - Camera Default'],
     'setBitrate': ['8 Mbps - Compatibility', '12 Mbps - High Quality', '15 Mbps - Research Quality', '25 Mbps - Fast Motion', '40 Mbps - Maximum Quality'],
     'setFps': ['30 fps - Standard', '60 fps - Fast Motion'],
@@ -2998,8 +2998,9 @@ async def s_file_integrity(pw, base):
     return c.done()
 
 async def s_rotation(pw, base):
-    c = Checks('v3 / v3.1 / v3.3 (10,000 sentences): the ID decides where after the shared 350 each participant goes on; files name the set\'s line')
-    for set_key, set_file in (('open-vocab-v3', 'open-vocab-v3-10000.txt'), ('open-vocab-v3.1', 'open-vocab-v3.1-10000.txt'), ('open-vocab-v3.3', 'open-vocab-v3.3-10000.txt')):
+    c = Checks('v3 / v3.1 / v3.4 (10,000 sentences): the ID decides where after the shared 350 each participant goes on; files name the set\'s line')
+    # (v3.3 is not loaded any more: a device on it moves to v3.4, see set_check.)
+    for set_key, set_file in (('open-vocab-v3', 'open-vocab-v3-10000.txt'), ('open-vocab-v3.1', 'open-vocab-v3.1-10000.txt'), ('open-vocab-v3.4', 'open-vocab-v3.4-10000.txt')):
         await rotation_checks(pw, base, c, set_key, set_file)
     return c.done()
 
@@ -3050,11 +3051,11 @@ async def rotation_checks(pw, base, c, set_key, set_file):
 
 
 async def s_set_check(pw, base):
-    c = Checks('As the page really is (owner, 2026-10-21): open-vocab-v3.3 by default; before every session, "Is this the right sentence set?"')
+    c = Checks('As the page really is (owner, 2026-10-21; v3.4 since 2026-10-24): open-vocab-v3.4 by default; before every session, "Is this the right sentence set?"; SEMG3 leaves out what he read in v3.3')
     browser, _, page, errors = await launch(pw, audio='speech', init_scripts=["window.__V2S_TEST = { testRecordMs: 1200, resolution: '360p' };", NO_PICKERS], engine=ENGINE)
     await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
-    c.check(await page.evaluate("V2S.app.state().setKey") == 'open-vocab-v3.3', 'a new device uses open-vocab-v3.3')
+    c.check(await page.evaluate("V2S.app.state().setKey") == 'open-vocab-v3.4', 'a new device uses open-vocab-v3.4')
     await page.fill('#setupId', 'P01')
     await click(page, '#setupNext')
     await page.wait_for_selector('#setupError:not([hidden])')
@@ -3070,10 +3071,15 @@ async def s_set_check(pw, base):
         pass
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
     m = await page.evaluate("() => { const a = V2S.app.state(); return { id: a.participantId, start: a.material.startPart, n: a.material.formalCount }; }")
-    c.check(m == {'id': 'SEMG3', 'start': 34, 'n': 10000}, 'SEMG3: all 10,000, going on from part 34 after the shared 350', m)
-    file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.3-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
-    first = await page.evaluate("() => { const m = V2S.app.state().material; return [m.all[m.warmupCount], m.all[m.warmupCount + 350], m.lines[350]]; }")
-    c.check(first == [file_lines[0], file_lines[1650], 1651], 'first the shared line 1, then line 1,651 (part 34)', first)
+    file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.4-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
+    read = [int(x) for x in (await page.evaluate("fetch('newset/open-vocab-v3.4-already-read-SEMG3.txt').then(r => r.text())")).split()]
+    shared_new = [n for n in range(1, 351) if n not in read]
+    c.check(m == {'id': 'SEMG3', 'start': 34, 'n': 10000 - len(read)} and len(read) == 316 and len(shared_new) == 49,
+            'SEMG3: everything but the 316 sentences he recorded in v3.3, going on from part 34', (m, len(read), len(shared_new)))
+    first = await page.evaluate("() => { const m = V2S.app.state().material; return { all: m.all.slice(m.warmupCount, m.warmupCount + 51), lines: m.lines.slice(0, 51), anyRead: m.lines.filter(n => window.__read.has(n)).length }; }".replace('window.__read', 'new Set(' + str(read) + ')'))
+    c.check(first['lines'][:49] == shared_new and first['all'][0] == file_lines[shared_new[0] - 1], 'first the 49 shared sentences that are new to him, in their order', first['lines'][:5])
+    c.check(first['lines'][49] == 1651 and first['all'][49] == file_lines[1650], 'then line 1,651 (part 34)', first['lines'][49:51])
+    c.check(first['anyRead'] == 0, 'none of the 316 he read is in his order')
 
     # Begin: the question comes first, and the press that opened it cannot answer it.
     await click(page, '#welcomeStart')
@@ -3081,7 +3087,7 @@ async def s_set_check(pw, base):
     title = await page.text_content('#dialogTitle')
     body = await page.text_content('#dialogBody')
     c.check(title == 'Is this the right sentence set?', 'Begin asks about the sentence set', title)
-    c.check('open-vocab-v3.3' in body and 'SEMG3' in body and 'Practice' in body, 'it names the set, the participant and where they are', body)
+    c.check('open-vocab-v3.4' in body and 'SEMG3' in body and 'Practice' in body, 'it names the set, the participant and where they are', body)
     # Pressed at once (in the page, so a slow test machine cannot make it late).
     early = await page.evaluate("""() => { const armed = document.getElementById('dialog').dataset.armed || null;
       [...document.querySelectorAll('#dialogActions button')].find(b => b.textContent === 'Yes, start').click();
@@ -3092,7 +3098,7 @@ async def s_set_check(pw, base):
     await dialog_ready(page)
     await page.locator('#dialogActions button', has_text='Change sentence set').click()
     await page.wait_for_selector('#settingsPanel:not([hidden])')
-    c.check(await page.is_visible('#setSentenceSet') and await page.input_value('#setSentenceSet') == 'open-vocab-v3.3', 'Change sentence set opens Settings at the set', await page.input_value('#setSentenceSet') if await page.is_visible('#setSentenceSet') else None)
+    c.check(await page.is_visible('#setSentenceSet') and await page.input_value('#setSentenceSet') == 'open-vocab-v3.4', 'Change sentence set opens Settings at the set', await page.input_value('#setSentenceSet') if await page.is_visible('#setSentenceSet') else None)
     await page.click('#settingsClose')
     await page.wait_for_selector('#settingsPanel', state='hidden')
     c.check(await page.is_visible('#screen-welcome'), 'closing Settings: back on Welcome, nothing started')
@@ -3120,29 +3126,36 @@ async def s_set_check(pw, base):
     await dialog_ready(page)
     await page.locator('#dialogActions button', has_text='Change sentence set').click()
     await page.wait_for_selector('#settingsPanel:not([hidden])')
-    await page.select_option('#setSentenceSet', 'open-vocab-v3.3')
+    await page.select_option('#setSentenceSet', 'open-vocab-v3.4')
     await confirm_dialog(page, 'Yes, continue')
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=10000)
     await click(page, '#welcomeStart')
     await wait_for(page, '() => V2S.ui.isDialogOpen()')
     body = await page.text_content('#dialogBody')
-    c.check('open-vocab-v3.3' in body, 'switched there: the next question names open-vocab-v3.3', body)
+    c.check('open-vocab-v3.4' in body, 'switched there: the next question names open-vocab-v3.4', body)
+    # A device still on v3.3 moves to v3.4 when the page opens (owner, 2026-10-24).
+    await page.keyboard.press('Escape')
+    await page.evaluate("V2S.storage.setSetting('setKey', 'open-vocab-v3.3')")
+    await page.reload()
+    await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
+    c.check(await page.evaluate("V2S.app.state().setKey") == 'open-vocab-v3.4' and await page.evaluate("V2S.storage.getSetting('setKey')") == 'open-vocab-v3.4',
+            'a device on open-vocab-v3.3 is moved to open-vocab-v3.4 (and remembers it)')
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
 
 
 async def s_daily(pw, base):
-    c = Checks('open-vocab-v3.3, a few parts a day (owner: 7 on 2026-10-21, 5 since 2026-10-23): today counts from Part 1; then "All 5 parts for today are done", one more part at a time; the next day Part 1 again, the sentences going on')
+    c = Checks('open-vocab-v3.4, a few parts a day (owner: 7 on 2026-10-21, 5 since 2026-10-23): today counts from Part 1; then "All 5 parts for today are done", one more part at a time; the next day Part 1 again, the sentences going on')
     browser, _, page, errors = await launch(pw, audio='speech', fsa=True, init_scripts=[FAST], engine=ENGINE)
-    await setup_participant(page, base, participant='SEMG3', save='folder')
-    await page.evaluate("V2S.storage.setSetting('setKey', 'open-vocab-v3.3')")
+    await setup_participant(page, base, participant='SEMG1', save='folder')
+    await page.evaluate("V2S.storage.setSetting('setKey', 'open-vocab-v3.4')")
     await page.reload()
     await page.wait_for_selector('#screen-welcome:not([hidden])', timeout=20000)
-    file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.3-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
+    file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.4-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
     w = await page.evaluate('V2S.app.state().material.warmupCount')
     today = await page.evaluate('V2S.sentences.today()')
-    D = await page.evaluate("V2S.config.SETS['open-vocab-v3.3'].daily.parts")   # parts a day (5)
+    D = await page.evaluate("V2S.config.SETS['open-vocab-v3.4'].daily.parts")   # parts a day (5)
     welcome = "() => ({ part: document.getElementById('welcomePart').textContent, count: document.getElementById('welcomeCount').textContent, start: document.getElementById('welcomeStart').textContent, lead: document.getElementById('welcomeLead').textContent })"
 
     async def reload_welcome():
@@ -3195,7 +3208,42 @@ async def s_daily(pw, base):
     await set_progress(page, day={'date': '2000-01-02', 'startPart': 3})
     v = await reload_welcome()
     c.check(v['part'] == f'Part 1 of {D}' and v['count'] == 'Sentence 2 of 50', 'a new day in the middle of a part: Part 1 at sentence 2', v)
-    c.check(await page.evaluate("V2S.sentences.hasRainbow('open-vocab-v3.3')") is False, 'no Rainbow Passage with this set')
+    c.check(await page.evaluate("V2S.sentences.hasRainbow('open-vocab-v3.4')") is False, 'no Rainbow Passage with this set')
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
+async def s_semg3_v34(pw, base):
+    c = Checks('SEMG3 (owner, 2026-10-24): he read v3.3\'s shared 350; on v3.4 he reads only what is new to him, without the Practice, then goes on from part 34')
+    browser, _, page, errors = await launch(pw, audio='speech', init_scripts=[FAST, NO_PICKERS], engine=ENGINE)
+    await page.goto(next_url(base))
+    await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
+    # His device as it is: on v3.3, his progress there past the shared 350, coached.
+    await page.evaluate("""async () => {
+      await V2S.storage.setSetting('setKey', 'open-vocab-v3.3');
+      await V2S.storage.saveParticipantProgress({ sentenceSet: 'SEMG3::open-vocab-v3.3', participantId: 'SEMG3', set: 'open-vocab-v3.3',
+        currentIndex: 355, repetitionCount: 0, round: 1, completed: false, completedAt: null, tutorialTakes: 0,
+        coachDone: true, howtoSeen: true, takeCounts: {}, usable: {}, createdAt: new Date().toISOString(), timestamp: new Date().toISOString() });
+    }""")
+    await setup_participant(page, base, participant='SEMG3')
+    a = await page.evaluate("""() => { const a = V2S.app.state(); return { set: a.setKey, i: a.progress.currentIndex, w: a.material.warmupCount,
+      coach: a.progress.coachDone, first: a.material.lines[0], n: a.material.formalCount }; }""")
+    read = [int(x) for x in (await page.evaluate("fetch('newset/open-vocab-v3.4-already-read-SEMG3.txt').then(r => r.text())")).split()]
+    first_new = min(n for n in range(1, 351) if n not in read)
+    c.check(a['set'] == 'open-vocab-v3.4', 'his device moved from v3.3 to v3.4', a)
+    c.check(a['i'] == a['w'] and a['coach'] is True, 'no Practice: he starts at the first real sentence', a)
+    c.check(a['first'] == first_new and a['n'] == 10000 - 316, 'the first is the first shared sentence new to him; 316 left out', a)
+    await start_session(page)
+    s = await state(page)
+    file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.4-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
+    c.check(s['sentence'].replace('\xa0', ' ') == file_lines[first_new - 1], 'the screen shows that sentence', s['sentence'])
+    await record(page)
+    meta = await page.evaluate("""async () => { await V2S.session.flush(); const out = [];
+      await V2S.storage.forEachTake(r => out.push({ f: r.fileName, line: r.metadata.materialLine, set: r.metadata.sentenceSet, start: r.metadata.rotationStartPart }));
+      return out; }""")
+    c.check(len(meta) == 1 and f'_{first_new}-10000_' in meta[0]['f'] and meta[0]['line'] == first_new and meta[0]['set'] == 'open-vocab-v3.4' and meta[0]['start'] == 34,
+            'its file is named by its v3.4 line of 10,000; the sidecar says v3.4, the line and part 34', meta)
     c.check(not errors, 'no page errors', errors)
     await browser.close()
     return c.done()
@@ -3263,6 +3311,7 @@ SCENARIOS = {
     'file_integrity': s_file_integrity,
     'rotation': s_rotation,
     'set_check': s_set_check,
+    'semg3_v34': s_semg3_v34,
     'daily': s_daily,
 }
 
@@ -3271,7 +3320,7 @@ CROSS_ENGINE = ['first_run', 'normal', 'hold', 'no_speech', 'redo', 'speech_befo
                 'bluetooth', 'mic_test_silent', 'help', 'double_tap', 'held_keys', 'save_keys', 'camera_denied', 'card_stable', 'device', 'reload', 'break_zip', 'legacy', 'storage_full',
                 'finish_settings', 'signin', 'keyboard', 'clicker', 'too_loud', 'set_switch', 'no_audio', 'fit', 'settings_parity', 'settings_fit', 'redo_reload',
                 'practice_again', 'rounds', 'zip_backups', 'part_end_redo', 'two_tabs', 'long_take', 'store_failure',
-                'store_failure_late', 'stale_backups', 'rainbow_zip', 'card_room', 'new_participant', 'rotation', 'set_check']
+                'store_failure_late', 'stale_backups', 'rainbow_zip', 'card_room', 'new_participant', 'rotation', 'set_check', 'semg3_v34']
 
 
 async def main(names, jobs):

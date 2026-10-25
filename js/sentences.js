@@ -58,7 +58,8 @@ V2S.sentences = (() => {
     if (!set) throw new Error(`Unknown sentence set: ${setKey}`);
     const start = set.rotation ? startPart(setKey, participantId) : null;
     if (set.rotation && start === null) throw new Error(`The sentence set ${set.label} needs a participant ID like SEMG1, SEMG2, ... (this one is ${participantId || 'not set'}).`);
-    const cacheKey = start === null ? setKey : `${setKey}@${start}`;
+    const readFile = set.alreadyRead && participantId ? set.alreadyRead[String(participantId)] || null : null;
+    const cacheKey = (start === null ? setKey : `${setKey}@${start}`) + (readFile ? `#${participantId}` : '');
     if (cache[cacheKey]) return cache[cacheKey];
     const [warmup, formal] = await Promise.all([loadFile(cfg.WARMUP_FILE), loadFile(set.file)]);
     validate('Warm-up file', warmup, cfg.WARMUP_COUNT);
@@ -74,10 +75,16 @@ V2S.sentences = (() => {
       for (let i = 0; i <= lastPart - firstPart; i += 1) parts.push(firstPart + (start - firstPart + i) % (lastPart - firstPart + 1));
       order = parts.flatMap(p => Array.from({ length: size }, (_, j) => (p - 1) * size + j));
     }
+    if (readFile) {
+      // Sentences this participant already recorded in an earlier set: left out (lines 1-based).
+      const done = new Set((await loadFile(readFile)).map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= formal.length));
+      order = order.filter(i => !done.has(i + 1));
+    }
     const ordered = order.map(i => formal[i]);
-    const material = { setKey, warmupCount: warmup.length, formalCount: formal.length, all: [...warmup, ...ordered] };
+    const material = { setKey, warmupCount: warmup.length, formalCount: ordered.length, all: [...warmup, ...ordered] };
     if (start !== null) {
       material.lines = order.map(i => i + 1);
+      material.fileCount = formal.length;   // file names keep "<line>-<sentences in the file>" 
       material.startPart = start;
       material.fitList = [...warmup, ...ordered.slice(0, 1000)];
     }

@@ -84,7 +84,13 @@ V2S.app = (() => {
   async function loadSettings() {
     const media = await V2S.storage.getSetting('mediaSettings', null);
     V2S.media.setSettings(media || cfg.MEDIA_DEFAULTS);
-    const setKey = await V2S.storage.getSetting('setKey', cfg.DEFAULT_SET);
+    let setKey = await V2S.storage.getSetting('setKey', cfg.DEFAULT_SET);
+    const newer = cfg.SUPERSEDED && cfg.SUPERSEDED[setKey];
+    if (newer && cfg.SETS[newer]) {   // owner, 2026-10-24: a device on v3.3 moves to v3.4
+      await V2S.storage.setSetting('setKey', newer);
+      logEvent('set_superseded', { from: setKey, to: newer });
+      setKey = newer;
+    }
     app.setKey = cfg.SETS[setKey] ? setKey : cfg.DEFAULT_SET;
     applyTheme(await V2S.storage.getSetting('theme', document.documentElement.getAttribute('data-theme') || 'light'));
     V2S.input.setHoldMs(await V2S.storage.getSetting('holdMs', cfg.HOLD_MS));

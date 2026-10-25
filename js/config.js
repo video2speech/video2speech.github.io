@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '230',
-  MATERIAL_VERSION: 'materials_v230',
+  APP_VERSION: '231',
+  MATERIAL_VERSION: 'materials_v231',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -71,12 +71,32 @@ V2S.config = Object.freeze({
       daily: Object.freeze({ parts: 5 }),   // owner, 2026-10-23: 5 parts a day (was 7)
       rainbow: false,
       rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' })
+    },
+    // v3.4 (owner, 2026-10-24): material_design/open-vocab-v3.4 (rules RULES_v3_4.md). Same
+    // rotation and day plan as v3.3. `alreadyRead`: a participant who recorded some of these
+    // very sentences in an earlier set does not read them again (owner: SEMG3 read v3.3's
+    // shared 350 on 2026-10-22; v3.4 keeps 301 of them word for word, and 15 more moved to
+    // later parts). The file lists those lines (1-based, in the set's file); they are left out
+    // of that participant's reading order, which starts after the Practice (he has done it).
+    'open-vocab-v3.4': {
+      label: 'open-vocab-v3.4',
+      about: 'Open-vocabulary sentences (v3.4, 2026-10-24), 5 parts a day',
+      file: 'newset/open-vocab-v3.4-10000.txt',
+      count: 10000,
+      shortRepeats: 3,
+      daily: Object.freeze({ parts: 5 }),
+      rainbow: false,
+      rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' }),
+      alreadyRead: Object.freeze({ SEMG3: 'newset/open-vocab-v3.4-already-read-SEMG3.txt' })
     }
   },
-  // The set a device uses until one is chosen in Settings (owner, 2026-10-21: v3.3). A device
+  // A device still on a set that a newer version replaced moves to the newer one when the
+  // page opens (owner, 2026-10-24: v3.3 -> v3.4). Its progress there starts fresh (per set).
+  SUPERSEDED: Object.freeze({ 'open-vocab-v3.3': 'open-vocab-v3.4' }),
+  // The set a device uses until one is chosen in Settings (owner, 2026-10-21: v3.3; 2026-10-24: v3.4). A device
   // that chose a set keeps it; the question before each session shows which one it is.
   // (Automated tests of other things keep the earlier default through window.__V2S_TEST.)
-  DEFAULT_SET: (window.__V2S_TEST && window.__V2S_TEST.defaultSet) || 'open-vocab-v3.3',
+  DEFAULT_SET: (window.__V2S_TEST && window.__V2S_TEST.defaultSet) || 'open-vocab-v3.4',
   // Before every session (Begin / Continue on Welcome), ask whether the sentence set is the
   // right one (owner, 2026-10-21).
   SET_CHECK: !(window.__V2S_TEST && window.__V2S_TEST.setCheck === false),
