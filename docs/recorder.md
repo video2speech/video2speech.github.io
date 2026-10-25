@@ -35,8 +35,8 @@ it. Problems show as an amber notice right above the main button.
      progress. Nothing pre-chosen; its answers count after 1 s. A device that has not
      chosen a set uses `open-vocab-v3.4` (since 2026-10-24; `open-vocab-v3.3` before). A device
      still on `open-vocab-v3.3` moves to `open-vocab-v3.4` when the page opens.
-   - `open-vocab-v3.4`: SEMG3 does not read again the 316 sentences he recorded in v3.3 (the 301
-     shared ones kept word for word, 15 moved to later parts; `newset/open-vocab-v3.4-already-read-SEMG3.txt`).
+   - `open-vocab-v3.4`: SEMG3 does not read again the 315 sentences he recorded in v3.3 (the 301
+     shared ones kept word for word, 14 moved to later parts; `newset/open-vocab-v3.4-already-read-SEMG3.txt`).
      He starts at the 49 shared sentences new to him, without the Practice, then goes on from part 34.
      File names keep the line of 10,000; sidecars keep `materialLine`.
    - `open-vocab-v3.3` and `open-vocab-v3.4` are read **5 parts a day** (7 until 2026-10-23): each day counts from "Part 1 of 5" (the

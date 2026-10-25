@@ -3074,12 +3074,12 @@ async def s_set_check(pw, base):
     file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.4-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
     read = [int(x) for x in (await page.evaluate("fetch('newset/open-vocab-v3.4-already-read-SEMG3.txt').then(r => r.text())")).split()]
     shared_new = [n for n in range(1, 351) if n not in read]
-    c.check(m == {'id': 'SEMG3', 'start': 34, 'n': 10000 - len(read)} and len(read) == 316 and len(shared_new) == 49,
-            'SEMG3: everything but the 316 sentences he recorded in v3.3, going on from part 34', (m, len(read), len(shared_new)))
+    c.check(m == {'id': 'SEMG3', 'start': 34, 'n': 10000 - len(read)} and len(read) == 315 and len(shared_new) == 49,
+            'SEMG3: everything but the 315 sentences he recorded in v3.3, going on from part 34', (m, len(read), len(shared_new)))
     first = await page.evaluate("() => { const m = V2S.app.state().material; return { all: m.all.slice(m.warmupCount, m.warmupCount + 51), lines: m.lines.slice(0, 51), anyRead: m.lines.filter(n => window.__read.has(n)).length }; }".replace('window.__read', 'new Set(' + str(read) + ')'))
     c.check(first['lines'][:49] == shared_new and first['all'][0] == file_lines[shared_new[0] - 1], 'first the 49 shared sentences that are new to him, in their order', first['lines'][:5])
     c.check(first['lines'][49] == 1651 and first['all'][49] == file_lines[1650], 'then line 1,651 (part 34)', first['lines'][49:51])
-    c.check(first['anyRead'] == 0, 'none of the 316 he read is in his order')
+    c.check(first['anyRead'] == 0, 'none of the 315 he read is in his order')
 
     # Begin: the question comes first, and the press that opened it cannot answer it.
     await click(page, '#welcomeStart')
@@ -3233,7 +3233,7 @@ async def s_semg3_v34(pw, base):
     first_new = min(n for n in range(1, 351) if n not in read)
     c.check(a['set'] == 'open-vocab-v3.4', 'his device moved from v3.3 to v3.4', a)
     c.check(a['i'] == a['w'] and a['coach'] is True, 'no Practice: he starts at the first real sentence', a)
-    c.check(a['first'] == first_new and a['n'] == 10000 - 316, 'the first is the first shared sentence new to him; 316 left out', a)
+    c.check(a['first'] == first_new and a['n'] == 10000 - 315, 'the first is the first shared sentence new to him; 315 left out', a)
     await start_session(page)
     s = await state(page)
     file_lines = (await page.evaluate("fetch('newset/open-vocab-v3.4-10000.txt').then(r => r.text())")).rstrip('\n').split('\n')
