@@ -37,6 +37,9 @@ it. Problems show as an amber notice right above the main button.
      still on `open-vocab-v3.3` moves to `open-vocab-v3.4` when the page opens.
    - `open-vocab-v3.4`: SEMG3 does not read again the 315 sentences he recorded in v3.3 (the 301
      shared ones kept word for word, 14 moved to later parts; `newset/open-vocab-v3.4-already-read-SEMG3.txt`).
+     SEMG2 does not read again the 52 v3.4 lines with the same wording as lines 1-252 of
+     `oct16-openVocab-350` he read on 2026-10-16 (42 shared, 10 later; contractions written
+     out or other edits count as new; `newset/open-vocab-v3.4-already-read-SEMG2.txt`).
      He starts at the 49 shared sentences new to him, without the Practice, then goes on from part 34.
      File names keep the line of 10,000; sidecars keep `materialLine`.
    - `open-vocab-v3.3` and `open-vocab-v3.4` are read **5 parts a day** (7 until 2026-10-23): each day counts from "Part 1 of 5" (the

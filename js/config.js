@@ -3,8 +3,8 @@
 window.V2S = window.V2S || {};
 
 V2S.config = Object.freeze({
-  APP_VERSION: '232',
-  MATERIAL_VERSION: 'materials_v232',
+  APP_VERSION: '233',
+  MATERIAL_VERSION: 'materials_v233',
 
   WARMUP_FILE: 'newset/aac_extra_5_sentences.txt',
   WARMUP_COUNT: 5,
@@ -75,8 +75,9 @@ V2S.config = Object.freeze({
     // v3.4 (owner, 2026-10-24): material_design/open-vocab-v3.4 (rules RULES_v3_4.md). Same
     // rotation and day plan as v3.3. `alreadyRead`: a participant who recorded some of these
     // very sentences in an earlier set does not read them again (owner: SEMG3 read v3.3's
-    // shared 350 on 2026-10-22; v3.4 keeps 301 of them word for word, and 15 more moved to
-    // later parts). The file lists those lines (1-based, in the set's file); they are left out
+    // shared 350 on 2026-10-22; v3.4 keeps 301 of them word for word, and 14 more are in
+    // later parts. Owner, 2026-10-25: SEMG2 read lines 1-252 of oct16-openVocab-350 on
+    // 2026-10-16; 52 v3.4 lines have the same wording, 42 of them shared). The file lists those lines (1-based, in the set's file); they are left out
     // of that participant's reading order, which starts after the Practice (he has done it).
     'open-vocab-v3.4': {
       label: 'open-vocab-v3.4',
@@ -87,7 +88,10 @@ V2S.config = Object.freeze({
       daily: Object.freeze({ parts: 5 }),
       rainbow: false,
       rotation: Object.freeze({ sharedParts: 7, firstPart: 8, lastPart: 200, step: 13, idPattern: '^SEMG([1-9][0-9]*)$' }),
-      alreadyRead: Object.freeze({ SEMG3: 'newset/open-vocab-v3.4-already-read-SEMG3.txt' })
+      alreadyRead: Object.freeze({
+        SEMG2: 'newset/open-vocab-v3.4-already-read-SEMG2.txt',
+        SEMG3: 'newset/open-vocab-v3.4-already-read-SEMG3.txt'
+      })
     }
   },
   // A device still on a set that a newer version replaced moves to the newer one when the

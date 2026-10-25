@@ -3000,12 +3000,15 @@ async def s_file_integrity(pw, base):
 async def s_rotation(pw, base):
     c = Checks('v3 / v3.1 / v3.4 (10,000 sentences): the ID decides where after the shared 350 each participant goes on; files name the set\'s line')
     # (v3.3 is not loaded any more: a device on it moves to v3.4, see set_check.)
-    for set_key, set_file in (('open-vocab-v3', 'open-vocab-v3-10000.txt'), ('open-vocab-v3.1', 'open-vocab-v3.1-10000.txt'), ('open-vocab-v3.4', 'open-vocab-v3.4-10000.txt')):
-        await rotation_checks(pw, base, c, set_key, set_file)
+    # v3.4: SEMG4, since SEMG2 and SEMG3 leave out lines they read before (set_check).
+    for set_key, set_file, n in (('open-vocab-v3', 'open-vocab-v3-10000.txt', 2), ('open-vocab-v3.1', 'open-vocab-v3.1-10000.txt', 2), ('open-vocab-v3.4', 'open-vocab-v3.4-10000.txt', 4)):
+        await rotation_checks(pw, base, c, set_key, set_file, n)
     return c.done()
 
 
-async def rotation_checks(pw, base, c, set_key, set_file):
+async def rotation_checks(pw, base, c, set_key, set_file, n=2):
+    part = 8 + 13 * (n - 1)
+    line = (part - 1) * 50 + 1
     browser, _, page, errors = await launch(pw, audio='speech', init_scripts=[FAST, NO_PICKERS], engine=ENGINE)
     await page.goto(next_url(base))
     await page.wait_for_selector('#screen-setup:not([hidden])', timeout=15000)
@@ -3016,7 +3019,7 @@ async def rotation_checks(pw, base, c, set_key, set_file):
     await click(page, '#setupNext')
     await page.wait_for_selector('#setupError:not([hidden])')
     c.check('SEMG1' in (await page.text_content('#setupError')), f'{set_key}: an ID without the number (P01): asked for one like SEMG1', await page.text_content('#setupError'))
-    await page.fill('#setupId', 'semg2')
+    await page.fill('#setupId', f'semg{n}')
     await click(page, '#setupNext')
     await page.wait_for_selector('#setupStepConfirm:not([hidden])')
     await click(page, '#setupConfirmYes')
@@ -3031,21 +3034,21 @@ async def rotation_checks(pw, base, c, set_key, set_file):
       return { start: m.startPart, kept: a.progress.startPart, n: m.formalCount, w: m.warmupCount, first: m.all[m.warmupCount],
                s350: m.all[m.warmupCount + 349], s351: m.all[m.warmupCount + 350], last: m.all[m.all.length - 1],
                l351: m.lines[350], lLast: m.lines[m.lines.length - 1], uniq: new Set(m.lines).size }; }""")
-    c.check(m['start'] == 21 and m['kept'] == 21, f'{set_key}: SEMG2 goes on from part 21 after the shared parts; kept with the progress', (m['start'], m['kept']))
+    c.check(m['start'] == part and m['kept'] == part, f'{set_key}: SEMG{n} goes on from part {part} after the shared parts; kept with the progress', (m['start'], m['kept']))
     c.check(m['n'] == 10000 and m['uniq'] == 10000, f'{set_key}: all 10,000 sentences, each once', (m['n'], m['uniq']))
     c.check(m['first'] == file_lines[0] and m['s350'] == file_lines[349], f'{set_key}: the shared 350 first, in their own order')
-    c.check(m['s351'] == file_lines[1000] and m['l351'] == 1001, f'{set_key}: then part 21 (line 1,001)', (m['s351'], m['l351']))
-    c.check(m['lLast'] == 1000 and m['last'] == file_lines[999], f'{set_key}: round the rest: part 20 last (line 1,000)', m['lLast'])
+    c.check(m['s351'] == file_lines[line - 1] and m['l351'] == line, f'{set_key}: then part {part} (line {line:,})', (m['s351'], m['l351']))
+    c.check(m['lLast'] == line - 1 and m['last'] == file_lines[line - 2], f'{set_key}: round the rest: part {part - 1} last (line {line - 1:,})', m['lLast'])
     await set_progress(page, howtoSeen=True, coachDone=True, currentIndex=m['w'] + 350, completed=False)
     await start_session(page)
     s = await state(page)
-    c.check(s['sentence'].replace('\xa0', ' ') == file_lines[1000], f'{set_key}: the first sentence after the shared 350 is line 1,001', s['sentence'])
+    c.check(s['sentence'].replace('\xa0', ' ') == file_lines[line - 1], f'{set_key}: the first sentence after the shared 350 is line {line:,}', s['sentence'])
     await record(page)
     meta = await page.evaluate("""async () => { await V2S.session.flush(); const out = [];
       await V2S.storage.forEachTake(r => out.push({ f: r.fileName, line: r.metadata.materialLine, start: r.metadata.rotationStartPart, pos: r.metadata.position }));
       return out; }""")
-    c.check(len(meta) == 1 and '_1001-10000_' in meta[0]['f'] and meta[0]['line'] == 1001 and meta[0]['start'] == 21 and meta[0]['pos'] == 351,
-            'its file is named by line 1,001 of 10,000; the sidecar has the line, the start part and the reading position', meta)
+    c.check(len(meta) == 1 and f'_{line}-10000_' in meta[0]['f'] and meta[0]['line'] == line and meta[0]['start'] == part and meta[0]['pos'] == 351,
+            f'its file is named by line {line:,} of 10,000; the sidecar has the line, the start part and the reading position', meta)
     c.check(not errors, f'{set_key}: no page errors', errors)
     await browser.close()
 
@@ -3080,6 +3083,15 @@ async def s_set_check(pw, base):
     c.check(first['lines'][:49] == shared_new and first['all'][0] == file_lines[shared_new[0] - 1], 'first the 49 shared sentences that are new to him, in their order', first['lines'][:5])
     c.check(first['lines'][49] == 1651 and first['all'][49] == file_lines[1650], 'then line 1,651 (part 34)', first['lines'][49:51])
     c.check(first['anyRead'] == 0, 'none of the 315 he read is in his order')
+    # SEMG2 (owner, 2026-10-25): read oct16 lines 1-252; v3.4 lines with the same wording are left out.
+    read2 = [int(x) for x in (await page.evaluate("fetch('newset/open-vocab-v3.4-already-read-SEMG2.txt').then(r => r.text())")).split()]
+    s2 = await page.evaluate("""async () => { const m = await V2S.sentences.load('open-vocab-v3.4', 'SEMG2');
+      return { start: m.startPart, n: m.formalCount, lines: m.lines.slice(0, 400) }; }""")
+    new2 = [n for n in range(1, 351) if n not in read2]
+    c.check(len(read2) == 52 and len(new2) == 308 and s2['n'] == 10000 - 52 and s2['start'] == 21,
+            'SEMG2: everything but the 52 lines he read on 2026-10-16, going on from part 21', (len(read2), s2['n'], s2['start']))
+    c.check(s2['lines'][:308] == new2 and s2['lines'][308] == 1001 and not set(s2['lines']) & set(read2),
+            'SEMG2: the 308 shared lines new to him, then line 1,001 (part 21); none he read', s2['lines'][306:310])
 
     # Begin: the question comes first, and the press that opened it cannot answer it.
     await click(page, '#welcomeStart')
