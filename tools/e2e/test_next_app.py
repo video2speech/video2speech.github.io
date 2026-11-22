@@ -2731,6 +2731,43 @@ async def s_zip_backups(pw, base):
     return c.done()
 
 
+async def s_part_end_quick_redo(pw, base):
+    c = Checks("At a part's end, Redo counts at once (SEMG5, 11-19: ← 1 s after the end was ignored); Go to break still waits")
+    browser, _, page, errors = await boot(pw, base, index=5 + 49, init_scripts=[NO_PICKERS])
+    await ready_for_press(page)
+    await page.keyboard.press('Space')
+    await page.wait_for_timeout(1600)
+    await page.keyboard.press('Space')
+    await wait_for(page, "() => V2S.session.getState() === 'partEnd'")
+    # No waiting for the page to take presses: these come as fast as a person can react.
+    await page.keyboard.press('Space')
+    await page.wait_for_timeout(150)
+    s = await state(page)
+    c.check(s['state'] == 'partEnd', 'Space right after the part ends does not go to the break', s)
+    await page.keyboard.press('ArrowLeft')
+    await page.wait_for_timeout(300)
+    s = await state(page)
+    c.check(s['index'] == 54 and s['redoLabel'] == 'Cancel redo', '← within a second of the part end starts the redo', s)
+    await page.wait_for_timeout(1100)
+    await page.keyboard.press('ArrowRight')
+    await wait_for(page, "() => V2S.session.getState() === 'partEnd'")
+    await page.wait_for_timeout(450)   # clicks wait ENTER_GUARD_MS after any screen change (all screens)
+    await page.click('#redoButton')
+    await page.wait_for_timeout(300)
+    s = await state(page)
+    c.check(s['index'] == 54 and s['redoLabel'] == 'Cancel redo', 'the Redo button half a second after the part end starts the redo', s)
+    await record(page)
+    s = await state(page)
+    c.check(s['state'] == 'partEnd' and s['main'] == 'Go to break', 'after the redo: the part end again', s)
+    await press(page, 'Space')
+    await page.wait_for_selector('#screen-break:not([hidden])')
+    t = await takes(page)
+    c.check([x['status'] for x in t] == ['superseded', 'accepted'], 'the first take is superseded, the redo is kept', t)
+    c.check(not errors, 'no page errors', errors)
+    await browser.close()
+    return c.done()
+
+
 async def s_part_end_redo(pw, base):
     c = Checks("A part's last sentence can be redone before the break; the ZIP keeps only the new take usable")
     browser, _, page, errors = await boot(pw, base, index=5 + 49, init_scripts=[NO_PICKERS])
@@ -3316,6 +3353,7 @@ SCENARIOS = {
     'card_room': s_card_room,
     'zip_backups': s_zip_backups,
     'part_end_redo': s_part_end_redo,
+    'part_end_quick_redo': s_part_end_quick_redo,
     'two_tabs': s_two_tabs,
     'long_take': s_long_take,
     'store_failure': s_store_failure,
@@ -3331,7 +3369,7 @@ SCENARIOS = {
 CROSS_ENGINE = ['first_run', 'normal', 'hold', 'no_speech', 'redo', 'speech_before_start', 'tail', 'recorder_retry',
                 'bluetooth', 'mic_test_silent', 'help', 'double_tap', 'held_keys', 'save_keys', 'camera_denied', 'card_stable', 'device', 'reload', 'break_zip', 'legacy', 'storage_full',
                 'finish_settings', 'signin', 'keyboard', 'clicker', 'too_loud', 'set_switch', 'no_audio', 'fit', 'settings_parity', 'settings_fit', 'redo_reload',
-                'practice_again', 'rounds', 'zip_backups', 'part_end_redo', 'two_tabs', 'long_take', 'store_failure',
+                'practice_again', 'rounds', 'zip_backups', 'part_end_redo', 'part_end_quick_redo', 'two_tabs', 'long_take', 'store_failure',
                 'store_failure_late', 'stale_backups', 'rainbow_zip', 'card_room', 'new_participant', 'rotation', 'set_check', 'semg3_v34']
 
 

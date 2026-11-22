@@ -24,6 +24,7 @@ V2S.input = (() => {
   let enabled = false;
   let press = null;
   let lastPressAt = -Infinity;
+  let primaryGuardUntil = -Infinity;   // Start/Continue (and →) wait until then; Redo does not
   let pointerDown = false;
   let lastPointerUpAt = -Infinity;
   let releaseWaiters = [];
@@ -74,6 +75,10 @@ V2S.input = (() => {
   function beginPress(kind, source, extra = {}) {
     const now = performance.now();
     if (press) return false;
+    if (kind !== 'secondary' && now < primaryGuardUntil) {
+      logEvent('press_debounced', { kind, source, reason: 'step' });
+      return false;
+    }
     if (now - lastPressAt < cfg.DEBOUNCE_MS) {
       logEvent('press_debounced', { kind, source });
       return false;
@@ -247,9 +252,14 @@ V2S.input = (() => {
   document.addEventListener('visibilitychange', () => { if (document.hidden) { cancelPress(); forgetHeld(); } });
 
   // For tests: a press now would count (not within DEBOUNCE_MS of the last, nor guarded).
-  const pressReady = () => performance.now() - lastPressAt >= cfg.DEBOUNCE_MS;
+  const pressReady = (kind = 'primary') => {
+    const now = performance.now();
+    return now - lastPressAt >= cfg.DEBOUNCE_MS && (kind === 'secondary' || now >= primaryGuardUntil);
+  };
   // Presses count only after `ms` (a practice step or a part's end must be seen first).
   const guardFor = ms => { lastPressAt = Math.max(lastPressAt, performance.now() + ms - cfg.DEBOUNCE_MS); };
+  // Only Start/Continue and → wait `ms`; Redo (←, Redo button) counts at once.
+  const guardPrimaryFor = ms => { primaryGuardUntil = Math.max(primaryGuardUntil, performance.now() + ms); };
 
-  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed, screenChanged, holdClicks, clicksPaused, pressReady, guardFor };
+  return { guard, configure, setEnabled, setHoldMs, getHoldMs: () => holdMs, bindButton, waitForRelease, isPressed, screenChanged, holdClicks, clicksPaused, pressReady, guardFor, guardPrimaryFor };
 })();

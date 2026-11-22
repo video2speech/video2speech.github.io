@@ -142,6 +142,9 @@ with **Use this tab instead**; the first copy then stops and says so.
   Closing a dialog counts as a screen change (a double tap on its answer never presses
   the button behind it). Save recordings and Reconnect do nothing while they are
   already running.
+- At a part's end, Go to break (Space, Enter, →, the button) counts only after 1 s, so a
+  second press of Stop never skips the chance to redo the part's last sentence. Redo
+  (←, PageUp) counts at once; the Redo button after the 0.4 s click pause.
 - **Start held for 1 s** (the push-to-talk habit) throws the take away. A dialog then
   explains: "Press Start once and let go. It records until you press Stop." The same
   sentence comes back.

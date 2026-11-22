@@ -414,8 +414,9 @@ V2S.session = (() => {
     take = null;
     redoAfterSave = false;
     stepShownAt = performance.now();
-    V2S.input.guardFor(cfg.STEP_MIN_MS);
-    V2S.input.guard();   // Start has just become Continue: not the second press of Stop
+    // Go to break waits STEP_MIN_MS (Start has just become Continue: not a second press of
+    // Stop). Redo counts at once: a misread last sentence is noticed right away (SEMG5, 11-19).
+    V2S.input.guardPrimaryFor(cfg.STEP_MIN_MS);
     V2S.meter.setIdleDetection(false);
     render(partEndView());
     logEvent('part_end', { kind: info.kind, index: lastAccepted && lastAccepted.index });
